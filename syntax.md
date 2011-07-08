@@ -20,6 +20,7 @@ It reads a tiny bit better than, say:
     delete_file filename
     rm $filename
     File.Delete(filename);
+    [File deleteAt: filename];
 
 A bit better but hardly a great improvement. But, if we pass several arguments it gets clearer:
 
@@ -34,8 +35,17 @@ Better than:
     http_get_into_file url, filename
     curl $url > $filename
     Http.GetIntoFile(url, filename);
+    [HTTP get:url intoFile:filename];
 
 That's kind of what I was thinking one day.
+
+Variables can have spaces in them:
+
+    total weight = 67
+
+And are referred to in brackets:
+
+    print (total weight)
 
 # Function Calls
 
@@ -48,6 +58,18 @@ Of course, they can return values too:
     y = compute some value from @z and return it
 
 No brackets. Relax.
+
+Well, you can use brackets if you want nested function calls:
+
+    md5 hash (read all text from file "sample.txt")
+
+## Optional Arguments
+
+Optional arguments can be passed to functions to override defaults. Optional arguments follow the same rules as function calls, except they appear after commas:
+
+    connect to mysql database, at "1.2.3.4", on port 3307
+
+## Closures
 
 Closures are passed to functions by declaring the closure parameters inline with the function call, like this:
 
@@ -65,12 +87,28 @@ This function name is a bit of a mouthful, lets examine a more realistic example
     open file "sample.txt" as ?file
         @file write line "hi"
 
+If the block isn't indented, or none is given, the block ends up being the rest of the enclosing block. Lets consider this block written with a `do` statement. The open file block ends up being the remaining lines in the `do`.
+
+do
+    open file "sample.txt" as ?file
+    @file write line "hi"
+
+## Asynchronous Calls
+
+Asynchronous calls can be made with a tilde `~`.
+
+    contents = ~ @fs read file "sample.txt"
+
+The results of async functions can be passed to other functions:
+
+    find differences between (~ @fs read file "sample.txt") and (~ @fs read file "sample-old.txt")
+
+Both async calls are invoked at the same time, effectively running them in parallel.
+
+
+
 Which brings us to method calls, which are pretty much identical to function calls except that they start with a variable reference, which is the object (the `self`, or `this` object).
 
     @stack push @item
     @stack pop
-
-Optional arguments can be passed to functions to override defaults. Optional arguments follow the same rules as function calls, except they appear after commas:
-
-    connect to mysql database, at "1.2.3.4", on port 3307
 
