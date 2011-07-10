@@ -37,8 +37,6 @@ Better than:
     Http.GetIntoFile(url, filename);
     [HTTP get:url intoFile:filename];
 
-That's kind of what I was thinking one day.
-
 Variables can have spaces in them:
 
     total weight = 67
@@ -46,6 +44,8 @@ Variables can have spaces in them:
 And are referred to in brackets:
 
     print (total weight)
+
+That's kind of what I was thinking one day.
 
 # Function Calls
 
@@ -65,9 +65,14 @@ Well, you can use brackets if you want nested function calls:
 
 ## Optional Arguments
 
-Optional arguments can be passed to functions to override defaults. Optional arguments follow the same rules as function calls, except they appear after commas:
+Optional arguments can be passed to functions to override defaults. Optional arguments come after commas and can have one argument each:
 
-    connect to mysql database, at "1.2.3.4", on port 3307
+    connect to mysql database, address "1.2.3.4", port 3307
+
+If there is no argument, then the argument is assumed to be `true`. The following two statements are equivalent:
+
+	connect to mysql database, readonly
+	connect to mysql database, readonly true
 
 ## Closures
 
@@ -89,9 +94,9 @@ This function name is a bit of a mouthful, lets examine a more realistic example
 
 If the block isn't indented, or none is given, the block ends up being the rest of the enclosing block. Lets consider this block written with a `do` statement. The open file block ends up being the remaining lines in the `do`.
 
-do
-    open file "sample.txt" as ?file
-    @file write line "hi"
+	do
+	    open file "sample.txt" as ?file
+	    @file write line "hi"
 
 ## Asynchronous Calls
 
@@ -105,10 +110,253 @@ The results of async functions can be passed to other functions:
 
 Both async calls are invoked at the same time, effectively running them in parallel.
 
-
+## Method Calls
 
 Which brings us to method calls, which are pretty much identical to function calls except that they start with a variable reference, which is the object (the `self`, or `this` object).
 
     @stack push @item
     @stack pop
+
+## Functions without Arguments
+
+Functions are objects and respond to the `call` method:
+
+	(update page) call
+	time = (current time) call
+
+Or an alternative shorthand is to use the exclamation mark `!`:
+
+	update page!
+	time = current time!
+
+## Chains of Method Calls
+
+By using the semi-colon, chains of method calls can be crafted:
+
+	@stack; pop; pop; push "item"
+	
+Is the same as:
+
+	@stack pop
+	@stack pop
+	@stack push "item"
+
+And, even more shorthand:
+
+	@stack;
+		pop
+		pop
+		push "item"
+	
+# Declaring Functions
+
+To declare a function, use the `=` operator and include the function in curly braces, or indent on the next line:
+
+	hide element ?element =
+		set css for @element "display" = "none"
+
+This works even if the function doesn't take arguments:
+
+	update page =
+		new page contents = ~ ask server for updated contents
+		display contents (new page contents)
+
+	update page!
+
+The difference between variables and functions that don't take arguments is subtle. Functions are declared in a block: either in curly braces or indented on a new line. Variables are declared on the same line:
+
+	this is a variable = "variable"
+	
+	this is a function =
+		"function"
+
+To express a lambda on its own:
+
+	?element {set css for @element "display" = "none"}
+
+Or
+	
+	?element
+		set css for @element "display" = "none"
+
+These forms would be used to return a function from a function, eg:
+
+	create adder to add ?i =
+		?j
+			@i + @j
+
+And used:
+
+	add 5 to = create adder to add 5
+	add 5 to 4
+
+Or
+
+	(create adder to add 5) 4
+
+### Options
+
+To declare options for a function, put them after commas:
+
+	while connected to mysql ?do, readonly false, user "root", port 3306, address "127.0.0.1" =
+		@console log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
+		...
+
+Or, if the options list is getting long:
+		
+	while connected to mysql @do,
+		readonly false,
+		user "root",
+		port 3306,
+		address "127.0.0.1" =
+			@console log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
+			...
+
+Options can also be taken as an object, and passed to another function:
+
+	with readonly mysql ?do, ?options =
+		while connected to mysql @do, @options, readonly
+	
+## Currying
+
+A normal function call appears like this:
+
+	@element set html content @html with animation @animation
+
+To curry, replace arguments with question marks `?`:
+
+	? set html content ? with animation @animation
+
+This expression returns a function that takes two arguments. The order of the arguments is the order of the question marks as they appear lexically. This expression can be assigned to a variable and invoked:
+
+	set html = ? set html content ? with animation @animation
+	set @element html @html
+
+## Arguments, Parameters and Function Names
+
+Functions are identified by the string of identifiers that make them up. For example, the name of the function used in this expression `open file @filename` is `open file`, and it can be referred to as simply `open file`. Not passing arguments means that the function isn't called. The positions of the arguments in the function name don't matter either, with one exception: if the argument's position is before the function name, then its a method call, with that first argument being the object of the method. Besides that, the order of the arguments does matter. All of these calls are the same:
+
+	a @one b @two c @three
+	a b @one c @two @three
+	a b c @one @two @three
+	a @one @two @three b c
+
+These are method calls:
+
+	@one a @two b @three c
+	@one a b c @two @three
+
+Referring to the function itself without calling it:
+
+	a b c
+
+If the function is the result of an expression:
+
+	(a b c) @one @two @three
+
+Which is becomes a method call if there is a name in the call:
+
+	(a b c) @one takes @two or @three
+
+Calling the function with no arguments:
+
+	a b c!
+
+Calling the function with an asynchronous callback:
+
+	~ a b c
+
+Call the function while passing a block that takes 2 arguments:
+
+	a @one b @two ?a c ?b {@a + @b}
+
+Again, the position of the parameters doesn't matter. What matters is the order of the parameters before the block. If there are more parameters after the block, they would be passed into the next block.
+
+A block that takes arguments can be expressed in a similar way, by just omitting the function name:
+
+	?a ?b {@a + @b}
+
+And in fact, with the currying syntax this can be expressed as:
+
+	? + ?
+
+## Asynchronous Callbacks
+
+Asynchronous callbacks have a bit of a convention in Javascript, lets look at `fs.readFile` from node.js:
+
+> ### fs.readFile(filename, [encoding], [callback])
+> Asynchronously reads the entire contents of a file.
+> The callback is passed two arguments `(err, data)`, where data is the contents of the file.
+
+The first argument to the callback is the error. If this is non-null then an error has occurred and it will be thrown into the exception handling mechanism. If the error is null then we look to the second argument as the result of the call. The remaining arguments (if any are pass) are ignored. This is slightly unfortunate for node.js's `fs.read` whose callback signature is `(err, bytesRead, buffer)` - but we opt for a simple approach.
+
+Using `fs.readFile` would become:
+
+contents = ~ @fs read file
+
+## Exception Handling
+
+Exception handling is pretty straightforward, no surprises:
+
+	try
+		...
+	catch ?exception
+		...
+	finally
+		...
+
+Except, that exception handling crosses into asynchronous callbacks too:
+
+	try
+		contents = ~ @fs read file "example.txt"
+	catch ?e
+		@console log @e
+	finally
+		@console log "finished"
+
+The `catch` is able to catch exceptions thrown from each of the async calls. The `finally` is only invoked after each of the async calls have completed. For example, if we were to invoke async calls in a loop, the finally would still only be invoked after all the calls had finished.
+
+	try
+		do 10 times
+			contents = ~ @fs read file "example.txt"
+			print lines in @contents that match re:/connect/
+	finally
+		@console log "finished"
+
+## Objects
+
+Objects are created with the `object` keyword.
+
+	dog = object
+		bark sound = "woof!"
+		
+		public bark =
+			@console log (bark sound)
+
+	@dog bark!
+
+This is an immediate object, it can't be used to create more. To do that make a function:
+
+	create dog =
+		object
+			bark sound = "woof!"
+		
+			public bark =
+				@console log (bark sound)
+	
+	first dog = create dog!
+	first dog; bark!
+	
+	second dog = create dog!
+	second dog; bark!
+
+Or one with optional bark sound override:
+
+	create dog, bark sound "woof!" =
+		object
+			public bark =
+				@console log (bark sound)
+
+	dog = create dog, bark sound "meow?"
+	@dog bark!
 
