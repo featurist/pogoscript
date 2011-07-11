@@ -72,7 +72,13 @@ Optional arguments can be passed to functions to override defaults. Optional arg
 If there is no argument, then the argument is assumed to be `true`. The following two statements are equivalent:
 
 	connect to mysql database, readonly
-	connect to mysql database, readonly true
+	
+	is readonly = true
+	connect to mysql database, readonly (is readonly)
+
+The `not` keyword can be used to make an option `false`:
+
+	connect to mysql database, not readonly
 
 ## Closures
 
@@ -360,3 +366,136 @@ Or one with optional bark sound override:
 	dog = create dog, bark sound "meow?"
 	@dog bark!
 
+# JavaScript translation:
+
+## Names
+
+Function names are camel cased, so `read file` becomes `readFile` in Javascript. Arguments and parameters are ignored in names, so `upload file "stuff.html" to "ftp://ftp.mysite.com/"` becomes `uploadFileTo`.
+
+## Function calls
+
+If there are arguments in a name, they are added to the argument list:
+
+`upload file "stuff.html" to "ftp://ftp.mysite.com/"` becomes `uploadFileTo("stuff.html", "ftp://ftp.mysite.com/")`
+
+If there are no arguments they just have an empty argument list:
+
+`flush database!` becomes `flushDatabase()`
+
+### Options
+
+If there are no options, they aren't passed. If there are options they are passed as the last argument in a hash:
+
+	http get "http://mysite/stuff.html", proxy "http://hahainternalproxy/", cookie (access cookie)
+
+becomes
+
+	httpGet("http://mysite/stuff.html", {proxy: "http://hahainternalproxy/", cookie: accessCookie})
+
+Boolean options:
+
+	open file "stuff.txt", readonly
+
+becomes
+
+	openFile("stuff.txt", {readonly: true})
+
+### Blocks
+
+If there are parameters in the call, they are added to the closest block to the right, so:
+
+	map each ?item in @list
+		@item + 10
+
+becomes
+
+	mapEachIn(list, function (item) {
+		return item + 10
+	})
+
+### Asynchronous Calls
+
+Async calls are more complex, naturally. A single async call in a statement is relatively straightforward:
+
+	write (~ read file "from.txt") to "to.txt"
+
+becomes
+
+	readFile("from.txt", function (err, data) {
+		writeTo(data, "to.txt");
+	});
+
+Multiple async calls in a statement get tricky:
+
+	files equal = (~ sha1 of file "old.txt") == (~ sha1 of file "new.txt")
+
+becomes
+
+	var callsReturned = 0;
+	var oldSha1, newSha1;
+	var filesEqual;
+	
+	var setFilesEqual = function () {
+		filesEqual = oldSha1 == newSha1;
+	}
+	
+	sha1OfFile("old.txt", function (err, result) {
+		oldSha1 = result;
+		if (++callsReturned == 2) {
+			setFilesEqual();
+		}
+	});
+	
+	sha1OfFile("new.txt", function (err, result) {
+		newSha1 = result;
+		if (++callsReturned == 2) {
+			setFilesEqual();
+		}
+	});
+
+There are plenty of async libraries to do this kind of thing too.
+
+Exception handling, and the finally clause make this more complex still:
+
+	try
+		file hashes = @filenames each ?filename do
+			@console log (~ sha1 of file @filename)
+		@console log "finished"
+	catch ex
+		@console log @ex
+
+becomes
+
+	var callsReturned = 0;
+	var callsExpected = 0;
+	
+	var catchExceptionCalls = 0;
+	var catchException = function (ex) {
+		if (++catchExceptionCalls == 1) {
+			console.log(ex);
+		}
+	};
+	
+	try {
+		var finished = function () {
+			console.log("finished");
+		};
+	
+		filenames.eachDo(function (filename) {
+			callsExpected++;
+			sha1OfFile(filename, function (err, result) {
+				if (err) {
+					catchException(ex);
+				} else {
+					console.log(result);
+					if (++callsReturned == callsExpected) {
+						finished();
+					}
+				}
+			});
+		});
+	} catch (ex) {
+		catchException(ex);
+	}
+
+I'm sure there are loads of bugs and weird corner cases in there. (All the better reason to have this stuff in a language!)
