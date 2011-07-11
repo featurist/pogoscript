@@ -299,7 +299,7 @@ And in fact, with the currying syntax this can be expressed as:
 
 	? + ?
 
-## Asynchronous Callbacks
+# Asynchronous Callbacks
 
 Asynchronous callbacks have a bit of a convention in Javascript, lets look at `fs.readFile` from node.js:
 
@@ -313,7 +313,7 @@ Using `fs.readFile` would become:
 
 contents = ~ @fs read file
 
-## Exception Handling
+# Exception Handling
 
 Exception handling is pretty straightforward, no surprises:
 
@@ -342,7 +342,7 @@ The `catch` is able to catch exceptions thrown from each of the async calls. The
 	finally
 		@console log "finished"
 
-## Objects
+# Objects
 
 Objects are created with the `object` keyword.
 
@@ -378,6 +378,47 @@ Or one with optional bark sound override:
 
 	dog = create dog, bark sound "meow?"
 	@dog bark!
+
+# Statements
+
+Statements are one per line:
+
+    length = @width * @height
+    do stuff!
+
+But if you want to put several statements onto one line, use the dot `.`.
+
+    length = @width * @height. do stuff!
+
+If the statement is a no argument function call with the exclamation mark `!`, then the dot `.` can be omitted.
+
+    do stuff! length = @width * @height
+
+# Lists
+
+Lists use square brackets `[]`, starts with an `l` and delimits list items with spaces:
+
+    l[1 2 3 4]
+    l[first second third]
+
+Indexing lists is done with:
+
+    names = l["jeff" "jake" "john"]
+    first name = names[0]
+
+# Hashes
+
+Hashes use `[]` and start with `h`:
+
+    h["Set-Cookie" = @cookie. Location @redirect]
+    
+The hash entries are separated by dots `.`.
+
+The field names can be can follow the same rules as function call options. If there's an argument, it is taken as the value of the field. If there isn't an argument, the field is taken to be `true`. If the field starts with `not` then it is taken to be `false`.
+
+Fields can also be specified with an assignment sign `=`, in which case the field name can be the result of an expression.
+
+Referencing a hash follows the same syntax as referencing a list.
 
 # JavaScript translation:
 
