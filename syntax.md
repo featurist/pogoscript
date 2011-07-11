@@ -63,6 +63,19 @@ Well, you can use brackets if you want nested function calls:
 
     md5 hash (read all text from file "sample.txt")
 
+## Operators
+
+Operators are just functions that happen to have exotic names like `+` and `*`:
+
+    5 + 4
+    @x + @y
+
+There's no precedence so brackets will have to be used:
+
+    total height = (@header + (@item * @count)) + @footer
+
+But no precedence makes for a very simple and extendible language - a small price to pay.
+
 ## Optional Arguments
 
 Optional arguments can be passed to functions to override defaults. Optional arguments come after commas and can have one argument each:
@@ -368,19 +381,33 @@ Or one with optional bark sound override:
 
 # JavaScript translation:
 
-## Names
+## Names and Variables
 
-Function names are camel cased, so `read file` becomes `readFile` in Javascript. Arguments and parameters are ignored in names, so `upload file "stuff.html" to "ftp://ftp.mysite.com/"` becomes `uploadFileTo`.
+Names of variables and functions are camel cased, so `read file` becomes `readFile`.
+
+Upper case words are preserved, so `open TCP socket` becomes `openTCPSocket`.
+
+Underscores are preserved, so `open_tcp_socket` remains `open_tcp_socket`.
+
+Whole words are preserved, so `OpenTcpSocket` remains `OpenTcpSocket`.
 
 ## Function calls
 
 If there are arguments in a name, they are added to the argument list:
 
-`upload file "stuff.html" to "ftp://ftp.mysite.com/"` becomes `uploadFileTo("stuff.html", "ftp://ftp.mysite.com/")`
+    upload file "stuff.html" to "ftp://ftp.mysite.com/"
+
+becomes
+
+    uploadFileTo("stuff.html", "ftp://ftp.mysite.com/")
 
 If there are no arguments they just have an empty argument list:
 
-`flush database!` becomes `flushDatabase()`
+    flush database!
+
+becomes
+
+    flushDatabase()
 
 ### Options
 
@@ -404,12 +431,12 @@ becomes
 
 If there are parameters in the call, they are added to the closest block to the right, so:
 
-	map each ?item in @list
+	map each ?item in @list to
 		@item + 10
 
 becomes
 
-	mapEachIn(list, function (item) {
+	mapEachInTo(list, function (item) {
 		return item + 10
 	})
 
