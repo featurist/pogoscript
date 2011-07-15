@@ -402,11 +402,11 @@ Statements are one per line:
     length = @width * @height
     do stuff!
 
-But if you want to put several statements onto one line, use the dot `.`.
+But if you want to put several statements onto one line, use the semi-colon (`;`).
 
-    length = @width * @height. do stuff!
+    length = @width * @height; do stuff!
 
-If the statement is a no argument function call with the exclamation mark `!`, then the dot `.` can be omitted.
+If the statement is a no argument function call with the exclamation mark (`!`), then the semi-colon (`;`) can be omitted.
 
     do stuff! length = @width * @height
 
