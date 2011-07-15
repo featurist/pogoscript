@@ -63,6 +63,19 @@ Well, you can use brackets if you want nested function calls:
 
     md5 hash (read all text from file "sample.txt")
 
+## Operators
+
+Operators are just functions that happen to have exotic names like `+` and `*`:
+
+    5 + 4
+    @x + @y
+
+There's no precedence so brackets will have to be used:
+
+    total height = (@header + (@item * @count)) + @footer
+
+But no precedence makes for a very simple and extendible language - a small price to pay.
+
 ## Optional Arguments
 
 Optional arguments can be passed to functions to override defaults. Optional arguments come after commas and can have one argument each:
@@ -302,7 +315,7 @@ And in fact, with the currying syntax this can be expressed as:
 
 	? + ?
 
-## Asynchronous Callbacks
+# Asynchronous Callbacks
 
 Asynchronous callbacks have a bit of a convention in Javascript, lets look at `fs.readFile` from node.js:
 
@@ -316,7 +329,7 @@ Using `fs.readFile` would become:
 
 contents = ~ @fs read file
 
-## Exception Handling
+# Exception Handling
 
 Exception handling is pretty straightforward, no surprises:
 
@@ -345,7 +358,7 @@ The `catch` is able to catch exceptions thrown from each of the async calls. The
 	finally
 		@console log "finished"
 
-## Objects
+# Objects
 
 Objects are created with the `object` keyword.
 
@@ -382,21 +395,76 @@ Or one with optional bark sound override:
 	dog = create dog, bark sound "meow?"
 	@dog bark!
 
+# Statements
+
+Statements are one per line:
+
+    length = @width * @height
+    do stuff!
+
+But if you want to put several statements onto one line, use the dot `.`.
+
+    length = @width * @height. do stuff!
+
+If the statement is a no argument function call with the exclamation mark `!`, then the dot `.` can be omitted.
+
+    do stuff! length = @width * @height
+
+# Lists
+
+Lists use square brackets `[]`, starts with an `l` and delimits list items with spaces:
+
+    l[1 2 3 4]
+    l[first second third]
+
+Indexing lists is done with:
+
+    names = l["jeff" "jake" "john"]
+    first name = names[0]
+
+# Hashes
+
+Hashes use `[]` and start with `h`:
+
+    h["Set-Cookie" = @cookie. Location @redirect]
+    
+The hash entries are separated by dots `.`.
+
+The field names can be can follow the same rules as function call options. If there's an argument, it is taken as the value of the field. If there isn't an argument, the field is taken to be `true`. If the field starts with `not` then it is taken to be `false`.
+
+Fields can also be specified with an assignment sign `=`, in which case the field name can be the result of an expression.
+
+Referencing a hash follows the same syntax as referencing a list.
+
 # JavaScript translation:
 
-## Names
+## Names and Variables
 
-Function names are camel cased, so `read file` becomes `readFile` in Javascript. Arguments and parameters are ignored in names, so `upload file "stuff.html" to "ftp://ftp.mysite.com/"` becomes `uploadFileTo`.
+Names of variables and functions are camel cased, so `read file` becomes `readFile`.
+
+Upper case words are preserved, so `open TCP socket` becomes `openTCPSocket`.
+
+Underscores are preserved, so `open_tcp_socket` remains `open_tcp_socket`.
+
+Whole words are preserved, so `OpenTcpSocket` remains `OpenTcpSocket`.
 
 ## Function calls
 
 If there are arguments in a name, they are added to the argument list:
 
-`upload file "stuff.html" to "ftp://ftp.mysite.com/"` becomes `uploadFileTo("stuff.html", "ftp://ftp.mysite.com/")`
+    upload file "stuff.html" to "ftp://ftp.mysite.com/"
+
+becomes
+
+    uploadFileTo("stuff.html", "ftp://ftp.mysite.com/")
 
 If there are no arguments they just have an empty argument list:
 
-`flush database!` becomes `flushDatabase()`
+    flush database!
+
+becomes
+
+    flushDatabase()
 
 ### Options
 
@@ -420,12 +488,12 @@ becomes
 
 If there are parameters in the call, they are added to the closest block to the right, so:
 
-	map each ?item in @list
+	map each ?item in @list to
 		@item + 10
 
 becomes
 
-	mapEachIn(list, function (item) {
+	mapEachInTo(list, function (item) {
 		return item + 10
 	})
 
