@@ -130,29 +130,45 @@ Functions are objects and respond to the `call` method:
 	(update page) call
 	time = (current time) call
 
-Or an alternative shorthand is to use the exclamation mark `!`:
+Or an alternative shorthand is to use the exclamation mark (`!`):
 
 	update page!
 	time = current time!
 
 ## Chains of Method Calls
 
-By using the semi-colon, chains of method calls can be crafted:
+By using the dot (`.`), chains of method calls can be crafted:
 
-	@stack; pop; pop; push "item"
+	list.map ?i into {@i + 1}.include ?i where {@i < 5}.each ?i do {console.log @i}
+
+And
+
+	list.map ?i into {
+		@i + 1
+	}.include ?i where {
+		@i < 5
+	}.each ?i do {
+		console.log @i
+	}
+
+And, even:
+
+	list.
+		map ?i into
+			@i + 1
+		include ?i where
+			@i < 5
+		each ?i do
+			console.log @i
 	
-Is the same as:
+Are the same as:
 
-	@stack pop
-	@stack pop
-	@stack push "item"
-
-And, even more shorthand:
-
-	@stack;
-		pop
-		pop
-		push "item"
+	mapped = @list map ?i into
+		@i + 1
+	filtered = @mapped include ?i where
+		@i < 5
+	@filtered each ?i do
+		@console log @i
 	
 # Declaring Functions
 
@@ -351,10 +367,10 @@ This is an immediate object, it can't be used to create more. To do that make a 
 				@console log (bark sound)
 	
 	first dog = create dog!
-	first dog; bark!
+	first dog. bark!
 	
 	second dog = create dog!
-	second dog; bark!
+	second dog. bark!
 
 Or one with optional bark sound override:
 
