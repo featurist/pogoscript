@@ -88,14 +88,14 @@ Optional arguments can be passed to functions to override defaults. Optional arg
 
 If there is no argument, then the argument is assumed to be `true`. The following two statements are equivalent:
 
-	connect to mysql database, readonly
-	
-	is readonly = true
-	connect to mysql database, readonly (is readonly)
+    connect to mysql database, readonly
+    
+    is readonly = true
+    connect to mysql database, readonly (is readonly)
 
 The `not` keyword can be used to make an option `false`:
 
-	connect to mysql database, not readonly
+    connect to mysql database, not readonly
 
 ## Closures
 
@@ -117,9 +117,9 @@ This function name is a bit of a mouthful, lets examine a more realistic example
 
 If the block isn't indented, or none is given, the block ends up being the rest of the enclosing block. Lets consider this block written with a `do` statement. The open file block ends up being the remaining lines in the `do`.
 
-	do
-	    open file "sample.txt" as ?file
-	    @file write line "hi"
+    do
+        open file "sample.txt" as ?file
+        @file write line "hi"
 
 ## Asynchronous Calls
 
@@ -144,180 +144,180 @@ Method calls are pretty much identical to function calls except that they start 
 
 Functions are objects and respond to the `call` method:
 
-	(update page) call
-	time = (current time) call
+    (update page) call
+    time = (current time) call
 
 Or an alternative shorthand is to use the exclamation mark (`!`):
 
-	update page!
-	time = current time!
+    update page!
+    time = current time!
 
 ## Chains of Method Calls
 
 By using the dot (`.`), chains of method calls can be crafted:
 
-	list.map ?i into {@i + 1}.include ?i where {@i < 5}.each ?i do {console.log @i}
+    list.map ?i into {@i + 1}.include ?i where {@i < 5}.each ?i do {console.log @i}
 
 And
 
-	list.map ?i into {
-		@i + 1
-	}.include ?i where {
-		@i < 5
-	}.each ?i do {
-		console.log @i
-	}
+    list.map ?i into {
+        @i + 1
+    }.include ?i where {
+        @i < 5
+    }.each ?i do {
+        console.log @i
+    }
 
 And, even:
 
-	list.
-		map ?i into
-			@i + 1
-		include ?i where
-			@i < 5
-		each ?i do
-			console.log @i
-	
+    list.
+        map ?i into
+            @i + 1
+        include ?i where
+            @i < 5
+        each ?i do
+            console.log @i
+    
 Are the same as:
 
-	mapped = @list map ?i into
-		@i + 1
-	filtered = @mapped include ?i where
-		@i < 5
-	@filtered each ?i do
-		@console log @i
-	
+    mapped = @list map ?i into
+        @i + 1
+    filtered = @mapped include ?i where
+        @i < 5
+    @filtered each ?i do
+        @console log @i
+    
 # Declaring Functions
 
 To declare a function, use the `=` operator and include the function in curly braces, or indent on the next line:
 
-	hide element ?element =
-		set css for @element "display" = "none"
+    hide element ?element =
+        set css for @element "display" = "none"
 
 This works even if the function doesn't take arguments:
 
-	update page =
-		new page contents = ~ ask server for updated contents
-		display contents (new page contents)
+    update page =
+        new page contents = ~ ask server for updated contents
+        display contents (new page contents)
 
-	update page!
+    update page!
 
 The difference between variables and functions that don't take arguments is subtle. Functions are declared in a block: either in curly braces or indented on a new line. Variables are declared on the same line:
 
-	this is a variable = "variable"
-	
-	this is a function =
-		"function"
+    this is a variable = "variable"
+    
+    this is a function =
+        "function"
 
 To express a lambda on its own:
 
-	?element {set css for @element "display" = "none"}
+    ?element {set css for @element "display" = "none"}
 
 Or
-	
-	?element
-		set css for @element "display" = "none"
+    
+    ?element
+        set css for @element "display" = "none"
 
 These forms would be used to return a function from a function, eg:
 
-	create adder to add ?i =
-		?j
-			@i + @j
+    create adder to add ?i =
+        ?j
+            @i + @j
 
 And used:
 
-	add 5 to = create adder to add 5
-	add 5 to 4
+    add 5 to = create adder to add 5
+    add 5 to 4
 
 Or
 
-	(create adder to add 5) 4
+    (create adder to add 5) 4
 
 ### Options
 
 To declare options for a function, put them after commas:
 
-	while connected to mysql ?do, readonly false, user "root", port 3306, address "127.0.0.1" =
-		@console log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
-		...
+    while connected to mysql ?do, readonly false, user "root", port 3306, address "127.0.0.1" =
+        @console log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
+        ...
 
 Or, if the options list is getting long:
-		
-	while connected to mysql @do,
-		readonly false,
-		user "root",
-		port 3306,
-		address "127.0.0.1" =
-			@console log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
-			...
+        
+    while connected to mysql @do,
+        readonly false,
+        user "root",
+        port 3306,
+        address "127.0.0.1" =
+            @console log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
+            ...
 
 Options can also be taken as an object, and passed to another function:
 
-	with readonly mysql ?do, ?options =
-		while connected to mysql @do, @options, readonly
-	
+    with readonly mysql ?do, ?options =
+        while connected to mysql @do, @options, readonly
+    
 ## Currying
 
 A normal function call appears like this:
 
-	@element set html content @html with animation @animation
+    @element set html content @html with animation @animation
 
 To curry, replace arguments with question marks `?`:
 
-	? set html content ? with animation @animation
+    ? set html content ? with animation @animation
 
 This expression returns a function that takes two arguments. The order of the arguments is the order of the question marks as they appear lexically. This expression can be assigned to a variable and invoked:
 
-	set html = ? set html content ? with animation @animation
-	set @element html @html
+    set html = ? set html content ? with animation @animation
+    set @element html @html
 
 ## Arguments, Parameters and Function Names
 
 Functions are identified by the string of identifiers that make them up. For example, the name of the function used in this expression `open file @filename` is `open file`, and it can be referred to as simply `open file`. Not passing arguments means that the function isn't called. The positions of the arguments in the function name don't matter either, with one exception: if the argument's position is before the function name, then its a method call, with that first argument being the object of the method. Besides that, the order of the arguments does matter. All of these calls are the same:
 
-	a @one b @two c @three
-	a b @one c @two @three
-	a b c @one @two @three
-	a @one @two @three b c
+    a @one b @two c @three
+    a b @one c @two @three
+    a b c @one @two @three
+    a @one @two @three b c
 
 These are method calls:
 
-	@one a @two b @three c
-	@one a b c @two @three
+    @one a @two b @three c
+    @one a b c @two @three
 
 Referring to the function itself without calling it:
 
-	a b c
+    a b c
 
 If the function is the result of an expression:
 
-	(a b c) @one @two @three
+    (a b c) @one @two @three
 
 Which is becomes a method call if there is a name in the call:
 
-	(a b c) @one takes @two or @three
+    (a b c) @one takes @two or @three
 
 Calling the function with no arguments:
 
-	a b c!
+    a b c!
 
 Calling the function with an asynchronous callback:
 
-	~ a b c
+    ~ a b c
 
 Call the function while passing a block that takes 2 arguments:
 
-	a @one b @two ?a c ?b {@a + @b}
+    a @one b @two ?a c ?b {@a + @b}
 
 Again, the position of the parameters doesn't matter. What matters is the order of the parameters before the block. If there are more parameters after the block, they would be passed into the next block.
 
 A block that takes arguments can be expressed in a similar way, by just omitting the function name:
 
-	?a ?b {@a + @b}
+    ?a ?b {@a + @b}
 
 And in fact, with the currying syntax this can be expressed as:
 
-	? + ?
+    ? + ?
 
 # Asynchronous Callbacks
 
@@ -337,67 +337,67 @@ contents = ~ @fs read file
 
 Exception handling is pretty straightforward, no surprises:
 
-	try
-		...
-	catch ?exception
-		...
-	finally
-		...
+    try
+        ...
+    catch ?exception
+        ...
+    finally
+        ...
 
 Except, that exception handling crosses into asynchronous callbacks too:
 
-	try
-		contents = ~ @fs read file "example.txt"
-	catch ?e
-		@console log @e
-	finally
-		@console log "finished"
+    try
+        contents = ~ @fs read file "example.txt"
+    catch ?e
+        @console log @e
+    finally
+        @console log "finished"
 
 The `catch` is able to catch exceptions thrown from each of the async calls. The `finally` is only invoked after each of the async calls have completed. For example, if we were to invoke async calls in a loop, the finally would still only be invoked after all the calls had finished.
 
-	try
-		do 10 times
-			contents = ~ @fs read file "example.txt"
-			print lines in @contents that match re:/connect/
-	finally
-		@console log "finished"
+    try
+        do 10 times
+            contents = ~ @fs read file "example.txt"
+            print lines in @contents that match re:/connect/
+    finally
+        @console log "finished"
 
 # Objects
 
 Objects are created with the `object` keyword.
 
-	dog = object
-		bark sound = "woof!"
-		
-		public bark =
-			@console log (bark sound)
+    dog = object
+        bark sound = "woof!"
+        
+        public bark =
+            @console log (bark sound)
 
-	@dog bark!
+    @dog bark!
 
 This is an immediate object, it can't be used to create more. To do that make a function:
 
-	create dog =
-		object
-			bark sound = "woof!"
-		
-			public bark =
-				@console log (bark sound)
-	
-	first dog = create dog!
-	first dog. bark!
-	
-	second dog = create dog!
-	second dog. bark!
+    create dog =
+        object
+            bark sound = "woof!"
+        
+            public bark =
+                @console log (bark sound)
+    
+    first dog = create dog!
+    first dog. bark!
+    
+    second dog = create dog!
+    second dog. bark!
 
 Or one with optional bark sound override:
 
-	create dog, bark sound "woof!" =
-		object
-			public bark =
-				@console log (bark sound)
+    create dog, bark sound "woof!" =
+        object
+            public bark =
+                @console log (bark sound)
 
-	dog = create dog, bark sound "meow?"
-	@dog bark!
+    dog = create dog, bark sound "meow?"
+    @dog bark!
 
 # Statements
 
@@ -418,9 +418,9 @@ If the statement is a no argument function call with the exclamation mark (`!`),
 
 To create a list use the `list` function:
 
-	list 1 2 3 4
-	list @first @second @third
-	empty list = list!
+    list 1 2 3 4
+    list @first @second @third
+    empty list = list!
 
 Indexing lists is done with square brackets `[]`:
 
@@ -432,7 +432,7 @@ Indexing lists is done with square brackets `[]`:
 Hashes use are written with `hash (...)`:
 
     hash ("Set-Cookie" = @cookie, Location @redirect)
-	empty hash = hash ()
+    empty hash = hash ()
     
 The hash entries are separated by commas `,`.
 
@@ -442,9 +442,9 @@ Fields can also be specified with an assignment sign `=`, in which case the fiel
 
 They can also be written on an indented line:
 
-	hash
-		"Set-Cookie" = @cookie
-		Location @redirect
+    hash
+        "Set-Cookie" = @cookie
+        Location @redirect
 
 Which is the same as:
 
@@ -452,11 +452,11 @@ Which is the same as:
 
 Referencing a hash follows the same syntax as referencing a list, or if the field name is a proper name, then either dot notation or field reference:
 
-	header = hash ("Set-Cookie" = @cookie, Location @redirect)
-	
-	cookie = header["Set-Cookie"]
-	location = header.Location
-	location = @header Location
+    header = hash ("Set-Cookie" = @cookie, Location @redirect)
+    
+    cookie = header["Set-Cookie"]
+    location = header.Location
+    location = @header Location
 
 # JavaScript translation:
 
@@ -492,116 +492,116 @@ becomes
 
 If there are no options, they aren't passed. If there are options they are passed as the last argument in a hash:
 
-	http get "http://mysite/stuff.html", proxy "http://hahainternalproxy/", cookie (access cookie)
+    http get "http://mysite/stuff.html", proxy "http://hahainternalproxy/", cookie (access cookie)
 
 becomes
 
-	httpGet("http://mysite/stuff.html", {proxy: "http://hahainternalproxy/", cookie: accessCookie})
+    httpGet("http://mysite/stuff.html", {proxy: "http://hahainternalproxy/", cookie: accessCookie})
 
 Boolean options:
 
-	open file "stuff.txt", readonly
+    open file "stuff.txt", readonly
 
 becomes
 
-	openFile("stuff.txt", {readonly: true})
+    openFile("stuff.txt", {readonly: true})
 
 ### Blocks
 
 If there are parameters in the call, they are added to the closest block to the right, so:
 
-	map each ?item in @list to
-		@item + 10
+    map each ?item in @list to
+        @item + 10
 
 becomes
 
-	mapEachInTo(list, function (item) {
-		return item + 10
-	})
+    mapEachInTo(list, function (item) {
+        return item + 10
+    })
 
 ### Asynchronous Calls
 
 Async calls are more complex, naturally. A single async call in a statement is relatively straightforward:
 
-	write (~ read file "from.txt") to "to.txt"
+    write (~ read file "from.txt") to "to.txt"
 
 becomes
 
-	readFile("from.txt", function (err, data) {
-		writeTo(data, "to.txt");
-	});
+    readFile("from.txt", function (err, data) {
+        writeTo(data, "to.txt");
+    });
 
 Multiple async calls in a statement get tricky:
 
-	files equal = (~ sha1 of file "old.txt") == (~ sha1 of file "new.txt")
+    files equal = (~ sha1 of file "old.txt") == (~ sha1 of file "new.txt")
 
 becomes
 
-	var callsReturned = 0;
-	var oldSha1, newSha1;
-	var filesEqual;
-	
-	var setFilesEqual = function () {
-		filesEqual = oldSha1 == newSha1;
-	}
-	
-	sha1OfFile("old.txt", function (err, result) {
-		oldSha1 = result;
-		if (++callsReturned == 2) {
-			setFilesEqual();
-		}
-	});
-	
-	sha1OfFile("new.txt", function (err, result) {
-		newSha1 = result;
-		if (++callsReturned == 2) {
-			setFilesEqual();
-		}
-	});
+    var callsReturned = 0;
+    var oldSha1, newSha1;
+    var filesEqual;
+    
+    var setFilesEqual = function () {
+        filesEqual = oldSha1 == newSha1;
+    }
+    
+    sha1OfFile("old.txt", function (err, result) {
+        oldSha1 = result;
+        if (++callsReturned == 2) {
+            setFilesEqual();
+        }
+    });
+    
+    sha1OfFile("new.txt", function (err, result) {
+        newSha1 = result;
+        if (++callsReturned == 2) {
+            setFilesEqual();
+        }
+    });
 
 There are plenty of async libraries to do this kind of thing too.
 
 Exception handling, and the finally clause make this more complex still:
 
-	try
-		file hashes = @filenames each ?filename do
-			@console log (~ sha1 of file @filename)
-		@console log "finished"
-	catch ex
-		@console log @ex
+    try
+        file hashes = @filenames each ?filename do
+            @console log (~ sha1 of file @filename)
+        @console log "finished"
+    catch ex
+        @console log @ex
 
 becomes
 
-	var callsReturned = 0;
-	var callsExpected = 0;
-	
-	var catchExceptionCalls = 0;
-	var catchException = function (ex) {
-		if (++catchExceptionCalls == 1) {
-			console.log(ex);
-		}
-	};
-	
-	try {
-		var finished = function () {
-			console.log("finished");
-		};
-	
-		filenames.eachDo(function (filename) {
-			callsExpected++;
-			sha1OfFile(filename, function (err, result) {
-				if (err) {
-					catchException(ex);
-				} else {
-					console.log(result);
-					if (++callsReturned == callsExpected) {
-						finished();
-					}
-				}
-			});
-		});
-	} catch (ex) {
-		catchException(ex);
-	}
+    var callsReturned = 0;
+    var callsExpected = 0;
+    
+    var catchExceptionCalls = 0;
+    var catchException = function (ex) {
+        if (++catchExceptionCalls == 1) {
+            console.log(ex);
+        }
+    };
+    
+    try {
+        var finished = function () {
+            console.log("finished");
+        };
+    
+        filenames.eachDo(function (filename) {
+            callsExpected++;
+            sha1OfFile(filename, function (err, result) {
+                if (err) {
+                    catchException(ex);
+                } else {
+                    console.log(result);
+                    if (++callsReturned == callsExpected) {
+                        finished();
+                    }
+                }
+            });
+        });
+    } catch (ex) {
+        catchException(ex);
+    }
 
 I'm sure there are loads of bugs and weird corner cases in there. (All the better reason to have this stuff in a language!)
