@@ -153,7 +153,7 @@ If the receiver is the result of an expression, the hash prefixes the parenthesi
 
 The dot (`.`) can also be used to identify the receiver for the method call. Before the dot is an expression for the receiver, after the dot is the method call:
 
-    line = open file "README.md".read line from
+    line = open file "README.md".read line from!
     
 The dot makes for a concise way to access module items:
 
