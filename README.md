@@ -135,7 +135,7 @@ Both async calls are invoked at the same time, effectively running them in paral
 
 ## Method Calls
 
-Which brings us to method calls, which are pretty much identical to function calls except that they start with a variable reference, which is the object (the `self`, or `this` object).
+Method calls are pretty much identical to function calls except that they start with a variable reference, which is the receiver (the `self`, or `this` object).
 
     @stack push @item
     @stack pop
@@ -416,29 +416,47 @@ If the statement is a no argument function call with the exclamation mark (`!`),
 
 # Lists
 
-Lists use square brackets `[]`, starts with an `l` and delimits list items with spaces:
+To create a list use the `list` function:
 
-    l[1 2 3 4]
-    l[first second third]
+	list 1 2 3 4
+	list @first @second @third
+	empty list = list!
 
-Indexing lists is done with:
+Indexing lists is done with square brackets `[]`:
 
-    names = l["jeff" "jake" "john"]
+    names = list "jeff" "jake" "john"
     first name = names[0]
 
 # Hashes
 
-Hashes use `[]` and start with `h`:
+Hashes use are written with `hash (...)`:
 
-    h["Set-Cookie" = @cookie. Location @redirect]
+    hash ("Set-Cookie" = @cookie, Location @redirect)
+	empty hash = hash ()
     
-The hash entries are separated by dots `.`.
+The hash entries are separated by commas `,`.
 
-The field names can be can follow the same rules as function call options. If there's an argument, it is taken as the value of the field. If there isn't an argument, the field is taken to be `true`. If the field starts with `not` then it is taken to be `false`.
+The fields follow the same rules as function call options. If there's an argument, it is taken as the value of the field. If there isn't an argument, the field is taken to be `true`. If the field starts with `not` then it is taken to be `false`.
 
 Fields can also be specified with an assignment sign `=`, in which case the field name can be the result of an expression.
 
-Referencing a hash follows the same syntax as referencing a list.
+They can also be written on an indented line:
+
+	hash
+		"Set-Cookie" = @cookie
+		Location @redirect
+
+Which is the same as:
+
+    hash {"Set-Cookie" = @cookie; Location @redirect}
+
+Referencing a hash follows the same syntax as referencing a list, or if the field name is a proper name, then either dot notation or field reference:
+
+	header = hash ("Set-Cookie" = @cookie, Location @redirect)
+	
+	cookie = header["Set-Cookie"]
+	location = header.Location
+	location = @header Location
 
 # JavaScript translation:
 
