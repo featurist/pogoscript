@@ -145,11 +145,11 @@ Calling a function with no arguments is done with the exclamation mark (`!`):
 Method calls are very similar to function calls, except the receiver (the `this`, or `self` object) is marked with a hash (`#`).
 
     file = open file "README.md"
-    read line from #file
+    read line from #file!
 
 If the receiver is the result of an expression, the hash prefixes the parenthesised expression:
 
-    read line from #(open file "README.md")
+    read line from #(open file "README.md")!
 
 The dot (`.`) can also be used to identify the receiver for the method call. Before the dot is an expression for the receiver, after the dot is the method call:
 
@@ -199,7 +199,11 @@ Are the same as:
         @i < 5
     #filtered each ?i do
         console.log @i
-    
+
+For no argument function or method calls, the exclamation mark (`!`) doubles as a dot (`.`):
+
+    create child under #element! add class "error"
+
 # Declaring Functions
 
 To declare a function, use the `=` operator and include the function in curly braces, or indent on the next line:
@@ -395,7 +399,7 @@ This is an immediate object, it can't be used to create more. To do that make a 
     first dog. bark!
     
     second dog = create dog!
-    second dog. bark!
+    second dog.bark!
 
 Or one with optional bark sound override:
 
@@ -405,6 +409,17 @@ Or one with optional bark sound override:
                 console.log (bark sound)
 
     dog = create dog, bark sound "meow?"
+    #dog bark!
+
+## Accessing Fields
+
+To access a field (not a method), don't pass arguments or suffix with exclamation mark (`!`):
+
+    #dog bark sound
+
+To set it, put it on the left side of the assignment:
+
+    #dog bark sound = "woof! WOOF!"
     #dog bark!
 
 # Statements
@@ -417,10 +432,6 @@ Statements are one per line:
 But if you want to put several statements onto one line, use the semi-colon (`;`).
 
     length = @width * @height; do stuff!
-
-If the statement is a no argument function call with the exclamation mark (`!`), then the semi-colon (`;`) can be omitted.
-
-    do stuff! length = @width * @height
 
 # Lists
 
