@@ -113,13 +113,13 @@ The curly braces can be replaced by an indented block underneath the function, l
 This function name is a bit of a mouthful, lets examine a more realistic example - opening a file and writing to it in a block:
 
     open file "sample.txt" as ?file
-        @file write line "hi"
+        write line "hi" to #file
 
 If the block isn't indented, or none is given, the block ends up being the rest of the enclosing block. Lets consider this block written with a `do` statement. The open file block ends up being the remaining lines in the `do`.
 
     do
         open file "sample.txt" as ?file
-        @file write line "hi"
+        write line "hi" to #file
 
 ## Asynchronous Calls
 
@@ -133,28 +133,41 @@ The results of async functions can be passed to other functions:
 
 Both async calls are invoked at the same time, effectively running them in parallel.
 
-## Method Calls
-
-Method calls are pretty much identical to function calls except that they start with a variable reference, which is the receiver (the `self`, or `this` object).
-
-    @stack push @item
-    @stack pop
-
 ## Functions without Arguments
 
-Functions are objects and respond to the `call` method:
-
-    (update page) call
-    time = (current time) call
-
-Or an alternative shorthand is to use the exclamation mark (`!`):
+Calling a function with no arguments is done with the exclamation mark (`!`):
 
     update page!
     time = current time!
 
-## Chains of Method Calls
+## Method Calls
 
-By using the dot (`.`), chains of method calls can be crafted:
+Method calls are very similar to function calls, except the receiver (the `this`, or `self` object) is marked with a hash (`#`).
+
+    file = open file "README.md"
+    read line from #file
+
+If the receiver is the result of an expression, the hash prefixes the parenthesised expression:
+
+    read line from #(open file "README.md")
+
+The dot (`.`) can also be used to identify the receiver for the method call. Before the dot is an expression for the receiver, after the dot is the method call:
+
+    line = open file "README.md".read line from
+    
+The dot makes for a concise way to access module items:
+
+    http = require 'http'
+    server = http.create server ?req ?res
+        #res write head 200, "Content-Type" = "text/plain"
+        #res end 'Hello World\n'
+
+Or even just to call methods on JavaScript APIs that are worded for use in dot notation:
+
+    res.write head 200, "Content-Type" = "text/plain"
+    res.end 'Hello World\n'
+
+The dot (`.`) can be used to express chains of method calls:
 
     list.map ?i into {@i + 1}.include ?i where {@i < 5}.each ?i do {console.log @i}
 
@@ -180,12 +193,12 @@ And, even:
     
 Are the same as:
 
-    mapped = @list map ?i into
+    mapped = #list map ?i into
         @i + 1
-    filtered = @mapped include ?i where
+    filtered = #mapped include ?i where
         @i < 5
-    @filtered each ?i do
-        @console log @i
+    #filtered each ?i do
+        console.log @i
     
 # Declaring Functions
 
@@ -238,7 +251,7 @@ Or
 To declare options for a function, put them after commas:
 
     while connected to mysql ?do, readonly false, user "root", port 3306, address "127.0.0.1" =
-        @console log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
+        console.log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
         ...
 
 Or, if the options list is getting long:
@@ -248,7 +261,7 @@ Or, if the options list is getting long:
         user "root",
         port 3306,
         address "127.0.0.1" =
-            @console log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
+            console.log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
             ...
 
 Options can also be taken as an object, and passed to another function:
@@ -260,7 +273,7 @@ Options can also be taken as an object, and passed to another function:
 
 A normal function call appears like this:
 
-    @element set html content @html with animation @animation
+    #element set html content @html with animation @animation
 
 To curry, replace arguments with question marks `?`:
 
@@ -279,11 +292,6 @@ Functions are identified by the string of identifiers that make them up. For exa
     a b @one c @two @three
     a b c @one @two @three
     a @one @two @three b c
-
-These are method calls:
-
-    @one a @two b @three c
-    @one a b c @two @three
 
 Referring to the function itself without calling it:
 
@@ -349,9 +357,9 @@ Except, that exception handling crosses into asynchronous callbacks too:
     try
         contents = ~ @fs read file "example.txt"
     catch ?e
-        @console log @e
+        console.log @e
     finally
-        @console log "finished"
+        console.log "finished"
 
 The `catch` is able to catch exceptions thrown from each of the async calls. The `finally` is only invoked after each of the async calls have completed. For example, if we were to invoke async calls in a loop, the finally would still only be invoked after all the calls had finished.
 
@@ -360,7 +368,7 @@ The `catch` is able to catch exceptions thrown from each of the async calls. The
             contents = ~ @fs read file "example.txt"
             print lines in @contents that match re:/connect/
     finally
-        @console log "finished"
+        console.log "finished"
 
 # Objects
 
@@ -370,9 +378,9 @@ Objects are created with the `object` keyword.
         bark sound = "woof!"
         
         public bark =
-            @console log (bark sound)
+            console.log (bark sound)
 
-    @dog bark!
+    #dog bark!
 
 This is an immediate object, it can't be used to create more. To do that make a function:
 
@@ -381,7 +389,7 @@ This is an immediate object, it can't be used to create more. To do that make a 
             bark sound = "woof!"
         
             public bark =
-                @console log (bark sound)
+                console.©log (bark sound)
     
     first dog = create dog!
     first dog. bark!
@@ -394,10 +402,10 @@ Or one with optional bark sound override:
     create dog, bark sound "woof!" =
         object
             public bark =
-                @console log (bark sound)
+                console.log (bark sound)
 
     dog = create dog, bark sound "meow?"
-    @dog bark!
+    #dog bark!
 
 # Statements
 
@@ -431,7 +439,7 @@ Indexing lists is done with square brackets `[]`:
 
 Hashes use are written with `hash (...)`:
 
-    hash ("Set-Cookie" = @cookie, Location @redirect)
+    hash ("Set-Cookie" = cookie, Location @redirect)
     empty hash = hash ()
     
 The hash entries are separated by commas `,`.
@@ -443,20 +451,20 @@ Fields can also be specified with an assignment sign `=`, in which case the fiel
 They can also be written on an indented line:
 
     hash
-        "Set-Cookie" = @cookie
+        "Set-Cookie" = cookie
         Location @redirect
 
 Which is the same as:
 
-    hash {"Set-Cookie" = @cookie; Location @redirect}
+    hash {"Set-Cookie" = cookie; Location @redirect}
 
 Referencing a hash follows the same syntax as referencing a list, or if the field name is a proper name, then either dot notation or field reference:
 
-    header = hash ("Set-Cookie" = @cookie, Location @redirect)
+    header = hash ("Set-Cookie" = cookie, Location @redirect)
     
     cookie = header["Set-Cookie"]
     location = header.Location
-    location = @header Location
+    location = #header Location
 
 # JavaScript translation:
 
@@ -564,11 +572,11 @@ There are plenty of async libraries to do this kind of thing too.
 Exception handling, and the finally clause make this more complex still:
 
     try
-        file hashes = @filenames each ?filename do
-            @console log (~ sha1 of file @filename)
-        @console log "finished"
+        file hashes = #filenames each ?filename do
+            console.log (~ sha1 of file @filename)
+        console.log "finished"
     catch ex
-        @console log @ex
+        console.log @ex
 
 becomes
 
