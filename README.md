@@ -432,10 +432,10 @@ To create a list use the `list` function:
     list @first @second @third
     empty list = list!
 
-Indexing lists is done with square brackets `[]`:
+Indexing lists is done with colon (`:`), list on the left, index on the right:
 
     names = list "jeff" "jake" "john"
-    first name = names#0
+    first name = names:0
 
 # Hashes
 
@@ -464,8 +464,8 @@ Referencing a hash follows the same syntax as referencing a list, or if the fiel
 
     header = hash ("Set-Cookie" = cookie, Location @redirect)
     
-    cookie = header["Set-Cookie"]
-    location = header: Location
+    cookie = header:"Set-Cookie"
+    location = header:Location
 
 # JavaScript translation:
 
