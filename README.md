@@ -123,13 +123,17 @@ If the block isn't indented, or none is given, the block ends up being the rest 
 
 ## Asynchronous Calls
 
-Asynchronous calls can be made with a tilde `~`.
+Asynchronous function calls can be made with a tilde `~`.
 
-    contents = ~ @fs read file "sample.txt"
+    contents = ~ read file "sample.txt"
+
+Asynchronous method calls are also made with the tilde, but the tilde appears after the colon:
+
+    index = http server: ~ get "/index.html"
 
 The results of async functions can be passed to other functions:
 
-    find differences between (~ @fs read file "sample.txt") and (~ @fs read file "sample-old.txt")
+    find differences between (~ read file "sample.txt") and (~ read file "sample-old.txt")
 
 Both async calls are invoked at the same time, effectively running them in parallel.
 
@@ -140,12 +144,15 @@ Normally however, asynchronous calls are made in sequence, so the following stat
         config = ~ load file @filename
         ~ update local system with config @config
 
-However, if you want to call asynchronous functions in parallel, use a higher level function to do it, in this case one called `for each in`:
+However, if you want to call asynchronous functions in parallel, use a higher level function to do it. Here we use one called `for each in` to make several DNS lookups in parallel.
 
     print dns records for ?domains =
         ~ for each ?domain in @domains, parallel
             ip = ~ dns: lookup "A" record for @domain
             console: log @ip
+    
+    ~ print dns records for (list "www.google.com" "www.apple.com" "www.facebook.com")
+    console: log "done"
 
 Or one that maps domains into ip addresses:
 
@@ -157,8 +164,31 @@ Or one that maps domains into ip addresses:
     
     for each ?(ip address) in (ip addresses)
         console: log (ip address)
+    
+    console: log "done"
 
-With higher level functions like these, the semantics of running async calls in parallel can be wholly customised.
+These are just regular functions, but they are defined with an additional argument for the callback. `for each in` would be defined as the following (using the fabulous [underscore.js](http://documentcloud.github.com/underscore/) library):
+
+    for each in ?list ?process ?callback =
+        oustanding = 0
+        nothing failed yet = true
+        
+        failure =
+            nothing failed yet = false
+        
+        _: each @list ?item
+            if nothing failed yet
+                oustanding += 1
+                process @item ?error ?result
+                    outstanding -= 1
+                
+                    if error
+                        failure!
+                        callback @error
+                    else if @outstanding is 0
+                        callback!
+
+Which is the usual mental async code that node hackers are used to. Better it be factored into a nice little function that can be called without having to worry about the mentalness.
 
 ## Functions without Arguments
 
