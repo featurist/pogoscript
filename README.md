@@ -283,44 +283,50 @@ This expression returns a function that takes two arguments. The order of the ar
 
 Functions are identified by the string of identifiers that make them up. For example, the name of the function used in this expression `open file @filename` is `open file`, and it can be referred to as simply `open file`. Not passing arguments means that the function isn't called. The positions of the arguments in the function name don't matter either, with one exception: if the argument's position is before the function name, then its a method call, with that first argument being the object of the method. Besides that, the order of the arguments does matter. All of these calls are the same:
 
-    a @one b @two c @three
-    a b @one c @two @three
-    a b c @one @two @three
-    a @one @two @three b c
+    @filename open file
+    open @filename file
+    open file @filename
 
 Referring to the function itself without calling it:
 
-    a b c
+    open file
 
 If the function is the result of an expression:
 
-    (a b c) @one @two @three
+    (open file) @filename
 
-Which is becomes a method call if there is a name in the call:
-
-    (a b c) @one takes @two or @three
 
 Calling the function with no arguments:
 
-    a b c!
+    open config file =
+        open file "config.json"
+    
+    open config file!
 
 Calling the function with an asynchronous callback:
 
-    ~ a b c
+    open config file =
+        ~ open file "config.json"
+
+    config file = ~ open config file
 
 Call the function while passing a block that takes 2 arguments:
 
-    a @one b @two ?a c ?b {@a + @b}
+    sort @items comparing each ?left with ?right
+        @left compared to @right
 
 Again, the position of the parameters doesn't matter. What matters is the order of the parameters before the block. If there are more parameters after the block, they would be passed into the next block.
 
 A block that takes arguments can be expressed in a similar way, by just omitting the function name:
 
-    ?a ?b {@a + @b}
+    comparer = ?left ?right {@a compared to @b}
+    
+    sort @items comparing each with @comparer
 
 And in fact, with the currying syntax this can be expressed as:
 
-    ? + ?
+    comparer = {? compared to ?}
+    sort @items comparing each with @comparer
 
 # Asynchronous Callbacks
 
@@ -435,7 +441,7 @@ To create a list use the `list` function:
 Indexing lists is done with colon (`:`), list on the left, index on the right:
 
     names = list "jeff" "jake" "john"
-    first name = names:0
+    first name = names: 0
 
 # Hashes
 
@@ -464,8 +470,8 @@ Referencing a hash follows the same syntax as referencing a list, or if the fiel
 
     header = hash ("Set-Cookie" = cookie, Location @redirect)
     
-    cookie = header:"Set-Cookie"
-    location = header:Location
+    cookie = header: "Set-Cookie"
+    location = header: Location
 
 # JavaScript translation:
 
