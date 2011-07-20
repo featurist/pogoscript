@@ -133,6 +133,33 @@ The results of async functions can be passed to other functions:
 
 Both async calls are invoked at the same time, effectively running them in parallel.
 
+Normally however, asynchronous calls are made in sequence, so the following statements are called one after the other:
+
+    is file = ~ @filename is file
+    if is file
+        config = ~ load file @filename
+        ~ update local system with config @config
+
+However, if you want to call asynchronous functions in parallel, use a higher level function to do it, in this case one called `for each in`:
+
+    print dns records for ?domains =
+        ~ for each ?domain in @domains, parallel
+            ip = ~ dns: lookup "A" record for @domain
+            console: log @ip
+
+Or one that maps domains into ip addresses:
+
+    find dns records for ?domains =
+        ~ map each ?domain in @domains into, parallel
+            ~ dns: lookup "A" record for @domain
+
+    ip addresses = ~ find dns records for @domains
+    
+    for each ?(ip address) in (ip addresses)
+        console: log (ip address)
+
+With higher level functions like these, the semantics of running async calls in parallel can be wholly customised.
+
 ## Functions without Arguments
 
 Calling a function with no arguments is done with the exclamation mark (`!`):
@@ -340,7 +367,7 @@ The first argument to the callback is the error. If this is non-null then an err
 
 Using `fs.readFile` would become:
 
-contents = ~ @fs read file
+    contents = ~ @fs read file
 
 # Exception Handling
 
