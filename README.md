@@ -142,67 +142,58 @@ Calling a function with no arguments is done with the exclamation mark (`!`):
 
 ## Method Calls
 
-Method calls are very similar to function calls, except the receiver (the `this`, or `self` object) is marked with a hash (`#`).
+Method calls use the colon (`:`) to separate the receiver from the method. The receiver on the left, and the method on the right:
 
     file = open file "README.md"
-    read line from #file!
+    file: read line!
 
-If the receiver is the result of an expression, the hash prefixes the parenthesised expression:
+If the receiver is the result of an expression, it can all go before the colon:
 
-    read line from #(open file "README.md")!
+    open file "README.md": read line!
 
-The dot (`.`) can also be used to identify the receiver for the method call. Before the dot is an expression for the receiver, after the dot is the method call:
-
-    line = open file "README.md".read line from!
-    
-The dot makes for a concise way to access module items:
+The colon makes for a concise way to access module items:
 
     http = require 'http'
-    server = http.create server ?req ?res
-        #res write head 200, "Content-Type" = "text/plain"
-        #res end 'Hello World\n'
+    server = http: create server ?req ?res
+        res: write head 200, "Content-Type" = "text/plain"
+        res: end "Hello World\n"
 
-Or even just to call methods on JavaScript APIs that are worded for use in dot notation:
+The colon can be used to express chains of method calls:
 
-    res.write head 200, "Content-Type" = "text/plain"
-    res.end 'Hello World\n'
-
-The dot (`.`) can be used to express chains of method calls:
-
-    list.map ?i into {@i + 1}.include ?i where {@i < 5}.each ?i do {console.log @i}
+    list: map ?i into {@i + 1}: include ?i where {@i < 5}: each ?i do {console: log @i}
 
 And
 
-    list.map ?i into {
+    list: map ?i into {
         @i + 1
-    }.include ?i where {
+    }: include ?i where {
         @i < 5
-    }.each ?i do {
-        console.log @i
+    }: each ?i do {
+        console: log @i
     }
 
 And, even:
 
-    list.
+    list:
         map ?i into
             @i + 1
         include ?i where
             @i < 5
         each ?i do
-            console.log @i
+            console: log @i
     
 Are the same as:
 
-    mapped = #list map ?i into
+    mapped = list: map ?i into
         @i + 1
-    filtered = #mapped include ?i where
+    filtered = mapped: include ?i where
         @i < 5
-    #filtered each ?i do
-        console.log @i
+    filtered: each ?i do
+        console: log @i
 
-For no argument function or method calls, the exclamation mark (`!`) doubles as a dot (`.`):
+For no argument function or method calls, the exclamation mark (`!`) doubles as a colon:
 
-    create child under #element! add class "error"
+    element: create child element! add class "error"
 
 # Declaring Functions
 
