@@ -268,15 +268,15 @@ Options can also be taken as an object, and passed to another function:
 
 A normal function call appears like this:
 
-    element: set html content @html with animation @animation
+    set html @html on @element with animation @animation
 
-To curry, replace arguments with question marks `?`:
+To curry, replace one or more arguments with question marks (`?`):
 
-    ? set html content ? with animation @animation
+    set html ? on ? with animation @animation
 
 This expression returns a function that takes two arguments. The order of the arguments is the order of the question marks as they appear lexically. This expression can be assigned to a variable and invoked:
 
-    set html = ? set html content ? with animation @animation
+    set html = set html ? on ? with animation @animation
     set @element html @html
 
 ## Arguments, Parameters and Function Names
