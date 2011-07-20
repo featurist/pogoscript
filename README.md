@@ -41,15 +41,15 @@ Better than:
     Http.GetIntoFile(url, filename);
     [HTTP get:url intoFile:filename];
 
-Variables can have spaces in them:
+That's kind of what I was thinking one day.
+
+And to that end, variables, function names and method names can have spaces in them.
 
     total weight = 67
 
-And are referred to in brackets:
+And for variables that have spaces in them, we use parentheses and not the at symbol (`@`) to access them:
 
     print (total weight)
-
-That's kind of what I was thinking one day.
 
 # Function Calls
 
