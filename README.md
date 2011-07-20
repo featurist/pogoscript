@@ -101,25 +101,21 @@ The `not` keyword can be used to make an option `false`:
 
 Closures are passed to functions by declaring the closure parameters inline with the function call, like this:
 
-    this function takes a list @mylist and returns a new list containing each item ?x where {@x is less than 10}
+    for each ?item in @list { print @item }
 
-The bit in the curly braces contains the closure. The parameter of the closure is the `?x`. The function name explains what `x` is, and how the closure is used with `x`.
+The bit in the curly braces contains the closure. The parameter of the closure is the `?item`. The function name explains what `item` is, and how the closure is used with `item`.
 
 The curly braces can be replaced by an indented block underneath the function, like so:
 
-    this function takes a list @mylist and returns a new list containing each item ?x where
-        @x is less than 10
+    for each ?item in @list
+        print @item
 
-This function name is a bit of a mouthful, lets examine a more realistic example - opening a file and writing to it in a block:
+The block is the indented line or lines after the function call. However if a parameter is declared (like `item` here), but there is no indented block to follow, then the rest of the enclosing block is the block. The following statement is the same as above:
 
-    open file "sample.txt" as ?file
-        file: write line "hi"
+    for each ?item in @list
+    print @item
 
-If the block isn't indented, or none is given, the block ends up being the rest of the enclosing block. Lets consider this block written with a `do` statement. The open file block ends up being the remaining lines in the `do`.
-
-    do
-        open file "sample.txt" as ?file
-        file: write line "hi"
+Slightly odd, but I wonder if this style of notation could be used to support out arguments, arguments whose values are set after the function call. With this style, the "argument" isn't set, its a parameter to a function which is the rest of the block. It's almost a way of declaring variables with a function call.
 
 ## Asynchronous Calls
 
