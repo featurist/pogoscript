@@ -493,6 +493,36 @@ Or one with optional bark sound override:
     dog = create dog, bark sound "meow?"
     dog: bark!
 
+Public definitions are accessible from outside the object, these are declared on the `this` object in JavaScript. But public variables are also accessible to functions defined inside the object, and continue to be, even if those functions are called using other receivers.
+
+    create clickable element ?n = object
+        public name = n
+        
+        element = $ ('#' + @name)
+        
+        element: click
+            alert @name
+        
+        public describe =
+            alert @name
+
+I think this covers most use-cases for using the `this` variable in JavaScript. Of course, at some point you'll want to pass the object itself to a method or function call, for that we give the object a name:
+
+    object clickable element
+        subscribe to events (clickable element)
+        
+        public notify event =
+            console: log "event!"
+
+And, just in case you want to access the `this` object, in a function for example, use the `self` keyword:
+
+    click handler =
+        console.log (self: tag name)
+    
+    $ 'body': click (click handler)
+
+(Why `self` and not `this`? No really good reason, I just never really gelled with `this`, and I've got a bit of a soft spot for Ruby, SmallTalk and well, Self proper.)
+
 ## Accessing Fields
 
 To access a field (not a method), don't pass arguments or suffix with exclamation mark (`!`):
@@ -558,7 +588,7 @@ Referencing a hash follows the same syntax as referencing a list, or if the fiel
     cookie = header: "Set-Cookie"
     location = header: Location
 
-# JavaScript translation:
+# JavaScript Translation
 
 ## Names and Variables
 
@@ -704,4 +734,4 @@ becomes
         catchException(ex);
     }
 
-I'm sure there are loads of bugs and weird corner cases in there. (All the better reason to have this stuff in a language!)
+Eek! I'm sure there are loads of bugs and weird corner cases in there. (All the better reason to have this stuff in a language!)
