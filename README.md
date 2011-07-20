@@ -254,12 +254,16 @@ For no argument function or method calls, the exclamation mark (`!`) doubles as 
 
 # Declaring Functions
 
-To declare a function, use the `=` operator and include the function in curly braces, or indent on the next line:
+To declare a function, use the `=` operator. Prefix arguments with the question mark (`?`):
 
     hide element ?element =
         set css for @element "display" = "none"
 
-This works even if the function doesn't take arguments:
+If the function body is small, you can put it on the same line:
+
+    hide element ?element = set css for @element "display" = "none"
+
+If the function doesn't take any arguments, the function body _must_ be on an indented line, otherwise it becomes a variable.
 
     update page =
         new page contents = ~ ask server for updated contents
@@ -273,30 +277,26 @@ The difference between variables and functions that don't take arguments is subt
     
     this is a function =
         "function"
+        
+    this is also a function = {"function"}
 
-To express a lambda on its own:
+To express a lambda without declaring it, specify its parameters with the question mark (`?`) and follow them with a block:
 
     ?element {set css for @element "display" = "none"}
 
-Or
+In fact, there are several ways to define a function, all these are identical:
+
+    succ ?n = @n + 1
     
-    ?element
-        set css for @element "display" = "none"
-
-These forms would be used to return a function from a function, eg:
-
-    create adder to add ?i =
-        ?j
-            @i + @j
-
-And used:
-
-    add 5 to = create adder to add 5
-    add 5 to 4
-
-Or
-
-    (create adder to add 5) 4
+    succ ?n =
+        @n + 1
+    
+    succ = ?n {@n + 1}
+    
+    succ = ?n
+        @n + 1
+    
+    succ = ? + 1
 
 ### Options
 
@@ -316,11 +316,43 @@ Or, if the options list is getting long:
             console: log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
             ...
 
-Options can also be taken as an object, and passed to another function:
+All options can also be taken in one variable and passed to another function:
 
     with readonly mysql ?do, ?options =
         while connected to mysql @do, @options, readonly
+
+If you specify an options variable and options too, then the declared options _will not_ be in the options object.
+
+### Asynchronous Functions
+
+Asynchronous functions are just like regular functions except they accept one more argument, the callback. This callback is a function that takes two arguments: an error and a result, in that order.
+
+Lets define a function that waits for a condition to arise. The condition is a function that returns either true or false, if it returns true, the wait ends. If it returns false, it uses `setTimeout` to delay until the next check:
+
+    wait for condition ?condition ?callback, check every (50 milliseconds) =
+        if condition!
+            callback!
+        else
+            set timeout {
+                wait for condition @condition @callback, check every = check every
+            } (check every)
     
+And to use it:
+
+    number of requests = 0
+
+    server = http: create server ?req ?res
+        number of requests += 1
+        res: end!
+        
+    server: listen 3000 "127.0.0.1"
+
+    ~ wait for condition, check every (1 second)
+        (number of requests) > 500
+        
+    console: log "we hit 500 requests!"
+    server: close!
+
 ## Currying
 
 A normal function call appears like this:
@@ -382,7 +414,7 @@ A block that takes arguments can be expressed in a similar way, by just omitting
 
 And in fact, with the currying syntax this can be expressed as:
 
-    comparer = {? compared to ?}
+    comparer = ? compared to ?
     sort @items comparing each with @comparer
 
 # Asynchronous Callbacks
