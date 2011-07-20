@@ -113,13 +113,13 @@ The curly braces can be replaced by an indented block underneath the function, l
 This function name is a bit of a mouthful, lets examine a more realistic example - opening a file and writing to it in a block:
 
     open file "sample.txt" as ?file
-        write line "hi" to #file
+        file: write line "hi"
 
 If the block isn't indented, or none is given, the block ends up being the rest of the enclosing block. Lets consider this block written with a `do` statement. The open file block ends up being the remaining lines in the `do`.
 
     do
         open file "sample.txt" as ?file
-        write line "hi" to #file
+        file: write line "hi"
 
 ## Asynchronous Calls
 
@@ -246,7 +246,7 @@ Or
 To declare options for a function, put them after commas:
 
     while connected to mysql ?do, readonly false, user "root", port 3306, address "127.0.0.1" =
-        console.log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
+        console: log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
         ...
 
 Or, if the options list is getting long:
@@ -256,7 +256,7 @@ Or, if the options list is getting long:
         user "root",
         port 3306,
         address "127.0.0.1" =
-            console.log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
+            console: log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
             ...
 
 Options can also be taken as an object, and passed to another function:
@@ -268,7 +268,7 @@ Options can also be taken as an object, and passed to another function:
 
 A normal function call appears like this:
 
-    #element set html content @html with animation @animation
+    element: set html content @html with animation @animation
 
 To curry, replace arguments with question marks `?`:
 
@@ -352,9 +352,9 @@ Except, that exception handling crosses into asynchronous callbacks too:
     try
         contents = ~ @fs read file "example.txt"
     catch ?e
-        console.log @e
+        console: log @e
     finally
-        console.log "finished"
+        console: log "finished"
 
 The `catch` is able to catch exceptions thrown from each of the async calls. The `finally` is only invoked after each of the async calls have completed. For example, if we were to invoke async calls in a loop, the finally would still only be invoked after all the calls had finished.
 
@@ -363,7 +363,7 @@ The `catch` is able to catch exceptions thrown from each of the async calls. The
             contents = ~ @fs read file "example.txt"
             print lines in @contents that match re:/connect/
     finally
-        console.log "finished"
+        console: log "finished"
 
 # Objects
 
@@ -373,9 +373,9 @@ Objects are created with the `object` keyword.
         bark sound = "woof!"
         
         public bark =
-            console.log (bark sound)
+            console: log (bark sound)
 
-    #dog bark!
+    dog: bark!
 
 This is an immediate object, it can't be used to create more. To do that make a function:
 
@@ -384,7 +384,7 @@ This is an immediate object, it can't be used to create more. To do that make a 
             bark sound = "woof!"
         
             public bark =
-                console.©log (bark sound)
+                console: ©log (bark sound)
     
     first dog = create dog!
     first dog. bark!
@@ -397,21 +397,21 @@ Or one with optional bark sound override:
     create dog, bark sound "woof!" =
         object
             public bark =
-                console.log (bark sound)
+                console: log (bark sound)
 
     dog = create dog, bark sound "meow?"
-    #dog bark!
+    dog: bark!
 
 ## Accessing Fields
 
 To access a field (not a method), don't pass arguments or suffix with exclamation mark (`!`):
 
-    #dog bark sound
+    dog: bark sound
 
 To set it, put it on the left side of the assignment:
 
-    #dog bark sound = "woof! WOOF!"
-    #dog bark!
+    dog: bark sound = "woof! WOOF!"
+    dog: bark!
 
 # Statements
 
@@ -435,7 +435,7 @@ To create a list use the `list` function:
 Indexing lists is done with square brackets `[]`:
 
     names = list "jeff" "jake" "john"
-    first name = names[0]
+    first name = names#0
 
 # Hashes
 
@@ -465,8 +465,7 @@ Referencing a hash follows the same syntax as referencing a list, or if the fiel
     header = hash ("Set-Cookie" = cookie, Location @redirect)
     
     cookie = header["Set-Cookie"]
-    location = header.Location
-    location = #header Location
+    location = header: Location
 
 # JavaScript translation:
 
@@ -574,11 +573,11 @@ There are plenty of async libraries to do this kind of thing too.
 Exception handling, and the finally clause make this more complex still:
 
     try
-        file hashes = #filenames each ?filename do
-            console.log (~ sha1 of file @filename)
-        console.log "finished"
+        file hashes = filenames: each ?filename do
+            console: log (~ sha1 of file @filename)
+        console: log "finished"
     catch ex
-        console.log @ex
+        console: log @ex
 
 becomes
 
@@ -603,7 +602,7 @@ becomes
                 if (err) {
                     catchException(ex);
                 } else {
-                    console.log(result);
+                    console: log(result);
                     if (++callsReturned == callsExpected) {
                         finished();
                     }
