@@ -207,9 +207,9 @@ If the receiver is the result of an expression, it can all go before the colon:
 The colon makes for a concise way to access module items:
 
     http = require 'http'
-    server = http: create server ?req ?res
-        res: write head 200, "Content-Type" = "text/plain"
-        res: end "Hello World\n"
+    server = http: create server ?request ?response
+        response: write head 200, "Content-Type" = "text/plain"
+        response: end "Hello World\n"
 
 The colon can be used to express chains of method calls:
 
@@ -247,6 +247,19 @@ Are the same as:
 For no argument function or method calls, the exclamation mark (`!`) doubles as a colon:
 
     element: create child element! add class "error"
+
+### Splatting Arguments
+
+Splatting arguments is a Ruby term for turning a list into arguments to a function. By splatting arguments, for example, you can call a function that takes 3 arguments by "splatting" a list with 3 items.
+
+Splatting arguments is done using the ellipses `...`, place them after the argument you want to splat.
+
+    args = list 1 2 3
+    console: log @args ...
+
+This is semantically equivalent to:
+
+    console: log 1 2 3
 
 # Declaring Functions
 
@@ -337,9 +350,9 @@ And to use it:
 
     number of requests = 0
 
-    server = http: create server ?req ?res
+    server = http: create server ?request ?response
         number of requests += 1
-        res: end!
+        response: end!
         
     server: listen 3000 "127.0.0.1"
 
@@ -348,6 +361,17 @@ And to use it:
         
     console: log "we hit 500 requests!"
     server: close!
+
+### Unsplatting Arguments
+
+To unsplat arguments, that is, consume multiple arguments as a single list, use the ellipses immeidately after the parameter to take the list (`...`):
+
+    print ?first ?second ?rest ... =
+        console: log "first" @first
+        console: log "second" @second
+        
+        for each ?arg in @rest do
+            console: log "arg" @arg
 
 ## Currying
 
@@ -544,6 +568,37 @@ Statements are one per line:
 But if you want to put several statements onto one line, use the semi-colon (`;`).
 
     length = @width * @height; do stuff!
+
+# Control Flow
+
+## If
+
+The `if` statement:
+
+    condition = true
+    if condition
+        do stuff!
+
+The `if`/`else` statement:
+
+    condition = false
+    if condition
+        do stuff!
+    else
+        do other stuff!
+
+## While
+
+The `while` statement:
+
+    condition = true
+    while condition
+        do stuff!
+        condition = false
+
+## Lambda
+
+[Lambda is the ultimate imperative](http://library.readscheme.org/page1.html), so we'll use it a lot to build control flow.
 
 # Lists
 
