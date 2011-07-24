@@ -321,7 +321,13 @@ If you specify an options variable and options too, then the declared options _w
 
 ### Asynchronous Functions
 
-Asynchronous functions are just like regular functions except they accept one more argument, the callback. This callback is a function that takes two arguments: an error and a result, in that order.
+Asynchronous callbacks have a bit of a convention in Javascript, lets look at `fs.readFile` from node.js:
+
+> ### fs.readFile(filename, [encoding], [callback])
+> Asynchronously reads the entire contents of a file.
+> The callback is passed two arguments `(err, data)`, where data is the contents of the file.
+
+The first argument to the callback is the error. If this is non-null then an error has occurred and it will be thrown into the exception handling mechanism. If the error is null then we look to the second argument as the result of the call. The remaining arguments (if any are passed) are ignored. This is slightly unfortunate for node.js's `fs.read` whose callback signature is `(err, bytesRead, buffer)` - but we opt for a simple approach.
 
 Lets define a function that waits for a condition to arise. The condition is a function that returns either true or false, if it returns true, the wait ends. If it returns false, it uses `setTimeout` to delay until the next check:
 
@@ -332,7 +338,7 @@ Lets define a function that waits for a condition to arise. The condition is a f
             set timeout {
                 wait for condition @condition @callback, check every = check every
             } (check every)
-    
+
 And to use it:
 
     number of requests = 0
@@ -348,6 +354,10 @@ And to use it:
         
     console: log "we hit 500 requests!"
     server: close!
+
+Lets define another function that returns something, an AJAX call to a server:
+
+    ~ evaluate expression (element: value)
 
 ## Currying
 
@@ -412,20 +422,6 @@ And in fact, with the currying syntax this can be expressed as:
 
     comparer = ? compared to ?
     sort @items comparing each with @comparer
-
-# Asynchronous Callbacks
-
-Asynchronous callbacks have a bit of a convention in Javascript, lets look at `fs.readFile` from node.js:
-
-> ### fs.readFile(filename, [encoding], [callback])
-> Asynchronously reads the entire contents of a file.
-> The callback is passed two arguments `(err, data)`, where data is the contents of the file.
-
-The first argument to the callback is the error. If this is non-null then an error has occurred and it will be thrown into the exception handling mechanism. If the error is null then we look to the second argument as the result of the call. The remaining arguments (if any are pass) are ignored. This is slightly unfortunate for node.js's `fs.read` whose callback signature is `(err, bytesRead, buffer)` - but we opt for a simple approach.
-
-Using `fs.readFile` would become:
-
-    contents = ~ @fs read file
 
 # Exception Handling
 
