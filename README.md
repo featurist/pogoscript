@@ -584,6 +584,53 @@ Referencing a hash follows the same syntax as referencing a list, or if the fiel
     cookie = header: "Set-Cookie"
     location = header: Location
 
+# Control Flow
+
+The usual control flow statements are all implemented using functions, there is no special syntax for these. For example, the humble `if` statement:
+
+    if (@x > 0)
+        print "x is greater than zero"
+
+Is easily implemented by a built-in function. If-else is as you'd expect too:
+
+    if (@x > 0)
+        print "x is greater than zero"
+    else
+        print "x is less than or equal to zero"
+
+But this demonstrates a feature of the parser: if a line immediately follows a block, then it is part of the same function call, that is, the function called `if else`. Similar for a familiar exception handling construct:
+
+    try
+        statement 1
+        statement 2
+    catch ?error
+        print "error occurred: @error"
+    finally
+        print "finished, for good or bad"
+
+This is just a function that would be defined as:
+
+    try @block catch @handler finally @finally =
+        ...
+
+As it happens, this would be a built in function. Of course, we'd need to define all the permutations of try/catch/finally:
+
+    try @block =
+        try @block catch nil finally nil
+    
+    try @block catch @handler =
+        try @block catch @handler finally nil
+    
+    try @block finally @finally =
+        try @block catch nil finally @finally
+
+If one _doesn't_ want the next statement to be part of the same function, then put an blank line in between:
+
+    if (@x > 0)
+        print "x is greater than zero"
+
+    another statement with @x
+
 # JavaScript Translation
 
 ## Names and Variables
