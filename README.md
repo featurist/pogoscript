@@ -136,7 +136,7 @@ Both async calls are invoked at the same time, effectively running them in paral
 Normally however, asynchronous calls are made in sequence, so the following statements are called one after the other:
 
     is file = ~ @filename is file
-    if is file
+    if (is file)
         config = ~ load file @filename
         ~ update local system with config @config
 
@@ -173,7 +173,7 @@ These are just regular functions, but they are defined with an additional argume
             nothing failed yet = false
         
         _: each @list ?item
-            if nothing failed yet
+            if (nothing failed yet)
                 oustanding += 1
                 process @item ?error ?result
                     outstanding -= 1
@@ -181,8 +181,9 @@ These are just regular functions, but they are defined with an additional argume
                     if error
                         failure!
                         callback @error
-                    else if @outstanding is 0
-                        callback!
+                    else
+                        if (@outstanding is 0)
+                            callback!
 
 Which is the usual mental async code that node hackers are used to. Better it be factored into a nice little function that can be called without having to worry about the mentalness.
 
@@ -332,7 +333,7 @@ The first argument to the callback is the error. If this is non-null then an err
 Lets define a function that waits for a condition to arise. The condition is a function that returns either true or false, if it returns true, the wait ends. If it returns false, it uses `setTimeout` to delay until the next check:
 
     wait for condition ?condition ?callback, check every (50 milliseconds) =
-        if condition!
+        if (condition!)
             callback!
         else
             set timeout {
