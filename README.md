@@ -136,7 +136,7 @@ Both async calls are invoked at the same time, effectively running them in paral
 Normally however, asynchronous calls are made in sequence, so the following statements are called one after the other:
 
     is file = ~ @filename is file
-    if is file
+    if (is file)
         config = ~ load file @filename
         ~ update local system with config @config
 
@@ -173,7 +173,7 @@ These are just regular functions, but they are defined with an additional argume
             nothing failed yet = false
         
         _: each @list ?item
-            if nothing failed yet
+            if (nothing failed yet)
                 oustanding += 1
                 process @item ?error ?result
                     outstanding -= 1
@@ -181,8 +181,9 @@ These are just regular functions, but they are defined with an additional argume
                     if error
                         failure!
                         callback @error
-                    else if @outstanding is 0
-                        callback!
+                    else
+                        if (@outstanding is 0)
+                            callback!
 
 Which is the usual mental async code that node hackers are used to. Better it be factored into a nice little function that can be called without having to worry about the mentalness.
 
@@ -345,7 +346,7 @@ The first argument to the callback is the error. If this is non-null then an err
 Lets define a function that waits for a condition to arise. The condition is a function that returns either true or false, if it returns true, the wait ends. If it returns false, it uses `setTimeout` to delay until the next check:
 
     wait for condition ?condition ?callback, check every (50 milliseconds) =
-        if condition!
+        if (condition!)
             callback!
         else
             set timeout {
@@ -634,6 +635,53 @@ Referencing a hash follows the same syntax as referencing a list, or if the fiel
     
     cookie = header: "Set-Cookie"
     location = header: Location
+
+# Control Flow
+
+The usual control flow statements are all implemented using functions, there is no special syntax for these. For example, the humble `if` statement:
+
+    if (@x > 0)
+        print "x is greater than zero"
+
+Is easily implemented by a built-in function. If-else is as you'd expect too:
+
+    if (@x > 0)
+        print "x is greater than zero"
+    else
+        print "x is less than or equal to zero"
+
+But this demonstrates a feature of the parser: if a line immediately follows a block, then it is part of the same function call, that is, the function called `if else`. Similar for a familiar exception handling construct:
+
+    try
+        statement 1
+        statement 2
+    catch ?error
+        print "error occurred: @error"
+    finally
+        print "finished, for good or bad"
+
+This is just a function that would be defined as:
+
+    try @block catch @handler finally @finally =
+        ...
+
+As it happens, this would be a built in function. Of course, we'd need to define all the permutations of try/catch/finally:
+
+    try @block =
+        try @block catch nil finally nil
+    
+    try @block catch @handler =
+        try @block catch @handler finally nil
+    
+    try @block finally @finally =
+        try @block catch nil finally @finally
+
+If one _doesn't_ want the next statement to be part of the same function, then put an blank line in between:
+
+    if (@x > 0)
+        print "x is greater than zero"
+
+    another statement with @x
 
 # JavaScript Translation
 
