@@ -20,14 +20,16 @@ spec('parser', function () {
 	    this.memoise = function (parser) {
 	        var memo = {table: {}};
 	        addMemo(memo);
-	        return function (source, index) {
+	        return function (source, index, continuation) {
 	            var parseResult = memo.table[index];
 	            if (parseResult) {
-	                return parseResult;
+	                continuation(parseResult);
+	            } else {
+  	            parser(source, index, function (parseResult) {
+  	              memo.table[index] = parseResult;
+  	              continuation(parseResult);
+  	            });
 	            }
-
-	            parseResult = memo.table[index] = parser(source, index);
-	            return parseResult;
 	        };
 	    };
 	};
@@ -35,14 +37,10 @@ spec('parser', function () {
 	var memotable = new MemoTable();
 	
 	var ignoreLeadingWhitespace = function (parser) {
-    return function (source, index) {
-      var parsedWhitespace = whitespace(source, index);
-      var parsedTerm = parser(source, parsedWhitespace.index);
-      if (parsedTerm) {
-          return parsedTerm;
-      } else {
-          return null;
-      }
+    return function (source, index, continuation) {
+      whitespace(source, index, function (parsedWhitespace) {
+        parser(source, parsedWhitespace.index, continuation);
+      });
     };
   };
 	
@@ -50,15 +48,15 @@ spec('parser', function () {
 		var ignoreCaseFlag = originalRe.ignoreCase? 'i': '';
 		
 		var re = new RegExp(originalRe.source, 'g' + ignoreCaseFlag);
-		var parser = memotable.memoise(function (source, index) {
+		var parser = memotable.memoise(function (source, index, continuation) {
 			re.lastIndex = index;
 			var match = re.exec(source);
 			if (match && match.index == index) {
 				var term = createTerm(match[0]);
 				term.index = re.lastIndex;
-				return term;
+				continuation(term);
 			} else {
-				return null;
+				continuation(null);
 			}
 		});
 		
@@ -178,81 +176,109 @@ spec('parser', function () {
 	
 	spec('integer', function () {
   	spec('parses integer', function () {
-  		assert.containsFields(integer('8', 0), {integer: 8, index: 1});
+  	  integer('8', 0, function (result) {
+    		assert.containsFields(result, {integer: 8, index: 1});
+  	  });
   	});
 
   	spec('parses big integer', function () {
-  		assert.containsFields(integer('888', 0), {integer: 888, index: 3});
+  	  integer('888', 0, function (result) {
+    		assert.containsFields(result, {integer: 888, index: 3});
+  	  });
   	});
 
   	spec("doesn't parse identifier", function () {
-  		assert.doesntParse(integer('id', 0));
+  	  integer('id', 0, function (result) {
+    		assert.doesntParse(result);
+  		});
   	});
 
   	spec("parses integer followed by id", function () {
-  		assert.containsFields(integer('8 id', 0), {integer: 8, index: 1});
+  	  integer('8 id', 0, function (result) {
+    		assert.containsFields(result, {integer: 8, index: 1});
+  	  });
   	});
 
   	spec("parses integer within source", function () {
-  		assert.containsFields(integer('id 8', 3), {integer: 8, index: 4});
+  	  integer('id 8', 3, function (result) {
+  		  assert.containsFields(result, {integer: 8, index: 4});
+		  });
   	});
 
   	spec("doesn't parse integer within source", function () {
-  		assert.doesntParse(integer('id id 8', 3));
+  	  integer('id id 8', 3, shouldCall(function (result) {
+    		assert.doesntParse(result);
+  	  }));
   	});
 
   	spec("parses one integer from many in source", function () {
-  		assert.containsFields(integer('id 1 2 3 4 5 6 7 8', 9), {integer: 4, index: 10});
+  	  integer('id 1 2 3 4 5 6 7 8', 9, function (result) {
+    		assert.containsFields(result, {integer: 4, index: 10});
+  	  });
   	});
 	});
 	
 	spec('identifier parses identifier', function () {
     spec('parses identifier', function () {
-      assert.containsFields(identifier('one two tHrEe four five', 8), {identifier: 'tHrEe', index: 13});
+      identifier('one two tHrEe four five', 8, shouldCall(function (result) {
+        assert.containsFields(result, {identifier: 'tHrEe', index: 13});
+      }));
     });
     
     spec('parses identifier with leading spaces', function () {
-      assert.containsFields(identifier(' one', 0), {identifier: 'one', index: 4});
+      identifier(' one', 0, shouldCall(function (result) {
+        assert.containsFields(result, {identifier: 'one', index: 4});
+      }));
     });
 	});
 	
 	spec('whitespace', function () {
     spec('parses some whitespace', function () {
-      assert.containsFields(whitespace('   one', 0), {index: 3});
+      whitespace('   one', 0, shouldCall(function (result) {
+        assert.containsFields(result, {index: 3});
+      }));
     });
     
     spec('even parses no whitespace', function () {
-      assert.containsFields(whitespace('one', 0), {index: 0});
+      whitespace('one', 0, shouldCall(function (result) {
+        assert.containsFields(result, {index: 0});
+      }));
     });
 	});
 	
 	spec('float', function () {
   	spec('parses floats', function () {
-  		assert.containsFields(float('5.6', 0), {float: 5.6, index: 3});
+  	  float('5.6', 0, shouldCall(function (result) {
+    		assert.containsFields(result, {float: 5.6, index: 3});
+  		}));
   	});
 
   	spec("doesn't parse floats", function () {
-  		var result;
-
   		spec("that terminate immediately after the point", function() {
-  			result = float('5.', 0);
+  			float('5.', 0, shouldCall(function (result) {
+  			  assert.doesntParse(result);
+  			}));
   		});
 
   		spec("that don't have digits after the point", function() {
-  			result = float('5.d', 0);
+  			float('5.d', 0, shouldCall(function (result) {
+  			  assert.doesntParse(result);
+  			}));
   		});
 
   		spec("that are just integers", function() {
-  			result = float('5', 0);
+  			float('5', 0, shouldCall(function (result) {
+  			  assert.doesntParse(result);
+  			}));
   		});
-
-  		assert.doesntParse(result);
   	});
 	});
 	
 	spec('keyword', function () {
 	  spec('parses keywords', function () {
-	    assert.containsFields(keyword('object')('object', 0), {keyword: 'object', index: 6});
+	    keyword('object')('object', 0, function (result) {
+  	    assert.containsFields(result, {keyword: 'object', index: 6});
+      });
 	  });
 	});
 	
@@ -270,9 +296,9 @@ spec('parser', function () {
     });
 
     spec('should not parse sequence', function () {
-        seq('9 to tank', 0, function (result) {
+        seq('9 to tank', 0, shouldCall(function (result) {
           assert.doesntParse(result);
-        });
+        }));
     });
 	});
 });
