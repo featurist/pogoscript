@@ -23,11 +23,11 @@ spec('parser', function () {
       return function (source, index, continuation) {
         var parseResult = memo.table[index];
         if (parseResult) {
-          continuation(parseResult);
+          success(parseResult, continuation);
         } else {
           parser(source, index, function (parseResult) {
             memo.table[index] = parseResult;
-            continuation(parseResult);
+            success(parseResult, continuation);
           });
         }
       };
@@ -44,7 +44,15 @@ spec('parser', function () {
     };
   };
 	
-	var createParser = function (name, originalRe, createTerm, ignoreWhitespace) {
+	var success = function (term, continuation) {
+	  continuation(term);
+	};
+	
+	var failure = function (continuation) {
+	  continuation(null);
+	};
+	
+	var createParser = function (name, originalRe, createTerm, dontIgnoreWhitespace) {
 		var ignoreCaseFlag = originalRe.ignoreCase? 'i': '';
 		
 		var re = new RegExp(originalRe.source, 'g' + ignoreCaseFlag);
@@ -54,9 +62,9 @@ spec('parser', function () {
 			if (match && match.index == index) {
 				var term = createTerm(match[0]);
 				term.index = re.lastIndex;
-				continuation(term);
+				success(term, continuation);
 			} else {
-				continuation(null);
+			  failure(continuation);
 			}
 		});
 		
@@ -65,10 +73,10 @@ spec('parser', function () {
 		  return parser;
 		};
 		
-		if (ignoreWhitespace) {
-		  return nameParser(ignoreLeadingWhitespace(parser));
-		} else {
+		if (dontIgnoreWhitespace) {
   		return nameParser(parser);
+		} else {
+		  return nameParser(ignoreLeadingWhitespace(parser));
   	}
 	};
 	
@@ -112,7 +120,7 @@ spec('parser', function () {
             subterm.parser(source, index, nextSubTermParser(subterm, subtermIndex + 1));
           } else {
             term.index = index;
-            continuation(term);
+            success(term, continuation);
           }
         };
         
@@ -122,7 +130,7 @@ spec('parser', function () {
               previousSubterm.addToTerm(term, result);
               parseSubTerm(subtermIndex, result.index);
             } else {
-              continuation(null);
+              failure(continuation);
             }
           };
         };
@@ -137,8 +145,7 @@ spec('parser', function () {
 		/\d+/,
 		function (match) {
 			return {integer: parseInt(match)};
-		},
-		true
+		}
 	);
 	
 	var float = createParser(
@@ -146,8 +153,7 @@ spec('parser', function () {
 		/\d+\.\d+/,
 		function (match) {
 			return {float: parseFloat(match)};
-		},
-		true
+		}
 	);
 	
 	var whitespace = createParser(
@@ -155,7 +161,8 @@ spec('parser', function () {
 	  /[ \t]*/,
 	  function (match) {
 	    return {};
-	  }
+	  },
+  	true
 	);
 	
 	var identifier = createParser(
@@ -163,8 +170,7 @@ spec('parser', function () {
 		/[a-z]+/i,
 		function (match) {
 			return {identifier: match};
-		},
-		true
+		}
 	);
 	
 	var keyword = function (kw) {
@@ -173,8 +179,7 @@ spec('parser', function () {
   	  new RegExp(kw),
   	  function (match) {
   	    return {keyword: match};
-      },
-      true
+      }
     );
 	};
 	
