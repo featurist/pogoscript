@@ -4,35 +4,35 @@ var _ = require('underscore');
 var util = require('util');
 
 spec('parser', function () {
-	var MemoTable = function () {
-		var memos = [];
-		var addMemo = function(memo) {
-			memos.push(memo);
-		};
-		
-		this.clear = function () {
-            for (var i in memos) {
-                var memo = memos[i];
-                memo.table = {};
-            }
-		};
-		
-	    this.memoise = function (parser) {
-	        var memo = {table: {}};
-	        addMemo(memo);
-	        return function (source, index, continuation) {
-	            var parseResult = memo.table[index];
-	            if (parseResult) {
-	                continuation(parseResult);
-	            } else {
-  	            parser(source, index, function (parseResult) {
-  	              memo.table[index] = parseResult;
-  	              continuation(parseResult);
-  	            });
-	            }
-	        };
-	    };
-	};
+  var MemoTable = function () {
+    var memos = [];
+    var addMemo = function(memo) {
+      memos.push(memo);
+    };
+
+    this.clear = function () {
+      for (var i in memos) {
+        var memo = memos[i];
+        memo.table = {};
+      }
+    };
+
+    this.memoise = function (parser) {
+      var memo = {table: {}};
+      addMemo(memo);
+      return function (source, index, continuation) {
+        var parseResult = memo.table[index];
+        if (parseResult) {
+          continuation(parseResult);
+        } else {
+          parser(source, index, function (parseResult) {
+            memo.table[index] = parseResult;
+            continuation(parseResult);
+          });
+        }
+      };
+    };
+  };
 	
 	var memotable = new MemoTable();
 	
