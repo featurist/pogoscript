@@ -72,51 +72,65 @@ spec('parser', function () {
   	}
 	};
 	
-  var sequence = function () {
-    var termType = arguments[0];
-    var namedParsers = [];
-    for (var n = 1; n < arguments.length; n++) {
-      namedParsers.push(arguments[n]);
-    }
-    
-    return function (source, index, continuation) {
-      var result = {};
-
-      if (namedParsers.length > 0) {
-        for (var i = 0; i < namedParsers.length; i++) {
-          var namedParser = namedParsers[i];
-          
-          var name;
-          var parser;
-          if (_.isArray(namedParser)) {
-            name = namedParser[0];
-            parser = namedParser[1];
-          } else {
-            parser = namedParser;
-            name = null;
-          }
-
-          var parseResult = parser(source, index);
-          if (parseResult) {
-            index = parseResult.index;
-            if (name) {
-              result[name] = parseResult;
-            }
-          } else {
-            continuation(null);
-            return;
-          }
-        }
-      } else {
-        continuation(null);
-        return;
-      }
-
-      result.termType = termType;
-      result.index = index;
-      continuation(result);
+  var sequence = (function () {
+    var NamedSubTerm = function (name, parser) {
+      this.name = name;
+      this.parser = parser;
+      this.addToTerm = function (term, result) {
+        term[this.name] = result;
+      };
     };
-  };
+    
+    var UnnamedSubTerm = function (parser) {
+      this.parser = parser;
+      this.addToTerm = function (term) {
+        // unnamed sub terms are not added to the term
+      };
+    };
+    
+    var readSubTerm = function (subterm) {
+      if (_.isArray(subterm)) {
+        return new NamedSubTerm(subterm[0], subterm[1]);
+      } else {
+        return new UnnamedSubTerm(subterm);
+      }
+    };
+    
+    return function () {
+      var termName = arguments[0];
+      
+      var subterms = _.map(_.rest(arguments), function (subtermArgument) {
+        return readSubTerm(subtermArgument);
+      });
+      
+      return function (source, startIndex, continuation) {
+        var term = {termName: termName, index: startIndex};
+        
+        var parseSubTerm = function (subtermIndex, index, nextSubtermIndex) {
+          var subterm = subterms[subtermIndex];
+          if (subterm) {
+            subterm.parser(source, index, nextSubTermParser(subterm, subtermIndex + 1));
+          } else {
+            term.index = index;
+            continuation(term);
+          }
+        };
+        
+        var nextSubTermParser = function (previousSubterm, subtermIndex) {
+          return function (result) {
+            if (result) {
+              previousSubterm.addToTerm(term, result);
+              parseSubTerm(subtermIndex, result.index);
+            } else {
+              continuation(null);
+            }
+          };
+        };
+        
+        parseSubTerm(0, startIndex);
+      };
+    };
+  }());
 	
 	var integer = createParser(
 	  'integer',
@@ -155,7 +169,7 @@ spec('parser', function () {
 	
 	var keyword = function (kw) {
 	  return createParser(
-	    'keyword ' + kw,
+	    'keyword "' + kw + '"',
   	  new RegExp(kw),
   	  function (match) {
   	    return {keyword: match};
@@ -291,7 +305,7 @@ spec('parser', function () {
 
   	spec('parses correct sequences', function () {
       seq('tank to 8', 0, shouldCall(function (result) {
-        assert.containsFields(result, {index: 9, termType: 'type', name: {identifier: 'tank', index: 4}, id: {integer: 8, index: 9}});
+        assert.containsFields(result, {index: 9, termName: 'type', name: {identifier: 'tank', index: 4}, id: {integer: 8, index: 9}});
       }));
     });
 
