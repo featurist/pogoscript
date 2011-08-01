@@ -185,20 +185,51 @@ spec('parser', function () {
     );
 	};
 	
-	assert.containsFields = function (actual, expected, key, originalExpected) {
+	var choice = function () {
+	  var choiceParsers = arguments;
+	  
+	  return function (source, index, context, continuation) {
+	    var parseChoice = function (choiceIndex) {
+  	    var choiceParser = choiceParsers[choiceIndex];
+
+        if (choiceParser) {
+    	    choiceParser(source, index, context, parseNextChoice(choiceIndex + 1));
+  	    } else {
+  	      failure(continuation);
+  	    }
+	    };
+	    
+  	  var parseNextChoice = function (choiceIndex) {
+  	    return function (result) {
+	        if (result) {
+	          success(result, continuation);
+          } else {
+            parseChoice(choiceIndex);
+          } 
+  	    }
+  	  };
+  	  
+  	  parseChoice(0);
+    };
+	};
+	
+	assert.containsFields = function (actual, expected, key, originalActual) {
 	  if (typeof(expected) == 'object') {
+	    assert.ok(typeof(actual) == 'object', 'expected ' + util.inspect(actual) + ' to be an object');
+	    
 	    var parentKey;
 	    if (key) {
 	      parentKey = key + '.';
 	    } else {
 	      parentKey = '';
 	    }
-	    var originalExpected = (originalExpected || expected);
+	    
+	    var originalActual = (originalActual || actual);
 	    for (var key in expected) {
-	      assert.containsFields(actual[key], expected[key], parentKey + key, originalExpected);
+	      assert.containsFields(actual[key], expected[key], parentKey + key, originalActual);
 	    }
 	  } else {
-	    assert.deepEqual(expected, actual, 'in ' + util.inspect(originalExpected) + ', ' + key + ' ' + util.inspect(actual) + ' should be equal to ' + util.inspect(expected));
+	    assert.deepEqual(expected, actual, 'in ' + util.inspect(originalActual) + ', ' + key + ' ' + util.inspect(actual) + ' should be equal to ' + util.inspect(expected));
 	  }
 	};
 	
@@ -308,6 +339,22 @@ spec('parser', function () {
 
     spec('should not parse sequence', function () {
       assert.doesntParse(parse(seq, '9 to tank'));
+    });
+	});
+	
+	spec('choice (float or identifier)', function () {
+	  var floatOrIdentifier = choice(float, identifier);
+    
+    spec('parses float', function () {
+      assert.containsFields(parse(floatOrIdentifier, '78.4'), {index: 4, float: 78.4});
+    });
+    
+    spec('parses identifier', function () {
+      assert.containsFields(parse(floatOrIdentifier, 'xxy'), {index: 3, identifier: 'xxy'});
+    });
+    
+    spec("doesn't parse integer", function () {
+      assert.doesntParse(parse(floatOrIdentifier, '45'));
     });
 	});
 });
