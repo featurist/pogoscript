@@ -558,9 +558,9 @@ Statements are one per line:
     length = @width * @height
     do stuff!
 
-But if you want to put several statements onto one line, use the semi-colon (`;`).
+But if you want to put several statements onto one line, use the dot (`.`).
 
-    length = @width * @height; do stuff!
+    length = @width * @height. do stuff!
 
 # Control Flow
 
@@ -627,9 +627,9 @@ They can also be written on an indented line:
 
 Which is the same as:
 
-    hash {"Set-Cookie" = cookie; Location @redirect}
+    hash {"Set-Cookie" = cookie. Location @redirect}
 
-Referencing a hash follows the same syntax as referencing a list, or if the field name is a proper name, then either dot notation or field reference:
+Referencing a hash follows the same syntax as referencing a list, only it can use normal names as well as expressions:
 
     header = hash ("Set-Cookie" = cookie, Location @redirect)
     
