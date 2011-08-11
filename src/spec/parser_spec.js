@@ -237,9 +237,13 @@ spec('parser', function () {
 		assert.strictEqual(obj, null);
 	};
 	
+	var createContext = function () {
+	  return {};
+	}
+	
 	var parse = function (parser, source, index, context) {
 	  index = (index || 0);
-	  context = (context || {});
+	  context = (context || createContext());
 	  
 	  var result;
 	  
