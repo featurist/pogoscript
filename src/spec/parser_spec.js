@@ -240,7 +240,8 @@ spec('parser', function () {
       var inspectedOriginalActual = context.failure(continuation);
       var inspectedActual = util.inspect(actual);
       var inspectedExpected = util.inspect(expected);
-      assert.deepEqual(expected, actual, 'in ' + inspectedOriginalActual + ', ' + key + ' ' + inspectedActual + ' should be equal to ' + inspectedExpected);
+      var msg = 'in ' + inspectedOriginalActual + ', ' + key + ' ' + inspectedActual + ' should be equal to ' + inspectedExpected;
+      assert.deepEqual(expected, actual, msg);
     }
   };
   
