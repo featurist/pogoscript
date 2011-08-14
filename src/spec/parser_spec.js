@@ -237,7 +237,7 @@ spec('parser', function () {
         assert.containsFields(actual[key], expected[key], parentKey + key, originalActual);
       }
     } else {
-      var inspectedOriginalActual = context.failure(continuation);
+      var inspectedOriginalActual = util.inspect(originalActual);
       var inspectedActual = util.inspect(actual);
       var inspectedExpected = util.inspect(expected);
       var msg = 'in ' + inspectedOriginalActual + ', ' + key + ' ' + inspectedActual + ' should be equal to ' + inspectedExpected;
