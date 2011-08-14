@@ -237,7 +237,10 @@ spec('parser', function () {
         assert.containsFields(actual[key], expected[key], parentKey + key, originalActual);
       }
     } else {
-      assert.deepEqual(expected, actual, 'in ' + util.inspect(originalActual) + ', ' + key + ' ' + util.inspect(actual) + ' should be equal to ' + util.inspect(expected));
+      var inspectedOriginalActual = context.failure(continuation);
+      var inspectedActual = util.inspect(actual);
+      var inspectedExpected = util.inspect(expected);
+      assert.deepEqual(expected, actual, 'in ' + inspectedOriginalActual + ', ' + key + ' ' + inspectedActual + ' should be equal to ' + inspectedExpected);
     }
   };
   
