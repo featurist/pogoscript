@@ -23,11 +23,19 @@ spec('parser', function () {
       return function (source, index, context, continuation) {
         var parseResult = memo.table[index];
         if (parseResult) {
-          success(parseResult, continuation);
+          if (parseResult) {
+            parseResult.context.success(parseResult, continuation);
+          } else {
+            context.failure(continuation);
+          }
         } else {
           parser(source, index, context, function (parseResult) {
             memo.table[index] = parseResult;
-            success(parseResult, continuation);
+            if (parseResult) {
+              parseResult.context.success(parseResult, continuation);
+            } else {
+              context.failure(continuation);
+            }
           });
         }
       };
@@ -63,9 +71,9 @@ spec('parser', function () {
         var term = createTerm(match[0]);
         term.index = re.lastIndex;
         term.context = context;
-        success(term, continuation);
+        context.success(term, continuation);
       } else {
-        failure(continuation);
+        context.failure(continuation);
       }
     });
     
@@ -122,7 +130,7 @@ spec('parser', function () {
           } else {
             term.index = index;
             term.context = context;
-            success(term, continuation);
+            context.success(term, continuation);
           }
         };
         
@@ -132,12 +140,12 @@ spec('parser', function () {
               previousSubterm.addToTerm(term, result);
               parseSubTerm(subtermIndex, result.index, result.context);
             } else {
-              failure(continuation);
+              context.failure(continuation);
             }
           };
         };
         
-        parseSubTerm(0, startIndex);
+        parseSubTerm(0, startIndex, context);
       };
     };
   }());
@@ -195,14 +203,14 @@ spec('parser', function () {
         if (choiceParser) {
           choiceParser(source, index, context, parseNextChoice(choiceIndex + 1));
         } else {
-          failure(continuation);
+          context.failure(continuation);
         }
       };
       
       var parseNextChoice = function (choiceIndex) {
         return function (result) {
           if (result) {
-            success(result, continuation);
+            result.context.success(result, continuation);
           } else {
             parseChoice(choiceIndex);
           } 
@@ -238,7 +246,14 @@ spec('parser', function () {
   };
   
   var createContext = function () {
-    return {};
+    return {
+      success: function (result, continuation) {
+        continuation(result);
+      },
+      failure: function (continuation) {
+        continuation(null);
+      }
+    };
   }
   
   var parse = function (parser, source, index, context) {
