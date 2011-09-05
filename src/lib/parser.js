@@ -184,10 +184,18 @@ var sigilIdentifier = function (sigil, name) {
   );
 };
 
+var escapeInRegExp = function (str) {
+  if (/^[(){}?]$/.test(str)) {
+    return '\\' + str;
+  } else {
+    return str;
+  }
+};
+
 var keyword = function (kw) {
   return createParser(
     'keyword "' + kw + '"',
-    new RegExp(kw),
+    new RegExp(escapeInRegExp(kw)),
     function (match) {
       return {keyword: match};
     }
@@ -195,11 +203,9 @@ var keyword = function (kw) {
 };
 
 var choice = function () {
-  var choiceParsers = arguments;
-  
-  return function (source, index, context, continuation) {
+  var parseAllChoices = function (source, index, context, continuation) {
     var parseChoice = function (choiceIndex) {
-      var choiceParser = choiceParsers[choiceIndex];
+      var choiceParser = parseAllChoices.choices[choiceIndex];
 
       if (choiceParser) {
         choiceParser(source, index, context, parseNextChoice(choiceIndex + 1));
@@ -220,6 +226,10 @@ var choice = function () {
     
     parseChoice(0);
   };
+  
+  parseAllChoices.choices = Array.prototype.slice.call(arguments);
+  
+  return parseAllChoices;
 };
   
 var createContext = function () {
@@ -360,6 +370,12 @@ var variable = transform(multipleTerminals, function (terminals) {
 });
 
 var expression = choice(functionCall, variable);
+
+var subExpression = transform(sequence('subExpression', keyword('('), ['expression', expression], keyword(')')), function (term) {
+  return term.expression;
+});
+
+terminal.choices.push(subExpression);
 
 exports.integer = integer;
 exports.parse = parse;
