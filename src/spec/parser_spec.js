@@ -6,8 +6,10 @@ var parser = require('../lib/parser');
 
 spec('parser', function () {
   assert.containsFields = function (actual, expected, key, originalActual) {
+    var inspectedOriginalActual = util.inspect(originalActual);
+    
     if (typeof(expected) == 'object') {
-      assert.ok(typeof(actual) == 'object', 'expected ' + util.inspect(actual) + ' to be an object');
+      assert.ok(typeof(actual) == 'object', 'in ' + inspectedOriginalActual + ', expected ' + key + ' ' + util.inspect(actual) + ' to be an object');
       
       var parentKey;
       if (key) {
@@ -21,7 +23,6 @@ spec('parser', function () {
         assert.containsFields(actual[key], expected[key], parentKey + key, originalActual);
       }
     } else {
-      var inspectedOriginalActual = util.inspect(originalActual);
       var inspectedActual = util.inspect(actual);
       var inspectedExpected = util.inspect(expected);
       var msg = 'in ' + inspectedOriginalActual + ', ' + key + ' ' + inspectedActual + ' should be equal to ' + inspectedExpected;
@@ -66,6 +67,10 @@ spec('parser', function () {
   spec('identifier parses identifier', function () {
     spec('parses identifier', function () {
       assert.containsFields(parser.parse(parser.identifier, 'one two tHrEe four five', 8), {identifier: 'tHrEe', index: 13});
+    });
+    
+    spec('parses identifier containing digits', function () {
+      assert.containsFields(parser.parse(parser.identifier, 'three3four4'), {identifier: 'three3four4', index: 11});
     });
     
     spec('parses identifier with leading spaces', function () {
@@ -138,6 +143,99 @@ spec('parser', function () {
     
     spec("doesn't parse integer", function () {
       assert.doesntParse(parser.parse(floatOrIdentifier, '45'));
+    });
+  });
+  
+  var assertParser = function (p) {
+    return function (src, expectedTerm) {
+      var term = parser.parse(p, src);
+      assert.ok(term);
+      assert.containsFields(term, expectedTerm);
+    };
+  };
+  
+  spec('multiple', function () {
+    spec('parses multiple identifiers', function () {
+      assert.containsFields(parser.parse(parser.multiple(parser.identifier), 'one two three'), [{identifier: 'one'}, {identifier: 'two'}, {identifier: 'three'}]);
+    });
+    
+    spec('parses only 2 identifiers out 3', function () {
+      assert.containsFields(parser.parse(parser.multiple(parser.identifier, undefined, 2), 'one two three'), [{identifier: 'one'}, {identifier: 'two'}]);
+    });
+    
+    spec("doesn't parse unless there are at least two identifiers", function () {
+      assert.doesntParse(parser.parse(parser.multiple(parser.identifier, 2), 'one'));
+    });
+  });
+  
+  spec('transform', function () {
+    spec('transforms successfully parsed identifier', function () {
+      assert.containsFields(parser.parse(parser.transform(parser.identifier, function (term) {
+        return {
+          thisIsTransformed: true
+        };
+      }), 'one'), {thisIsTransformed: true, index: 3});
+    });
+  });
+  
+  spec('terminal', function () {
+    var assertTerminal = assertParser(parser.terminal);
+    var notTerminal = function (src) {
+      assert.doesntParse(parser.parse(parser.terminal, src));
+    };
+    
+    spec('argument', function () {
+      assertTerminal('@arg1', {variable: ['arg1']});
+    });
+    
+    spec("doesn't parse argument with space between at symbol and identifier", function () {
+      notTerminal('@ arg1');
+    });
+    
+    spec('parses bracketed expression', function () {
+      assertTerminal('(var name)', {variable: ['var', 'name']});
+    });
+  });
+  
+  spec('expression', function () {
+    var assertExpression = assertParser(parser.expression);
+    var assertNotExpression = function (src) {
+      assert.doesntParse(parser.parse(parser.expression, src));
+    };
+    
+    spec('function call', function () {
+      spec('parses function call with two arguments', function () {
+        assertExpression('move @src to @dest',
+          {
+            index: 18,
+            termName: 'functionCall',
+            function: {variable: ['move', 'to']},
+            arguments: [{variable: ['src']}, {variable: ['dest']}]
+          });
+      });
+      
+      spec('parses function call with no arguments', function () {
+        assertExpression('save all files to disk!',
+          {
+            index: 23,
+            termName: 'functionCall',
+            function: {variable: ['save', 'all', 'files', 'to', 'disk']},
+            arguments: []
+          });
+      });
+      
+      spec("doesn't parse function call with no arg suffix and arguments", function () {
+        assertNotExpression('save @files to disk!');
+      });
+    });
+    
+    spec('variable', function () {
+      assertExpression('this is a variable',
+        {
+          index: 18,
+          variable: ['this', 'is', 'a', 'variable']
+        }
+      );
     });
   });
 });

@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var terms = require('./codeGenerator');
 
 var MemoTable = function () {
   var memos = [];
@@ -56,7 +57,7 @@ var createParser = function (name, originalRe, createTerm, dontIgnoreWhitespace)
     re.lastIndex = index;
     var match = re.exec(source);
     if (match && match.index == index) {
-      var term = createTerm(match[0]);
+      var term = createTerm.apply(undefined, match);
       term.index = re.lastIndex;
       term.context = context;
       context.success(term, continuation);
@@ -142,7 +143,7 @@ var integer = createParser(
   'integer',
   /\d+/,
   function (match) {
-    return {integer: parseInt(match)};
+    return terms.integer(parseInt(match));
   }
 );
 
@@ -150,7 +151,7 @@ var float = createParser(
   'float',
   /\d+\.\d+/,
   function (match) {
-    return {float: parseFloat(match)};
+    return terms.float(parseFloat(match));
   }
 );
 
@@ -165,11 +166,23 @@ var whitespace = createParser(
 
 var identifier = createParser(
   'identifier',
-  /[a-z]+/i,
-  function (match) {
-    return {identifier: match};
+  /[a-z][a-z0-9]*/i,
+  function (id) {
+    return terms.identifier(id);
   }
 );
+
+var sigilIdentifier = function (sigil, name) {
+  return createParser(
+    name,
+    new RegExp('\\' + sigil + '([a-z][a-z0-9]*)', 'i'),
+    function (match, identifier) {
+      var term = {};
+      term[name] = identifier;
+      return term;
+    }
+  );
+};
 
 var keyword = function (kw) {
   return createParser(
@@ -234,6 +247,120 @@ var parse = function (parser, source, index, context) {
   return result;
 }
 
+var multiple = function (parser, min, max) {
+  return function (source, index, context, continuation) {
+    var terms = [];
+
+    var parseAnother = function (result) {
+      if (result) {
+        terms.push(result);
+        terms.context = result.context;
+        terms.index = result.index;
+        
+        if (max && terms.length >= max) {
+          result.context.success(terms, continuation);
+        } else {
+          parser(source, result.index, result.context, parseAnother);
+        }
+      } else {
+        if (!min || terms.length >= min) {
+          context.success(terms, continuation);
+        } else {
+          context.failure(continuation);
+        }
+      }
+    };
+    
+    parser(source, index, context, parseAnother);
+  };
+};
+
+var transform = function (parser, transformer) {
+  return function (source, index, context, continuation) {
+    parser(source, index, context, function (result) {
+      if (result) {
+        var transformed = transformer(result);
+
+        if (transformed) {
+          if (!transformed.index) {
+            transformed.index = result.index;
+          }
+        
+          if (!transformed.context) {
+            transformed.context = result.context;
+          }
+        }
+        
+        context.success(transformed, continuation);
+      } else {
+        context.failure(continuation);
+      }
+    })
+  };
+};
+
+var argument = transform(sigilIdentifier('@', 'argument'), function (term) {
+  return terms.variable([term.argument]);
+});
+
+var parameter = sigilIdentifier('?', 'parameter');
+
+var noArgumentFunctionCallSuffix = transform(keyword('!'), function (result) {
+  return {
+    noArgumentFunctionCallSuffix: true
+  };
+});
+
+var terminal = choice(integer, float, argument, identifier, parameter, noArgumentFunctionCallSuffix);
+
+var multipleTerminals = multiple(terminal);
+
+var functionCall = transform(multipleTerminals, function (terminals) {
+  var allIdentifiers = _(terminals).all(function (terminal) {
+    return terminal.identifier;
+  });
+  
+  if (allIdentifiers) {
+    return null;
+  }
+  
+  var isNoArgCall = terminals[terminals.length - 1].noArgumentFunctionCallSuffix;
+  
+  var name = _(terminals).filter(function (terminal) {
+    return terminal.identifier;
+  }).map(function (identifier) {
+    return identifier.identifier;
+  });
+  
+  var arguments = _(terminals).filter(function (terminal) {
+    return !terminal.identifier && !terminal.noArgumentFunctionCallSuffix;
+  });
+  
+  if (isNoArgCall && arguments.length > 0) {
+    return null;
+  }
+  
+  return terms.functionCall(terms.variable(name), arguments);
+});
+
+var variable = transform(multipleTerminals, function (terminals) {
+  var allIdentifiers = _(terminals).all(function (terminal) {
+    return terminal.identifier;
+  });
+  
+  if (allIdentifiers) {
+    var name = _(terminals).map(function (terminal) {
+      return terminal.identifier;
+    });
+    
+    return terms.variable(name);
+  } else {
+    return null;
+  }
+});
+
+var expression = choice(functionCall, variable);
+
 exports.integer = integer;
 exports.parse = parse;
 exports.float = float;
@@ -242,3 +369,7 @@ exports.keyword = keyword;
 exports.sequence = sequence;
 exports.identifier = identifier;
 exports.whitespace = whitespace;
+exports.terminal = terminal;
+exports.expression = expression;
+exports.multiple = multiple;
+exports.transform = transform;
