@@ -250,9 +250,9 @@ var parse = function (parser, source, index, context) {
   
   var result;
   
-  parser(source, index, context, shouldCall(function (r) {
+  parser(source, index, context, function (r) {
     result = r;
-  }));
+  });
   
   return result;
 }
@@ -292,13 +292,8 @@ var transform = function (parser, transformer) {
         var transformed = transformer(result);
 
         if (transformed) {
-          if (!transformed.index) {
-            transformed.index = result.index;
-          }
-        
-          if (!transformed.context) {
-            transformed.context = result.context;
-          }
+          transformed.index = result.index;
+          transformed.context = result.context;
         }
         
         context.success(transformed, continuation);

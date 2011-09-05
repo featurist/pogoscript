@@ -112,6 +112,10 @@ spec('parser', function () {
     spec('parses keywords', function () {
       assert.containsFields(parser.parse(parser.keyword('object'), 'object'), {keyword: 'object', index: 6});
     });
+    
+    spec('parses keywords that are also regular expression characters', function () {
+      assert.containsFields(parser.parse(parser.keyword(')'), ')'), {keyword: ')', index: 1});
+    });
   });
   
   spec('sequence', function () {
@@ -127,6 +131,16 @@ spec('parser', function () {
 
     spec('should not parse sequence', function () {
       assert.doesntParse(parser.parse(seq, '9 to tank'));
+    });
+    
+    spec('with ending keyword should parse', function () {
+      seq = parser.sequence(
+        'stuff',
+        parser.keyword('('),
+        ['expression', parser.identifier],
+        parser.keyword(')'));
+        
+      assert.containsFields(parser.parse(seq, '(one)'), {expression: {identifier: 'one'}, index: 5});
     });
   });
   
@@ -172,6 +186,7 @@ spec('parser', function () {
     spec('transforms successfully parsed identifier', function () {
       assert.containsFields(parser.parse(parser.transform(parser.identifier, function (term) {
         return {
+          index: 2,
           thisIsTransformed: true
         };
       }), 'one'), {thisIsTransformed: true, index: 3});
@@ -193,7 +208,7 @@ spec('parser', function () {
     });
     
     spec('parses bracketed expression', function () {
-      assertTerminal('(var name)', {variable: ['var', 'name']});
+      assertTerminal('(var name)', {variable: ['var', 'name'], index: 10});
     });
   });
   
@@ -211,6 +226,16 @@ spec('parser', function () {
             termName: 'functionCall',
             function: {variable: ['move', 'to']},
             arguments: [{variable: ['src']}, {variable: ['dest']}]
+          });
+      });
+      
+      spec('parses function call with bracketed argument', function () {
+        assertExpression('fun (one argument) @two',
+          {
+            index: 23,
+            termName: 'functionCall',
+            function: {variable: ['fun']},
+            arguments: [{variable: ['one', 'argument']}, {variable: ['two']}]
           });
       });
       
