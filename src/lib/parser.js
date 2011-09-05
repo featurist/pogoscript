@@ -48,14 +48,6 @@ var ignoreLeadingWhitespace = function (parser) {
   };
 };
 
-var success = function (term, continuation) {
-  continuation(term);
-};
-
-var failure = function (continuation) {
-  continuation(null);
-};
-
 var createParser = function (name, originalRe, createTerm, dontIgnoreWhitespace) {
   var ignoreCaseFlag = originalRe.ignoreCase? 'i': '';
   
