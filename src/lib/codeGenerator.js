@@ -33,6 +33,15 @@ exports.variable = function (name) {
   };
 };
 
+exports.parameter = function (name) {
+  return {
+    parameter: name,
+    generateJavaScript: function (buffer) {
+      buffer.write(concatName(this.parameter));
+    }
+  };
+};
+
 var concatName = function (nameSegments) {
   var name = nameSegments[0];
   
@@ -65,3 +74,12 @@ exports.functionCall = function (fun, arguments) {
     }
   };
 };
+
+exports.block = function (body) {
+  return {
+    body: body,
+    isBlock: function () {
+      return true;
+    }
+  };
+}

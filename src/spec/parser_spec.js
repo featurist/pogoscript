@@ -210,6 +210,10 @@ spec('parser', function () {
     spec('parses bracketed expression', function () {
       assertTerminal('(var name)', {variable: ['var', 'name'], index: 10});
     });
+    
+    spec('parses block', function () {
+      assertTerminal('{var name}', {body: {variable: ['var', 'name']}, index: 10});
+    });
   });
   
   spec('expression', function () {
@@ -252,6 +256,14 @@ spec('parser', function () {
       spec("doesn't parse function call with no arg suffix and arguments", function () {
         assertNotExpression('save @files to disk!');
       });
+      
+      spec('defines parameters for block', function () {
+        assertExpression('map each ?item into {change @item}',
+          {
+            function: {variable: ['map', 'each', 'into']},
+            arguments: [{parameters: [{parameter: ['item']}], body: {function: {variable: ['change']}, arguments: [{variable: ['item']}]}}]
+          });
+      })
     });
     
     spec('variable', function () {

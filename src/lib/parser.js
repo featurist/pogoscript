@@ -312,7 +312,9 @@ var argument = sigilIdentifier('@', 'argument', function (argumentName) {
   return terms.variable([argumentName]);
 });
 
-var parameter = sigilIdentifier('?', 'parameter');
+var parameter = sigilIdentifier('?', 'parameter', function (argumentName) {
+  return terms.parameter([argumentName]);
+});
 
 var noArgumentFunctionCallSuffix = transform(keyword('!'), function (result) {
   return {
@@ -342,8 +344,23 @@ var functionCall = transform(multipleTerminals, function (terminals) {
   });
   
   var arguments = _(terminals).filter(function (terminal) {
-    return !terminal.identifier && !terminal.noArgumentFunctionCallSuffix;
+    return !terminal.identifier && !terminal.noArgumentFunctionCallSuffix && !terminal.parameter;
   });
+  
+  var buildBlocks = function () {
+    var parameters = [];
+    
+    _(terminals).each(function (terminal) {
+      if (terminal.parameter) {
+        parameters.push(terminal);
+      } else if (terminal.body) {
+        terminal.parameters = parameters;
+        parameters = [];
+      }
+    });
+  };
+  
+  buildBlocks();
   
   if (isNoArgCall && arguments.length > 0) {
     return null;
@@ -373,8 +390,14 @@ var expression = choice(functionCall, variable);
 var subExpression = transform(sequence('subExpression', keyword('('), ['expression', expression], keyword(')')), function (term) {
   return term.expression;
 });
-
 terminal.choices.push(subExpression);
+
+var block = transform(sequence('block', keyword('{'), ['body', expression], keyword('}')), function (term) {
+  return terms.block(term.body);
+});
+
+terminal.choices.push(block);
+
 
 exports.integer = integer;
 exports.parse = parse;
