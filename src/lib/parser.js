@@ -333,17 +333,18 @@ var delimited = function (parser, delimiter, min, max) {
 
 var transformWith = function (term, transformer) {
   if (transformer) {
-    var transformed = transformer(term);
-
-    if (transformed) {
-      transformed.index = term.index;
-      transformed.context = term.context;
-    }
-  
-    return transformed;
+    return termDerivedFrom(term, transformer(term));
   } else {
     return term;
   }
+};
+
+var termDerivedFrom = function (baseTerm, derivedTerm) {
+  if (derivedTerm) {
+    derivedTerm.index = baseTerm.index;
+    derivedTerm.context = baseTerm.context;
+  }
+  return derivedTerm;
 };
 
 var transform = function (parser, transformer) {
@@ -461,9 +462,13 @@ var expressionSuffix = choice(methodCall);
 
 var primaryExpression = choice(functionCall, variable);
 
-var expression = sequence(['expression', primaryExpression], ['suffix', optional(expressionSuffix)], function (term) {
-  if (term.suffix[0]) {
-    return term.suffix[0].makeExpression(term.expression);
+var expression = sequence(['expression', primaryExpression], ['suffix', multiple(expressionSuffix, 0)], function (term) {
+  if (term.suffix.length > 0) {
+    var expr = term.expression;
+    _(term.suffix).each(function (suffix) {
+      expr = termDerivedFrom(suffix, suffix.makeExpression(expr));
+    });
+    return expr;
   } else {
     return term.expression;
   }
