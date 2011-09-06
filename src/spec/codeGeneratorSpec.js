@@ -55,4 +55,12 @@ spec('code generator', function () {
       assertGenerates(st, 'one();two();');
     });
   });
+  
+  spec('definitions', function () {
+    spec('as expressions', function () {
+      var d = cg.definition(cg.variable(['one']), cg.integer(9));
+      
+      assertGenerates(d, 'one=9');
+    });
+  });
 });

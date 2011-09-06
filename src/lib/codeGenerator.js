@@ -29,14 +29,14 @@ exports.identifier = function (name) {
 expressionTerm('integer', function (value) {
   this.integer = value;
   this.generateJavaScript = function (buffer) {
-    buffer.write(this.value);
+    buffer.write(this.integer.toString());
   };
 });
 
 expressionTerm('float', function (value) {
   this.float = value;
   this.generateJavaScript = function (buffer) {
-    buffer.write(this.value);
+    buffer.write(this.float.toString());
   };
 });
 
@@ -127,4 +127,9 @@ exports.statements = function (s) {
 expressionTerm('definition', function (target, source) {
   this.target = target;
   this.source = source;
+  this.generateJavaScript = function (buffer) {
+    target.generateJavaScript(buffer);
+    buffer.write('=');
+    source.generateJavaScript(buffer);
+  };
 });
