@@ -393,7 +393,7 @@ var subExpression = transform(sequence('subExpression', keyword('('), ['expressi
 terminal.choices.push(subExpression);
 
 var block = transform(sequence('block', keyword('{'), ['body', expression], keyword('}')), function (term) {
-  return terms.block(term.body);
+  return terms.block([], term.body);
 });
 
 terminal.choices.push(block);

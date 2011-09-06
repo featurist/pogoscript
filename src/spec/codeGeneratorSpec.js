@@ -22,9 +22,23 @@ spec('code generator', function () {
   
   spec('function call', function () {
     spec('with no arguments', function () {
+      var f = cg.functionCall(cg.variable(['f']), []);
+      
+      assertGenerates(f, 'f()');
+    });
+    
+    spec('with two arguments', function () {
       var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.variable(['b'])]);
       
       assertGenerates(f, 'f(a,b)');
     });
+  });
+  
+  spec('block', function () {
+    spec('with no parameters', function () {
+      var b = cg.block([], cg.variable(['x']));
+      
+      assertGenerates(b, 'function(){return x;}');
+    })
   });
 });

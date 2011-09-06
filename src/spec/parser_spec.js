@@ -227,7 +227,6 @@ spec('parser', function () {
         assertExpression('move @src to @dest',
           {
             index: 18,
-            termName: 'functionCall',
             function: {variable: ['move', 'to']},
             arguments: [{variable: ['src']}, {variable: ['dest']}]
           });
@@ -237,7 +236,6 @@ spec('parser', function () {
         assertExpression('fun (one argument) @two',
           {
             index: 23,
-            termName: 'functionCall',
             function: {variable: ['fun']},
             arguments: [{variable: ['one', 'argument']}, {variable: ['two']}]
           });
@@ -247,7 +245,6 @@ spec('parser', function () {
         assertExpression('save all files to disk!',
           {
             index: 23,
-            termName: 'functionCall',
             function: {variable: ['save', 'all', 'files', 'to', 'disk']},
             arguments: []
           });
