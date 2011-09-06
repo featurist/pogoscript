@@ -100,3 +100,17 @@ expressionTerm('block', function (parameters, body) {
     buffer.write('}');
   };
 });
+
+var Statements = function (statements) {
+  this.statements = statements;
+  this.generateJavaScript = function (buffer) {
+    _(this.statements).each(function (statement) {
+      statement.generateJavaScript(buffer);
+      buffer.write(';');
+    });
+  };
+};
+
+exports.statements = function (s) {
+  return new Statements(s);
+};

@@ -280,6 +280,10 @@ var multiple = function (parser, min, max) {
 };
 
 var delimited = function (parser, delimiter, min, max) {
+  if (_.isUndefined(min)) {
+    min = 1;
+  }
+  
   return function (source, index, context, continuation) {
     var terms = [];
     terms.context = context;
@@ -290,7 +294,7 @@ var delimited = function (parser, delimiter, min, max) {
     };
     
     var finishParsing = function () {
-      if (!min || terms.length >= min) {
+      if (terms.length >= min) {
         terms.context.success(terms, continuation);
       } else {
         context.failure(continuation);
@@ -440,8 +444,8 @@ var variable = transform(multipleTerminals, function (terminals) {
 
 var expression = choice(functionCall, variable);
 
-var statements = sequence(['statements', delimited(expression, keyword('\n'))], optional(keyword('\n')), function (term) {
-  return term;
+var statements = sequence(multiple(keyword('\n'), 0), ['statements', delimited(expression, multiple(keyword('\n')))], multiple(keyword('\n'), 0), function (term) {
+  return terms.statements(term.statements);
 });
 
 var subExpression = sequence(keyword('('), ['expression', expression], keyword(')'), function (term) {

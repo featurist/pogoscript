@@ -47,4 +47,12 @@ spec('code generator', function () {
       assertGenerates(b, 'function(x){return x;}');
     });
   });
+  
+  spec('statements', function () {
+    spec('with two statements', function () {
+      var st = cg.statements([cg.functionCall(cg.variable(['one']), []), cg.functionCall(cg.variable(['two']), [])]);
+      
+      assertGenerates(st, 'one();two();');
+    });
+  });
 });

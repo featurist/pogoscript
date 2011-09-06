@@ -176,6 +176,10 @@ spec('parser', function () {
       assert.containsFields(parser.parse(parser.multiple(parser.identifier), 'one two three'), [{identifier: 'one'}, {identifier: 'two'}, {identifier: 'three'}]);
     });
     
+    spec('parses at least one item', function () {
+      assert.doesntParse(parser.parse(parser.multiple(parser.identifier), ''));
+    });
+    
     spec('parses only 2 identifiers out 3', function () {
       assert.containsFields(parser.parsePartial(parser.multiple(parser.identifier, undefined, 2), 'one two three'), [{identifier: 'one'}, {identifier: 'two'}]);
     });
@@ -303,13 +307,29 @@ spec('parser', function () {
   spec('statements', function () {
     var assertStatements = assertParser(parser.statements);
     
-    spec('on two lines', function () {
-      assertStatements('one!\ntwo!', {
+    spec('two statements', function () {
+      var statements = {
         statements: [
           {function: {variable: ['one']}},
           {function: {variable: ['two']}}
         ]
+      };
+    
+      spec('on two lines', function () {
+        assertStatements('one!\ntwo!', statements);
       });
-    });
+    
+      spec('on two lines with one line empty', function () {
+        assertStatements('one!\n\ntwo!', statements);
+      });
+    
+      spec('starting with newlines', function () {
+        assertStatements('\n\none!\ntwo!', statements);
+      });
+    
+      spec('ending with newlines', function () {
+        assertStatements('one!\ntwo!\n\n', statements);
+      });
+    })
   });
 });
