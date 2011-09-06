@@ -5,7 +5,6 @@ var filename = process.argv[2];
 
 fs.readFile(filename, 'utf-8', function (err, contents) {
   if (!err) {
-    console.log(contents);
     var term = parser.parse(parser.statements, contents);
     term.generateJavaScript(process.stdout);
     process.stdout.write('\n');
