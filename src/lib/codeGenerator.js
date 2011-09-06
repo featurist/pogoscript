@@ -1,3 +1,5 @@
+var _ = require('underscore');
+
 exports.identifier = function (name) {
   return {
     identifier: name
@@ -6,26 +8,59 @@ exports.identifier = function (name) {
 
 exports.integer = function (value) {
   return {
-    integer: value
+    integer: value,
+    generateJavaScript: function (buffer) {
+      buffer.write(this.value);
+    }
   };
 };
 
 exports.float = function (value) {
   return {
-    float: value
+    float: value,
+    generateJavaScript: function (buffer) {
+      buffer.write(this.value);
+    }
   };
 };
 
 exports.variable = function (name) {
   return {
-    variable: name
+    variable: name,
+    generateJavaScript: function (buffer) {
+      buffer.write(concatName(this.variable));
+    }
   };
+};
+
+var concatName = function (nameSegments) {
+  var name = nameSegments[0];
+  
+  for (var n = 1; n < nameSegments.length; n++) {
+    name += nameSegments[n];
+  }
+  
+  return name;
 };
 
 exports.functionCall = function (fun, arguments) {
   return {
     termName: 'functionCall',
     function: fun,
-    arguments: arguments
+    arguments: arguments,
+    generateJavaScript: function (buffer) {
+      fun.generateJavaScript(buffer);
+      buffer.write('(');
+      var first = true;
+      _(this.arguments).each(function (arg) {
+        if (!first) {
+          buffer.write(', ');
+        }
+        first = false;
+        arg.generateJavaScript(buffer);
+      });
+      
+      buffer.write(')');
+    }
   };
 };
