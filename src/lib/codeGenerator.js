@@ -95,13 +95,24 @@ expressionTerm('block', function (parameters, body) {
   this.parameters = parameters;
   this.generateJavaScript = function (buffer) {
     buffer.write('function(');
+    var first = true;
     _(this.parameters).each(function (parameter) {
+      if (!first) {
+        buffer.write(',');
+      }
+      first = false;
       parameter.generateJavaScript(buffer);
     });
     buffer.write('){');
     body.generateJavaScriptBody(buffer);
     buffer.write('}');
   };
+});
+
+expressionTerm('methodCall', function (object, name, arguments) {
+  this.object = object;
+  this.name = name;
+  this.arguments = arguments;
 });
 
 var Statements = function (statements) {

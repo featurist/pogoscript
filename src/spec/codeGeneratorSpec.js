@@ -48,9 +48,9 @@ spec('code generator', function () {
     });
     
     spec('with two parameters', function () {
-      var b = cg.block([cg.parameter(['x'])], cg.statements([cg.variable(['x'])]));
+      var b = cg.block([cg.parameter(['x']), cg.parameter(['y'])], cg.statements([cg.variable(['x'])]));
       
-      generatesExpression(b, 'function(x){return x;}');
+      generatesExpression(b, 'function(x,y){return x;}');
     });
   });
   
