@@ -333,7 +333,7 @@ spec('parser', function () {
     });
     
     spec('in indented block', function () {
-      assertStatements('do {stuff}', {
+      assertStatements('do {\n\tstuff\n}', {
         statements: [{
           function: {variable: ['do']},
           arguments: [{body: {statements: [{variable: ['stuff']}]}}]
