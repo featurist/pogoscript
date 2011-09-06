@@ -36,13 +36,13 @@ spec('code generator', function () {
   
   spec('block', function () {
     spec('with no parameters', function () {
-      var b = cg.block([], cg.variable(['x']));
+      var b = cg.block([], cg.statements([cg.variable(['x'])]));
       
       assertGenerates(b, 'function(){return x;}');
     });
     
     spec('with two parameters', function () {
-      var b = cg.block([cg.parameter(['x'])], cg.variable(['x']));
+      var b = cg.block([cg.parameter(['x'])], cg.statements([cg.variable(['x'])]));
       
       assertGenerates(b, 'function(x){return x;}');
     });

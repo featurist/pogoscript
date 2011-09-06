@@ -103,11 +103,20 @@ expressionTerm('block', function (parameters, body) {
 
 var Statements = function (statements) {
   this.statements = statements;
-  this.generateJavaScript = function (buffer) {
-    _(this.statements).each(function (statement) {
+  
+  var generateStatements = function (statements, buffer) {
+    _(statements).each(function (statement) {
       statement.generateJavaScript(buffer);
       buffer.write(';');
     });
+  };
+  
+  this.generateJavaScript = function (buffer) {
+    generateStatements(this.statements, buffer);
+  };
+  this.generateJavaScriptBody = function (buffer) {
+    generateStatements(this.statements.splice(0, this.statements.length - 1), buffer);
+    this.statements[this.statements.length - 1].generateJavaScriptBody(buffer);
   };
 };
 
