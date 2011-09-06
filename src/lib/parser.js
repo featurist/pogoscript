@@ -247,23 +247,51 @@ var createContext = function () {
   };
 }
 
-var parse = function (parser, source, index, context) {
+var parsePartial = function (parser, source, index, context) {
+  return parse(parser, source, index, context, true);
+};
+
+var parse = function (parser, source, index, context, partial) {
   memotable.clear();
   index = (index || 0);
   context = (context || createContext());
   
-  var result;
+  var result = null;
   
   parser(source, index, context, function (r) {
-    result = r;
+    if (partial || (r && (r.index == source.length))) {
+      result = r;
+    }
   });
   
   return result;
 }
 
+var optional = function (parser) {
+  return multiple(parser, 0, 1);
+};
+
 var multiple = function (parser, min, max) {
+  return delimited(parser, undefined, min, max);
+};
+
+var delimited = function (parser, delimiter, min, max) {
   return function (source, index, context, continuation) {
     var terms = [];
+    terms.context = context;
+    terms.index = index;
+    
+    var parseWithResult = function (result) {
+      parser(source, result.index, result.context, parseAnother);
+    };
+    
+    var finishParsing = function () {
+      if (!min || terms.length >= min) {
+        terms.context.success(terms, continuation);
+      } else {
+        context.failure(continuation);
+      }
+    };
 
     var parseAnother = function (result) {
       if (result) {
@@ -274,14 +302,20 @@ var multiple = function (parser, min, max) {
         if (max && terms.length >= max) {
           result.context.success(terms, continuation);
         } else {
-          parser(source, result.index, result.context, parseAnother);
+          if (delimiter) {
+            delimiter(source, result.index, result.context, function (delimResult) {
+              if (delimResult) {
+                parseWithResult(delimResult);
+              } else {
+                finishParsing();
+              }
+            });
+          } else {
+            parseWithResult(result);
+          }
         }
       } else {
-        if (!min || terms.length >= min) {
-          context.success(terms, continuation);
-        } else {
-          context.failure(continuation);
-        }
+        finishParsing();
       }
     };
     
@@ -387,6 +421,8 @@ var variable = transform(multipleTerminals, function (terminals) {
 
 var expression = choice(functionCall, variable);
 
+var statements = sequence('statements', ['statements', delimited(expression, keyword('\n'))], optional(keyword('\n')));
+
 var subExpression = transform(sequence('subExpression', keyword('('), ['expression', expression], keyword(')')), function (term) {
   return term.expression;
 });
@@ -398,9 +434,9 @@ var block = transform(sequence('block', keyword('{'), ['body', expression], keyw
 
 terminal.choices.push(block);
 
-
 exports.integer = integer;
 exports.parse = parse;
+exports.parsePartial = parsePartial;
 exports.float = float;
 exports.choice = choice;
 exports.keyword = keyword;
@@ -410,4 +446,7 @@ exports.whitespace = whitespace;
 exports.terminal = terminal;
 exports.expression = expression;
 exports.multiple = multiple;
+exports.optional = optional;
 exports.transform = transform;
+exports.delimited = delimited;
+exports.statements = statements;

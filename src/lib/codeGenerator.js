@@ -91,7 +91,11 @@ expressionTerm('block', function (parameters, body) {
   this.isBlock = true;
   this.parameters = parameters;
   this.generateJavaScript = function (buffer) {
-    buffer.write('function(){');
+    buffer.write('function(');
+    _(this.parameters).each(function (parameter) {
+      parameter.generateJavaScript(buffer);
+    });
+    buffer.write('){');
     body.generateJavaScriptBody(buffer);
     buffer.write('}');
   };

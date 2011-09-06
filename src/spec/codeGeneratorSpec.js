@@ -39,6 +39,12 @@ spec('code generator', function () {
       var b = cg.block([], cg.variable(['x']));
       
       assertGenerates(b, 'function(){return x;}');
-    })
+    });
+    
+    spec('with two parameters', function () {
+      var b = cg.block([cg.parameter(['x'])], cg.variable(['x']));
+      
+      assertGenerates(b, 'function(x){return x;}');
+    });
   });
 });

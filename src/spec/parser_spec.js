@@ -48,25 +48,25 @@ spec('parser', function () {
     });
 
     spec("parses integer followed by id", function () {
-      assert.containsFields(parser.parse(parser.integer, '8 id'), {integer: 8, index: 1});
+      assert.containsFields(parser.parsePartial(parser.integer, '8 id'), {integer: 8, index: 1});
     });
 
     spec("parses integer within source", function () {
-      assert.containsFields(parser.parse(parser.integer, 'id 8', 3), {integer: 8, index: 4});
+      assert.containsFields(parser.parsePartial(parser.integer, 'id 8', 3), {integer: 8, index: 4});
     });
 
     spec("doesn't parse integer within source", function () {
-      assert.doesntParse(parser.parse(parser.integer, 'id id 8', 3));
+      assert.doesntParse(parser.parsePartial(parser.integer, 'id id 8', 3));
     });
 
     spec("parses one integer from many in source", function () {
-      assert.containsFields(parser.parse(parser.integer, 'id 1 2 3 4 5 6 7 8', 9), {integer: 4, index: 10});
+      assert.containsFields(parser.parsePartial(parser.integer, 'id 1 2 3 4 5 6 7 8', 9), {integer: 4, index: 10});
     });
   });
   
   spec('identifier parses identifier', function () {
     spec('parses identifier', function () {
-      assert.containsFields(parser.parse(parser.identifier, 'one two tHrEe four five', 8), {identifier: 'tHrEe', index: 13});
+      assert.containsFields(parser.parsePartial(parser.identifier, 'one two tHrEe four five', 8), {identifier: 'tHrEe', index: 13});
     });
     
     spec('parses identifier containing digits', function () {
@@ -80,11 +80,11 @@ spec('parser', function () {
   
   spec('whitespace', function () {
     spec('parses some whitespace', function () {
-      assert.containsFields(parser.parse(parser.whitespace, '   one'), {index: 3});
+      assert.containsFields(parser.parsePartial(parser.whitespace, '   one'), {index: 3});
     });
     
     spec('even parses no whitespace', function () {
-      assert.containsFields(parser.parse(parser.whitespace, 'one'), {index: 0});
+      assert.containsFields(parser.parsePartial(parser.whitespace, 'one'), {index: 0});
     });
   });
   
@@ -95,15 +95,15 @@ spec('parser', function () {
 
     spec("doesn't parse floats", function () {
       spec("that terminate immediately after the point", function() {
-        assert.doesntParse(parser.parse(parser.float, '5.'));
+        assert.doesntParse(parser.parsePartial(parser.float, '5.'));
       });
 
       spec("that don't have digits after the point", function() {
-        assert.doesntParse(parser.parse(parser.float, '5.d'));
+        assert.doesntParse(parser.parsePartial(parser.float, '5.d'));
       });
 
       spec("that are just integers", function() {
-        assert.doesntParse(parser.parse(parser.float, '5'));
+        assert.doesntParse(parser.parsePartial(parser.float, '5'));
       });
     });
   });
@@ -174,11 +174,35 @@ spec('parser', function () {
     });
     
     spec('parses only 2 identifiers out 3', function () {
-      assert.containsFields(parser.parse(parser.multiple(parser.identifier, undefined, 2), 'one two three'), [{identifier: 'one'}, {identifier: 'two'}]);
+      assert.containsFields(parser.parsePartial(parser.multiple(parser.identifier, undefined, 2), 'one two three'), [{identifier: 'one'}, {identifier: 'two'}]);
     });
     
     spec("doesn't parse unless there are at least two identifiers", function () {
       assert.doesntParse(parser.parse(parser.multiple(parser.identifier, 2), 'one'));
+    });
+    
+    spec("parses zero terms", function () {
+      assert.containsFields(parser.parse(parser.multiple(parser.identifier, 0), ''), []);
+    });
+  });
+  
+  spec('delimited', function () {
+    spec('parses one item with no delimiters', function () {
+      assert.containsFields(parser.parse(parser.delimited(parser.identifier, parser.keyword(',')), 'one'), [{identifier: 'one'}]);
+    });
+    
+    spec('parses two items with delimiter', function () {
+      assert.containsFields(parser.parse(parser.delimited(parser.identifier, parser.keyword(',')), 'one, two'), [{identifier: 'one'}, {identifier: 'two'}]);
+    });
+  });
+  
+  spec('optional', function () {
+    spec('parses zero items', function () {
+      assert.containsFields(parser.parse(parser.optional(parser.identifier), ''), []);
+    });
+    
+    spec('parses one item', function () {
+      assert.containsFields(parser.parse(parser.optional(parser.identifier), 'one'), [{identifier: 'one'}]);
     });
   });
   
@@ -270,6 +294,19 @@ spec('parser', function () {
           variable: ['this', 'is', 'a', 'variable']
         }
       );
+    });
+  });
+  
+  spec('statements', function () {
+    var assertStatements = assertParser(parser.statements);
+    
+    spec('on two lines', function () {
+      assertStatements('one!\ntwo!', {
+        statements: [
+          {function: {variable: ['one']}},
+          {function: {variable: ['two']}}
+        ]
+      });
     });
   });
 });
