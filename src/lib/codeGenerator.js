@@ -109,10 +109,29 @@ expressionTerm('block', function (parameters, body) {
   };
 });
 
+var generateJavaScriptWithDelimiter = function (array, delimiter, buffer) {
+  var first = true;
+  _(array).each(function (item) {
+    if (!first) {
+      buffer.write(delimiter);
+    }
+    first = false;
+    item.generateJavaScript(buffer);
+  });
+};
+
 expressionTerm('methodCall', function (object, name, arguments) {
   this.object = object;
   this.name = name;
   this.arguments = arguments;
+  this.generateJavaScript = function (buffer) {
+    this.object.generateJavaScript(buffer);
+    buffer.write('.');
+    buffer.write(concatName(this.name));
+    buffer.write('(');
+    generateJavaScriptWithDelimiter(this.arguments, ',', buffer);
+    buffer.write(')');
+  };
 });
 
 var Statements = function (statements) {

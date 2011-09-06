@@ -75,4 +75,10 @@ spec('code generator', function () {
       generatesStatement(d, 'var one=9');
     });
   });
+  
+  spec('method call', function () {
+    var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff'])]);
+    
+    generatesExpression(m, 'console.log(stuff)');
+  });
 });
