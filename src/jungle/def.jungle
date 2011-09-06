@@ -1,0 +1,5 @@
+move ?src to ?dest = {
+	console: log @src @dest
+}
+
+move 4 to 5
