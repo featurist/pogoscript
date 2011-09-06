@@ -383,6 +383,14 @@ var terminal = choice(integer, float, argument, identifier, parameter, noArgumen
 
 var multipleTerminals = multiple(terminal);
 
+var extractName = function (terminals) {
+  return _(terminals).filter(function (terminal) {
+    return terminal.identifier;
+  }).map(function (identifier) {
+    return identifier.identifier;
+  });
+};
+
 var functionCall = transform(multipleTerminals, function (terminals) {
   var allIdentifiers = _(terminals).all(function (terminal) {
     return terminal.identifier;
@@ -392,13 +400,13 @@ var functionCall = transform(multipleTerminals, function (terminals) {
     return null;
   }
   
+  if (terminals.length == 1) {
+    return terminals[0];
+  }
+  
   var isNoArgCall = terminals[terminals.length - 1].noArgumentFunctionCallSuffix;
   
-  var name = _(terminals).filter(function (terminal) {
-    return terminal.identifier;
-  }).map(function (identifier) {
-    return identifier.identifier;
-  });
+  var name = extractName(terminals);
   
   var arguments = _(terminals).filter(function (terminal) {
     return !terminal.identifier && !terminal.noArgumentFunctionCallSuffix && !terminal.parameter;
@@ -443,6 +451,12 @@ var variable = transform(multipleTerminals, function (terminals) {
 });
 
 var expression = choice(functionCall, variable);
+
+var definition = sequence(['target', multiple(identifier)], keyword('='), ['source', expression], function (term) {
+  return terms.definition(terms.variable(extractName(term.target)), term.source);
+});
+
+expression.choices.unshift(definition);
 
 var statements = sequence(multiple(keyword('\n'), 0), ['statements', delimited(expression, multiple(keyword('\n')))], multiple(keyword('\n'), 0), function (term) {
   return terms.statements(term.statements);

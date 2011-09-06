@@ -253,6 +253,10 @@ spec('parser', function () {
       assert.doesntParse(parser.parse(parser.expression, src));
     };
     
+    spec('with just one terminal resolves to that terminal', function () {
+      assertExpression('9', {integer: 9});
+    });
+    
     spec('function call', function () {
       spec('parses function call with two arguments', function () {
         assertExpression('move @src to @dest',
@@ -283,6 +287,24 @@ spec('parser', function () {
       
       spec("doesn't parse function call with no arg suffix and arguments", function () {
         assertNotExpression('save @files to disk!');
+      });
+  
+      spec('definition', function () {
+        spec('of variable', function () {
+          assertExpression('my var = 9', {
+            index: 10,
+            target: {variable: ['my', 'var']},
+            source: {integer: 9}
+          });
+        });
+        
+        spec('of block', function () {
+          assertExpression('my var = {9}', {
+            index: 12,
+            target: {variable: ['my', 'var']},
+            source: {body: {statements: [{integer: 9}]}}
+          });
+        });
       });
       
       spec('defines parameters for block', function () {

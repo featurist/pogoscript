@@ -123,3 +123,8 @@ var Statements = function (statements) {
 exports.statements = function (s) {
   return new Statements(s);
 };
+
+expressionTerm('definition', function (target, source) {
+  this.target = target;
+  this.source = source;
+});
