@@ -329,7 +329,7 @@ spec('parser', function () {
             function: {variable: ['map', 'each', 'into']},
             arguments: [{parameters: [{parameter: ['item']}], body: {statements: [{function: {variable: ['change']}, arguments: [{variable: ['item']}]}]}}]
           });
-      })
+      });
     });
     
     spec('variable', function () {
@@ -340,6 +340,17 @@ spec('parser', function () {
         }
       );
     });
+    
+    spec('object', function () {
+      spec('method call', function () {
+        assertExpression('console: log @stuff', {
+          index: 19,
+          object: {variable: ['console']},
+          name: ['log'],
+          arguments: [{variable: ['stuff']}]
+        });
+      });
+    })
   });
   
   spec('statements', function () {

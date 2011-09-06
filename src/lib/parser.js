@@ -450,7 +450,24 @@ var variable = transform(multipleTerminals, function (terminals) {
   }
 });
 
-var expression = choice(functionCall, variable);
+var methodCall = sequence(keyword(':'), ['methodCall', functionCall], function (term) {
+  term.makeExpression = function (expression) {
+    return terms.methodCall(expression, this.methodCall.function.variable, term.methodCall.arguments);
+  };
+  return term;
+});
+
+var expressionSuffix = choice(methodCall);
+
+var primaryExpression = choice(functionCall, variable);
+
+var expression = sequence(['expression', primaryExpression], ['suffix', optional(expressionSuffix)], function (term) {
+  if (term.suffix[0]) {
+    return term.suffix[0].makeExpression(term.expression);
+  } else {
+    return term.expression;
+  }
+});
 
 var definition = sequence(['target', multiple(choice(identifier, parameter))], keyword('='), ['source', expression], function (term) {
   var parms = _(term.target).filter(function (targetSegment) {
@@ -469,7 +486,7 @@ var definition = sequence(['target', multiple(choice(identifier, parameter))], k
   return terms.definition(terms.variable(extractName(term.target)), source);
 });
 
-expression.choices.unshift(definition);
+primaryExpression.choices.unshift(definition);
 
 var statements = sequence(multiple(keyword('\n'), 0), ['statements', delimited(expression, multiple(keyword('\n')))], multiple(keyword('\n'), 0), function (term) {
   return terms.statements(term.statements);
