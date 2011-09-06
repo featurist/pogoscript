@@ -37,7 +37,8 @@ var concatName = function (nameSegments) {
   var name = nameSegments[0];
   
   for (var n = 1; n < nameSegments.length; n++) {
-    name += nameSegments[n];
+    var segment = nameSegments[n];
+    name += segment[0].toUpperCase() + segment.substring(1);
   }
   
   return name;
@@ -54,7 +55,7 @@ exports.functionCall = function (fun, arguments) {
       var first = true;
       _(this.arguments).each(function (arg) {
         if (!first) {
-          buffer.write(', ');
+          buffer.write(',');
         }
         first = false;
         arg.generateJavaScript(buffer);

@@ -1,0 +1,3 @@
+[submodule "src/refs/memstream"]
+	path = src/refs/memstream
+	url = https://github.com/ollym/memstream.git

@@ -172,14 +172,18 @@ var identifier = createParser(
   }
 );
 
-var sigilIdentifier = function (sigil, name) {
+var sigilIdentifier = function (sigil, name, createTerm) {
+  createTerm = createTerm || function (identifier) {
+    var term = {};
+    term[name] = identifier;
+    return term;
+  };
+  
   return createParser(
     name,
     new RegExp('\\' + sigil + '([a-z][a-z0-9]*)', 'i'),
     function (match, identifier) {
-      var term = {};
-      term[name] = identifier;
-      return term;
+      return createTerm(identifier);
     }
   );
 };
@@ -304,8 +308,8 @@ var transform = function (parser, transformer) {
   };
 };
 
-var argument = transform(sigilIdentifier('@', 'argument'), function (term) {
-  return terms.variable([term.argument]);
+var argument = sigilIdentifier('@', 'argument', function (argumentName) {
+  return terms.variable([argumentName]);
 });
 
 var parameter = sigilIdentifier('?', 'parameter');
