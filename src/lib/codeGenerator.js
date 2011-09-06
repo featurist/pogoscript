@@ -6,6 +6,9 @@ var ExpressionPrototype = new function () {
     this.generateJavaScript(buffer);
     buffer.write(';');
   };
+  this.generateJavaScriptStatement = function (buffer) {
+    return this.generateJavaScript(buffer);
+  };
 };
 
 var expressionTerm = function (name, constructor) {
@@ -106,7 +109,7 @@ var Statements = function (statements) {
   
   var generateStatements = function (statements, buffer) {
     _(statements).each(function (statement) {
-      statement.generateJavaScript(buffer);
+      statement.generateJavaScriptStatement(buffer);
       buffer.write(';');
     });
   };
@@ -128,6 +131,12 @@ expressionTerm('definition', function (target, source) {
   this.target = target;
   this.source = source;
   this.generateJavaScript = function (buffer) {
+    target.generateJavaScript(buffer);
+    buffer.write('=');
+    source.generateJavaScript(buffer);
+  };
+  this.generateJavaScriptStatement = function (buffer) {
+    buffer.write('var ');
     target.generateJavaScript(buffer);
     buffer.write('=');
     source.generateJavaScript(buffer);
