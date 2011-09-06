@@ -138,6 +138,12 @@ expressionTerm('methodCall', function (object, name, arguments) {
 expressionTerm('indexer', function (object, indexer) {
   this.object = object;
   this.indexer = indexer;
+  this.generateJavaScript = function (buffer) {
+    this.object.generateJavaScript(buffer);
+    buffer.write('[');
+    this.indexer.generateJavaScript(buffer);
+    buffer.write(']');
+  };
 });
 
 var Statements = function (statements) {

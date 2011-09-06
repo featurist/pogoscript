@@ -81,4 +81,10 @@ spec('code generator', function () {
     
     generatesExpression(m, 'console.log(stuff)');
   });
+  
+  spec('indexer', function () {
+    var m = cg.indexer(cg.variable(['array']), cg.variable(['stuff']));
+    
+    generatesExpression(m, 'array[stuff]');
+  });
 });
