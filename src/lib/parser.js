@@ -452,8 +452,21 @@ var variable = transform(multipleTerminals, function (terminals) {
 
 var expression = choice(functionCall, variable);
 
-var definition = sequence(['target', multiple(identifier)], keyword('='), ['source', expression], function (term) {
-  return terms.definition(terms.variable(extractName(term.target)), term.source);
+var definition = sequence(['target', multiple(choice(identifier, parameter))], keyword('='), ['source', expression], function (term) {
+  var parms = _(term.target).filter(function (targetSegment) {
+    return targetSegment.parameter;
+  });
+  
+  var source = term.source;
+  if (parms.length > 0) {
+    if (!source.isBlock) {
+      source = terms.block(parms, source);
+    } else {
+      source.parameters = parms;
+    }
+  }
+  
+  return terms.definition(terms.variable(extractName(term.target)), source);
 });
 
 expression.choices.unshift(definition);

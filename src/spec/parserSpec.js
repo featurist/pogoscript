@@ -299,10 +299,26 @@ spec('parser', function () {
         });
         
         spec('of block', function () {
-          assertExpression('my var = {9}', {
-            index: 12,
-            target: {variable: ['my', 'var']},
+          assertExpression('function that returns number = {9}', {
+            index: 34,
+            target: {variable: ['function', 'that', 'returns', 'number']},
             source: {body: {statements: [{integer: 9}]}}
+          });
+        });
+        
+        spec('of block with parameters', function () {
+          assertExpression('identity ?a = {a}', {
+            index: 17,
+            target: {variable: ['identity']},
+            source: {parameters: [{parameter: ['a']}], body: {statements: [{variable: ['a']}]}}
+          });
+        });
+        
+        spec('of expression with parameters', function () {
+          assertExpression('identity ?a = a', {
+            index: 15,
+            target: {variable: ['identity']},
+            source: {parameters: [{parameter: ['a']}], body: {variable: ['a']}}
           });
         });
       });
