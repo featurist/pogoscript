@@ -120,10 +120,12 @@ spec('parser', function () {
   
   spec('sequence', function () {
     var seq = parser.sequence(
-        'type',
         ['name', parser.identifier],
         parser.keyword('to'),
-        ['id', parser.integer]);
+        ['id', parser.integer], function (term) {
+          term.termName = 'type';
+          return term;
+        });
 
     spec('parses correct sequences', function () {
       assert.containsFields(parser.parse(seq, 'tank to 8'), {index: 9, termName: 'type', name: {identifier: 'tank', index: 4}, id: {integer: 8, index: 9}});
@@ -135,10 +137,11 @@ spec('parser', function () {
     
     spec('with ending keyword should parse', function () {
       seq = parser.sequence(
-        'stuff',
         parser.keyword('('),
         ['expression', parser.identifier],
-        parser.keyword(')'));
+        parser.keyword(')'), function (term) {
+          return term;
+        });
         
       assert.containsFields(parser.parse(seq, '(one)'), {expression: {identifier: 'one'}, index: 5});
     });

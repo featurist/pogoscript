@@ -103,14 +103,18 @@ var sequence = (function () {
   };
   
   return function () {
-    var termName = arguments[0];
+    var args = _.toArray(arguments);
     
-    var subterms = _.map(_.rest(arguments), function (subtermArgument) {
+    var createTerm = _.last(args);
+    
+    args = args.splice(0, args.length - 1);
+    
+    var subterms = _.map(args, function (subtermArgument) {
       return readSubTerm(subtermArgument);
     });
     
     return function (source, startIndex, context, continuation) {
-      var term = {termName: termName, index: startIndex};
+      var term = {index: startIndex};
       
       var parseSubTerm = function (subtermIndex, index, context) {
         var subterm = subterms[subtermIndex];
@@ -119,7 +123,7 @@ var sequence = (function () {
         } else {
           term.index = index;
           term.context = context;
-          context.success(term, continuation);
+          context.success(transformWith(term, createTerm), continuation);
         }
       };
       
@@ -323,6 +327,21 @@ var delimited = function (parser, delimiter, min, max) {
   };
 };
 
+var transformWith = function (term, transformer) {
+  if (transformer) {
+    var transformed = transformer(term);
+
+    if (transformed) {
+      transformed.index = term.index;
+      transformed.context = term.context;
+    }
+  
+    return transformed;
+  } else {
+    return term;
+  }
+};
+
 var transform = function (parser, transformer) {
   return function (source, index, context, continuation) {
     parser(source, index, context, function (result) {
@@ -421,14 +440,16 @@ var variable = transform(multipleTerminals, function (terminals) {
 
 var expression = choice(functionCall, variable);
 
-var statements = sequence('statements', ['statements', delimited(expression, keyword('\n'))], optional(keyword('\n')));
+var statements = sequence(['statements', delimited(expression, keyword('\n'))], optional(keyword('\n')), function (term) {
+  return term;
+});
 
-var subExpression = transform(sequence('subExpression', keyword('('), ['expression', expression], keyword(')')), function (term) {
+var subExpression = sequence(keyword('('), ['expression', expression], keyword(')'), function (term) {
   return term.expression;
 });
 terminal.choices.push(subExpression);
 
-var block = transform(sequence('block', keyword('{'), ['body', expression], keyword('}')), function (term) {
+var block = sequence(keyword('{'), ['body', expression], keyword('}'), function (term) {
   return terms.block([], term.body);
 });
 
