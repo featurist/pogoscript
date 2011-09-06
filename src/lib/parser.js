@@ -453,7 +453,11 @@ var variable = transform(multipleTerminals, function (terminals) {
 
 var methodCall = sequence(keyword(':'), ['methodCall', functionCall], function (term) {
   term.makeExpression = function (expression) {
-    return terms.methodCall(expression, this.methodCall.function.variable, term.methodCall.arguments);
+    if (this.methodCall.isFunctionCall) {
+      return terms.methodCall(expression, this.methodCall.function.variable, term.methodCall.arguments);
+    } else {
+      return terms.indexer(expression, this.methodCall);
+    }
   };
   return term;
 });

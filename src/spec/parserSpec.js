@@ -350,6 +350,7 @@ spec('parser', function () {
           arguments: [{variable: ['stuff']}]
         });
       });
+      
       spec('nested method call', function () {
         assertExpression('obj: describe @stuff: fix @it', {
           index: 29,
@@ -361,6 +362,17 @@ spec('parser', function () {
           },
           name: ['fix'],
           arguments: [{variable: ['it']}]
+        });
+      });
+      
+      spec('with index', function () {
+        assertExpression('array: 9', {
+          index: 8,
+          object: {
+            index: 5,
+            variable: ['array']
+          },
+          indexer: {integer: 9}
         });
       });
     });

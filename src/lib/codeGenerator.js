@@ -73,6 +73,7 @@ var concatName = function (nameSegments) {
 expressionTerm('functionCall', function (fun, arguments) {
   this.function = fun;
   this.arguments = arguments;
+  this.isFunctionCall = true;
   this.generateJavaScript = function (buffer) {
     fun.generateJavaScript(buffer);
     buffer.write('(');
@@ -132,6 +133,11 @@ expressionTerm('methodCall', function (object, name, arguments) {
     generateJavaScriptWithDelimiter(this.arguments, ',', buffer);
     buffer.write(')');
   };
+});
+
+expressionTerm('indexer', function (object, indexer) {
+  this.object = object;
+  this.indexer = indexer;
 });
 
 var Statements = function (statements) {
