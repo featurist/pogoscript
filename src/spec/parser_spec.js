@@ -243,7 +243,7 @@ spec('parser', function () {
     });
     
     spec('parses block', function () {
-      assertTerminal('{var name}', {body: {variable: ['var', 'name']}, index: 10});
+      assertTerminal('{var name}', {body: {statements: [{variable: ['var', 'name']}]}, index: 10});
     });
   });
   
@@ -289,7 +289,7 @@ spec('parser', function () {
         assertExpression('map each ?item into {change @item}',
           {
             function: {variable: ['map', 'each', 'into']},
-            arguments: [{parameters: [{parameter: ['item']}], body: {function: {variable: ['change']}, arguments: [{variable: ['item']}]}}]
+            arguments: [{parameters: [{parameter: ['item']}], body: {statements: [{function: {variable: ['change']}, arguments: [{variable: ['item']}]}]}}]
           });
       })
     });
@@ -330,6 +330,15 @@ spec('parser', function () {
       spec('ending with newlines', function () {
         assertStatements('one!\ntwo!\n\n', statements);
       });
-    })
+    });
+    
+    spec('in indented block', function () {
+      assertStatements('do {stuff}', {
+        statements: [{
+          function: {variable: ['do']},
+          arguments: [{body: {statements: [{variable: ['stuff']}]}}]
+        }]
+      });
+    });
   });
 });

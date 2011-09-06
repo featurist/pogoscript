@@ -453,7 +453,7 @@ var subExpression = sequence(keyword('('), ['expression', expression], keyword('
 });
 terminal.choices.push(subExpression);
 
-var block = sequence(keyword('{'), ['body', expression], keyword('}'), function (term) {
+var block = sequence(keyword('{'), ['body', statements], keyword('}'), function (term) {
   return terms.block([], term.body);
 });
 
