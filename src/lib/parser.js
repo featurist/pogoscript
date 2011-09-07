@@ -491,6 +491,10 @@ var statements = sequence(multiple(keyword('\n'), 0), ['statements', delimited(e
   return terms.statements(term.statements);
 });
 
+var _module = transform(statements, function (stmts) {
+  return terms.module(stmts);
+});
+
 var subExpression = sequence(keyword('('), ['expression', expression], keyword(')'), function (term) {
   return term.expression;
 });
@@ -518,3 +522,4 @@ exports.optional = optional;
 exports.transform = transform;
 exports.delimited = delimited;
 exports.statements = statements;
+exports.module = _module;

@@ -7,7 +7,7 @@ require('cupoftea');
 spec('code generator', function () {
   var generatesExpression = function (term, expectedGeneratedCode) {
     var stream = new MemoryStream();
-    term.generateJavaScript(stream);
+    term.generateJavaScript(stream, new cg.Scope());
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
@@ -119,5 +119,19 @@ spec('code generator', function () {
     assert.ok(_(walkedTerms).contains(object));
     assert.ok(_(walkedTerms).contains(argument));
     assert.ok(_(walkedTerms).contains(m));
-  })
+  });
+  
+  spec('scope', function () {
+    spec('variable defined in outer scope, assigned to in inner scope', function () {
+      var s = cg.module(cg.statements([
+        cg.definition(cg.variable(['x']), cg.integer(1)),
+        cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
+          cg.definition(cg.variable(['x']), cg.integer(2)),
+          cg.variable(['x'])
+        ]))])
+      ]));
+      
+      generatesExpression(s, 'var x;x=1;f(function(){x=2;return x;});');
+    });
+  });
 });

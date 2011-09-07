@@ -1,1 +1,4 @@
-a: b 3: c 4
+x = 9
+obj = create an object!
+field = obj: access a field
+obj: call a method with argument @field
