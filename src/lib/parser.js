@@ -487,7 +487,7 @@ var definition = sequence(['target', multiple(choice(identifier, parameter))], k
 
 primaryExpression.choices.unshift(definition);
 
-var statements = sequence(multiple(keyword('\n'), 0), ['statements', delimited(expression, multiple(keyword('\n')))], multiple(keyword('\n'), 0), function (term) {
+var statements = sequence(multiple(keyword('\n'), 0), ['statements', delimited(expression, multiple(keyword('\n')), 0)], multiple(keyword('\n'), 0), function (term) {
   return terms.statements(term.statements);
 });
 

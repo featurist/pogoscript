@@ -245,6 +245,10 @@ spec('parser', function () {
     spec('parses block', function () {
       assertTerminal('{var name}', {body: {statements: [{variable: ['var', 'name']}]}, index: 10});
     });
+    
+    spec('parses empty block', function () {
+      assertTerminal('{}', {body: {statements: []}, index: 2});
+    });
   });
   
   spec('expression', function () {

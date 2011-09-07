@@ -234,8 +234,10 @@ var Statements = function (statements) {
   };
   
   this.generateJavaScriptBody = function (buffer, scope) {
-    generateStatements(this.statements.splice(0, this.statements.length - 1), buffer, scope);
-    this.statements[this.statements.length - 1].generateJavaScriptBody(buffer, scope);
+    if (this.statements.length > 0) {
+      generateStatements(this.statements.splice(0, this.statements.length - 1), buffer, scope);
+      this.statements[this.statements.length - 1].generateJavaScriptBody(buffer, scope);
+    }
   };
 };
 

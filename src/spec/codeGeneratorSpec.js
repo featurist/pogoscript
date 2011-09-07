@@ -42,6 +42,12 @@ spec('code generator', function () {
       generatesExpression(b, 'function(){return x;}');
     });
     
+    spec('with no statements', function () {
+      var b = cg.block([], cg.statements([]));
+      
+      generatesExpression(b, 'function(){}');
+    });
+    
     spec('with two parameters', function () {
       var b = cg.block([cg.parameter(['x']), cg.parameter(['y'])], cg.statements([cg.variable(['x'])]));
       
@@ -56,6 +62,12 @@ spec('code generator', function () {
   });
   
   spec('statements', function () {
+    spec('with no statements', function () {
+      var st = cg.statements([]);
+      
+      generatesExpression(st, '');
+    });
+    
     spec('with two statements', function () {
       var st = cg.statements([cg.variable(['one']), cg.functionCall(cg.variable(['two']), [])]);
       
