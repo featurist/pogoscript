@@ -6,8 +6,8 @@ var ExpressionPrototype = new function () {
     this.generateJavaScript(buffer);
     buffer.write(';');
   };
-  this.generateJavaScriptStatement = function (buffer) {
-    return this.generateJavaScript(buffer);
+  this.definitions = function () {
+    return [];
   };
 };
 
@@ -134,14 +134,18 @@ expressionTerm('block', function (parameters, body) {
   };
 });
 
-var generateJavaScriptWithDelimiter = function (array, delimiter, buffer) {
+var writeToBufferWithDelimiter = function (array, delimiter, buffer, writer) {
+  writer = writer || function (item, buffer) {
+    item.generateJavaScript(buffer);
+  };
+  
   var first = true;
   _(array).each(function (item) {
     if (!first) {
       buffer.write(delimiter);
     }
     first = false;
-    item.generateJavaScript(buffer);
+    writer(item, buffer);
   });
 };
 
@@ -154,7 +158,7 @@ expressionTerm('methodCall', function (object, name, arguments) {
     buffer.write('.');
     buffer.write(concatName(this.name));
     buffer.write('(');
-    generateJavaScriptWithDelimiter(this.arguments, ',', buffer);
+    writeToBufferWithDelimiter(this.arguments, ',', buffer);
     buffer.write(')');
   };
   
@@ -177,11 +181,10 @@ expressionTerm('fieldReference', function (object, name) {
   this.object = object;
   this.name = name;
   this.isFieldReference = true;
-  this.xgenerateJavaScript = function (buffer) {
+  this.generateJavaScript = function (buffer) {
     this.object.generateJavaScript(buffer);
-    buffer.write('[');
-    this.indexer.generateJavaScript(buffer);
-    buffer.write(']');
+    buffer.write('.');
+    buffer.write(concatName(this.name));
   };
 });
 
@@ -189,8 +192,23 @@ var Statements = function (statements) {
   this.statements = statements;
   
   var generateStatements = function (statements, buffer) {
+    var namesDefined = _(statements).chain().reduce(function (list, statement) {
+      var defs = statement.definitions();
+      return list.concat(defs);
+    }, []).map(function (name) {
+      return concatName(name);
+    }).uniq().value();
+    
+    if (namesDefined.length > 0) {
+      buffer.write ('var ');
+      writeToBufferWithDelimiter(namesDefined, ',', buffer, function (item, b) {
+        b.write(item);
+      });
+      buffer.write(';');
+    }
+    
     _(statements).each(function (statement) {
-      statement.generateJavaScriptStatement(buffer);
+      statement.generateJavaScript(buffer);
       buffer.write(';');
     });
   };
@@ -198,6 +216,7 @@ var Statements = function (statements) {
   this.generateJavaScript = function (buffer) {
     generateStatements(this.statements, buffer);
   };
+  
   this.generateJavaScriptBody = function (buffer) {
     generateStatements(this.statements.splice(0, this.statements.length - 1), buffer);
     this.statements[this.statements.length - 1].generateJavaScriptBody(buffer);
@@ -217,13 +236,8 @@ expressionTerm('definition', function (target, source) {
     buffer.write('=');
     source.generateJavaScript(buffer);
   };
-  
-  this.generateJavaScriptStatement = function (buffer) {
-    buffer.write('var ');
-    target.generateJavaScript(buffer);
-    buffer.write('=');
-    source.generateJavaScript(buffer);
-    
+  this.definitions = function () {
+    return [target.variable];
   };
   
   addWalker(this, 'target', 'source');

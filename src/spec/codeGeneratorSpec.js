@@ -11,12 +11,6 @@ spec('code generator', function () {
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
-  var generatesStatement = function (term, expectedGeneratedCode) {
-    var stream = new MemoryStream();
-    term.generateJavaScriptStatement(stream);
-    assert.equal(stream.toString(), expectedGeneratedCode);
-  };
-  
   spec('variable', function () {
     spec('with one identifier', function () {
       generatesExpression(cg.variable(['one']), 'one');
@@ -53,13 +47,35 @@ spec('code generator', function () {
       
       generatesExpression(b, 'function(x,y){return x;}');
     });
+    
+    spec('with two parameters and two statements', function () {
+      var b = cg.block([cg.parameter(['x']), cg.parameter(['y'])], cg.statements([cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]), cg.variable(['x'])]));
+      
+      generatesExpression(b, 'function(x,y){y(x);return x;}');
+    });
   });
   
   spec('statements', function () {
     spec('with two statements', function () {
+      var st = cg.statements([cg.variable(['one']), cg.functionCall(cg.variable(['two']), [])]);
+      
+      generatesExpression(st, 'one;two();');
+    });
+    
+    spec('with two statements and a definition', function () {
       var st = cg.statements([cg.definition(cg.variable(['one']), cg.integer(9)), cg.functionCall(cg.variable(['two']), [])]);
       
-      generatesExpression(st, 'var one=9;two();');
+      generatesExpression(st, 'var one;one=9;two();');
+    });
+    
+    spec('with two definitions of the same variable', function () {
+      var st = cg.statements([
+        cg.definition(cg.variable(['x']), cg.integer(1)),
+        cg.definition(cg.variable(['x']), cg.integer(2)),
+        cg.functionCall(cg.variable(['f']), [cg.variable(['x'])])
+      ]);
+      
+      generatesExpression(st, 'var x;x=1;x=2;f(x);');
     });
   });
   
@@ -68,12 +84,6 @@ spec('code generator', function () {
       var d = cg.definition(cg.variable(['one']), cg.integer(9));
       
       generatesExpression(d, 'one=9');
-    });
-    
-    spec('as statement', function () {
-      var d = cg.definition(cg.variable(['one']), cg.integer(9));
-      
-      generatesStatement(d, 'var one=9');
     });
   });
   
@@ -87,6 +97,12 @@ spec('code generator', function () {
     var m = cg.indexer(cg.variable(['array']), cg.variable(['stuff']));
     
     generatesExpression(m, 'array[stuff]');
+  });
+  
+  spec('field reference', function () {
+    var m = cg.fieldReference(cg.variable(['obj']), ['field', 'name']);
+    
+    generatesExpression(m, 'obj.fieldName');
   });
   
   spec('walkTerm', function () {
