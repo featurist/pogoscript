@@ -398,7 +398,11 @@ var functionCall = transform(multipleTerminals, function (terminals) {
   });
   
   if (allIdentifiers) {
-    return null;
+    var name = _(terminals).map(function (terminal) {
+      return terminal.identifier;
+    });
+    
+    return terms.variable(name);
   }
   
   if (terminals.length == 1) {
@@ -435,26 +439,12 @@ var functionCall = transform(multipleTerminals, function (terminals) {
   return terms.functionCall(terms.variable(name), arguments);
 });
 
-var variable = transform(multipleTerminals, function (terminals) {
-  var allIdentifiers = _(terminals).all(function (terminal) {
-    return terminal.identifier;
-  });
-  
-  if (allIdentifiers) {
-    var name = _(terminals).map(function (terminal) {
-      return terminal.identifier;
-    });
-    
-    return terms.variable(name);
-  } else {
-    return null;
-  }
-});
-
 var methodCall = sequence(keyword(':'), ['methodCall', functionCall], function (term) {
   term.makeExpression = function (expression) {
     if (this.methodCall.isFunctionCall) {
       return terms.methodCall(expression, this.methodCall.function.variable, term.methodCall.arguments);
+    } else if (this.methodCall.isVariable) {
+      return terms.fieldReference(expression, this.methodCall.variable);
     } else {
       return terms.indexer(expression, this.methodCall);
     }
@@ -464,7 +454,7 @@ var methodCall = sequence(keyword(':'), ['methodCall', functionCall], function (
 
 var expressionSuffix = choice(methodCall);
 
-var primaryExpression = choice(functionCall, variable);
+var primaryExpression = choice(functionCall);
 
 var expression = sequence(['expression', primaryExpression], ['suffix', multiple(expressionSuffix, 0)], function (term) {
   if (term.suffix.length > 0) {

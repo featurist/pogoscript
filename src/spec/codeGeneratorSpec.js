@@ -1,6 +1,7 @@
 var cg = require('../lib/codeGenerator');
 var MemoryStream = require('./memorystream').MemoryStream;
 var assert = require('assert');
+var _ = require('underscore');
 require('cupoftea');
 
 spec('code generator', function () {
@@ -87,4 +88,20 @@ spec('code generator', function () {
     
     generatesExpression(m, 'array[stuff]');
   });
+  
+  spec('walkTerm', function () {
+    var object = cg.variable(['console']);
+    var argument = cg.variable(['stuff']);
+    var m = cg.methodCall(object, ['log'], [argument]);
+    
+    var walkedTerms = [];
+    
+    m.walk(function (subterm) {
+      walkedTerms.push(subterm);
+    });
+    
+    assert.ok(_(walkedTerms).contains(object));
+    assert.ok(_(walkedTerms).contains(argument));
+    assert.ok(_(walkedTerms).contains(m));
+  })
 });

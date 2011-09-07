@@ -11,6 +11,27 @@ var ExpressionPrototype = new function () {
   };
 };
 
+var addWalker = function () {
+  var self = arguments[0];
+  var subtermNames = Array.prototype.splice.call(arguments, 1, arguments.length - 1);
+  
+  self.walk = function (visitor) {
+    visitor(this);
+    
+    for (var n in subtermNames) {
+      var subterm = this[subtermNames[n]];
+      
+      if (_.isArray(subterm)) {
+        for (var i in subterm) {
+          subterm[i].walk(visitor);
+        }
+      } else {
+        subterm.walk(visitor);
+      }
+    }
+  };
+};
+
 var expressionTerm = function (name, constructor) {
   constructor.prototype = ExpressionPrototype;
   exports[name] = function () {
@@ -45,9 +66,12 @@ expressionTerm('float', function (value) {
 
 expressionTerm('variable', function (name) {
   this.variable = name;
+  this.isVariable = true;
   this.generateJavaScript = function (buffer) {
     buffer.write(concatName(this.variable));
   };
+  
+  addWalker(this);
 });
 
 exports.parameter = function (name) {
@@ -133,12 +157,27 @@ expressionTerm('methodCall', function (object, name, arguments) {
     generateJavaScriptWithDelimiter(this.arguments, ',', buffer);
     buffer.write(')');
   };
+  
+  addWalker(this, 'object', 'arguments');
 });
 
 expressionTerm('indexer', function (object, indexer) {
   this.object = object;
   this.indexer = indexer;
+  this.isIndexer = true;
   this.generateJavaScript = function (buffer) {
+    this.object.generateJavaScript(buffer);
+    buffer.write('[');
+    this.indexer.generateJavaScript(buffer);
+    buffer.write(']');
+  };
+});
+
+expressionTerm('fieldReference', function (object, name) {
+  this.object = object;
+  this.name = name;
+  this.isFieldReference = true;
+  this.xgenerateJavaScript = function (buffer) {
     this.object.generateJavaScript(buffer);
     buffer.write('[');
     this.indexer.generateJavaScript(buffer);
@@ -172,15 +211,20 @@ exports.statements = function (s) {
 expressionTerm('definition', function (target, source) {
   this.target = target;
   this.source = source;
+  
   this.generateJavaScript = function (buffer) {
     target.generateJavaScript(buffer);
     buffer.write('=');
     source.generateJavaScript(buffer);
   };
+  
   this.generateJavaScriptStatement = function (buffer) {
     buffer.write('var ');
     target.generateJavaScript(buffer);
     buffer.write('=');
     source.generateJavaScript(buffer);
+    
   };
+  
+  addWalker(this, 'target', 'source');
 });

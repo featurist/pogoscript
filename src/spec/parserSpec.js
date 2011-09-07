@@ -375,6 +375,17 @@ spec('parser', function () {
           indexer: {integer: 9}
         });
       });
+      
+      spec('with field reference', function () {
+        assertExpression('person: phone number', {
+          index: 20,
+          object: {
+            index: 6,
+            variable: ['person']
+          },
+          name: ['phone', 'number']
+        });
+      });
     });
   });
   
