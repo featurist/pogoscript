@@ -382,7 +382,9 @@ var noArgumentFunctionCallSuffix = transform(keyword('!'), function (result) {
 
 var terminal = choice(integer, float, argument, identifier, parameter, noArgumentFunctionCallSuffix);
 
-var multipleTerminals = multiple(terminal);
+var multipleTerminals = transform(multiple(terminal), function(terminals) {
+  return terms.basicExpression(terminals);
+});
 
 var extractName = function (terminals) {
   return _(terminals).filter(function (terminal) {
@@ -392,45 +394,24 @@ var extractName = function (terminals) {
   });
 };
 
-var functionCall = transform(multipleTerminals, function (terminals) {
-  var allIdentifiers = _(terminals).all(function (terminal) {
-    return terminal.identifier;
-  });
+var functionCall = transform(multipleTerminals, function (expression) {
+  var terminals = expression.terminals;
   
-  if (allIdentifiers) {
-    var name = _(terminals).map(function (terminal) {
-      return terminal.identifier;
-    });
-    
-    return terms.variable(name);
+  if (expression.isVariableExpression()) {
+    return expression.variable();
   }
   
-  if (terminals.length == 1) {
-    return terminals[0];
+  if (expression.isTerminalExpression()) {
+    return expression.terminal();
   }
   
-  var isNoArgCall = terminals[terminals.length - 1].noArgumentFunctionCallSuffix;
+  var isNoArgCall = expression.isNoArgumentFunctionCall();
   
   var name = extractName(terminals);
   
-  var arguments = _(terminals).filter(function (terminal) {
-    return !terminal.identifier && !terminal.noArgumentFunctionCallSuffix && !terminal.parameter;
-  });
+  var arguments = expression.arguments();
   
-  var buildBlocks = function () {
-    var parameters = [];
-    
-    _(terminals).each(function (terminal) {
-      if (terminal.parameter) {
-        parameters.push(terminal);
-      } else if (terminal.body) {
-        terminal.parameters = parameters;
-        parameters = [];
-      }
-    });
-  };
-  
-  buildBlocks();
+  expression.buildBlocks();
   
   if (isNoArgCall && arguments.length > 0) {
     return null;

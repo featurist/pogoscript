@@ -34,7 +34,7 @@ var addWalker = function () {
 
 var expressionTerm = function (name, constructor) {
   constructor.prototype = ExpressionPrototype;
-  exports[name] = function () {
+  return exports[name] = function () {
     var args = arguments;
     var F = function () {
       return constructor.apply(this, args);
@@ -64,7 +64,7 @@ expressionTerm('float', function (value) {
   };
 });
 
-expressionTerm('variable', function (name) {
+var variable = expressionTerm('variable', function (name) {
   this.variable = name;
   this.isVariable = true;
   this.generateJavaScript = function (buffer, scope) {
@@ -283,4 +283,56 @@ expressionTerm('definition', function (target, source) {
   };
   
   addWalker(this, 'target', 'source');
+});
+
+expressionTerm('basicExpression', function(terminals) {
+  var isVariableExpression;
+  
+  this.terminals = terminals;
+  
+  this.isVariableExpression = function () {
+    return _.isUndefined(isVariableExpression)?
+      (isVariableExpression = _(this.terminals).all(function (terminal) {
+        return terminal.identifier;
+      })): isVariableExpression;
+  };
+  
+  this.variable = function () {
+    var name = _(this.terminals).map(function (terminal) {
+      return terminal.identifier;
+    });
+    
+    return variable(name);
+  };
+  
+  this.isTerminalExpression = function () {
+    return this.terminals.length == 1;
+  };
+  
+  this.terminal = function () {
+    return this.terminals[0];
+  };
+  
+  this.isNoArgumentFunctionCall = function() {
+    return this.terminals[this.terminals.length - 1].noArgumentFunctionCallSuffix;
+  };
+  
+  this.arguments = function() {
+    return _(this.terminals).filter(function (terminal) {
+      return !terminal.identifier && !terminal.noArgumentFunctionCallSuffix && !terminal.parameter;
+    });
+  };
+  
+  this.buildBlocks = function () {
+    var parameters = [];
+    
+    _(this.terminals).each(function (terminal) {
+      if (terminal.parameter) {
+        parameters.push(terminal);
+      } else if (terminal.body) {
+        terminal.parameters = parameters;
+        parameters = [];
+      }
+    });
+  };
 });
