@@ -322,6 +322,27 @@ spec('parser', function () {
           });
       });
       
+      spec('if', function () {
+        assertExpression('if @condition {stuff}',
+          {
+            index: 21,
+            isIfExpression: true,
+            condition: {variable: ['condition']},
+            then: {statements: [{variable: ['stuff']}]}
+          });
+      });
+      
+      spec('if else', function () {
+        assertExpression('if @condition {stuff} else {other stuff}',
+          {
+            index: 40,
+            isIfExpression: true,
+            condition: {variable: ['condition']},
+            then: {statements: [{variable: ['stuff']}]},
+            _else: {statements: [{variable: ['other', 'stuff']}]}
+          });
+      });
+      
       spec("doesn't parse function call with no arg suffix and arguments", function () {
         assertNotExpression('save @files to disk!');
       });

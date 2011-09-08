@@ -117,6 +117,18 @@ spec('code generator', function () {
     generatesExpression(m, 'obj.fieldName');
   });
   
+  spec('if statement', function () {
+    var m = cg.statements([cg.ifExpression(cg.variable(['obj']), cg.statements([cg.variable(['stuff'])]))]);
+    
+    generatesExpression(m, 'if(obj){stuff;}');
+  });
+  
+  spec('if expression', function () {
+    var m = cg.ifExpression(cg.variable(['obj']), cg.statements([cg.variable(['stuff'])]));
+    
+    generatesExpression(m, '(function(){if(obj){return stuff;}})()');
+  });
+  
   spec('walkTerm', function () {
     var object = cg.variable(['console']);
     var argument = cg.variable(['stuff']);
