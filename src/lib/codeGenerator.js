@@ -336,3 +336,43 @@ expressionTerm('basicExpression', function(terminals) {
     });
   };
 });
+
+var MacroDirectory = exports.MacroDirectory = function () {
+  var nameTreeRoot = {};
+  
+  this.addMacro = function(name, createMacro) {
+    var nameTree = nameTreeRoot;
+    _(name).each(function(nameSegment) {
+      if (!nameTree[nameSegment]) {
+        nameTree = nameTree[nameSegment] = {};
+      } else {
+        nameTree = nameTree[nameSegment];
+      }
+    });
+    nameTree['create macro'] = createMacro;
+  };
+  
+  this.findMacro = function(name) {
+    var nameTree = nameTreeRoot;
+    _(name).each(function(nameSegment) {
+      if (nameTree) {
+        nameTree = nameTree[nameSegment];
+      }
+    });
+    
+    if (nameTree) {
+      return nameTree['create macro'];
+    }
+  };
+};
+
+var macros = exports.macros = new MacroDirectory();
+
+var List = function(items) {
+  this.list = items;
+};
+
+macros.addMacro(['list'], function(expression) {
+  expression.buildBlocks();
+  return new List(expression.arguments());
+});

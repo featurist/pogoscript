@@ -396,6 +396,12 @@ var extractName = function (terminals) {
 
 var functionCall = transform(multipleTerminals, function (expression) {
   var terminals = expression.terminals;
+  var name = extractName(terminals);
+
+  var createMacro = terms.macros.findMacro(name);
+  if (createMacro) {
+    return createMacro(expression);
+  }
   
   if (expression.isVariableExpression()) {
     return expression.variable();
@@ -407,7 +413,9 @@ var functionCall = transform(multipleTerminals, function (expression) {
   
   var isNoArgCall = expression.isNoArgumentFunctionCall();
   
-  var name = extractName(terminals);
+  if (name.length == 0) {
+    return terms.functionCall(terminals[0], terminals.splice(1));
+  }
   
   var arguments = expression.arguments();
   

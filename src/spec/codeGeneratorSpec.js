@@ -146,4 +146,26 @@ spec('code generator', function () {
       generatesExpression(s, 'var x;x=1;f(function(){x=2;return x;});');
     });
   });
+  
+  spec('macro directory', function() {
+    spec('one macro', function() {
+      var md = new cg.MacroDirectory();
+      md.addMacro(['one'], 1);
+      assert.equal(md.findMacro(['one']), 1);
+    });
+    
+    spec('finds correct macro among two', function() {
+      var md = new cg.MacroDirectory();
+      md.addMacro(['one'], 1);
+      md.addMacro(['one', 'two'], 2);
+      assert.equal(md.findMacro(['one', 'two']), 2);
+    });
+    
+    spec('adding same macro overwrites previous', function() {
+      var md = new cg.MacroDirectory();
+      md.addMacro(['one', 'two'], 2);
+      md.addMacro(['one', 'two'], 3);
+      assert.equal(md.findMacro(['one', 'two']), 3);
+    });
+  });
 });

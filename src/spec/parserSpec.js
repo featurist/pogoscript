@@ -289,6 +289,39 @@ spec('parser', function () {
           });
       });
       
+      spec('parses function call with function as expression', function () {
+        assertExpression('(f!) 5',
+          {
+            index: 6,
+            function: {function: {variable: ['f']}},
+            arguments: [{integer: 5}]
+          });
+      });
+      
+      spec('parses empty list', function () {
+        assertExpression('list',
+          {
+            index: 4,
+            list: []
+          });
+      });
+      
+      spec('parses list with two integers', function () {
+        assertExpression('list 1 2',
+          {
+            index: 8,
+            list: [{integer: 1}, {integer: 2}]
+          });
+      });
+      
+      spec('parses list with integer and block', function () {
+        assertExpression('list 1 ?a {}',
+          {
+            index: 12,
+            list: [{integer: 1}, {parameters: [{parameter: ['a']}], body: {statements: []}}]
+          });
+      });
+      
       spec("doesn't parse function call with no arg suffix and arguments", function () {
         assertNotExpression('save @files to disk!');
       });
