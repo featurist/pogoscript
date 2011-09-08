@@ -396,6 +396,11 @@ var ifExpression = expressionTerm('ifExpression', function (condition, then, _el
     buffer.write('){');
     this.then.generateJavaScript(buffer, scope);
     buffer.write('}');
+    if (this._else) {
+      buffer.write('else{');
+      this._else.generateJavaScript(buffer, scope);
+      buffer.write('}');
+    }
   };
   
   this.generateJavaScript = function (buffer, scope) {
@@ -408,6 +413,11 @@ var ifExpression = expressionTerm('ifExpression', function (condition, then, _el
     buffer.write('){');
     this.then.generateJavaScriptReturn(buffer, scope);
     buffer.write('}');
+    if (this._else) {
+      buffer.write('else{');
+      this._else.generateJavaScriptReturn(buffer, scope);
+      buffer.write('}');
+    }
   };
 });
 

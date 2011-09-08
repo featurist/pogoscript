@@ -129,6 +129,22 @@ spec('code generator', function () {
     generatesExpression(m, '(function(){if(obj){return stuff;}})()');
   });
   
+  spec('if else statement', function () {
+    var m = cg.statements([cg.ifExpression(
+      cg.variable(['obj']),
+      cg.statements([cg.variable(['stuff'])]),
+      cg.statements([cg.variable(['other', 'stuff'])])
+    )]);
+    
+    generatesExpression(m, 'if(obj){stuff;}else{otherStuff;}');
+  });
+  
+  spec('if else expression', function () {
+    var m = cg.ifExpression(cg.variable(['obj']), cg.statements([cg.variable(['stuff'])]), cg.statements([cg.variable(['other', 'stuff'])]));
+    
+    generatesExpression(m, '(function(){if(obj){return stuff;}else{return otherStuff;}})()');
+  });
+  
   spec('walkTerm', function () {
     var object = cg.variable(['console']);
     var argument = cg.variable(['stuff']);
