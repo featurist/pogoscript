@@ -374,10 +374,14 @@ var MacroDirectory = exports.MacroDirectory = function () {
 
 var macros = exports.macros = new MacroDirectory();
 
-var List = function(items) {
+expressionTerm('list', List = function(items) {
   this.list = items;
-};
-List.prototype = ExpressionPrototype;
+  this.generateJavaScript = function (buffer, scope) {
+    buffer.write('[');
+    writeToBufferWithDelimiter(this.list, ',', buffer, scope);
+    buffer.write(']');
+  };
+});
 
 macros.addMacro(['list'], function(expression) {
   return new List(expression.arguments());

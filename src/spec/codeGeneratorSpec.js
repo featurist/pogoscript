@@ -117,32 +117,51 @@ spec('code generator', function () {
     generatesExpression(m, 'obj.fieldName');
   });
   
-  spec('if statement', function () {
-    var m = cg.statements([cg.ifExpression(cg.variable(['obj']), cg.statements([cg.variable(['stuff'])]))]);
+  spec('if', function () {
+    spec('if statement', function () {
+      var m = cg.statements([cg.ifExpression(cg.variable(['obj']), cg.statements([cg.variable(['stuff'])]))]);
     
-    generatesExpression(m, 'if(obj){stuff;}');
+      generatesExpression(m, 'if(obj){stuff;}');
+    });
+  
+    spec('if expression', function () {
+      var m = cg.ifExpression(cg.variable(['obj']), cg.statements([cg.variable(['stuff'])]));
+    
+      generatesExpression(m, '(function(){if(obj){return stuff;}})()');
+    });
+  
+    spec('if else statement', function () {
+      var m = cg.statements([cg.ifExpression(
+        cg.variable(['obj']),
+        cg.statements([cg.variable(['stuff'])]),
+        cg.statements([cg.variable(['other', 'stuff'])])
+      )]);
+    
+      generatesExpression(m, 'if(obj){stuff;}else{otherStuff;}');
+    });
+  
+    spec('if else expression', function () {
+      var m = cg.ifExpression(cg.variable(['obj']), cg.statements([cg.variable(['stuff'])]), cg.statements([cg.variable(['other', 'stuff'])]));
+    
+      generatesExpression(m, '(function(){if(obj){return stuff;}else{return otherStuff;}})()');
+    });
   });
   
-  spec('if expression', function () {
-    var m = cg.ifExpression(cg.variable(['obj']), cg.statements([cg.variable(['stuff'])]));
+  spec('list', function() {
+    spec('with one element', function() {
+      var l = cg.list([cg.variable(['stuff'])]);
+      generatesExpression(l, '[stuff]');
+    });
     
-    generatesExpression(m, '(function(){if(obj){return stuff;}})()');
-  });
-  
-  spec('if else statement', function () {
-    var m = cg.statements([cg.ifExpression(
-      cg.variable(['obj']),
-      cg.statements([cg.variable(['stuff'])]),
-      cg.statements([cg.variable(['other', 'stuff'])])
-    )]);
+    spec('with two elements', function() {
+      var l = cg.list([cg.variable(['stuff']), cg.variable(['more', 'stuff'])]);
+      generatesExpression(l, '[stuff,moreStuff]');
+    });
     
-    generatesExpression(m, 'if(obj){stuff;}else{otherStuff;}');
-  });
-  
-  spec('if else expression', function () {
-    var m = cg.ifExpression(cg.variable(['obj']), cg.statements([cg.variable(['stuff'])]), cg.statements([cg.variable(['other', 'stuff'])]));
-    
-    generatesExpression(m, '(function(){if(obj){return stuff;}else{return otherStuff;}})()');
+    spec('with no elements', function() {
+      var l = cg.list([]);
+      generatesExpression(l, '[]');
+    });
   });
   
   spec('walkTerm', function () {
