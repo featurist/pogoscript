@@ -484,4 +484,62 @@ spec('parser', function () {
       });
     });
   });
+  
+  spec('indentation', function() {
+    spec('indent', function() {
+      spec('parses', function() {
+        assert.ok(parser.parsePartial(parser.indent, '\n  s', 0, new parser.Context().withIndentation('')));
+        assert.ok(parser.parsePartial(parser.indent, '\n \n  s', 0, new parser.Context().withIndentation(' ')));
+      });
+
+      spec("doesn't parse", function() {
+        assert.ok(!parser.parsePartial(parser.indent, '\n  s', 0, new parser.Context().withIndentation('  ')));
+        assert.ok(!parser.parsePartial(parser.indent, '\n \n  s', 0, new parser.Context().withIndentation('  ')));
+        assert.ok(!parser.parsePartial(parser.indent, '  s', 0, new parser.Context().withIndentation('')));
+      });
+    });
+    
+    spec('unindent', function() {
+      spec('parses', function() {
+        assert.ok(parser.parsePartial(parser.unindent, '\n  s', 0, new parser.Context().withIndentation('  ').withIndentation('    ')));
+        assert.ok(parser.parsePartial(parser.unindent, '\n  \ns', 0, new parser.Context().withIndentation(' ')));
+        assert.ok(parser.parsePartial(parser.unindent, '\n\n s', 0, new parser.Context().withIndentation(' ').withIndentation('   ')));
+      });
+
+      spec("doesn't parse", function() {
+        assert.ok(!parser.parsePartial(parser.unindent, '\n  s', 0, new parser.Context().withIndentation('')));
+        assert.ok(!parser.parsePartial(parser.unindent, '\n  s', 0, new parser.Context().withIndentation('')));
+        assert.ok(!parser.parsePartial(parser.unindent, '  s', 0, new parser.Context().withIndentation('')));
+      });
+    });
+    
+    spec('no indent', function() {
+      spec('parses', function() {
+        assert.ok(parser.parsePartial(parser.noindent, '\n  s', 0, new parser.Context().withIndentation('  ')));
+        assert.ok(parser.parsePartial(parser.noindent, '\n  \ns', 0, new parser.Context().withIndentation('')));
+        assert.ok(parser.parsePartial(parser.noindent, '\n\n s', 0, new parser.Context().withIndentation(' ')));
+        assert.ok(!parser.parsePartial(parser.noindent, '  s', 0, new parser.Context().withIndentation('')));
+      });
+
+      spec("doesn't parse", function() {
+        assert.ok(!parser.parsePartial(parser.noindent, '\n  s', 0, new parser.Context().withIndentation('')));
+        assert.ok(!parser.parsePartial(parser.noindent, '\n  s', 0, new parser.Context().withIndentation('    ')));
+      });
+    });
+  });
+  
+  spec('context', function () {
+    spec("creating new context does't change previousIndentations", function() {
+      var c1 = new parser.Context();
+      c1.indentation = 4;
+      var c2 = c1.withIndentation(6);
+      assert.equal(c2.indentation, 6);
+      var c3 = c2.withIndentation(7);
+      assert.equal(c3.indentation, 7);
+      var c4 = c3.oldIndentation();
+      assert.equal(c4.indentation, 6);
+      var c5 = c4.oldIndentation();
+      assert.equal(c5.indentation, 4);
+    });
+  });
 });

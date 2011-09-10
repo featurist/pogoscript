@@ -42,11 +42,11 @@ var MemoTable = function () {
 var memotable = new MemoTable();
   
 var ignoreLeadingWhitespace = function (parser) {
-  return function (source, index, context, continuation) {
+  return memotable.memoise(function (source, index, context, continuation) {
     whitespace(source, index, context, function (parsedWhitespace) {
       parser(source, parsedWhitespace.index, parsedWhitespace.context, continuation);
     });
-  };
+  });
 };
 
 var createParser = function (name, originalRe, createTerm, dontIgnoreWhitespace) {
@@ -113,7 +113,7 @@ var sequence = (function () {
       return readSubTerm(subtermArgument);
     });
     
-    return function (source, startIndex, context, continuation) {
+    return memotable.memoise(function (source, startIndex, context, continuation) {
       var term = {index: startIndex};
       
       var parseSubTerm = function (subtermIndex, index, context) {
@@ -139,7 +139,7 @@ var sequence = (function () {
       };
       
       parseSubTerm(0, startIndex, context);
-    };
+    });
   };
 }());
 
@@ -176,6 +176,52 @@ var identifier = createParser(
   }
 );
 
+var indentation = createParser(
+  'indentation',
+  /[ \t\n]*\n([ \t]*)/,
+  function (match, i) {
+    return {indentation: i};
+  }
+);
+
+var stringStartsWith = function (bigString, toStartWith) {
+  return (bigString.length > toStartWith.length) && (bigString.substring(0, toStartWith.length) == toStartWith);
+};
+
+var indent = exports.indent = function(source, index, context, continuation){
+  indentation(source, index, context, function (result) {
+    if (result && stringStartsWith(result.indentation, context.indentation)) {
+      result.context = _.extend({}, result.context);
+      result.context.indentation = result.indentation;
+      result.context.success(result, continuation);
+    } else {
+      context.failure(continuation);
+    }
+  });
+};
+
+var unindent = exports.unindent = function(source, index, context, continuation){
+  indentation(source, index, context, function (result) {
+    if (result && context.previousIndentation() == result.indentation) {
+      result.context = _.extend({}, result.context);
+      result.context.indentation = result.indentation;
+      result.context.success(result, continuation);
+    } else {
+      context.failure(continuation);
+    }
+  });
+};
+
+var noindent = exports.noindent = function(source, index, context, continuation){
+  indentation(source, index, context, function (result) {
+    if (result && result.indentation == context.indentation) {
+      result.context.success(result, continuation);
+    } else {
+      context.failure(continuation);
+    }
+  });
+};
+
 var sigilIdentifier = function (sigil, name, createTerm) {
   createTerm = createTerm || function (identifier) {
     var term = {};
@@ -211,7 +257,7 @@ var keyword = function (kw) {
 };
 
 var choice = function () {
-  var parseAllChoices = function (source, index, context, continuation) {
+  var parseAllChoices = memotable.memoise(function (source, index, context, continuation) {
     var parseChoice = function (choiceIndex) {
       var choiceParser = parseAllChoices.choices[choiceIndex];
 
@@ -233,22 +279,60 @@ var choice = function () {
     };
     
     parseChoice(0);
-  };
+  });
   
   parseAllChoices.choices = Array.prototype.slice.call(arguments);
   
   return parseAllChoices;
 };
   
-var createContext = function () {
-  return {
+var Context = exports.Context = function () {
+  this.previousIndentations = [];
+  this.indentation = '';
+  
+  this.success = function (result, continuation) {
+    continuation(result);
+  };
+  
+  this.failure = function (continuation) {
+    continuation(null);
+  };
+  
+  this.withIndentation = function (indentation) {
+    var newContext = new Context();
+    newContext.indentation = indentation;
+    newContext.previousIndentations = this.previousIndentations.slice();
+    newContext.previousIndentations.unshift(this.indentation);
+    return newContext;
+  };
+  
+  this.oldIndentation = function () {
+    var context = new Context();
+    context.indentation = this.previousIndentations[0];
+    context.previousIndentations = this.previousIndentations.slice(1);
+    return context;
+  };
+  
+  this.previousIndentation = function () {
+    return this.previousIndentations[0];
+  };
+};
+
+var createContext = function (context) {
+  context = context || {};
+  return _.extend(context, {
     success: function (result, continuation) {
       continuation(result);
     },
     failure: function (continuation) {
       continuation(null);
+    },
+    createContext: function (fields) {
+      fields = fields || {};
+      var newContext = _.extend(fields, this);
+      newContext.previousIndentations = this.previousIndentations.slice();
     }
-  };
+  });
 }
 
 var parsePartial = function (parser, source, index, context) {
@@ -258,7 +342,7 @@ var parsePartial = function (parser, source, index, context) {
 var parse = function (parser, source, index, context, partial) {
   memotable.clear();
   index = (index || 0);
-  context = (context || createContext());
+  context = context || new Context();
   
   var result = null;
   
@@ -284,7 +368,7 @@ var delimited = function (parser, delimiter, min, max) {
     min = 1;
   }
   
-  return function (source, index, context, continuation) {
+  return memotable.memoise(function (source, index, context, continuation) {
     var terms = [];
     terms.context = context;
     terms.index = index;
@@ -328,7 +412,7 @@ var delimited = function (parser, delimiter, min, max) {
     };
     
     parser(source, index, context, parseAnother);
-  };
+  });
 };
 
 var transformWith = function (term, transformer) {
@@ -348,7 +432,7 @@ var termDerivedFrom = function (baseTerm, derivedTerm) {
 };
 
 var transform = function (parser, transformer) {
-  return function (source, index, context, continuation) {
+  return memotable.memoise(function (source, index, context, continuation) {
     parser(source, index, context, function (result) {
       if (result) {
         var transformed = transformer(result);
@@ -363,7 +447,7 @@ var transform = function (parser, transformer) {
         context.failure(continuation);
       }
     })
-  };
+  });
 };
 
 var argument = sigilIdentifier('@', 'argument', function (argumentName) {
