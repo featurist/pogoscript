@@ -241,13 +241,23 @@ spec('parser', function () {
     spec('parses bracketed expression', function () {
       assertTerminal('(var name)', {variable: ['var', 'name'], index: 10});
     });
-    
-    spec('parses block', function () {
-      assertTerminal('{var name}', {body: {statements: [{variable: ['var', 'name']}]}, index: 10});
-    });
-    
-    spec('parses empty block', function () {
-      assertTerminal('{}', {body: {statements: []}, index: 2});
+
+    spec('blocks', function() {
+      spec('parses block', function () {
+        assertTerminal('{var name}', {body: {statements: [{variable: ['var', 'name']}]}, index: 10});
+      });
+
+      spec('parses block on multiple lines', function () {
+        assertTerminal('{\n  var name\n}', {body: {statements: [{variable: ['var', 'name']}]}, index: 14});
+      });
+
+      spec('parses block with two statements on multiple lines', function () {
+        assertTerminal('{\n  one\n  two\n}', {body: {statements: [{variable: ['one']}, {variable: ['two']}]}, index: 15});
+      });
+
+      spec('parses empty block', function () {
+        assertTerminal('{}', {body: {statements: []}, index: 2});
+      });
     });
   });
   
@@ -323,9 +333,9 @@ spec('parser', function () {
       });
       
       spec('if', function () {
-        assertExpression('if @condition {stuff}',
+        assertExpression('if @condition\n  stuff\n',
           {
-            index: 21,
+            index: 22,
             isIfExpression: true,
             condition: {variable: ['condition']},
             then: {statements: [{variable: ['stuff']}]}
@@ -333,9 +343,9 @@ spec('parser', function () {
       });
       
       spec('if else', function () {
-        assertExpression('if @condition {stuff} else {other stuff}',
+        assertExpression('if @condition\n  stuff\nelse\n  other stuff\n',
           {
-            index: 40,
+//            index: 41,
             isIfExpression: true,
             condition: {variable: ['condition']},
             then: {statements: [{variable: ['stuff']}]},
@@ -469,14 +479,6 @@ spec('parser', function () {
       spec('on two lines with one line empty', function () {
         assertStatements('one!\n\ntwo!', statements);
       });
-    
-      spec('starting with newlines', function () {
-        assertStatements('\n\none!\ntwo!', statements);
-      });
-    
-      spec('ending with newlines', function () {
-        assertStatements('one!\ntwo!\n\n', statements);
-      });
     });
     
     spec('in indented block', function () {
@@ -538,6 +540,9 @@ spec('parser', function () {
     spec('reset indent', function() {
       spec('parses start', function() {
         assert.containsFields(parser.parsePartial(parser.startResetIndent, '\n  s', 0, new parser.Context().withIndentation('    ')), {context: {indentation: '  '}});
+      });
+      spec('parses start without newline', function() {
+        assert.containsFields(parser.parsePartial(parser.startResetIndent, '  s', 0, new parser.Context().withIndentation('    ')), {context: {indentation: '    '}});
       });
       spec('parses end', function() {
         assert.containsFields(parser.parsePartial(parser.endResetIndent, '\n  }', 0, new parser.Context().withIndentation('    ')), {context: {indentation: ''}});

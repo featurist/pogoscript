@@ -241,9 +241,11 @@ var noindent = exports.noindent = memotable.memoise(function(source, index, cont
 });
 
 var startResetIndent = exports.startResetIndent = memotable.memoise(function(source, index, context, continuation){
-  indentation(source, index, context, function (result) {
+  choice(indentation, whitespaceIncludingNewlines) (source, index, context, function (result) {
     if (result) {
-      result.context = context.withIndentation(result.indentation);
+      if (result.indentation) {
+        result.context = context.withIndentation(result.indentation);
+      }
       result.context.success(result, continuation);
     } else {
       context.failure(continuation);
@@ -607,11 +609,15 @@ var definition = sequence(['target', multiple(choice(identifier, parameter))], k
 
 primaryExpression.choices.unshift(definition);
 
-var statementTerminator = choice(keyword('\n'), keyword('.'));
-var startBlock = choice(keyword('{'));
-var endBlock = choice(keyword('}'));
+var identityTransform = function (term) {
+  return term;
+};
 
-var statements = sequence(multiple(statementTerminator, 0), ['statements', delimited(expression, multiple(statementTerminator), 0)], multiple(statementTerminator, 0), function (term) {
+var statementTerminator = choice(noindent, keyword('.'));
+var startBlock = choice(sequence(keyword('{'), startResetIndent, identityTransform), indent);
+var endBlock = choice(sequence(endResetIndent, keyword('}'), identityTransform), unindent);
+
+var statements = sequence(['statements', delimited(expression, multiple(statementTerminator), 0)], function (term) {
   return terms.statements(term.statements);
 });
 
