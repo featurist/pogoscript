@@ -621,8 +621,8 @@ var statements = sequence(['statements', delimited(expression, multiple(statemen
   return terms.statements(term.statements);
 });
 
-var _module = transform(statements, function (stmts) {
-  return terms.module(stmts);
+var _module = transform(sequence(startResetIndent, ['statements', statements], endResetIndent, identityTransform), function (stmts) {
+  return terms.module(stmts.statements);
 });
 
 var subExpression = sequence(keyword('('), ['expression', expression], keyword(')'), function (term) {

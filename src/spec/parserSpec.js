@@ -575,6 +575,10 @@ spec('parser', function () {
     });
   });
   
+  spec('module', function() {
+    assert.containsFields(parser.parse(parser.module, 'one!\ntwo!\n'), {statements: {statements: [{function: {variable: ['one']}}, {function: {variable: ['two']}}]}});
+  });
+  
   spec('context', function () {
     spec("creating new context does't change previousIndentations", function() {
       var c1 = new parser.Context();
