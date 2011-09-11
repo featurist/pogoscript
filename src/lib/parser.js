@@ -171,6 +171,15 @@ var whitespace = createParser(
   true
 );
 
+var whitespaceIncludingNewlines = createParser(
+  'whitespaceIncludingNewlines',
+  /[ \t\n]*/,
+  function (match) {
+    return {};
+  },
+  true
+);
+
 var identifier = createParser(
   'identifier',
   /[a-z][a-z0-9]*/i,
@@ -191,17 +200,16 @@ var stringStartsWith = function (bigString, toStartWith) {
   return (bigString.length > toStartWith.length) && (bigString.substring(0, toStartWith.length) == toStartWith);
 };
 
-var indent = exports.indent = function(source, index, context, continuation) {
+var indent = exports.indent = memotable.memoise(function(source, index, context, continuation) {
   indentation(source, index, context, function (result) {
     if (result && stringStartsWith(result.indentation, context.indentation)) {
-      result.context = _.extend({}, result.context);
-      result.context.indentation = result.indentation;
+      result.context = result.context.withIndentation(result.indentation);
       result.context.success(result, continuation);
     } else {
       context.failure(continuation);
     }
   });
-};
+});
 
 var unindent = exports.unindent = memotable.memoise(function(source, index, context, continuation) {
   indentation(source, index, context, function (result) {
@@ -222,7 +230,7 @@ var unindent = exports.unindent = memotable.memoise(function(source, index, cont
   });
 });
 
-var noindent = exports.noindent = function(source, index, context, continuation){
+var noindent = exports.noindent = memotable.memoise(function(source, index, context, continuation){
   indentation(source, index, context, function (result) {
     if (result && result.indentation == context.indentation) {
       result.context.success(result, continuation);
@@ -230,9 +238,9 @@ var noindent = exports.noindent = function(source, index, context, continuation)
       context.failure(continuation);
     }
   });
-};
+});
 
-var resetIndent = exports.resetIndent = function(source, index, context, continuation){
+var startResetIndent = exports.startResetIndent = memotable.memoise(function(source, index, context, continuation){
   indentation(source, index, context, function (result) {
     if (result) {
       result.context = context.withIndentation(result.indentation);
@@ -241,7 +249,18 @@ var resetIndent = exports.resetIndent = function(source, index, context, continu
       context.failure(continuation);
     }
   });
-};
+});
+
+var endResetIndent = exports.endResetIndent = memotable.memoise(function(source, index, context, continuation){
+  whitespaceIncludingNewlines(source, index, context, function (result) {
+    if (result) {
+      result.context = context.oldIndentation(result.indentation);
+      result.context.success(result, continuation);
+    } else {
+      context.failure(continuation);
+    }
+  });
+});
 
 var sigilIdentifier = function (sigil, name, createTerm) {
   createTerm = createTerm || function (identifier) {
@@ -260,7 +279,7 @@ var sigilIdentifier = function (sigil, name, createTerm) {
 };
 
 var escapeInRegExp = function (str) {
-  if (/^[(){}?]$/.test(str)) {
+  if (/^[(){}?.]$/.test(str)) {
     return '\\' + str;
   } else {
     return str;
@@ -588,7 +607,11 @@ var definition = sequence(['target', multiple(choice(identifier, parameter))], k
 
 primaryExpression.choices.unshift(definition);
 
-var statements = sequence(multiple(keyword('\n'), 0), ['statements', delimited(expression, multiple(keyword('\n')), 0)], multiple(keyword('\n'), 0), function (term) {
+var statementTerminator = choice(keyword('\n'), keyword('.'));
+var startBlock = choice(keyword('{'));
+var endBlock = choice(keyword('}'));
+
+var statements = sequence(multiple(statementTerminator, 0), ['statements', delimited(expression, multiple(statementTerminator), 0)], multiple(statementTerminator, 0), function (term) {
   return terms.statements(term.statements);
 });
 
@@ -601,7 +624,7 @@ var subExpression = sequence(keyword('('), ['expression', expression], keyword('
 });
 terminal.choices.push(subExpression);
 
-var block = sequence(keyword('{'), ['body', statements], keyword('}'), function (term) {
+var block = sequence(startBlock, ['body', statements], endBlock, function (term) {
   return terms.block([], term.body);
 });
 

@@ -462,6 +462,10 @@ spec('parser', function () {
         assertStatements('one!\ntwo!', statements);
       });
     
+      spec('separated by dots', function () {
+        assertStatements('one!.two!', statements);
+      });
+    
       spec('on two lines with one line empty', function () {
         assertStatements('one!\n\ntwo!', statements);
       });
@@ -532,9 +536,37 @@ spec('parser', function () {
     });
     
     spec('reset indent', function() {
-      spec('parses', function() {
-        assert.containsFields(parser.parsePartial(parser.resetIndent, '\n  s', 0, new parser.Context().withIndentation('    ')), {context: {indentation: '  '}});
+      spec('parses start', function() {
+        assert.containsFields(parser.parsePartial(parser.startResetIndent, '\n  s', 0, new parser.Context().withIndentation('    ')), {context: {indentation: '  '}});
       });
+      spec('parses end', function() {
+        assert.containsFields(parser.parsePartial(parser.endResetIndent, '\n  }', 0, new parser.Context().withIndentation('    ')), {context: {indentation: ''}});
+      });
+      spec('parses end without newline', function() {
+        assert.containsFields(parser.parsePartial(parser.endResetIndent, '}', 0, new parser.Context().withIndentation('    ')), {context: {indentation: ''}});
+      });
+    });
+  });
+  
+  spec('indentation syntax', function () {
+    var i = parser.sequence(['function', parser.multiple(parser.identifier)], parser.indent, ['block', parser.delimited(parser.identifier, parser.noindent)], parser.unindent,
+      function(term) {
+        return term;
+      });
+    var shouldParse = function(src, expectedTerm) {
+      assert.containsFields(parser.parsePartial(i, src), expectedTerm);
+    };
+    
+    spec('normal', function() {
+      shouldParse('func\n  block1\n  block2\nout', {function: [{identifier: 'func'}], block: [{identifier: 'block1'}, {identifier: 'block2'}]});
+    });
+    
+    spec('starting with empty line', function() {
+      shouldParse('func\n\n  block1\n  block2\nout', {function: [{identifier: 'func'}], block: [{identifier: 'block1'}, {identifier: 'block2'}]});
+    });
+    
+    spec('containing empty line', function() {
+      shouldParse('func\n  block1\n\n  block2\nout', {function: [{identifier: 'func'}], block: [{identifier: 'block1'}, {identifier: 'block2'}]});
     });
   });
   
