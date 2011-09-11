@@ -27,10 +27,13 @@ var MemoTable = function () {
         }
       } else {
         parser(source, index, context, function (parseResult) {
-          memo.table[index] = parseResult;
           if (parseResult) {
+            if (!parseResult.dontMemoise) {
+              memo.table[index] = parseResult;
+            }
             parseResult.context.success(parseResult, continuation);
           } else {
+            memo.table[index] = parseResult;
             context.failure(continuation);
           }
         });
@@ -188,7 +191,7 @@ var stringStartsWith = function (bigString, toStartWith) {
   return (bigString.length > toStartWith.length) && (bigString.substring(0, toStartWith.length) == toStartWith);
 };
 
-var indent = exports.indent = function(source, index, context, continuation){
+var indent = exports.indent = function(source, index, context, continuation) {
   indentation(source, index, context, function (result) {
     if (result && stringStartsWith(result.indentation, context.indentation)) {
       result.context = _.extend({}, result.context);
@@ -200,11 +203,28 @@ var indent = exports.indent = function(source, index, context, continuation){
   });
 };
 
-var unindent = exports.unindent = function(source, index, context, continuation){
+var unindent = exports.unindent = memotable.memoise(function(source, index, context, continuation) {
   indentation(source, index, context, function (result) {
-    if (result && context.previousIndentation() == result.indentation) {
-      result.context = _.extend({}, result.context);
-      result.context.indentation = result.indentation;
+    if (result) {
+      if (!context.containsIndentation(result.indentation)) {
+        context.failure(continuation);
+      } else {
+        if (context.previousIndentation() != result.indentation) {
+          result.index = index;
+          result.dontMemoise = true;
+        }
+        result.context = result.context.oldIndentation();
+        result.context.success(result, continuation);
+      }
+    } else {
+      context.failure(continuation);
+    }
+  });
+});
+
+var noindent = exports.noindent = function(source, index, context, continuation){
+  indentation(source, index, context, function (result) {
+    if (result && result.indentation == context.indentation) {
       result.context.success(result, continuation);
     } else {
       context.failure(continuation);
@@ -212,9 +232,10 @@ var unindent = exports.unindent = function(source, index, context, continuation)
   });
 };
 
-var noindent = exports.noindent = function(source, index, context, continuation){
+var resetIndent = exports.resetIndent = function(source, index, context, continuation){
   indentation(source, index, context, function (result) {
-    if (result && result.indentation == context.indentation) {
+    if (result) {
+      result.context = context.withIndentation(result.indentation);
       result.context.success(result, continuation);
     } else {
       context.failure(continuation);
@@ -304,6 +325,10 @@ var Context = exports.Context = function () {
     newContext.previousIndentations = this.previousIndentations.slice();
     newContext.previousIndentations.unshift(this.indentation);
     return newContext;
+  };
+  
+  this.containsIndentation = function (indentation) {
+    return _.contains(this.previousIndentations, indentation);
   };
   
   this.oldIndentation = function () {
@@ -427,6 +452,9 @@ var termDerivedFrom = function (baseTerm, derivedTerm) {
   if (derivedTerm) {
     derivedTerm.index = baseTerm.index;
     derivedTerm.context = baseTerm.context;
+    if (baseTerm.dontMemoise) {
+      derivedTerm.dontMemoise = true;
+    }
   }
   return derivedTerm;
 };

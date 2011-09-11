@@ -488,42 +488,52 @@ spec('parser', function () {
   spec('indentation', function() {
     spec('indent', function() {
       spec('parses', function() {
-        assert.ok(parser.parsePartial(parser.indent, '\n  s', 0, new parser.Context().withIndentation('')));
-        assert.ok(parser.parsePartial(parser.indent, '\n \n  s', 0, new parser.Context().withIndentation(' ')));
+        assert.containsFields(parser.parsePartial(parser.indent, '\n  s', 0, new parser.Context().withIndentation('')), {context: {indentation: '  '}});
+        assert.containsFields(parser.parsePartial(parser.indent, '\n \n  s', 0, new parser.Context().withIndentation(' ')), {context: {indentation: '  '}});
       });
 
       spec("doesn't parse", function() {
-        assert.ok(!parser.parsePartial(parser.indent, '\n  s', 0, new parser.Context().withIndentation('  ')));
-        assert.ok(!parser.parsePartial(parser.indent, '\n \n  s', 0, new parser.Context().withIndentation('  ')));
-        assert.ok(!parser.parsePartial(parser.indent, '  s', 0, new parser.Context().withIndentation('')));
+        assert.doesntParse(parser.parsePartial(parser.indent, '\n  s', 0, new parser.Context().withIndentation('  ')));
+        assert.doesntParse(parser.parsePartial(parser.indent, '\n \n  s', 0, new parser.Context().withIndentation('  ')));
+        assert.doesntParse(parser.parsePartial(parser.indent, '  s', 0, new parser.Context().withIndentation('')));
       });
     });
     
     spec('unindent', function() {
       spec('parses', function() {
-        assert.ok(parser.parsePartial(parser.unindent, '\n  s', 0, new parser.Context().withIndentation('  ').withIndentation('    ')));
-        assert.ok(parser.parsePartial(parser.unindent, '\n  \ns', 0, new parser.Context().withIndentation(' ')));
-        assert.ok(parser.parsePartial(parser.unindent, '\n\n s', 0, new parser.Context().withIndentation(' ').withIndentation('   ')));
+        assert.containsFields(parser.parsePartial(parser.unindent, '\n  s', 0, new parser.Context().withIndentation('  ').withIndentation('    ')), {context: {indentation: '  '}});
+        assert.containsFields(parser.parsePartial(parser.unindent, '\n  \ns', 0, new parser.Context().withIndentation(' ')), {context: {indentation: ''}});
+        assert.containsFields(parser.parsePartial(parser.unindent, '\n\n s', 0, new parser.Context().withIndentation(' ').withIndentation('   ')), {context: {indentation: ' '}});
+      });
+
+      spec('parses two unindents', function() {
+        assert.containsFields(parser.parsePartial(parser.multiple(parser.unindent, 2, 2), '\ns', 0, new parser.Context().withIndentation('  ').withIndentation('    ')), {context: {indentation: ''}});
       });
 
       spec("doesn't parse", function() {
-        assert.ok(!parser.parsePartial(parser.unindent, '\n  s', 0, new parser.Context().withIndentation('')));
-        assert.ok(!parser.parsePartial(parser.unindent, '\n  s', 0, new parser.Context().withIndentation('')));
-        assert.ok(!parser.parsePartial(parser.unindent, '  s', 0, new parser.Context().withIndentation('')));
+        assert.doesntParse(parser.parsePartial(parser.unindent, '\n  s', 0, new parser.Context()));
+        assert.doesntParse(parser.parsePartial(parser.unindent, '\n  s', 0, new parser.Context().withIndentation('  ')));
+        assert.doesntParse(parser.parsePartial(parser.unindent, '  s', 0, new parser.Context()));
       });
     });
     
     spec('no indent', function() {
       spec('parses', function() {
-        assert.ok(parser.parsePartial(parser.noindent, '\n  s', 0, new parser.Context().withIndentation('  ')));
-        assert.ok(parser.parsePartial(parser.noindent, '\n  \ns', 0, new parser.Context().withIndentation('')));
-        assert.ok(parser.parsePartial(parser.noindent, '\n\n s', 0, new parser.Context().withIndentation(' ')));
-        assert.ok(!parser.parsePartial(parser.noindent, '  s', 0, new parser.Context().withIndentation('')));
+        assert.containsFields(parser.parsePartial(parser.noindent, '\n  s', 0, new parser.Context().withIndentation('  ')), {context: {indentation: '  '}});
+        assert.containsFields(parser.parsePartial(parser.noindent, '\n  \ns', 0, new parser.Context()), {context: {indentation: ''}});
+        assert.containsFields(parser.parsePartial(parser.noindent, '\n\n s', 0, new parser.Context().withIndentation(' ')), {context: {indentation: ' '}});
       });
 
       spec("doesn't parse", function() {
-        assert.ok(!parser.parsePartial(parser.noindent, '\n  s', 0, new parser.Context().withIndentation('')));
-        assert.ok(!parser.parsePartial(parser.noindent, '\n  s', 0, new parser.Context().withIndentation('    ')));
+        assert.doesntParse(parser.parsePartial(parser.noindent, '\n  s', 0, new parser.Context().withIndentation('')));
+        assert.doesntParse(parser.parsePartial(parser.noindent, '\n  s', 0, new parser.Context().withIndentation('    ')));
+        assert.doesntParse(parser.parsePartial(parser.noindent, '  s', 0, new parser.Context()));
+      });
+    });
+    
+    spec('reset indent', function() {
+      spec('parses', function() {
+        assert.containsFields(parser.parsePartial(parser.resetIndent, '\n  s', 0, new parser.Context().withIndentation('    ')), {context: {indentation: '  '}});
       });
     });
   });
