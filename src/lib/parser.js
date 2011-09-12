@@ -19,7 +19,7 @@ var MemoTable = function () {
     addMemo(memo);
     return function (source, index, context, continuation) {
       var parseResult = memo.table[index];
-      if (parseResult) {
+      if (!_.isUndefined(parseResult)) {
         if (parseResult) {
           parseResult.context.success(parseResult, continuation);
         } else {
@@ -196,6 +196,26 @@ var indentation = createParser(
   }
 );
 
+var thingo = 0;
+
+var indentationNoMemoise = createParser(
+  'indentation',
+  /[ \t\n]*\n([ \t]*)/,
+  function (match, i) {
+    thingo++;
+    return {indentation: i, dontMemoise: true, thingo: thingo};
+  },
+  true
+);
+
+var indentationForNextLineOnly = createParser(
+  'indentation',
+  /\n([ \t]*)/,
+  function (match, i) {
+    return {indentation: i};
+  }
+);
+
 var stringStartsWith = function (bigString, toStartWith) {
   return (bigString.length > toStartWith.length) && (bigString.substring(0, toStartWith.length) == toStartWith);
 };
@@ -212,7 +232,7 @@ var indent = exports.indent = memotable.memoise(function(source, index, context,
 });
 
 var unindent = exports.unindent = memotable.memoise(function(source, index, context, continuation) {
-  indentation(source, index, context, function (result) {
+  indentationNoMemoise(source, index, context, function (result) {
     if (result) {
       if (!context.containsIndentation(result.indentation)) {
         context.failure(continuation);
@@ -220,9 +240,15 @@ var unindent = exports.unindent = memotable.memoise(function(source, index, cont
         if (context.previousIndentation() != result.indentation) {
           result.index = index;
           result.dontMemoise = true;
+          result.context = result.context.oldIndentation();
+          result.context.stuff = true;
+          result.context.success(result, continuation);
+        } else {
+          indentationForNextLineOnly(source, index, context, function (shortResult) {
+            shortResult.context = shortResult.context.oldIndentation();
+            shortResult.context.success(shortResult, continuation);
+          });
         }
-        result.context = result.context.oldIndentation();
-        result.context.success(result, continuation);
       }
     } else {
       context.failure(continuation);

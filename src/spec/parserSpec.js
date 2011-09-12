@@ -345,7 +345,7 @@ spec('parser', function () {
       spec('if else', function () {
         assertExpression('if @condition\n  stuff\nelse\n  other stuff\n',
           {
-//            index: 41,
+            index: 41,
             isIfExpression: true,
             condition: {variable: ['condition']},
             then: {statements: [{variable: ['stuff']}]},
@@ -367,8 +367,8 @@ spec('parser', function () {
         });
         
         spec('of block', function () {
-          assertExpression('function that returns number = {9}', {
-            index: 34,
+          assertExpression('function that returns number =\n  9\n', {
+            index: 35,
             target: {variable: ['function', 'that', 'returns', 'number']},
             source: {body: {statements: [{integer: 9}]}}
           });
@@ -489,6 +489,18 @@ spec('parser', function () {
         }]
       });
     });
+    
+    spec('statements after indented block', function () {
+      assertStatements('do\n  stuff!\n\nsomething else!', {
+        statements: [
+          {
+            function: {variable: ['do']},
+            arguments: [{body: {statements: [{function: {variable: ['stuff']}}]}}]
+          },
+          {function: {variable: ['something', 'else']}}
+        ]
+      });
+    });
   });
   
   spec('indentation', function() {
@@ -504,16 +516,16 @@ spec('parser', function () {
         assert.doesntParse(parser.parsePartial(parser.indent, '  s', 0, new parser.Context().withIndentation('')));
       });
     });
-    
+
     spec('unindent', function() {
       spec('parses', function() {
-        assert.containsFields(parser.parsePartial(parser.unindent, '\n  s', 0, new parser.Context().withIndentation('  ').withIndentation('    ')), {context: {indentation: '  '}});
-        assert.containsFields(parser.parsePartial(parser.unindent, '\n  \ns', 0, new parser.Context().withIndentation(' ')), {context: {indentation: ''}});
-        assert.containsFields(parser.parsePartial(parser.unindent, '\n\n s', 0, new parser.Context().withIndentation(' ').withIndentation('   ')), {context: {indentation: ' '}});
+        assert.containsFields(parser.parsePartial(parser.unindent, '\n  s', 0, new parser.Context().withIndentation('  ').withIndentation('    ')), {context: {indentation: '  '}, index: 3});
+        assert.containsFields(parser.parsePartial(parser.unindent, '\n  \ns', 0, new parser.Context().withIndentation('  ')), {context: {indentation: ''}, index: 3});
+        assert.containsFields(parser.parsePartial(parser.unindent, '\n\n s', 0, new parser.Context().withIndentation(' ').withIndentation('   ')), {context: {indentation: ' '}, index: 1});
       });
 
       spec('parses two unindents', function() {
-        assert.containsFields(parser.parsePartial(parser.multiple(parser.unindent, 2, 2), '\ns', 0, new parser.Context().withIndentation('  ').withIndentation('    ')), {context: {indentation: ''}});
+        assert.containsFields(parser.parsePartial(parser.multiple(parser.unindent, 2, 2), '\ns', 0, new parser.Context().withIndentation('  ').withIndentation('    ')), [{context: {indentation: '  '}}, {context: {indentation: ''}}]);
       });
 
       spec("doesn't parse", function() {
