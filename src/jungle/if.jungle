@@ -1,15 +1,13 @@
 condition = 1
 
-do stuff = {
+do stuff =
 	console:log (list 2 3)
-}
 
-do other stuff = {
+do other stuff =
 	console:log (list 3 4)
-}
 
-if @condition {
+if @condition
 	do stuff!
-} else {
+else
 	do other stuff!	
-}
+
