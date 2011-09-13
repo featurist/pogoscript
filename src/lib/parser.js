@@ -26,29 +26,60 @@ var MemoTable = function () {
           context.failure(continuation);
         }
       } else {
-        parser(source, index, context, function (parseResult) {
-          if (parseResult) {
+        parser(source, index, context, continuation.on({
+          success: function (parseResult) {
             if (!parseResult.dontMemoise) {
               memo.table[index] = parseResult;
             }
             parseResult.context.success(parseResult, continuation);
-          } else {
-            memo.table[index] = parseResult;
+          },
+          failure: function (error) {
+            memo.table[index] = null;
             context.failure(continuation);
           }
-        });
+        }));
       }
     };
   };
 };
 
 var memotable = new MemoTable();
+
+var Continuation = function (parent, handler) {
+  this.onSuccess = function (f) {
+    return new Continuation(this, {success: f});
+  };
   
+  this.onFailure = function (f) {
+    return new Continuation(this, {failure: f});
+  };
+  
+  this.on = function (o) {
+    return new Continuation(this, o);
+  };
+  
+  this.success = function (result) {
+    if (handler.success) {
+      handler.success(result);
+    } else {
+      parent.success(result);
+    }
+  };
+  
+  this.failure = function (error) {
+    if (handler.failure) {
+      handler.failure(error);
+    } else {
+      parent.failure(error);
+    }
+  };
+};
+
 var ignoreLeadingWhitespace = function (parser) {
   return memotable.memoise(function (source, index, context, continuation) {
-    whitespace(source, index, context, function (parsedWhitespace) {
+    whitespace(source, index, context, continuation.onSuccess(function (parsedWhitespace) {
       parser(source, parsedWhitespace.index, parsedWhitespace.context, continuation);
-    });
+    }));
   });
 };
 
@@ -122,7 +153,7 @@ var sequence = (function () {
       var parseSubTerm = function (subtermIndex, index, context) {
         var subterm = subterms[subtermIndex];
         if (subterm) {
-          subterm.parser(source, index, context, nextSubTermParser(subterm, subtermIndex + 1));
+          subterm.parser(source, index, context, continuation.onSuccess(nextSubTermParser(subterm, subtermIndex + 1)));
         } else {
           term.index = index;
           term.context = context;
@@ -132,12 +163,8 @@ var sequence = (function () {
       
       var nextSubTermParser = function (previousSubterm, subtermIndex) {
         return function (result) {
-          if (result) {
-            previousSubterm.addToTerm(term, result);
-            parseSubTerm(subtermIndex, result.index, result.context);
-          } else {
-            context.failure(continuation);
-          }
+          previousSubterm.addToTerm(term, result);
+          parseSubTerm(subtermIndex, result.index, result.context);
         };
       };
       
@@ -221,73 +248,61 @@ var stringStartsWith = function (bigString, toStartWith) {
 };
 
 var indent = exports.indent = memotable.memoise(function(source, index, context, continuation) {
-  indentation(source, index, context, function (result) {
-    if (result && stringStartsWith(result.indentation, context.indentation)) {
+  indentation(source, index, context, continuation.onSuccess(function (result) {
+    if (stringStartsWith(result.indentation, context.indentation)) {
       result.context = result.context.withIndentation(result.indentation);
       result.context.success(result, continuation);
     } else {
       context.failure(continuation);
     }
-  });
+  }));
 });
 
 var unindent = exports.unindent = memotable.memoise(function(source, index, context, continuation) {
-  indentationNoMemoise(source, index, context, function (result) {
-    if (result) {
-      if (!context.containsIndentation(result.indentation)) {
-        context.failure(continuation);
-      } else {
-        if (context.previousIndentation() != result.indentation) {
-          result.index = index;
-          result.dontMemoise = true;
-          result.context = result.context.oldIndentation();
-          result.context.stuff = true;
-          result.context.success(result, continuation);
-        } else {
-          indentationForNextLineOnly(source, index, context, function (shortResult) {
-            shortResult.context = shortResult.context.oldIndentation();
-            shortResult.context.success(shortResult, continuation);
-          });
-        }
-      }
-    } else {
+  indentationNoMemoise(source, index, context, continuation.onSuccess(function (result) {
+    if (!context.containsIndentation(result.indentation)) {
       context.failure(continuation);
+    } else {
+      if (context.previousIndentation() != result.indentation) {
+        result.index = index;
+        result.dontMemoise = true;
+        result.context = result.context.oldIndentation();
+        result.context.stuff = true;
+        result.context.success(result, continuation);
+      } else {
+        indentationForNextLineOnly(source, index, context, continuation.onSuccess(function (shortResult) {
+          shortResult.context = shortResult.context.oldIndentation();
+          shortResult.context.success(shortResult, continuation);
+        }));
+      }
     }
-  });
+  }));
 });
 
 var noindent = exports.noindent = memotable.memoise(function(source, index, context, continuation){
-  indentation(source, index, context, function (result) {
-    if (result && result.indentation == context.indentation) {
+  indentation(source, index, context, continuation.onSuccess(function (result) {
+    if (result.indentation == context.indentation) {
       result.context.success(result, continuation);
     } else {
       context.failure(continuation);
     }
-  });
+  }));
 });
 
 var startResetIndent = exports.startResetIndent = memotable.memoise(function(source, index, context, continuation){
-  choice(indentation, whitespaceIncludingNewlines) (source, index, context, function (result) {
-    if (result) {
-      if (result.indentation) {
-        result.context = context.withIndentation(result.indentation);
-      }
-      result.context.success(result, continuation);
-    } else {
-      context.failure(continuation);
+  choice(indentation, whitespaceIncludingNewlines) (source, index, context, continuation.onSuccess(function (result) {
+    if (result.indentation) {
+      result.context = context.withIndentation(result.indentation);
     }
-  });
+    result.context.success(result, continuation);
+  }));
 });
 
 var endResetIndent = exports.endResetIndent = memotable.memoise(function(source, index, context, continuation){
-  whitespaceIncludingNewlines(source, index, context, function (result) {
-    if (result) {
-      result.context = context.oldIndentation(result.indentation);
-      result.context.success(result, continuation);
-    } else {
-      context.failure(continuation);
-    }
-  });
+  whitespaceIncludingNewlines(source, index, context, continuation.onSuccess(function (result) {
+    result.context = context.oldIndentation(result.indentation);
+    result.context.success(result, continuation);
+  }));
 });
 
 var sigilIdentifier = function (sigil, name, createTerm) {
@@ -330,20 +345,21 @@ var choice = function () {
       var choiceParser = parseAllChoices.choices[choiceIndex];
 
       if (choiceParser) {
-        choiceParser(source, index, context, parseNextChoice(choiceIndex + 1));
+        choiceParser(source, index, context, continuation.on(parseNextChoice(choiceIndex + 1)));
       } else {
         context.failure(continuation);
       }
     };
     
     var parseNextChoice = function (choiceIndex) {
-      return function (result) {
-        if (result) {
+      return {
+        success: function (result) {
           result.context.success(result, continuation);
-        } else {
+        },
+        failure: function (error) {
           parseChoice(choiceIndex);
-        } 
-      }
+        }
+      };
     };
     
     parseChoice(0);
@@ -359,11 +375,11 @@ var Context = exports.Context = function () {
   this.indentation = '';
   
   this.success = function (result, continuation) {
-    continuation(result);
+    continuation.success(result);
   };
   
   this.failure = function (continuation) {
-    continuation(null);
+    continuation.failure({error: 'error'});
   };
   
   this.withIndentation = function (indentation) {
@@ -390,23 +406,6 @@ var Context = exports.Context = function () {
   };
 };
 
-var createContext = function (context) {
-  context = context || {};
-  return _.extend(context, {
-    success: function (result, continuation) {
-      continuation(result);
-    },
-    failure: function (continuation) {
-      continuation(null);
-    },
-    createContext: function (fields) {
-      fields = fields || {};
-      var newContext = _.extend(fields, this);
-      newContext.previousIndentations = this.previousIndentations.slice();
-    }
-  });
-}
-
 var parsePartial = function (parser, source, index, context) {
   return parse(parser, source, index, context, true);
 };
@@ -418,11 +417,15 @@ var parse = function (parser, source, index, context, partial) {
   
   var result = null;
   
-  parser(source, index, context, function (r) {
-    if (partial || (r && (r.index == source.length))) {
-      result = r;
+  parser(source, index, context, new Continuation().on({
+    failure: function (error) {
+    },
+    success: function (r) {
+      if (partial || (r && (r.index == source.length))) {
+        result = r;
+      }
     }
-  });
+  }));
   
   return result;
 }
@@ -445,10 +448,6 @@ var delimited = function (parser, delimiter, min, max) {
     terms.context = context;
     terms.index = index;
     
-    var parseWithResult = function (result) {
-      parser(source, result.index, result.context, parseAnother);
-    };
-    
     var finishParsing = function () {
       if (terms.length >= min) {
         terms.context.success(terms, continuation);
@@ -456,34 +455,35 @@ var delimited = function (parser, delimiter, min, max) {
         context.failure(continuation);
       }
     };
+    
+    var parseWithResult = function (result) {
+      parser(source, result.index, result.context, continuation.onSuccess(parseAnother).onFailure(finishParsing));
+    };
 
     var parseAnother = function (result) {
-      if (result) {
-        terms.push(result);
-        terms.context = result.context;
-        terms.index = result.index;
-        
-        if (max && terms.length >= max) {
-          result.context.success(terms, continuation);
-        } else {
-          if (delimiter) {
-            delimiter(source, result.index, result.context, function (delimResult) {
-              if (delimResult) {
-                parseWithResult(delimResult);
-              } else {
-                finishParsing();
-              }
-            });
-          } else {
-            parseWithResult(result);
-          }
-        }
+      terms.push(result);
+      terms.context = result.context;
+      terms.index = result.index;
+      
+      if (max && terms.length >= max) {
+        result.context.success(terms, continuation);
       } else {
-        finishParsing();
+        if (delimiter) {
+          delimiter(source, result.index, result.context, continuation.on({
+            success: function (delimResult) {
+              parseWithResult(delimResult);
+            },
+            failure: function(error) {
+              finishParsing();
+            }
+          }));
+        } else {
+          parseWithResult(result);
+        }
       }
     };
     
-    parser(source, index, context, parseAnother);
+    parser(source, index, context, continuation.onSuccess(parseAnother).onFailure(finishParsing));
   });
 };
 
@@ -508,20 +508,17 @@ var termDerivedFrom = function (baseTerm, derivedTerm) {
 
 var transform = function (parser, transformer) {
   return memotable.memoise(function (source, index, context, continuation) {
-    parser(source, index, context, function (result) {
-      if (result) {
-        var transformed = transformer(result);
+    parser(source, index, context, continuation.onSuccess(function (result) {
+      var transformed = transformer(result);
 
-        if (transformed) {
-          transformed.index = result.index;
-          transformed.context = result.context;
-        }
-        
+      if (transformed) {
+        transformed.index = result.index;
+        transformed.context = result.context;
         context.success(transformed, continuation);
       } else {
         context.failure(continuation);
       }
-    })
+    }));
   });
 };
 
