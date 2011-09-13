@@ -23,7 +23,7 @@ var MemoTable = function () {
         if (parseResult) {
           continuation.success(parseResult);
         } else {
-          continuation.failure();
+          continuation.failure({index: index, context: context});
         }
       } else {
         parser(source, index, context, continuation.on({
@@ -35,7 +35,7 @@ var MemoTable = function () {
           },
           failure: function (error) {
             memo.table[index] = null;
-            continuation.failure();
+            continuation.failure({index: index, context: context});
           }
         }));
       }
@@ -96,7 +96,7 @@ var createParser = function (name, originalRe, createTerm, dontIgnoreWhitespace)
       term.context = context;
       continuation.success(term);
     } else {
-      continuation.failure();
+      continuation.failure({expected: [parser], index: index, context: context});
     }
   });
   
@@ -253,7 +253,7 @@ var indent = exports.indent = memotable.memoise(function(source, index, context,
       result.context = result.context.withIndentation(result.indentation);
       continuation.success(result);
     } else {
-      continuation.failure();
+      continuation.failure({index: index, context: context});
     }
   }));
 });
@@ -261,7 +261,7 @@ var indent = exports.indent = memotable.memoise(function(source, index, context,
 var unindent = exports.unindent = memotable.memoise(function(source, index, context, continuation) {
   indentationNoMemoise(source, index, context, continuation.onSuccess(function (result) {
     if (!context.containsIndentation(result.indentation)) {
-      continuation.failure();
+      continuation.failure({index: index, context: context});
     } else {
       if (context.previousIndentation() != result.indentation) {
         result.index = index;
@@ -284,7 +284,7 @@ var noindent = exports.noindent = memotable.memoise(function(source, index, cont
     if (result.indentation == context.indentation) {
       continuation.success(result);
     } else {
-      continuation.failure();
+      continuation.failure({index: index, context: context});
     }
   }));
 });
@@ -347,7 +347,7 @@ var choice = function () {
       if (choiceParser) {
         choiceParser(source, index, context, continuation.onFailure(parseNextChoice(choiceIndex + 1)));
       } else {
-        continuation.failure();
+        continuation.failure({index: index, context: context, expected: parseAllChoices.choices});
       }
     };
     
@@ -398,24 +398,39 @@ var parsePartial = function (parser, source, index, context) {
 };
 
 var parse = function (parser, source, index, context, partial) {
+  var result = null;
+  
+  parseOrNot(parser, source, index, context, partial, {
+    success: function (r) {
+      result = r;
+    },
+    failure: function () {
+    }
+  });
+  
+  return result;
+};
+
+var parseOrNot = function (parser, source, index, context, partial, handler) {
   memotable.clear();
   index = (index || 0);
   context = context || new Context();
   
-  var result = null;
-  
   parser(source, index, context, new Continuation().on({
     failure: function (error) {
+      handler.failure(error);
     },
     success: function (r) {
       if (partial || (r && (r.index == source.length))) {
-        result = r;
+        handler.success(r);
       }
     }
   }));
-  
-  return result;
-}
+};
+
+var parseModule = function (source, handler) {
+  parseOrNot(_module, source, 0, undefined, undefined, handler);
+};
 
 var optional = function (parser) {
   return multiple(parser, 0, 1);
@@ -439,7 +454,7 @@ var delimited = function (parser, delimiter, min, max) {
       if (terms.length >= min) {
         continuation.success(terms);
       } else {
-        continuation.failure();
+        continuation.failure({index: index, context: context, expected: [parser]});
       }
     };
     
@@ -503,7 +518,7 @@ var transform = function (parser, transformer) {
         transformed.context = result.context;
         continuation.success(transformed);
       } else {
-        continuation.failure();
+        continuation.failure({index: index, context: context});
       }
     }));
   });
@@ -663,3 +678,4 @@ exports.transform = transform;
 exports.delimited = delimited;
 exports.statements = statements;
 exports.module = _module;
+exports.parseModule = parseModule;
