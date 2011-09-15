@@ -182,6 +182,20 @@ spec('code generator', function () {
   
   spec('scope', function () {
     spec('variable defined in outer scope, assigned to in inner scope', function () {
+      var s = cg.statements([
+        cg.definition(cg.variable(['x']), cg.integer(1)),
+        cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
+          cg.definition(cg.variable(['x']), cg.integer(2)),
+          cg.variable(['x'])
+        ]))])
+      ]);
+      
+      generatesExpression(s, 'var x;x=1;f(function(){x=2;return x;});');
+    });
+  });
+  
+  spec('module', function () {
+    spec('module should be wrapped in function', function () {
       var s = cg.module(cg.statements([
         cg.definition(cg.variable(['x']), cg.integer(1)),
         cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
@@ -190,7 +204,7 @@ spec('code generator', function () {
         ]))])
       ]));
       
-      generatesExpression(s, 'var x;x=1;f(function(){x=2;return x;});');
+      generatesExpression(s, '(function(){var x;x=1;return f(function(){x=2;return x;});})()');
     });
   });
   

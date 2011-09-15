@@ -247,7 +247,7 @@ expressionTerm('module', function (statements) {
   this.statements = statements;
   
   this.generateJavaScript = function (buffer, scope) {
-    this.statements.generateJavaScript(buffer, new Scope());
+    functionCall(subExpression(block([], this.statements))).generateJavaScript(buffer, new Scope());
   };
 });
 
