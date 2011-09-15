@@ -381,7 +381,7 @@ spec('parser', function () {
       });
       
       spec("doesn't parse function call with no arg suffix and arguments", function () {
-        assertNotExpression('save @files to disk!', {index: 0, message: ''});
+        assertNotExpression('save @files to disk!');
       });
   
       spec('definition', function () {
