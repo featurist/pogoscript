@@ -56,18 +56,31 @@ var MemoTable = function () {
 
 var memotable = new MemoTable();
 
-var Continuation = function (parent, handler) {
+var ErrorLog = function () {
+  var errorWithLargestIndex;
+  
+  this.addError = function (error) {
+    if (!errorWithLargestIndex || error.index > errorWithLargestIndex.index) {
+      errorWithLargestIndex = error;
+    }
+  };
+  
+  this.error = function() {
+    return errorWithLargestIndex;
+  };
+};
+
+var Continuation = function (errorLog, parent, handler) {
   this.onSuccess = function (f) {
-    return new Continuation(this, {success: f});
+    return new Continuation(errorLog, this, {success: f});
   };
   
   this.onFailure = function (f) {
-    return new Continuation(this, {failure: f, justFailure: true, iwascreated: new Error().stack});
+    return new Continuation(errorLog, this, {failure: f});
   };
   
   this.on = function (o) {
-    o.thisIsOn = true;
-    return new Continuation(this, o);
+    return new Continuation(errorLog, this, o);
   };
   
   this.success = function (result) {
@@ -83,6 +96,9 @@ var Continuation = function (parent, handler) {
       error.stack = new Error().stack;
     }
     error.isError = true;
+    
+    errorLog.addError(error);
+    
     if (handler.failure) {
       handler.failure(error);
     } else {
@@ -444,16 +460,22 @@ var tryParse = exports.tryParse = function (parser, source, handler, index, cont
   index = (index || 0);
   context = context || new Context();
   
-  parser(source, index, context, new Continuation().on({
+  var everythingParser = transform(parser, function(term) {
+    if (partial || (term && (term.index == source.length))) {
+      return term;
+    } else {
+      throw parseError(term, 'did not parse whole file');
+    }
+  });
+  
+  var errorLog = new ErrorLog();
+  
+  everythingParser(source, index, context, new Continuation(errorLog).on({
     failure: function (error) {
-      handler.failure(error);
-    }, thisIsTopLevel: true,
+      handler.failure(errorLog.error());
+    },
     success: function (r) {
-      if (partial || (r && (r.index == source.length))) {
-        handler.success(r);
-      } else {
-        handler.failure({expected: [], index: r.index, context: r.context})
-      }
+      handler.success(r);
     }
   }));
 };
