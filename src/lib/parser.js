@@ -1,6 +1,17 @@
 var _ = require('underscore');
 var terms = require('./codeGenerator');
 
+var parseError = exports.parseError = function (term, message, expected) {
+  expected = expected || [];
+  
+  var e = new Error(message);
+  e.index = term.index;
+  e.context = term.context;
+  e.expected = expected;
+  
+  return e;
+};
+
 var MemoTable = function () {
   var memos = [];
   var addMemo = function(memo) {
@@ -19,11 +30,11 @@ var MemoTable = function () {
     addMemo(memo);
     return function (source, index, context, continuation) {
       var parseResult = memo.table[index];
-      if (!_.isUndefined(parseResult)) {
-        if (parseResult) {
+      if (parseResult) {
+        if (!parseResult.isError) {
           continuation.success(parseResult);
         } else {
-          continuation.failure({index: index, context: context});
+          continuation.failure(parseResult);
         }
       } else {
         parser(source, index, context, continuation.on({
@@ -34,8 +45,8 @@ var MemoTable = function () {
             continuation.success(parseResult);
           },
           failure: function (error) {
-            memo.table[index] = null;
-            continuation.failure({index: index, context: context});
+            memo.table[index] = error;
+            continuation.failure(error);
           }
         }));
       }
@@ -51,10 +62,11 @@ var Continuation = function (parent, handler) {
   };
   
   this.onFailure = function (f) {
-    return new Continuation(this, {failure: f});
+    return new Continuation(this, {failure: f, justFailure: true, iwascreated: new Error().stack});
   };
   
   this.on = function (o) {
+    o.thisIsOn = true;
     return new Continuation(this, o);
   };
   
@@ -67,6 +79,10 @@ var Continuation = function (parent, handler) {
   };
   
   this.failure = function (error) {
+    if (!error.stack) {
+      error.stack = new Error().stack;
+    }
+    error.isError = true;
     if (handler.failure) {
       handler.failure(error);
     } else {
@@ -157,7 +173,7 @@ var sequence = (function () {
         } else {
           term.index = index;
           term.context = context;
-          continuation.success(transformWith(term, createTerm));
+          transformWith(term, createTerm, continuation);
         }
       };
       
@@ -322,7 +338,7 @@ var sigilIdentifier = function (sigil, name, createTerm) {
 };
 
 var escapeInRegExp = function (str) {
-  if (/^[(){}?.]$/.test(str)) {
+  if (/^[(){}?.+*]$/.test(str)) {
     return '\\' + str;
   } else {
     return str;
@@ -397,21 +413,33 @@ var parsePartial = function (parser, source, index, context) {
   return parse(parser, source, index, context, true);
 };
 
-var parse = function (parser, source, index, context, partial) {
+var parse = exports.parse = function (parser, source, index, context, partial) {
   var result = null;
   
-  parseOrNot(parser, source, index, context, partial, {
+  tryParse(parser, source, {
     success: function (r) {
       result = r;
     },
-    failure: function () {
+    failure: function (error) {
     }
-  });
+  }, index, context, partial);
   
   return result;
 };
 
-var parseOrNot = function (parser, source, index, context, partial, handler) {
+var tryParseError = exports.tryParseError = function (parser, source) {
+  var error = null;
+  
+  tryParse(parser, source, {
+    failure: function (e) {
+      error = e;
+    }
+  });
+  
+  return error;
+};
+
+var tryParse = exports.tryParse = function (parser, source, handler, index, context, partial) {
   memotable.clear();
   index = (index || 0);
   context = context || new Context();
@@ -419,17 +447,19 @@ var parseOrNot = function (parser, source, index, context, partial, handler) {
   parser(source, index, context, new Continuation().on({
     failure: function (error) {
       handler.failure(error);
-    },
+    }, thisIsTopLevel: true,
     success: function (r) {
       if (partial || (r && (r.index == source.length))) {
         handler.success(r);
+      } else {
+        handler.failure({expected: [], index: r.index, context: r.context})
       }
     }
   }));
 };
 
-var parseModule = function (source, handler) {
-  parseOrNot(_module, source, 0, undefined, undefined, handler);
+var parseModule = exports.parseModule = function (source, handler) {
+  tryParse(_module, source, handler, 0, undefined, undefined);
 };
 
 var optional = function (parser) {
@@ -450,11 +480,11 @@ var delimited = function (parser, delimiter, min, max) {
     terms.context = context;
     terms.index = index;
     
-    var finishParsing = function () {
+    var finishParsing = function (error) {
       if (terms.length >= min) {
         continuation.success(terms);
       } else {
-        continuation.failure({index: index, context: context, expected: [parser]});
+        continuation.failure(error);
       }
     };
     
@@ -489,11 +519,14 @@ var delimited = function (parser, delimiter, min, max) {
   });
 };
 
-var transformWith = function (term, transformer) {
-  if (transformer) {
-    return termDerivedFrom(term, transformer(term));
-  } else {
-    return term;
+var transformWith = function (term, transformer, continuation) {
+  try {
+    if (transformer) {
+      var transformedTerm = termDerivedFrom(term, transformer(term));
+      continuation.success(transformedTerm);
+    }
+  } catch (e) {
+    continuation.failure(e);
   }
 };
 
@@ -511,15 +544,7 @@ var termDerivedFrom = function (baseTerm, derivedTerm) {
 var transform = function (parser, transformer) {
   return memotable.memoise(function (source, index, context, continuation) {
     parser(source, index, context, continuation.onSuccess(function (result) {
-      var transformed = transformer(result);
-
-      if (transformed) {
-        transformed.index = result.index;
-        transformed.context = result.context;
-        continuation.success(transformed);
-      } else {
-        continuation.failure({index: index, context: context});
-      }
+      transformWith(result, transformer, continuation);
     }));
   });
 };
@@ -580,7 +605,7 @@ var functionCall = transform(multipleTerminals, function (expression) {
   var arguments = expression.arguments();
   
   if (isNoArgCall && arguments.length > 0) {
-    return null;
+    throw parseError(expression, 'this function has arguments and an exclaimation mark (implying no arguments)');
   }
   
   return terms.functionCall(terms.variable(name), arguments);
@@ -634,7 +659,7 @@ var definition = sequence(['target', multiple(choice(identifier, parameter))], k
 
 primaryExpression.choices.unshift(definition);
 
-var identityTransform = function (term) {
+var identityTransform = exports.identityTransform = function (term) {
   return term;
 };
 
@@ -662,7 +687,6 @@ var block = sequence(startBlock, ['body', statements], endBlock, function (term)
 terminal.choices.push(block);
 
 exports.integer = integer;
-exports.parse = parse;
 exports.parsePartial = parsePartial;
 exports.float = float;
 exports.choice = choice;
@@ -678,4 +702,4 @@ exports.transform = transform;
 exports.delimited = delimited;
 exports.statements = statements;
 exports.module = _module;
-exports.parseModule = parseModule;
+exports.block = block;

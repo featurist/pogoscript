@@ -214,13 +214,35 @@ spec('parser', function () {
   });
   
   spec('transform', function () {
-    spec('transforms successfully parsed identifier', function () {
-      assert.containsFields(parser.parse(parser.transform(parser.identifier, function (term) {
+    var fakeParser = function (source, index, context, continuation) {
+      continuation.success({
+        dontMemoise: true,
+        index: source.length,
+        context: 'context'
+      });
+    };
+    
+    spec('uses index context and dontMemoise from original term', function () {
+      assert.containsFields(parser.parse(parser.transform(fakeParser, function (term) {
+        return {
+          thisIsTransformed: true
+        };
+      }), 'one'), {dontMemoise: true, index: 3, context: 'context', thisIsTransformed: true});
+    });
+    
+    spec('fails parse if transform throws parse error', function () {
+      assert.containsFields(parser.tryParseError(parser.transform(fakeParser, function (term) {
+        throw parser.parseError(term, "there's something wrong!");
+      }), 'one'), {index: 3, context: 'context'});
+    });
+    
+    spec("doesn't transform if not parsed", function () {
+      assert.doesntParse(parser.parse(parser.transform(parser.identifier, function (term) {
         return {
           index: 2,
           thisIsTransformed: true
         };
-      }), 'one'), {thisIsTransformed: true, index: 3});
+      }), '1'));
     });
   });
   
@@ -263,8 +285,13 @@ spec('parser', function () {
   
   spec('expression', function () {
     var assertExpression = assertParser(parser.expression);
-    var assertNotExpression = function (src) {
-      assert.doesntParse(parser.parse(parser.expression, src));
+    var assertNotExpression = function (src, expectedError) {
+      var error = parser.tryParseError(parser.expression, src);
+      if (expectedError) {
+        assert.containsFields(error, expectedError);
+      } else {
+        assert.ok(error);
+      }
     };
     
     spec('with just one terminal resolves to that terminal', function () {
@@ -354,7 +381,7 @@ spec('parser', function () {
       });
       
       spec("doesn't parse function call with no arg suffix and arguments", function () {
-        assertNotExpression('save @files to disk!');
+        assertNotExpression('save @files to disk!', {index: 0, message: ''});
       });
   
       spec('definition', function () {
@@ -589,6 +616,30 @@ spec('parser', function () {
   
   spec('module', function() {
     assert.containsFields(parser.parse(parser.module, 'one!\ntwo!\n'), {statements: {statements: [{function: {variable: ['one']}}, {function: {variable: ['two']}}]}});
+  });
+  
+  spec('parse errors', function () {
+    spec('simple', function () {
+      var intId = parser.sequence(parser.integer, parser.identifier, parser.identityTransform);
+
+      spec('fails on token', function () {
+        parser.tryParse(intId, '56 56', {
+          success: shouldNotCall,
+          failure: shouldCall(function (error) {
+            assert.containsFields(error, {index: 3});
+          })
+        });
+      });
+    });
+    
+    spec('module', function () {
+      parser.tryParse(parser.module, '{)', {
+        success: shouldNotCall,
+        failure: shouldCall(function (error) {
+          assert.ok(error);
+        })
+      });
+    });
   });
   
   spec('context', function () {

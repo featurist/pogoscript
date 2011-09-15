@@ -1,5 +1,5 @@
 var cg = require('../lib/codeGenerator');
-var MemoryStream = require('./memorystream').MemoryStream;
+var MemoryStream = require('../lib/memorystream').MemoryStream;
 var assert = require('assert');
 var _ = require('underscore');
 require('cupoftea');
