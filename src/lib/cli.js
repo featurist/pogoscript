@@ -63,13 +63,18 @@ var compile = function (filename) {
         if (error) {
           printError(filename, source, error);
         } else {
-          var output = beautify(generate(term));
-          // process.stdout.write(output);
-          fs.writeFile(jungleFilenameOf(filename), output);
+          try {
+            var output = beautify(generate(term));
+          
+            // process.stdout.write(output);
+            fs.writeFile(jungleFilenameOf(filename), output);
+          } catch (e) {
+            console.log(e.stack);
+          }
         }
       });
     } else {
-      console.log(err.message);
+      console.log(err.stack);
     }
   });
 };
