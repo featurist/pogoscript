@@ -562,6 +562,64 @@ But if you want to put several statements onto one line, use the dot (`.`).
 
     length = @width * @height. do stuff!
 
+# Macros
+
+Macros can be defined allowing code to be rewritten before it is compiled.
+
+    macro (++ ?i) =
+        assuming @i
+            is variable
+                assignment with target @i and source (operator @i plus (integer 1))
+
+Allowing the following code:
+    
+    x = 4
+    ++ @x
+
+To be rewritten as:
+
+    x = 4
+    x = x + 1
+
+There are several different types of macros. The simplest, as shown above, is one that is modelled after function calls. Anything that looks like a function call can be a macro.
+
+We can also make macros for method calls, for example with this macro `do`, which calls each of the methods (`push`, `pop`) on the object `stack`.
+
+    stack: do
+        push 3
+        push 4
+        pop
+
+This is defined like this:
+
+    macro (object: do ?calls) =
+        method calls = map each ?call in @calls into
+            assuming @call
+                is function call with name ?name and arguments ?arguments
+                    method call on object @object with name @name and arguments @arguments
+        statements (method calls)
+
+And would result in the following code:
+
+    stack: push 3
+    stack: push 4
+    stack: pop
+
+We can also make macros for definitions, ie, the left hand side of the `=`.
+
+    macro (export ?id = ?expr) =
+        assuming @id
+            is variable
+                assignment with target (field reference of (self variable!) with index (id.as string!)) and source @expr
+
+Allowing the code:
+
+    export (x) = 5
+
+To become
+
+    self.x = 5
+
 # Control Flow
 
 ## If
