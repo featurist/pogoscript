@@ -209,7 +209,7 @@ The colon makes for a concise way to access module items:
 
     http = require 'http'
     server = http: create server ?request ?response
-        response: write head 200, "Content-Type" = "text/plain"
+        response: write head 200, "Content-Type" "text/plain"
         response: end "Hello World\n"
 
 The colon can be used to express chains of method calls:
@@ -705,30 +705,30 @@ Indexing lists is done with colon (`:`), list on the left, index on the right:
 
 # Hashes
 
-Hashes use are written with `hash (...)`:
+Hashes use are written with `#{...}`:
 
-    hash ("Set-Cookie" = cookie, Location @redirect)
-    empty hash = hash ()
+    #{"Set-Cookie" @cookie, Location @redirect}
+    empty hash = #{}
     
-The hash entries are separated by commas `,`.
+The hash entries are separated by commas (`,`) or dots (`.`).
 
-The fields follow the same rules as function call options. If there's an argument, it is taken as the value of the field. If there isn't an argument, the field is taken to be `true`. If the field starts with `not` then it is taken to be `false`.
+The fields follow the same rules as function call options. If there's an argument, it is taken as the value of the field. If there isn't an argument, the field is taken to be `true`. If the field starts with `not` then it is taken to be `false`. If there are two arguments and no name, then the first argument is taken as the field and the second argument the value:
 
-Fields can also be specified with an assignment sign `=`, in which case the field name can be the result of an expression.
+    headers = #{"Content-Type" "text/plain"}
 
 They can also be written on an indented line:
 
-    hash
-        "Set-Cookie" = cookie
+    #
+        "Set-Cookie" @cookie
         Location @redirect
 
 Which is the same as:
 
-    hash {"Set-Cookie" = cookie. Location @redirect}
+    #{"Set-Cookie" @cookie. Location @redirect}
 
 Referencing a hash follows the same syntax as referencing a list, only it can use normal names as well as expressions:
 
-    header = hash ("Set-Cookie" = cookie, Location @redirect)
+    header = hash ("Set-Cookie" @cookie, Location @redirect)
     
     cookie = header: "Set-Cookie"
     location = header: Location
