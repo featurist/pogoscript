@@ -627,13 +627,13 @@ To become
 The `if` statement:
 
     condition = true
-    if condition
+    if @condition
         do stuff!
 
 The `if`/`else` statement:
 
     condition = false
-    if condition
+    if @condition
         do stuff!
     else
         do other stuff!
@@ -643,9 +643,48 @@ The `if`/`else` statement:
 The `while` statement:
 
     condition = true
-    while condition
+    while @condition
         do stuff!
         condition = false
+
+## When
+
+The `when` statement is like the `switch` statement in JavsScript and other C-like languages.
+
+    greeting = "hi"
+    
+    when @greeting
+        is "hi"
+            print "English"
+        is "ni hao"
+            print "Mandarin"
+        is "ola"
+            print "Spanish"
+        is "g'day"
+            print "Australian"
+
+Each of the cases are expressions, in the above example the expression involves the `is` function. The `when` statement evaluates each of the case expressions, each case expression returns a function that takes the condition (`greeting`) and returns an action function if the condition is met. The action function will carry out the handler for that case (print the language).
+
+So the `is` function could be defined as:
+
+    is ?value ?action =
+        ?condition
+            if (@condition == @value)
+                action
+
+You could easily write other case expressions to evaluate more complex rules such as pattern matching:
+
+    is string starting with ?s ?action =
+        ?condition
+            if (((typeof @condition) == 'string') and ((condition:substring (s:length)) == @s))
+                action
+
+Or regular expressions:
+
+    matches ?re ?action =
+        ?condition
+            if (re:test @condition)
+                action
 
 ## Lambda
 
