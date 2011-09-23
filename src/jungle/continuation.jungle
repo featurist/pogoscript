@@ -1,0 +1,35 @@
+export: Continuation ?parent ?handler = object
+	export (on success ?f) =
+		new (Continuation @self #{success @f})
+	
+	export (on failure ?f) =
+		new (Continuation @self #{failure @f})
+	
+	export (on ?o) =
+		new (Continuation @self @o)
+	
+	export (success ?result) =
+		if (handler:success)
+			handler: success @result
+		else
+			parent: success @result
+	
+	export (failure ?error) =
+		error:stack = new (Error):stack
+		error:is error = true
+		
+		if (handler:failure)
+			handler: failure @error
+		else
+			parent: failure @error
+
+some object = #{}
+some object:stuff = 5
+
+some object = #{stuff 5}
+
+some object = #(stuff 5, other stuff = 6, @field = value)
+
+some list = []
+
+some object = #[stuff 5]

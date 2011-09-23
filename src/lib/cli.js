@@ -5,12 +5,16 @@ var _ = require('underscore');
 var uglify = require('uglify-js');
 var errorOutput = require('./errorOutput');
 
-var filename = process.argv[2];
-var filenames = process.argv.splice(2);
-
-var options = {
-  watch: _.contains(process.argv, '--watch')
+var parseArguments = function(args) {
+  return {
+    watch: _.contains(args, '--watch'),
+    filenames: _.filter(args, function(arg) {
+      return !/^--/.test(arg);
+    })
+  };
 };
+
+var options = parseArguments(process.argv.splice(2));
 
 var beautify = function(code) {
   var ast = uglify.parser.parse(code);
@@ -40,6 +44,15 @@ var parse = function(source, callback) {
 
 var printError = function(filename, source, error) {
   process.stderr.write(error.message + '\n');
+  process.stderr.write('\nexpected:\n');
+
+  _.each(error.expected, function (ex) {
+    if (ex.parserName) {
+      process.stderr.write(ex.parserName + '\n');
+    } else {
+      process.stderr.write(ex + '\n');
+    }
+  });
   process.stderr.write('\n');
   var lineDetails = errorOutput.sourceIndexToLineAndColumn(source, error.index);
   process.stderr.write(filename + ':' + lineDetails.lineNumber + '\n');
@@ -79,8 +92,8 @@ var compile = function (filename) {
   });
 };
 
-for (var f in filenames) {
-  var filename = filenames[f];
+for (var f in options.filenames) {
+  var filename = options.filenames[f];
   compile(filename);
   
   if (options.watch) {

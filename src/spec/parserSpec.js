@@ -76,6 +76,24 @@ spec('parser', function () {
     spec('parses identifier with leading spaces', function () {
       assert.containsFields(parser.parse(parser.identifier, ' one'), {identifier: 'one', index: 4});
     });
+    
+    spec('parses identifier with symbol', function () {
+      assert.containsFields(parser.parse(parser.identifier, ' ++-/*'), {identifier: '++-/*', index: 6});
+    });
+  });
+  
+  spec('non interpolated string', function() {
+    spec('with no single quotes', function() {
+      assert.containsFields(parser.parsePartial(parser.string, " 'this is a string'"), {index: 19, string: 'this is a string'});
+    });
+    
+    spec('empty string', function() {
+      assert.containsFields(parser.parsePartial(parser.string, " ''"), {index: 3, string: ''});
+    });
+    
+    spec('stirng with quoted single quote', function() {
+      assert.containsFields(parser.parsePartial(parser.string, " 'Kate''s place'"), {index: 16, string: "Kate's place"});
+    });
   });
   
   spec('whitespace', function () {
@@ -359,25 +377,57 @@ spec('parser', function () {
           });
       });
       
-      spec('if', function () {
-        assertExpression('if @condition\n  stuff\n',
-          {
-            index: 22,
-            isIfExpression: true,
-            condition: {variable: ['condition']},
-            then: {statements: [{variable: ['stuff']}]}
-          });
+      spec('if', function() {
+        spec('if', function () {
+          assertExpression('if @condition\n  stuff\n',
+            {
+              index: 22,
+              isIfExpression: true,
+              condition: {variable: ['condition']},
+              then: {statements: [{variable: ['stuff']}]}
+            });
+        });
+
+        spec('if else', function () {
+          assertExpression('if @condition\n  stuff\nelse\n  other stuff\n',
+            {
+              index: 41,
+              isIfExpression: true,
+              condition: {variable: ['condition']},
+              then: {statements: [{variable: ['stuff']}]},
+              _else: {statements: [{variable: ['other', 'stuff']}]}
+            });
+        });
       });
       
-      spec('if else', function () {
-        assertExpression('if @condition\n  stuff\nelse\n  other stuff\n',
-          {
-            index: 41,
-            isIfExpression: true,
-            condition: {variable: ['condition']},
-            then: {statements: [{variable: ['stuff']}]},
-            _else: {statements: [{variable: ['other', 'stuff']}]}
+      spec('operators', function() {
+        spec('plus', function() {
+          assertExpression('@a + @b', {
+            operator: '+',
+            arguments: [{variable: ['a']}, {variable: ['b']}]
           });
+        });
+        
+        spec('multiply', function() {
+          assertExpression('@a * @b', {
+            operator: '*',
+            arguments: [{variable: ['a']}, {variable: ['b']}]
+          });
+        });
+        
+        spec('minus', function() {
+          assertExpression('@a - @b', {
+            operator: '-',
+            arguments: [{variable: ['a']}, {variable: ['b']}]
+          });
+        });
+        
+        spec('divide', function() {
+          assertExpression('@a / @b', {
+            operator: '/',
+            arguments: [{variable: ['a']}, {variable: ['b']}]
+          });
+        });
       });
       
       spec("doesn't parse function call with no arg suffix and arguments", function () {
@@ -553,6 +603,10 @@ spec('parser', function () {
 
       spec('parses two unindents', function() {
         assert.containsFields(parser.parsePartial(parser.multiple(parser.unindent, 2, 2), '\ns', 0, new parser.Context().withIndentation('  ').withIndentation('    ')), [{context: {indentation: '  '}}, {context: {indentation: ''}}]);
+      });
+
+      spec('parses end of source', function() {
+        assert.containsFields(parser.parsePartial(parser.multiple(parser.unindent, 2, 2), '  ', 2, new parser.Context().withIndentation('  ').withIndentation('    ')), [{context: {indentation: '  '}}, {context: {indentation: ''}}]);
       });
 
       spec("doesn't parse", function() {

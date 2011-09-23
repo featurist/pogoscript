@@ -58,6 +58,7 @@ var memotable = new MemoTable();
 
 var ErrorLog = function () {
   var errorWithLargestIndex;
+  var expected = [];
   
   this.addError = function (error) {
     if (!errorWithLargestIndex || error.index > errorWithLargestIndex.index) {
@@ -114,6 +115,11 @@ var ignoreLeadingWhitespace = function (parser) {
     }));
   });
 };
+  
+var nameParser = function (name, parser) {
+  parser.parserName = name;
+  return parser;
+};
 
 var createParser = function (name, originalRe, createTerm, dontIgnoreWhitespace) {
   var ignoreCaseFlag = originalRe.ignoreCase? 'i': '';
@@ -132,15 +138,10 @@ var createParser = function (name, originalRe, createTerm, dontIgnoreWhitespace)
     }
   });
   
-  var nameParser = function (parser) {
-    parser.parserName = name;
-    return parser;
-  };
-  
   if (dontIgnoreWhitespace) {
-    return nameParser(parser);
+    return nameParser(name, parser);
   } else {
-    return nameParser(ignoreLeadingWhitespace(parser));
+    return parser = nameParser(name, ignoreLeadingWhitespace(parser));
   }
 };
 
@@ -239,11 +240,21 @@ var whitespaceIncludingNewlines = createParser(
   true
 );
 
+var identifierRegExp = /[a-z+\/*_-][a-z0-9+\/*_-]*/i;
+
 var identifier = createParser(
   'identifier',
-  /[a-z][a-z0-9]*/i,
+  identifierRegExp,
   function (id) {
     return terms.identifier(id);
+  }
+);
+
+var string = exports.string = createParser(
+  'string',
+  /'(([^']*'')*[^']*)'/,
+  function(wholeMatch, str) {
+    return terms.string(str.replace("''", "'"));
   }
 );
 
@@ -257,12 +268,12 @@ var indentation = createParser(
 
 var thingo = 0;
 
-var indentationNoMemoise = createParser(
+var unindentation = createParser(
   'indentation',
   /[ \t\n]*\n([ \t]*)/,
   function (match, i) {
     thingo++;
-    return {indentation: i, dontMemoise: true, thingo: thingo};
+    return {indentation: i, dontMemoise: true};
   },
   true
 );
@@ -291,27 +302,36 @@ var indent = exports.indent = memotable.memoise(function(source, index, context,
 });
 
 var unindent = exports.unindent = memotable.memoise(function(source, index, context, continuation) {
-  indentationNoMemoise(source, index, context, continuation.onSuccess(function (result) {
-    if (!context.containsIndentation(result.indentation)) {
-      continuation.failure({index: index, context: context});
+  if (source.length == index) {
+    if (!_.isUndefined(context.previousIndentation())) {
+      var newContext = context.oldIndentation();
+      continuation.success({index: index, context: newContext, dontMemoise: true});
     } else {
-      if (context.previousIndentation() != result.indentation) {
-        result.index = index;
-        result.dontMemoise = true;
-        result.context = result.context.oldIndentation();
-        result.context.stuff = true;
-        continuation.success(result);
-      } else {
-        indentationForNextLineOnly(source, index, context, continuation.onSuccess(function (shortResult) {
-          shortResult.context = shortResult.context.oldIndentation();
-          continuation.success(shortResult);
-        }));
-      }
+      continuation.failure({index: index, context: context});
     }
-  }));
+  } else {
+    unindentation(source, index, context, continuation.onSuccess(function (result) {
+      if (!context.containsIndentation(result.indentation)) {
+        continuation.failure({index: index, context: context});
+      } else {
+        if (context.previousIndentation() != result.indentation) {
+          result.index = index;
+          result.dontMemoise = true;
+          result.context = result.context.oldIndentation();
+          result.context.stuff = true;
+          continuation.success(result);
+        } else {
+          indentationForNextLineOnly(source, index, context, continuation.onSuccess(function (shortResult) {
+            shortResult.context = shortResult.context.oldIndentation();
+            continuation.success(shortResult);
+          }));
+        }
+      }
+    }));
+  }
 });
 
-var noindent = exports.noindent = memotable.memoise(function(source, index, context, continuation){
+var noindent = exports.noindent = nameParser('new line', memotable.memoise(function(source, index, context, continuation){
   indentation(source, index, context, continuation.onSuccess(function (result) {
     if (result.indentation == context.indentation) {
       continuation.success(result);
@@ -319,7 +339,7 @@ var noindent = exports.noindent = memotable.memoise(function(source, index, cont
       continuation.failure({index: index, context: context});
     }
   }));
-});
+}));
 
 var startResetIndent = exports.startResetIndent = memotable.memoise(function(source, index, context, continuation){
   choice(indentation, whitespaceIncludingNewlines) (source, index, context, continuation.onSuccess(function (result) {
@@ -346,7 +366,7 @@ var sigilIdentifier = function (sigil, name, createTerm) {
   
   return createParser(
     name,
-    new RegExp('\\' + sigil + '([a-z][a-z0-9]*)', 'i'),
+    new RegExp('\\' + sigil + '(' + identifierRegExp.source + ')', 'i'),
     function (match, identifier) {
       return createTerm(identifier);
     }
@@ -379,6 +399,8 @@ var choice = function () {
       if (choiceParser) {
         choiceParser(source, index, context, continuation.onFailure(parseNextChoice(choiceIndex + 1)));
       } else {
+        if (parseAllChoices.choices.length == 2) {
+        }
         continuation.failure({index: index, context: context, expected: parseAllChoices.choices});
       }
     };
@@ -542,13 +564,15 @@ var delimited = function (parser, delimiter, min, max) {
 };
 
 var transformWith = function (term, transformer, continuation) {
+  var transformedTerm;
   try {
-    if (transformer) {
-      var transformedTerm = termDerivedFrom(term, transformer(term));
-      continuation.success(transformedTerm);
-    }
+    transformedTerm = termDerivedFrom(term, transformer(term));
   } catch (e) {
     continuation.failure(e);
+  }
+  
+  if (transformedTerm) {
+    continuation.success(transformedTerm);
   }
 };
 
@@ -585,25 +609,17 @@ var noArgumentFunctionCallSuffix = transform(keyword('!'), function (result) {
   };
 });
 
-var terminal = choice(integer, float, argument, identifier, parameter, noArgumentFunctionCallSuffix);
+var terminal = nameParser('terminal', choice(integer, float, argument, identifier, parameter, string, noArgumentFunctionCallSuffix));
 
-var multipleTerminals = transform(multiple(terminal), function(terminals) {
+var basicExpression = transform(multiple(terminal), function(terminals) {
   return terms.basicExpression(terminals);
 });
 
-var extractName = function (terminals) {
-  return _(terminals).filter(function (terminal) {
-    return terminal.identifier;
-  }).map(function (identifier) {
-    return identifier.identifier;
-  });
-};
-
-var functionCall = transform(multipleTerminals, function (expression) {
+var functionCall = nameParser('function call', transform(basicExpression, function (expression) {
   var terminals = expression.terminals;
   expression.buildBlocks();
   
-  var name = extractName(terminals);
+  var name = expression.name();
 
   if (name.length == 0 && terminals.length > 1) {
     return terms.functionCall(terminals[0], terminals.splice(1));
@@ -631,9 +647,9 @@ var functionCall = transform(multipleTerminals, function (expression) {
   }
   
   return terms.functionCall(terms.variable(name), arguments);
-});
+}));
 
-var methodCall = sequence(keyword(':'), ['methodCall', functionCall], function (term) {
+var methodCall = nameParser('method call', sequence(keyword(':'), ['methodCall', functionCall], function (term) {
   term.makeExpression = function (expression) {
     if (this.methodCall.isFunctionCall) {
       return terms.methodCall(expression, this.methodCall.function.variable, term.methodCall.arguments);
@@ -644,13 +660,13 @@ var methodCall = sequence(keyword(':'), ['methodCall', functionCall], function (
     }
   };
   return term;
-});
+}));
 
-var expressionSuffix = choice(methodCall);
+var expressionSuffix = nameParser('expression suffix', choice(methodCall));
 
-var primaryExpression = choice(functionCall);
+var primaryExpression = nameParser('primary expression', choice(functionCall));
 
-var expression = sequence(['expression', primaryExpression], ['suffix', multiple(expressionSuffix, 0)], function (term) {
+var expression = nameParser('expression', sequence(['expression', primaryExpression], ['suffix', multiple(expressionSuffix, 0)], function (term) {
   if (term.suffix.length > 0) {
     var expr = term.expression;
     _(term.suffix).each(function (suffix) {
@@ -660,12 +676,15 @@ var expression = sequence(['expression', primaryExpression], ['suffix', multiple
   } else {
     return term.expression;
   }
+}));
+
+var definitionTerminal = nameParser('id parm', choice(identifier, parameter));
+var definitionName = transform(multiple(definitionTerminal), function(name) {
+  return terms.definitionName(name);
 });
 
-var definition = sequence(['target', multiple(choice(identifier, parameter))], keyword('='), ['source', expression], function (term) {
-  var parms = _(term.target).filter(function (targetSegment) {
-    return targetSegment.parameter;
-  });
+var definition = nameParser('definition', sequence(['target', definitionName], keyword('='), ['source', expression], function (term) {
+  var parms = term.target.parameters();
   
   var source = term.source;
   if (parms.length > 0) {
@@ -676,8 +695,8 @@ var definition = sequence(['target', multiple(choice(identifier, parameter))], k
     }
   }
   
-  return terms.definition(terms.variable(extractName(term.target)), source);
-});
+  return terms.definition(terms.variable(term.target.name()), source);
+}));
 
 primaryExpression.choices.unshift(definition);
 
@@ -685,26 +704,26 @@ var identityTransform = exports.identityTransform = function (term) {
   return term;
 };
 
-var statementTerminator = choice(noindent, keyword('.'));
-var startBlock = choice(sequence(keyword('{'), startResetIndent, identityTransform), indent);
-var endBlock = choice(sequence(endResetIndent, keyword('}'), identityTransform), unindent);
+var statementTerminator = nameParser('statement terminator', choice(noindent, keyword('.')));
+var startBlock = nameParser('start block', choice(sequence(keyword('{'), startResetIndent, identityTransform), indent));
+var endBlock = nameParser('end block', choice(sequence(endResetIndent, keyword('}'), identityTransform), unindent));
 
-var statements = sequence(['statements', delimited(expression, multiple(statementTerminator), 0)], function (term) {
+var statements = nameParser('statements', sequence(['statements', delimited(expression, multiple(statementTerminator), 0)], function (term) {
   return terms.statements(term.statements);
-});
+}));
 
-var _module = transform(sequence(startResetIndent, ['statements', statements], endResetIndent, identityTransform), function (stmts) {
+var _module = nameParser('module', transform(sequence(startResetIndent, ['statements', statements], endResetIndent, identityTransform), function (stmts) {
   return terms.module(stmts.statements);
-});
+}));
 
-var subExpression = sequence(keyword('('), ['expression', expression], keyword(')'), function (term) {
+var subExpression = nameParser('sub expression', sequence(keyword('('), ['expression', expression], keyword(')'), function (term) {
   return term.expression;
-});
+}));
 terminal.choices.push(subExpression);
 
-var block = sequence(startBlock, ['body', statements], endBlock, function (term) {
+var block = nameParser('block', sequence(startBlock, ['body', statements], endBlock, function (term) {
   return terms.block([], term.body);
-});
+}));
 
 terminal.choices.push(block);
 

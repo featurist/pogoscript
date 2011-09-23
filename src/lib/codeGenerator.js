@@ -61,6 +61,14 @@ expressionTerm('integer', function (value) {
   };
 });
 
+expressionTerm('string', function(value) {
+  this.isString = true;
+  this.string = value;
+  this.generateJavaScript = function(buffer, scope) {
+    buffer.write("'" + this.string.replace("'", "\\'") + "'");
+  };
+});
+
 expressionTerm('float', function (value) {
   this.float = value;
   this.generateJavaScript = function (buffer, scope) {
@@ -271,6 +279,28 @@ var statements = exports.statements = function (s) {
   return new Statements(s);
 };
 
+var extractName = function (terminals) {
+  return _(terminals).filter(function (terminal) {
+    return terminal.identifier;
+  }).map(function (identifier) {
+    return identifier.identifier;
+  });
+};
+
+expressionTerm('definitionName', function(terminals) {
+  this.terminals = terminals;
+  
+  this.name = function() {
+    return extractName(this.terminals);
+  };
+  
+  this.parameters = function() {
+    return _(this.terminals).filter(function (terminal) {
+      return terminal.isParameter;
+    });
+  };
+});
+
 expressionTerm('definition', function (target, source) {
   this.target = target;
   this.source = source;
@@ -305,6 +335,10 @@ expressionTerm('basicExpression', function(terminals) {
     });
     
     return variable(name);
+  };
+  
+  this.name = function() {
+    return extractName(this.terminals);
   };
   
   this.isTerminalExpression = function () {
@@ -374,7 +408,7 @@ var MacroDirectory = exports.MacroDirectory = function () {
 
 var macros = exports.macros = new MacroDirectory();
 
-expressionTerm('list', List = function(items) {
+var list = expressionTerm('list', function(items) {
   this.list = items;
   this.generateJavaScript = function (buffer, scope) {
     buffer.write('[');
@@ -384,7 +418,7 @@ expressionTerm('list', List = function(items) {
 });
 
 macros.addMacro(['list'], function(expression) {
-  return new List(expression.arguments());
+  return list(expression.arguments());
 });
 
 var ifExpression = expressionTerm('ifExpression', function (condition, then, _else) {
@@ -446,3 +480,23 @@ var createIfExpression = function(expression) {
 
 macros.addMacro(['if'], createIfExpression);
 macros.addMacro(['if', 'else'], createIfExpression);
+
+var operator = expressionTerm('operator', function (op, args) {
+  this.operator = op;
+  this.arguments = args;
+  this.generateJavaScript = function(buffer, scope) {
+    buffer.write('(');
+    this.arguments[0].generateJavaScript(buffer, scope);
+    buffer.write(op);
+    this.arguments[1].generateJavaScript(buffer, scope);
+    buffer.write(')');
+  };
+});
+
+var createOperator = function(expr) {
+  return operator(expr.name()[0], expr.arguments());
+};
+
+_.each(['+', '*', '/', '-'], function(op) {
+  macros.addMacro([op], createOperator);
+});

@@ -35,6 +35,24 @@ spec('code generator', function () {
     });
   });
   
+  spec('string', function() {
+    spec('normal', function() {
+      var s = cg.string("a string");
+      
+      generatesExpression(s, "'a string'");
+    });
+    spec('with escaped single quote', function() {
+      var s = cg.string("Kate's place");
+      
+      generatesExpression(s, "'Kate\\'s place'");
+    });
+  });
+  
+  spec('operator', function() {
+    var s = cg.operator('*', [cg.variable(['a']), cg.integer(8)]);
+    generatesExpression(s, "(a*8)");
+  });
+  
   spec('block', function () {
     spec('with no parameters', function () {
       var b = cg.block([], cg.statements([cg.variable(['x'])]));
