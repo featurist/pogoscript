@@ -466,6 +466,28 @@ spec('parser', function () {
             source: {parameters: [{parameter: ['a']}], body: {variable: ['a']}}
           });
         });
+        
+        spec('of object index', function () {
+          assertExpression('object: field = a', {
+            index: 17,
+            target: {
+              object: {variable: ['object']},
+              name: ['field']
+            },
+            source: {variable: ['a']}
+          });
+        });
+        
+        spec('of array index', function () {
+          assertExpression('array: 8 = a', {
+            index: 12,
+            target: {
+              object: {variable: ['array']},
+              indexer: {integer: 8}
+            },
+            source: {variable: ['a']}
+          });
+        });
       });
       
       spec('defines parameters for block', function () {
@@ -524,6 +546,7 @@ spec('parser', function () {
       spec('with field reference', function () {
         assertExpression('person: phone number', {
           index: 20,
+          isFieldReference: true,
           object: {
             index: 6,
             variable: ['person']

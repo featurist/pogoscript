@@ -649,14 +649,28 @@ var functionCall = nameParser('function call', transform(basicExpression, functi
   return terms.functionCall(terms.variable(name), arguments);
 }));
 
-var methodCall = nameParser('method call', sequence(keyword(':'), ['methodCall', functionCall], function (term) {
+var identityTransform = exports.identityTransform = function (term) {
+  return term;
+};
+
+var expression = nameParser('expression', choice());
+
+var methodCall = nameParser('method call', sequence(keyword(':'), ['methodCall', functionCall], ['assignmentSource', optional(sequence(keyword('='), ['expression', expression], identityTransform))], function (term) {
   term.makeExpression = function (expression) {
-    if (this.methodCall.isFunctionCall) {
-      return terms.methodCall(expression, this.methodCall.function.variable, term.methodCall.arguments);
-    } else if (this.methodCall.isVariable) {
-      return terms.fieldReference(expression, this.methodCall.variable);
+    if (this.assignmentSource.length > 0) {
+      if (this.methodCall.isVariable) {
+        return terms.definition(terms.fieldReference(expression, this.methodCall.variable), this.assignmentSource[0].expression);
+      } else {
+        return terms.definition(terms.indexer(expression, this.methodCall), this.assignmentSource[0].expression);
+      }
     } else {
-      return terms.indexer(expression, this.methodCall);
+      if (this.methodCall.isFunctionCall) {
+        return terms.methodCall(expression, this.methodCall.function.variable, term.methodCall.arguments);
+      } else if (this.methodCall.isVariable) {
+        return terms.fieldReference(expression, this.methodCall.variable);
+      } else {
+        return terms.indexer(expression, this.methodCall);
+      }
     }
   };
   return term;
@@ -666,7 +680,7 @@ var expressionSuffix = nameParser('expression suffix', choice(methodCall));
 
 var primaryExpression = nameParser('primary expression', choice(functionCall));
 
-var expression = nameParser('expression', sequence(['expression', primaryExpression], ['suffix', multiple(expressionSuffix, 0)], function (term) {
+var fullExpression = sequence(['expression', primaryExpression], ['suffix', multiple(expressionSuffix, 0)], function (term) {
   if (term.suffix.length > 0) {
     var expr = term.expression;
     _(term.suffix).each(function (suffix) {
@@ -676,7 +690,9 @@ var expression = nameParser('expression', sequence(['expression', primaryExpress
   } else {
     return term.expression;
   }
-}));
+});
+
+expression.choices.push(fullExpression);
 
 var definitionTerminal = nameParser('id parm', choice(identifier, parameter));
 var definitionName = transform(multiple(definitionTerminal), function(name) {
@@ -699,10 +715,6 @@ var definition = nameParser('definition', sequence(['target', definitionName], k
 }));
 
 primaryExpression.choices.unshift(definition);
-
-var identityTransform = exports.identityTransform = function (term) {
-  return term;
-};
 
 var statementTerminator = nameParser('statement terminator', choice(noindent, keyword('.')));
 var startBlock = nameParser('start block', choice(sequence(keyword('{'), startResetIndent, identityTransform), indent));
