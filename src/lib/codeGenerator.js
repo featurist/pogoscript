@@ -1,5 +1,16 @@
 var _ = require('underscore');
 
+var parseError = exports.parseError = function (term, message, expected) {
+  expected = expected || [];
+  
+  var e = new Error(message);
+  e.index = term.index;
+  e.context = term.context;
+  e.expected = expected;
+  
+  return e;
+};
+
 var ExpressionPrototype = new function () {
   this.generateJavaScriptReturn = function (buffer, scope) {
     buffer.write('return ');
@@ -176,7 +187,7 @@ expressionTerm('methodCall', function (object, name, arguments) {
   addWalker(this, 'object', 'arguments');
 });
 
-expressionTerm('indexer', function (object, indexer) {
+var indexer = expressionTerm('indexer', function (object, indexer) {
   this.object = object;
   this.indexer = indexer;
   this.isIndexer = true;
@@ -188,7 +199,7 @@ expressionTerm('indexer', function (object, indexer) {
   };
 });
 
-expressionTerm('fieldReference', function (object, name) {
+var fieldReference = expressionTerm('fieldReference', function (object, name) {
   this.object = object;
   this.name = name;
   this.isFieldReference = true;
@@ -287,21 +298,7 @@ var extractName = function (terminals) {
   });
 };
 
-expressionTerm('definitionName', function(terminals) {
-  this.terminals = terminals;
-  
-  this.name = function() {
-    return extractName(this.terminals);
-  };
-  
-  this.parameters = function() {
-    return _(this.terminals).filter(function (terminal) {
-      return terminal.isParameter;
-    });
-  };
-});
-
-expressionTerm('definition', function (target, source) {
+var definition = expressionTerm('definition', function (target, source) {
   this.target = target;
   this.source = source;
   
@@ -330,15 +327,84 @@ expressionTerm('basicExpression', function(terminals) {
   };
   
   this.variable = function () {
-    var name = _(this.terminals).map(function (terminal) {
-      return terminal.identifier;
-    });
-    
-    return variable(name);
+    return variable(this.name());
   };
   
   this.name = function() {
     return extractName(this.terminals);
+  };
+  
+  this.parameters = function() {
+    return _(this.terminals).filter(function (terminal) {
+      return terminal.isParameter;
+    });
+  };
+  
+  this.expression = function () {
+    var terminals = this.terminals;
+    this.buildBlocks();
+
+    var name = this.name();
+
+    if (name.length == 0 && terminals.length > 1) {
+      return functionCall(terminals[0], terminals.splice(1));
+    }
+
+    var createMacro = macros.findMacro(name);
+    if (createMacro) {
+      return createMacro(this);
+    }
+
+    if (this.isVariableExpression()) {
+      return this.variable();
+    }
+
+    if (this.isTerminalExpression()) {
+      return this.terminal();
+    }
+
+    var isNoArgCall = this.isNoArgumentFunctionCall();
+
+    var arguments = this.arguments();
+
+    if (isNoArgCall && arguments.length > 0) {
+      throw parseError(this, 'this function has arguments and an exclaimation mark (implying no arguments)');
+    }
+
+    return functionCall(variable(name), arguments);
+  };
+  
+  this.makeSourceWithParameters = function(source) {
+    var params = this.parameters();
+  
+    if (params.length > 0) {
+      if (!source.isBlock) {
+        return block(params, source);
+      } else {
+        source.parameters = params;
+        return source;
+      }
+    } else {
+      return source;
+    }
+  };
+  
+  this.definitionTarget = function (source) {
+    return definition(variable(this.name()), this.makeSourceWithParameters(source));
+  };
+  
+  this.hasNameAndNoArguments = function() {
+    return (this.name().length > 0) && (this.arguments().length == 0);
+  };
+  
+  this.objectDefinitionTarget = function(expression, source) {
+    if (this.hasNameAndNoArguments()) {
+      return definition(fieldReference(expression, this.name()), this.makeSourceWithParameters(source));
+    } else if (this.isTerminalExpression()) {
+      return definition(indexer(expression, this.terminal()), source);
+    } else {
+      throw parseError(this, "didn't expect expression here");
+    }
   };
   
   this.isTerminalExpression = function () {

@@ -3,6 +3,7 @@ var assert = require('assert');
 var _ = require('underscore');
 var util = require('util');
 var parser = require('../lib/parser');
+var cg = require('../lib/codeGenerator');
 
 spec('parser', function () {
   assert.containsFields = function (actual, expected, key, originalActual) {
@@ -183,7 +184,17 @@ spec('parser', function () {
   
   var assertParser = function (p) {
     return function (src, expectedTerm) {
-      var term = parser.parse(p, src);
+      var term = null;
+      
+      parser.tryParse(p, src, {
+        success: function(t) {
+          term = t;
+        },
+        failure: function(e) {
+          console.log(e.stack);
+        }
+      });
+      
       assert.ok(term);
       assert.containsFields(term, expectedTerm);
     };
@@ -250,7 +261,7 @@ spec('parser', function () {
     
     spec('fails parse if transform throws parse error', function () {
       assert.containsFields(parser.tryParseError(parser.transform(fakeParser, function (term) {
-        throw parser.parseError(term, "there's something wrong!");
+        throw cg.parseError(term, "there's something wrong!");
       }), 'one'), {index: 3, context: 'context'});
     });
     
@@ -467,7 +478,7 @@ spec('parser', function () {
           });
         });
         
-        spec('of object index', function () {
+        spec('of object field', function () {
           assertExpression('object: field = a', {
             index: 17,
             target: {
@@ -475,6 +486,17 @@ spec('parser', function () {
               name: ['field']
             },
             source: {variable: ['a']}
+          });
+        });
+        
+        spec('of object method', function () {
+          assertExpression('object: method ?p = p', {
+            index: 21,
+            target: {
+              object: {variable: ['object']},
+              name: ['method']
+            },
+            source: {parameters: [{parameter: ['p']}], body: {variable: ['p']}}
           });
         });
         

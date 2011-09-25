@@ -1,17 +1,6 @@
 var _ = require('underscore');
 var terms = require('./codeGenerator');
 
-var parseError = exports.parseError = function (term, message, expected) {
-  expected = expected || [];
-  
-  var e = new Error(message);
-  e.index = term.index;
-  e.context = term.context;
-  e.expected = expected;
-  
-  return e;
-};
-
 var MemoTable = function () {
   var memos = [];
   var addMemo = function(memo) {
@@ -486,7 +475,7 @@ var tryParse = exports.tryParse = function (parser, source, handler, index, cont
     if (partial || (term && (term.index == source.length))) {
       return term;
     } else {
-      throw parseError(term, 'did not parse whole file');
+      throw terms.parseError(term, 'did not parse whole file');
     }
   });
   
@@ -615,38 +604,8 @@ var basicExpression = transform(multiple(terminal), function(terminals) {
   return terms.basicExpression(terminals);
 });
 
-var functionCall = nameParser('function call', transform(basicExpression, function (expression) {
-  var terminals = expression.terminals;
-  expression.buildBlocks();
-  
-  var name = expression.name();
-
-  if (name.length == 0 && terminals.length > 1) {
-    return terms.functionCall(terminals[0], terminals.splice(1));
-  }
-
-  var createMacro = terms.macros.findMacro(name);
-  if (createMacro) {
-    return createMacro(expression);
-  }
-  
-  if (expression.isVariableExpression()) {
-    return expression.variable();
-  }
-  
-  if (expression.isTerminalExpression()) {
-    return expression.terminal();
-  }
-  
-  var isNoArgCall = expression.isNoArgumentFunctionCall();
-  
-  var arguments = expression.arguments();
-  
-  if (isNoArgCall && arguments.length > 0) {
-    throw parseError(expression, 'this function has arguments and an exclaimation mark (implying no arguments)');
-  }
-  
-  return terms.functionCall(terms.variable(name), arguments);
+var functionCall = nameParser('function call', transform(basicExpression, function (basicExpression) {
+  return basicExpression.expression();
 }));
 
 var identityTransform = exports.identityTransform = function (term) {
@@ -655,21 +614,21 @@ var identityTransform = exports.identityTransform = function (term) {
 
 var expression = nameParser('expression', choice());
 
-var methodCall = nameParser('method call', sequence(keyword(':'), ['methodCall', functionCall], ['assignmentSource', optional(sequence(keyword('='), ['expression', expression], identityTransform))], function (term) {
+var methodCall = nameParser('method call', sequence(keyword(':'), ['methodCall', basicExpression], ['assignmentSource', optional(sequence(keyword('='), ['expression', expression], identityTransform))], function (term) {
   term.makeExpression = function (expression) {
-    if (this.assignmentSource.length > 0) {
-      if (this.methodCall.isVariable) {
-        return terms.definition(terms.fieldReference(expression, this.methodCall.variable), this.assignmentSource[0].expression);
-      } else {
-        return terms.definition(terms.indexer(expression, this.methodCall), this.assignmentSource[0].expression);
-      }
+    if (this.assignmentSource[0]) {
+      var source = this.assignmentSource[0].expression;
+      
+      return this.methodCall.objectDefinitionTarget(expression, source);
     } else {
-      if (this.methodCall.isFunctionCall) {
-        return terms.methodCall(expression, this.methodCall.function.variable, term.methodCall.arguments);
-      } else if (this.methodCall.isVariable) {
-        return terms.fieldReference(expression, this.methodCall.variable);
+      var objectOperator = this.methodCall.expression();
+      
+      if (objectOperator.isFunctionCall) {
+        return terms.methodCall(expression, objectOperator.function.variable, objectOperator.arguments);
+      } else if (objectOperator.isVariable) {
+        return terms.fieldReference(expression, objectOperator.variable);
       } else {
-        return terms.indexer(expression, this.methodCall);
+        return terms.indexer(expression, objectOperator);
       }
     }
   };
@@ -694,24 +653,8 @@ var fullExpression = sequence(['expression', primaryExpression], ['suffix', mult
 
 expression.choices.push(fullExpression);
 
-var definitionTerminal = nameParser('id parm', choice(identifier, parameter));
-var definitionName = transform(multiple(definitionTerminal), function(name) {
-  return terms.definitionName(name);
-});
-
-var definition = nameParser('definition', sequence(['target', definitionName], keyword('='), ['source', expression], function (term) {
-  var parms = term.target.parameters();
-  
-  var source = term.source;
-  if (parms.length > 0) {
-    if (!source.isBlock) {
-      source = terms.block(parms, source);
-    } else {
-      source.parameters = parms;
-    }
-  }
-  
-  return terms.definition(terms.variable(term.target.name()), source);
+var definition = nameParser('definition', sequence(['target', basicExpression], keyword('='), ['source', expression], function (term) {
+  return term.target.definitionTarget(term.source);
 }));
 
 primaryExpression.choices.unshift(definition);
