@@ -19,6 +19,10 @@ spec('code generator', function () {
     spec('with two identifiers', function () {
       generatesExpression(cg.variable(['one', 'two']), 'oneTwo');
     });
+    
+    spec('with capitalised word', function () {
+      generatesExpression(cg.variable(['Stack']), 'Stack');
+    });
   });
   
   spec('function call', function () {
@@ -115,6 +119,30 @@ spec('code generator', function () {
       
       generatesExpression(d, 'one=9');
     });
+    
+    spec('of field', function () {
+      var d = cg.definition(cg.fieldReference(cg.variable(['object']), ['field']), cg.integer(9));
+      
+      generatesExpression(d, 'object.field=9');
+    });
+    
+    spec('of index', function () {
+      var d = cg.definition(cg.indexer(cg.variable(['array']), cg.integer(1)), cg.integer(9));
+      
+      generatesExpression(d, 'array[1]=9');
+    });
+  });
+  
+  spec('new operator', function() {
+    var n = cg.newOperator(cg.functionCall(cg.variable(['Stack']), [cg.integer(8)]));
+    
+    generatesExpression(n, 'new Stack(8)');
+  });
+  
+  spec('for each', function() {
+    var f = cg.statements([cg.forEach(cg.variable(['items']), ['item'], cg.statements([cg.variable(['item'])]))]);
+    
+    generatesExpression(f, 'var gen1_items,gen2_i,item;gen1_items=items;for(gen2_i in gen1_items){item=gen1_items[gen2_i];item;}');
   });
   
   spec('method call', function () {

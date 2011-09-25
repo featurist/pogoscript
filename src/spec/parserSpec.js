@@ -411,6 +411,17 @@ spec('parser', function () {
         });
       });
       
+      spec('for each', function() {
+        assertExpression('for each ?item in @items do\n  item',
+        {
+          index: 34,
+          isForEach: true,
+          collection: {variable: ['items']},
+          itemVariable: ['item'],
+          statements: {statements: [{variable: ['item']}]}
+        });
+      });
+      
       spec('operators', function() {
         spec('plus', function() {
           assertExpression('@a + @b', {
@@ -528,6 +539,32 @@ spec('parser', function () {
           variable: ['this', 'is', 'a', 'variable']
         }
       );
+    });
+    
+    spec('new', function() {
+      spec('with no args', function() {
+        assertExpression('new (stack!)',
+        {
+          index: 12,
+          isNewOperator: true,
+          functionCall: {
+            function: {variable: ['stack']},
+            arguments: []
+          }
+        });
+      });
+      
+      spec('with arguments', function() {
+        assertExpression('new (stack 5)',
+        {
+          index: 13,
+          isNewOperator: true,
+          functionCall: {
+            function: {variable: ['stack']},
+            arguments: [{integer: 5}]
+          }
+        });
+      });
     });
     
     spec('object', function () {
