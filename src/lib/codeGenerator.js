@@ -67,18 +67,26 @@ exports.identifier = function (name) {
   };
 };
 
-expressionTerm('integer', function (value) {
+var integer = expressionTerm('integer', function (value) {
   this.integer = value;
   this.generateJavaScript = function (buffer, scope) {
     buffer.write(this.integer.toString());
   };
 });
 
+var boolean = expressionTerm('boolean', function(value) {
+  this.boolean = value;
+});
+
+var formatJavaScriptString = function(s) {
+  return "'" + s.replace("'", "\\'") + "'";
+};
+
 expressionTerm('string', function(value) {
   this.isString = true;
   this.string = value;
   this.generateJavaScript = function(buffer, scope) {
-    buffer.write("'" + this.string.replace("'", "\\'") + "'");
+    buffer.write(formatJavaScriptString(this.string));
   };
 });
 
@@ -228,10 +236,10 @@ var hasScope = function (s) {
 var Statements = function (statements) {
   this.statements = statements;
   
-  var generateStatements = function (statements, buffer, scope) {
+  this.generateStatements = function (statements, buffer, scope) {
     hasScope(scope);
     
-    var namesDefined = _(statements).chain().reduce(function (list, statement) {
+    var namesDefined = _(this.statements).chain().reduce(function (list, statement) {
       var defs = statement.definitions(scope);
       return list.concat(defs);
     }, []).map(function (name) {
@@ -259,12 +267,12 @@ var Statements = function (statements) {
   };
   
   this.generateJavaScript = function (buffer, scope) {
-    generateStatements(this.statements, buffer, scope);
+    this.generateStatements(this.statements, buffer, scope);
   };
   
   this.generateJavaScriptReturn = function (buffer, scope) {
     if (this.statements.length > 0) {
-      generateStatements(this.statements.splice(0, this.statements.length - 1), buffer, scope);
+      this.generateStatements(this.statements.slice(0, this.statements.length - 1), buffer, scope);
       this.statements[this.statements.length - 1].generateJavaScriptReturn(buffer, scope);
     }
   };
@@ -275,6 +283,8 @@ var Statements = function (statements) {
       return list.concat(defs);
     }, []);
   };
+  
+  this.generateJavaScriptStatement = this.generateJavaScript;
 };
 
 expressionTerm('module', function (statements) {
@@ -330,6 +340,7 @@ var extractName = function (terminals) {
 var definition = expressionTerm('definition', function (target, source) {
   this.target = target;
   this.source = source;
+  this.isDefinition = true;
   
   this.generateJavaScript = function (buffer, scope) {
     target.generateJavaScriptTarget(buffer, scope);
@@ -375,8 +386,8 @@ expressionTerm('basicExpression', function(terminals) {
   };
   
   this.expression = function () {
-    var terminals = this.terminals;
     this.buildBlocks();
+    var terminals = this.terminals;
 
     var name = this.name();
 
@@ -406,6 +417,25 @@ expressionTerm('basicExpression', function(terminals) {
     }
 
     return functionCall(variable(name), arguments);
+  };
+  
+  this.hashEntry = function() {
+    this.buildBlocks();
+    
+    var args = this.arguments();
+    var name = this.name();
+
+    if (name.length > 0 && args.length == 1) {
+      return hashEntry(name, args[0]);
+    }
+    
+    if (name.length > 0 && args.length == 0) {
+      return hashEntry(name, boolean(true));
+    }
+    
+    if (name.length == 0 && args.length == 2 && args[0].isString) {
+      return hashEntry([args[0].string], args[1]);
+    }
   };
   
   this.makeSourceWithParameters = function(source) {
@@ -517,8 +547,36 @@ var list = expressionTerm('list', function(items) {
   };
 });
 
-macros.addMacro(['list'], function(expression) {
-  return list(expression.arguments());
+var hash = expressionTerm('hash', function(entries) {
+  this.isHash = true;
+  this.entries = entries;
+  
+  this.generateJavaScript = function(buffer, scope) {
+    buffer.write('{');
+    writeToBufferWithDelimiter(this.entries, ',', buffer, scope, function (item, b) {
+      item.generateJavaScriptHashEntry(b, scope);
+    });
+    buffer.write('}');
+  };
+});
+
+var isLegalJavaScriptIdentifier = function(id) {
+  return /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(id);
+};
+
+var hashEntry = expressionTerm('hashEntry', function(field, value) {
+  this.field = field;
+  this.value = value;
+  this.generateJavaScriptHashEntry = function(buffer, scope) {
+    var f = concatName(this.field);
+    if (isLegalJavaScriptIdentifier(f)) {
+      buffer.write(f);
+    } else {
+      buffer.write(formatJavaScriptString(f));
+    }
+    buffer.write(':');
+    this.value.generateJavaScript(buffer, scope);
+  };
 });
 
 var ifExpression = expressionTerm('ifExpression', function (condition, then, _else) {
@@ -607,12 +665,21 @@ var generatedVariable = expressionTerm('generatedVariable', function(name) {
 });
 
 var forStatement = expressionTerm('forStatement', function(collection, itemVariable, stmts) {
+  this.isFor = true;
+  this.collection = collection;
+  this.itemVariable = itemVariable;
+  this.statements = stmts;
+  
   this.generateJavaScript = function(buffer, scope) {
     buffer.write('for(');
     itemVariable.generateJavaScript(buffer, scope);
-    buffer.write(' in ');
+    buffer.write('=0;');
+    itemVariable.generateJavaScript(buffer, scope);
+    buffer.write('<');
     collection.generateJavaScript(buffer, scope);
-    buffer.write('){');
+    buffer.write('.length;');
+    itemVariable.generateJavaScript(buffer, scope);
+    buffer.write('++){');
     stmts.generateJavaScript(buffer, scope);
     buffer.write('}');
   };
@@ -626,26 +693,20 @@ var forStatement = expressionTerm('forStatement', function(collection, itemVaria
     return defs;
   };
   this.generateJavaScriptStatement = this.generateJavaScript;
+  this.generateJavaScriptReturn = this.generateJavaScript;
 });
 
 var forEach = expressionTerm('forEach', function(collection, itemVariable, stmts) {
-  this.isForEach = true;
-  this.collection = collection;
-  this.itemVariable = itemVariable;
-  this.statements = stmts;
+  var itemsVar = generatedVariable(['items']);
+  var indexVar = generatedVariable(['i']);
+  var s = [definition(variable(itemVariable), indexer(itemsVar, indexVar))];
+  s.push.apply(s, stmts.statements);
+  var statementsWithItemAssignment = statements(s);
   
-  this.generateJavaScript = function(buffer, scope) {
-    var itemsVar = generatedVariable(['items']);
-    var indexVar = generatedVariable(['i']);
-    var s = [definition(variable(itemVariable), indexer(itemsVar, indexVar))];
-    s.push.apply(s, this.statements.statements);
-    var statementsWithItemAssignment = statements(s);
-    statements([
-      definition(itemsVar, this.collection),
-      forStatement(itemsVar, indexVar, statementsWithItemAssignment)
-    ]).generateJavaScript(buffer, scope);
-  };
-  this.generateJavaScriptStatement = this.generateJavaScript;
+  return statements([
+    definition(itemsVar, collection),
+    forStatement(itemsVar, indexVar, statementsWithItemAssignment)
+  ]);
 });
 
 macros.addMacro(['for', 'each', 'in', 'do'], function(basicExpression) {
@@ -684,6 +745,27 @@ var createOperator = function(expr) {
   return operator(expr.name()[0], expr.arguments());
 };
 
-_.each(['+', '*', '/', '-'], function(op) {
+_.each(['+', '*', '/', '-', '>=', '==', '===', '<=', '<', '>'], function(op) {
   macros.addMacro([op], createOperator);
+});
+
+macros.addMacro(['and'], function (expr) {
+  return operator('&&', expr.arguments());
+});
+
+macros.addMacro(['or'], function (expr) {
+  return operator('||', expr.arguments());
+});
+
+var returnStatement = expressionTerm('returnStatement', function(expr) {
+  this.isReturn = true;
+  this.expression = expr;
+  this.generateJavaScriptStatement = function(buffer, scope) {
+    this.expression.generateJavaScriptReturn(buffer, scope);
+  };
+  this.generateJavaScriptReturn = this.generateJavaScriptStatement;
+});
+
+macros.addMacro(['return'], function(expr) {
+  return returnStatement(expr.arguments()[0]);
 });

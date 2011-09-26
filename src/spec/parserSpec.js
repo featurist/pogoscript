@@ -79,7 +79,7 @@ spec('parser', function () {
     });
     
     spec('parses identifier with symbol', function () {
-      assert.containsFields(parser.parse(parser.identifier, ' ++-/*'), {identifier: '++-/*', index: 6});
+      assert.containsFields(parser.parse(parser.identifier, ' ++-/*<>='), {identifier: '++-/*<>=', index: 9});
     });
   });
   
@@ -364,28 +364,88 @@ spec('parser', function () {
           });
       });
       
-      spec('parses empty list', function () {
-        assertExpression('list',
+      spec('parses block alone', function () {
+        assertExpression('?i {j}',
           {
-            index: 4,
-            list: []
+            index: 6,
+            body: {statements: [{variable: ['j']}]},
+            parameters: [{parameter: ['i']}]
           });
       });
       
-      spec('parses list with two integers', function () {
-        assertExpression('list 1 2',
-          {
-            index: 8,
-            list: [{integer: 1}, {integer: 2}]
-          });
+      spec('lists', function() {
+        spec('parses empty list', function () {
+          assertExpression('[]',
+            {
+              index: 2,
+              list: []
+            });
+        });
+
+        spec('parses list with two integers', function () {
+          assertExpression('[1, 2]',
+            {
+              index: 6,
+              list: [{integer: 1}, {integer: 2}]
+            });
+        });
+
+        spec('parses list with items on lines', function () {
+          assertExpression('[\n  1\n  2]',
+            {
+              index: 10,
+              list: [{integer: 1}, {integer: 2}]
+            });
+        });
+
+        spec('parses list with integer and block', function () {
+          assertExpression('[1, ?a {}]',
+            {
+              index: 10,
+              list: [{integer: 1}, {parameters: [{parameter: ['a']}], body: {statements: []}}]
+            });
+        });
       });
       
-      spec('parses list with integer and block', function () {
-        assertExpression('list 1 ?a {}',
-          {
-            index: 12,
-            list: [{integer: 1}, {parameters: [{parameter: ['a']}], body: {statements: []}}]
+      spec('hashes', function() {
+        spec('empty hash', function() {
+          assertExpression('#{}', {
+            index: 3,
+            isHash: true,
+            entries: []
           });
+        });
+        
+        spec('hash with two entries', function() {
+          assertExpression('#{port @p, domain @d}', {
+            index: 21,
+            isHash: true,
+            entries: [
+              {field: ['port'], value: {variable: ['p']}},
+              {field: ['domain'], value: {variable: ['d']}}
+            ]
+          });
+        });
+        
+        spec('hash with true entry', function() {
+          assertExpression('#{readonly}', {
+            index: 11,
+            isHash: true,
+            entries: [
+              {field: ['readonly'], value: {boolean: true}}
+            ]
+          });
+        });
+        
+        spec('hash with string field', function() {
+          assertExpression("#{'Content-Type' @content}", {
+            index: 26,
+            isHash: true,
+            entries: [
+              {field: ['Content-Type'], value: {variable: ['content']}}
+            ]
+          });
+        });
       });
       
       spec('if', function() {
@@ -415,10 +475,7 @@ spec('parser', function () {
         assertExpression('for each ?item in @items do\n  item',
         {
           index: 34,
-          isForEach: true,
-          collection: {variable: ['items']},
-          itemVariable: ['item'],
-          statements: {statements: [{variable: ['item']}]}
+          statements: [{isDefinition: true}, {isFor: true}]
         });
       });
       
@@ -447,6 +504,20 @@ spec('parser', function () {
         spec('divide', function() {
           assertExpression('@a / @b', {
             operator: '/',
+            arguments: [{variable: ['a']}, {variable: ['b']}]
+          });
+        });
+        
+        spec('and', function() {
+          assertExpression('@a and @b', {
+            operator: '&&',
+            arguments: [{variable: ['a']}, {variable: ['b']}]
+          });
+        });
+        
+        spec('or', function() {
+          assertExpression('@a or @b', {
+            operator: '||',
             arguments: [{variable: ['a']}, {variable: ['b']}]
           });
         });
@@ -529,6 +600,14 @@ spec('parser', function () {
             function: {variable: ['map', 'each', 'into']},
             arguments: [{parameters: [{parameter: ['item']}], body: {statements: [{function: {variable: ['change']}, arguments: [{variable: ['item']}]}]}}]
           });
+      });
+      
+      spec('return', function() {
+        assertExpression('return 5', {
+          index: 8,
+          isReturn: true,
+          expression: {integer: 5}
+        });
       });
     });
     

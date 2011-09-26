@@ -119,9 +119,13 @@ var createParser = function (name, originalRe, createTerm, dontIgnoreWhitespace)
     var match = re.exec(source);
     if (match && match.index == index) {
       var term = createTerm.apply(undefined, match);
-      term.index = re.lastIndex;
-      term.context = context;
-      continuation.success(term);
+      if (term) {
+        term.index = re.lastIndex;
+        term.context = context;
+        continuation.success(term);
+      } else {
+        continuation.failure({expected: [parser], index: index, context: context});
+      }
     } else {
       continuation.failure({expected: [parser], index: index, context: context});
     }
@@ -229,13 +233,14 @@ var whitespaceIncludingNewlines = createParser(
   true
 );
 
-var identifierRegExp = /[a-z+\/*_-][a-z0-9+\/*_-]*/i;
+var identifierRegExp = /[a-z+\/*_<>=-][a-z0-9+\/*_<>=-]*/i;
 
 var identifier = createParser(
   'identifier',
   identifierRegExp,
   function (id) {
-    return terms.identifier(id);
+    if (id != '=')
+      return terms.identifier(id);
   }
 );
 
@@ -363,7 +368,7 @@ var sigilIdentifier = function (sigil, name, createTerm) {
 };
 
 var escapeInRegExp = function (str) {
-  if (/^[(){}?.+*]$/.test(str)) {
+  if (/^[(){}?.+*\[\]]$/.test(str)) {
     return '\\' + str;
   } else {
     return str;
@@ -681,6 +686,21 @@ var block = nameParser('block', sequence(startBlock, ['body', statements], endBl
 }));
 
 terminal.choices.push(block);
+
+var list = nameParser('list', sequence(sequence(keyword('['), startResetIndent, identityTransform), ['items', delimited(expression, choice(keyword(','), statementTerminator), 0)], sequence(endResetIndent, keyword(']'), identityTransform), function(term) {
+  return terms.list.call(terms.list, term.items);
+}));
+
+terminal.choices.push(list);
+
+var hash = nameParser('hash', sequence(sequence(keyword('#'), startBlock, identityTransform), ['entries', delimited(basicExpression, choice(keyword(','), statementTerminator), 0)], endBlock, function(term) {
+  var entries = _.map(term.entries, function(e) {
+    return e.hashEntry();
+  });
+  return terms.hash.call(terms.hash, entries);
+}));
+
+terminal.choices.push(hash);
 
 exports.integer = integer;
 exports.parsePartial = parsePartial;

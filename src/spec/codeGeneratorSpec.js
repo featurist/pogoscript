@@ -11,6 +11,18 @@ spec('code generator', function () {
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
+  var generatesReturnExpression = function(term, expectedGeneratedCode) {
+    var stream = new MemoryStream();
+    term.generateJavaScriptReturn(stream, new cg.Scope());
+    assert.equal(stream.toString(), expectedGeneratedCode);
+  };
+  
+  var generatesStatement = function(term, expectedGeneratedCode) {
+    var stream = new MemoryStream();
+    term.generateJavaScriptStatement(stream, new cg.Scope());
+    assert.equal(stream.toString(), expectedGeneratedCode);
+  };
+  
   spec('variable', function () {
     spec('with one identifier', function () {
       generatesExpression(cg.variable(['one']), 'one');
@@ -102,6 +114,12 @@ spec('code generator', function () {
       generatesExpression(st, 'var one;one=9;two();');
     });
     
+    spec('returning a definition', function () {
+      var st = cg.statements([cg.definition(cg.variable(['one']), cg.integer(9))]);
+      
+      generatesReturnExpression(st, 'var one;return one=9;');
+    });
+    
     spec('with two definitions of the same variable', function () {
       var st = cg.statements([
         cg.definition(cg.variable(['x']), cg.integer(1)),
@@ -142,7 +160,13 @@ spec('code generator', function () {
   spec('for each', function() {
     var f = cg.statements([cg.forEach(cg.variable(['items']), ['item'], cg.statements([cg.variable(['item'])]))]);
     
-    generatesExpression(f, 'var gen1_items,gen2_i,item;gen1_items=items;for(gen2_i in gen1_items){item=gen1_items[gen2_i];item;}');
+    generatesExpression(f, 'var gen1_items,gen2_i,item;gen1_items=items;for(gen2_i=0;gen2_i<gen1_items.length;gen2_i++){item=gen1_items[gen2_i];item;}');
+  });
+  
+  spec('for', function() {
+    var f = cg.forStatement(cg.variable(['items']), cg.variable(['i']), cg.statements([cg.variable(['item'])]));
+    
+    generatesReturnExpression(f, 'for(i=0;i<items.length;i++){item;}');
   });
   
   spec('method call', function () {
@@ -161,6 +185,18 @@ spec('code generator', function () {
     var m = cg.fieldReference(cg.variable(['obj']), ['field', 'name']);
     
     generatesExpression(m, 'obj.fieldName');
+  });
+  
+  spec('return', function () {
+    spec('as statement', function () {
+      var m = cg.returnStatement(cg.variable(['a']));
+      generatesStatement(m, 'return a;');
+    });
+    
+    spec('as return', function () {
+      var m = cg.returnStatement(cg.variable(['a']));
+      generatesReturnExpression(m, 'return a;');
+    });
   });
   
   spec('if', function () {
@@ -207,6 +243,21 @@ spec('code generator', function () {
     spec('with no elements', function() {
       var l = cg.list([]);
       generatesExpression(l, '[]');
+    });
+  });
+  
+  spec('hash', function() {
+    spec('with one item', function() {
+      var h = cg.hash([cg.hashEntry(['street', 'address'], cg.variable(['address']))]);
+      generatesExpression(h, '{streetAddress:address}');
+    });
+    
+    spec('with two items, one with string field', function() {
+      var h = cg.hash([
+        cg.hashEntry(['street', 'address'], cg.variable(['address'])),
+        cg.hashEntry(['Content-Type'], cg.string('text/plain'))
+      ]);
+      generatesExpression(h, "{streetAddress:address,'Content-Type':'text/plain'}");
     });
   });
   

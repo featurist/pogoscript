@@ -78,6 +78,7 @@ var compile = function (filename) {
         } else {
           try {
             var output = beautify(generate(term));
+            // var output = generate(term);
           
             // process.stdout.write(output);
             fs.writeFile(jungleFilenameOf(filename), output);
