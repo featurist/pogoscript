@@ -11,6 +11,14 @@ var parseError = exports.parseError = function (term, message, expected) {
   return e;
 };
 
+var semanticFailure = function(term, message) {
+  return new function() {
+    this.isSemanticFailure = true;
+    this.term = term;
+    this.message = message;
+  };
+};
+
 var ExpressionPrototype = new function () {
   this.generateJavaScriptReturn = function (buffer, scope) {
     buffer.write('return ');
@@ -413,7 +421,7 @@ expressionTerm('basicExpression', function(terminals) {
     var arguments = this.arguments();
 
     if (isNoArgCall && arguments.length > 0) {
-      throw parseError(this, 'this function has arguments and an exclaimation mark (implying no arguments)');
+      return semanticFailure(this, 'this function has arguments and an exclaimation mark (implying no arguments)');
     }
 
     return functionCall(variable(name), arguments);

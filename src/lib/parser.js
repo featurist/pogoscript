@@ -17,27 +17,18 @@ var MemoTable = function () {
   this.memoise = function (parser) {
     var memo = {table: {}};
     addMemo(memo);
-    return function (source, index, context, continuation) {
+    return function (source, index, context) {
       var parseResult = memo.table[index];
       if (parseResult) {
-        if (!parseResult.isError) {
-          continuation.success(parseResult);
-        } else {
-          continuation.failure(parseResult);
-        }
+        return parseResult;
       } else {
-        parser(source, index, context, continuation.on({
-          success: function (parseResult) {
-            if (!parseResult.dontMemoise) {
-              memo.table[index] = parseResult;
-            }
-            continuation.success(parseResult);
-          },
-          failure: function (error) {
-            memo.table[index] = error;
-            continuation.failure(error);
-          }
-        }));
+        parseResult = parser(source, index, context);
+
+        if (!(parseResult && parseResult.dontMemoise)) {
+          memo.table[index] = parseResult;
+        }
+        
+        return parseResult;
       }
     };
   };
@@ -98,10 +89,9 @@ var Continuation = function (errorLog, parent, handler) {
 };
 
 var ignoreLeadingWhitespace = function (parser) {
-  return memotable.memoise(function (source, index, context, continuation) {
-    whitespace(source, index, context, continuation.onSuccess(function (parsedWhitespace) {
-      parser(source, parsedWhitespace.index, parsedWhitespace.context, continuation);
-    }));
+  return memotable.memoise(function (source, index, context) {
+    var parsedWhitespace = whitespace(source, index, context);
+    return parser(source, parsedWhitespace.index, parsedWhitespace.context);
   });
 };
   
@@ -110,11 +100,15 @@ var nameParser = function (name, parser) {
   return parser;
 };
 
+var parseFailure = function(expected, index, context) {
+  return {isError: true, expected: expected, index: index, context: context};
+};
+
 var createParser = function (name, originalRe, createTerm, dontIgnoreWhitespace) {
   var ignoreCaseFlag = originalRe.ignoreCase? 'i': '';
   
   var re = new RegExp(originalRe.source, 'g' + ignoreCaseFlag);
-  var parser = memotable.memoise(function (source, index, context, continuation) {
+  var parser = memotable.memoise(function (source, index, context) {
     re.lastIndex = index;
     var match = re.exec(source);
     if (match && match.index == index) {
@@ -122,12 +116,12 @@ var createParser = function (name, originalRe, createTerm, dontIgnoreWhitespace)
       if (term) {
         term.index = re.lastIndex;
         term.context = context;
-        continuation.success(term);
+        return term;
       } else {
-        continuation.failure({expected: [parser], index: index, context: context});
+        return parseFailure([parser], index, context);
       }
     } else {
-      continuation.failure({expected: [parser], index: index, context: context});
+      return parseFailure([parser], index, context);
     }
   });
   
@@ -165,36 +159,35 @@ var sequence = (function () {
   return function () {
     var args = _.toArray(arguments);
     
-    var createTerm = _.last(args);
-    
-    args = args.splice(0, args.length - 1);
+    args = args.splice(0, args.length);
     
     var subterms = _.map(args, function (subtermArgument) {
       return readSubTerm(subtermArgument);
     });
     
-    return memotable.memoise(function (source, startIndex, context, continuation) {
+    return memotable.memoise(function (source, startIndex, startContext) {
       var term = {index: startIndex};
+      var index = startIndex;
+      var context = startContext;
       
-      var parseSubTerm = function (subtermIndex, index, context) {
-        var subterm = subterms[subtermIndex];
-        if (subterm) {
-          subterm.parser(source, index, context, continuation.onSuccess(nextSubTermParser(subterm, subtermIndex + 1)));
+      for (var n = 0; n < subterms.length; n++) {
+        var subterm = subterms[n];
+        
+        parseResult = subterm.parser(source, index, context);
+        
+        if (!parseResult.isError) {
+          subterm.addToTerm(term, parseResult);
+          index = parseResult.index;
+          context = parseResult.context;
         } else {
-          term.index = index;
-          term.context = context;
-          transformWith(term, createTerm, continuation);
+          return parseResult;
         }
-      };
+      }
       
-      var nextSubTermParser = function (previousSubterm, subtermIndex) {
-        return function (result) {
-          previousSubterm.addToTerm(term, result);
-          parseSubTerm(subtermIndex, result.index, result.context);
-        };
-      };
+      term.index = index;
+      term.context = context;
       
-      parseSubTerm(0, startIndex, context);
+      return term;
     });
   };
 }());
@@ -284,71 +277,96 @@ var stringStartsWith = function (bigString, toStartWith) {
   return (bigString.length > toStartWith.length) && (bigString.substring(0, toStartWith.length) == toStartWith);
 };
 
-var indent = exports.indent = memotable.memoise(function(source, index, context, continuation) {
-  indentation(source, index, context, continuation.onSuccess(function (result) {
-    if (stringStartsWith(result.indentation, context.indentation)) {
-      result.context = result.context.withIndentation(result.indentation);
-      continuation.success(result);
-    } else {
-      continuation.failure({index: index, context: context});
-    }
-  }));
-});
-
-var unindent = exports.unindent = memotable.memoise(function(source, index, context, continuation) {
-  if (source.length == index) {
-    if (!_.isUndefined(context.previousIndentation())) {
-      var newContext = context.oldIndentation();
-      continuation.success({index: index, context: newContext, dontMemoise: true});
-    } else {
-      continuation.failure({index: index, context: context});
-    }
+var indent = exports.indent = memotable.memoise(function(source, index, context) {
+  var result = indentation(source, index, context);
+  
+  if (result.isError) {
+    return result;
+  }
+  
+  if (stringStartsWith(result.indentation, context.indentation)) {
+    result.context = result.context.withIndentation(result.indentation);
+    return result;
   } else {
-    unindentation(source, index, context, continuation.onSuccess(function (result) {
-      if (!context.containsIndentation(result.indentation)) {
-        continuation.failure({index: index, context: context});
-      } else {
-        if (context.previousIndentation() != result.indentation) {
-          result.index = index;
-          result.dontMemoise = true;
-          result.context = result.context.oldIndentation();
-          result.context.stuff = true;
-          continuation.success(result);
-        } else {
-          indentationForNextLineOnly(source, index, context, continuation.onSuccess(function (shortResult) {
-            shortResult.context = shortResult.context.oldIndentation();
-            continuation.success(shortResult);
-          }));
-        }
-      }
-    }));
+    return parseFailure([indent], index, context);
   }
 });
 
-var noindent = exports.noindent = nameParser('new line', memotable.memoise(function(source, index, context, continuation){
-  indentation(source, index, context, continuation.onSuccess(function (result) {
-    if (result.indentation == context.indentation) {
-      continuation.success(result);
+var unindent = exports.unindent = memotable.memoise(function(source, index, context) {
+  if (source.length == index) {
+    if (!_.isUndefined(context.previousIndentation())) {
+      var newContext = context.oldIndentation();
+      return {index: index, context: newContext, dontMemoise: true};
     } else {
-      continuation.failure({index: index, context: context});
+      return parseFailure([unindent], index, context);
     }
-  }));
-}));
+  } else {
+    var result = unindentation(source, index, context);
+  
+    if (result.isError) {
+      return result;
+    }
+    
+    if (!context.containsIndentation(result.indentation)) {
+      return parseFailure([unindent], index, context);
+    } else {
+      if (context.previousIndentation() != result.indentation) {
+        result.index = index;
+        result.dontMemoise = true;
+        result.context = result.context.oldIndentation();
+        result.context.stuff = true;
+        return result;
+      } else {
+        var shortResult = indentationForNextLineOnly(source, index, context);
 
-var startResetIndent = exports.startResetIndent = memotable.memoise(function(source, index, context, continuation){
-  choice(indentation, whitespaceIncludingNewlines) (source, index, context, continuation.onSuccess(function (result) {
-    if (result.indentation) {
-      result.context = context.withIndentation(result.indentation);
+        if (shortResult.isError) {
+          return result;
+        }
+        
+        shortResult.context = shortResult.context.oldIndentation();
+        return shortResult;
+      }
     }
-    continuation.success(result);
-  }));
+  }
 });
 
-var endResetIndent = exports.endResetIndent = memotable.memoise(function(source, index, context, continuation){
-  whitespaceIncludingNewlines(source, index, context, continuation.onSuccess(function (result) {
-    result.context = context.oldIndentation(result.indentation);
-    continuation.success(result);
-  }));
+var noindent = exports.noindent = nameParser('new line', memotable.memoise(function(source, index, context){
+  var result = indentation(source, index, context);
+  
+  if (result.isError) {
+    return result;
+  }
+  
+  if (result.indentation == context.indentation) {
+    return result;
+  } else {
+    return parseFailure([noindent], index, context);
+  }
+}));
+
+var startResetIndent = exports.startResetIndent = memotable.memoise(function(source, index, context){
+  var result = choice(indentation, whitespaceIncludingNewlines) (source, index, context);
+  
+  if (result.isError) {
+    return result;
+  }
+  
+  if (result.indentation) {
+    result.context = context.withIndentation(result.indentation);
+  }
+  
+  return result;
+});
+
+var endResetIndent = exports.endResetIndent = memotable.memoise(function(source, index, context){
+  var result = whitespaceIncludingNewlines(source, index, context);
+  
+  if (result.isError) {
+    return result;
+  }
+  
+  result.context = context.oldIndentation(result.indentation);
+  return result;
 });
 
 var sigilIdentifier = function (sigil, name, createTerm) {
@@ -386,33 +404,27 @@ var keyword = function (kw) {
 };
 
 var choice = function () {
-  var parseAllChoices = memotable.memoise(function (source, index, context, continuation) {
-    var parseChoice = function (choiceIndex) {
-      var choiceParser = parseAllChoices.choices[choiceIndex];
+  var parseAllChoices = memotable.memoise(function (source, index, context) {
+    for (var n = 0; n < parseAllChoices.choices.length; n++) {
+      var choiceParser = parseAllChoices.choices[n];
 
-      if (choiceParser) {
-        choiceParser(source, index, context, continuation.onFailure(parseNextChoice(choiceIndex + 1)));
-      } else {
-        if (parseAllChoices.choices.length == 2) {
-        }
-        continuation.failure({index: index, context: context, expected: parseAllChoices.choices});
+      var result = choiceParser(source, index, context);
+      
+      if (!result.isError) {
+        return result;
       }
-    };
+    }
     
-    var parseNextChoice = function (choiceIndex) {
-      return function () {
-        parseChoice(choiceIndex);
-      };
-    };
-    
-    parseChoice(0);
+    return parseFailure(parseAllChoices.choices, index, context);
   });
   
   parseAllChoices.choices = Array.prototype.slice.call(arguments);
   
   return parseAllChoices;
 };
-  
+
+var indentationOrWhitespaceIncludingNewlines = choice(indentation, whitespaceIncludingNewlines);
+
 var Context = exports.Context = function () {
   this.previousIndentations = [];
   this.indentation = '';
@@ -446,58 +458,23 @@ var parsePartial = function (parser, source, index, context) {
 };
 
 var parse = exports.parse = function (parser, source, index, context, partial) {
-  var result = null;
-  
-  tryParse(parser, source, {
-    success: function (r) {
-      result = r;
-    },
-    failure: function (error) {
-    }
-  }, index, context, partial);
-  
-  return result;
-};
-
-var tryParseError = exports.tryParseError = function (parser, source) {
-  var error = null;
-  
-  tryParse(parser, source, {
-    failure: function (e) {
-      error = e;
-    }
-  });
-  
-  return error;
-};
-
-var tryParse = exports.tryParse = function (parser, source, handler, index, context, partial) {
   memotable.clear();
   index = (index || 0);
   context = context || new Context();
   
-  var everythingParser = transform(parser, function(term) {
+  var wholeFileParser = transform(parser, function(term) {
     if (partial || (term && (term.index == source.length))) {
       return term;
     } else {
-      throw terms.parseError(term, 'did not parse whole file');
+      throw parseFailure([parser], term.index, term.context, 'did not parse whole file');
     }
   });
   
-  var errorLog = new ErrorLog();
-  
-  everythingParser(source, index, context, new Continuation(errorLog).on({
-    failure: function (error) {
-      handler.failure(errorLog.error());
-    },
-    success: function (r) {
-      handler.success(r);
-    }
-  }));
+  return wholeFileParser(source, index, context);
 };
 
-var parseModule = exports.parseModule = function (source, handler) {
-  tryParse(_module, source, handler, 0, undefined, undefined);
+var parseModule = exports.parseModule = function (source) {
+  return parse(_module, source, 0, undefined, undefined);
 };
 
 var optional = function (parser) {
@@ -513,61 +490,57 @@ var delimited = function (parser, delimiter, min, max) {
     min = 1;
   }
   
-  return memotable.memoise(function (source, index, context, continuation) {
+  return memotable.memoise(function (source, startIndex, startContext) {
     var terms = [];
-    terms.context = context;
-    terms.index = index;
+    terms.context = startContext;
+    terms.index = startIndex;
     
-    var finishParsing = function (error) {
-      if (terms.length >= min) {
-        continuation.success(terms);
-      } else {
-        continuation.failure(error);
-      }
-    };
+    var index = startIndex;
+    var context = startContext;
     
-    var parseWithResult = function (result) {
-      parser(source, result.index, result.context, continuation.onSuccess(parseAnother).onFailure(finishParsing));
+    var parsedEnough = function() {
+      return terms.length >= min;
     };
 
-    var parseAnother = function (result) {
-      terms.push(result);
-      terms.context = result.context;
-      terms.index = result.index;
-      
-      if (max && terms.length >= max) {
-        continuation.success(terms);
-      } else {
-        if (delimiter) {
-          delimiter(source, result.index, result.context, continuation.on({
-            success: function (delimResult) {
-              parseWithResult(delimResult);
-            },
-            failure: function(error) {
-              finishParsing();
-            }
-          }));
+    while (true) {
+      var result = parser(source, index, context);
+    
+      if (result.isError) {
+        if (parsedEnough()) {
+          return terms;
         } else {
-          parseWithResult(result);
+          return result;
         }
       }
-    };
     
-    parser(source, index, context, continuation.onSuccess(parseAnother).onFailure(finishParsing));
+      index = result.index;
+      terms.index = index;
+      
+      context = result.context;
+      terms.context = context;
+      
+      terms.push(result);
+    
+      if (delimiter) {
+        var delimiterResult = delimiter(source, result.index, result.context);
+    
+        if (delimiterResult.isError) {
+          if (parsedEnough()) {
+            return terms;
+          } else {
+            return delimiterResult;
+          }
+        }
+  
+        index = delimiterResult.index;
+        context = delimiterResult.context;
+      }
+    }
   });
 };
 
-var transformWith = function (term, transformer, continuation) {
-  var transformedTerm;
-  try {
-    transformedTerm = termDerivedFrom(term, transformer(term));
-  } catch (e) {
-    continuation.failure(e);
-  }
-  
-  if (transformedTerm) {
-    continuation.success(transformedTerm);
-  }
+var transformWith = function (term, transformer) {
+  return termDerivedFrom(term, transformer(term));
 };
 
 var termDerivedFrom = function (baseTerm, derivedTerm) {
@@ -582,10 +555,14 @@ var termDerivedFrom = function (baseTerm, derivedTerm) {
 };
 
 var transform = function (parser, transformer) {
-  return memotable.memoise(function (source, index, context, continuation) {
-    parser(source, index, context, continuation.onSuccess(function (result) {
-      transformWith(result, transformer, continuation);
-    }));
+  return memotable.memoise(function (source, index, context) {
+    var result = parser(source, index, context);
+    
+    if (result.isError) {
+      return result;
+    }
+    
+    return transformWith(result, transformer);
   });
 };
 
@@ -619,7 +596,7 @@ var identityTransform = exports.identityTransform = function (term) {
 
 var expression = nameParser('expression', choice());
 
-var methodCall = nameParser('method call', sequence(keyword(':'), ['methodCall', basicExpression], ['assignmentSource', optional(sequence(keyword('='), ['expression', expression], identityTransform))], function (term) {
+var methodCall = nameParser('method call', transform(sequence(keyword(':'), ['methodCall', basicExpression], ['assignmentSource', optional(sequence(keyword('='), ['expression', expression]))]), function (term) {
   term.makeExpression = function (expression) {
     if (this.assignmentSource[0]) {
       var source = this.assignmentSource[0].expression;
@@ -644,7 +621,7 @@ var expressionSuffix = nameParser('expression suffix', choice(methodCall));
 
 var primaryExpression = nameParser('primary expression', choice(functionCall));
 
-var fullExpression = sequence(['expression', primaryExpression], ['suffix', multiple(expressionSuffix, 0)], function (term) {
+var fullExpression = transform(sequence(['expression', primaryExpression], ['suffix', multiple(expressionSuffix, 0)]), function (term) {
   if (term.suffix.length > 0) {
     var expr = term.expression;
     _(term.suffix).each(function (suffix) {
@@ -658,42 +635,42 @@ var fullExpression = sequence(['expression', primaryExpression], ['suffix', mult
 
 expression.choices.push(fullExpression);
 
-var definition = nameParser('definition', sequence(['target', basicExpression], keyword('='), ['source', expression], function (term) {
+var definition = nameParser('definition', transform(sequence(['target', basicExpression], keyword('='), ['source', expression]), function (term) {
   return term.target.definitionTarget(term.source);
 }));
 
 primaryExpression.choices.unshift(definition);
 
 var statementTerminator = nameParser('statement terminator', choice(noindent, keyword('.')));
-var startBlock = nameParser('start block', choice(sequence(keyword('{'), startResetIndent, identityTransform), indent));
-var endBlock = nameParser('end block', choice(sequence(endResetIndent, keyword('}'), identityTransform), unindent));
+var startBlock = nameParser('start block', choice(sequence(keyword('{'), startResetIndent), indent));
+var endBlock = nameParser('end block', choice(sequence(endResetIndent, keyword('}')), unindent));
 
-var statements = nameParser('statements', sequence(['statements', delimited(expression, multiple(statementTerminator), 0)], function (term) {
+var statements = nameParser('statements', transform(sequence(['statements', delimited(expression, multiple(statementTerminator), 0)]), function (term) {
   return terms.statements(term.statements);
 }));
 
-var _module = nameParser('module', transform(sequence(startResetIndent, ['statements', statements], endResetIndent, identityTransform), function (stmts) {
+var _module = nameParser('module', transform(sequence(startResetIndent, ['statements', statements], endResetIndent), function (stmts) {
   return terms.module(stmts.statements);
 }));
 
-var subExpression = nameParser('sub expression', sequence(keyword('('), ['expression', expression], keyword(')'), function (term) {
+var subExpression = nameParser('sub expression', transform(sequence(keyword('('), ['expression', expression], keyword(')')), function (term) {
   return term.expression;
 }));
 terminal.choices.push(subExpression);
 
-var block = nameParser('block', sequence(startBlock, ['body', statements], endBlock, function (term) {
+var block = nameParser('block', transform(sequence(startBlock, ['body', statements], endBlock), function (term) {
   return terms.block([], term.body);
 }));
 
 terminal.choices.push(block);
 
-var list = nameParser('list', sequence(sequence(keyword('['), startResetIndent, identityTransform), ['items', delimited(expression, choice(keyword(','), statementTerminator), 0)], sequence(endResetIndent, keyword(']'), identityTransform), function(term) {
+var list = nameParser('list', transform(sequence(sequence(keyword('['), startResetIndent), ['items', delimited(expression, choice(keyword(','), statementTerminator), 0)], sequence(endResetIndent, keyword(']'))), function(term) {
   return terms.list.call(terms.list, term.items);
 }));
 
 terminal.choices.push(list);
 
-var hash = nameParser('hash', sequence(sequence(keyword('#'), startBlock, identityTransform), ['entries', delimited(basicExpression, choice(keyword(','), statementTerminator), 0)], endBlock, function(term) {
+var hash = nameParser('hash', transform(sequence(sequence(keyword('#'), startBlock), ['entries', delimited(basicExpression, choice(keyword(','), statementTerminator), 0)], endBlock), function(term) {
   var entries = _.map(term.entries, function(e) {
     return e.hashEntry();
   });

@@ -32,7 +32,7 @@ spec('parser', function () {
   };
   
   assert.doesntParse = function (obj) {
-    assert.strictEqual(obj, null);
+    assert.ok(obj.isError);
   };
   
   spec('integer', function () {
@@ -141,13 +141,10 @@ spec('parser', function () {
     var seq = parser.sequence(
         ['name', parser.identifier],
         parser.keyword('to'),
-        ['id', parser.integer], function (term) {
-          term.termName = 'type';
-          return term;
-        });
+        ['id', parser.integer]);
 
     spec('parses correct sequences', function () {
-      assert.containsFields(parser.parse(seq, 'tank to 8'), {index: 9, termName: 'type', name: {identifier: 'tank', index: 4}, id: {integer: 8, index: 9}});
+      assert.containsFields(parser.parse(seq, 'tank to 8'), {index: 9, name: {identifier: 'tank', index: 4}, id: {integer: 8, index: 9}});
     });
 
     spec('should not parse sequence', function () {
@@ -158,9 +155,7 @@ spec('parser', function () {
       seq = parser.sequence(
         parser.keyword('('),
         ['expression', parser.identifier],
-        parser.keyword(')'), function (term) {
-          return term;
-        });
+        parser.keyword(')'));
         
       assert.containsFields(parser.parse(seq, '(one)'), {expression: {identifier: 'one'}, index: 5});
     });
@@ -184,16 +179,7 @@ spec('parser', function () {
   
   var assertParser = function (p) {
     return function (src, expectedTerm) {
-      var term = null;
-      
-      parser.tryParse(p, src, {
-        success: function(t) {
-          term = t;
-        },
-        failure: function(e) {
-          console.log(e.stack);
-        }
-      });
+      var term = parser.parse(p, src);
       
       assert.ok(term);
       assert.containsFields(term, expectedTerm);
@@ -243,12 +229,12 @@ spec('parser', function () {
   });
   
   spec('transform', function () {
-    var fakeParser = function (source, index, context, continuation) {
-      continuation.success({
+    var fakeParser = function (source, index, context) {
+      return {
         dontMemoise: true,
         index: source.length,
         context: 'context'
-      });
+      };
     };
     
     spec('uses index context and dontMemoise from original term', function () {
@@ -257,12 +243,6 @@ spec('parser', function () {
           thisIsTransformed: true
         };
       }), 'one'), {dontMemoise: true, index: 3, context: 'context', thisIsTransformed: true});
-    });
-    
-    spec('fails parse if transform throws parse error', function () {
-      assert.containsFields(parser.tryParseError(parser.transform(fakeParser, function (term) {
-        throw cg.parseError(term, "there's something wrong!");
-      }), 'one'), {index: 3, context: 'context'});
     });
     
     spec("doesn't transform if not parsed", function () {
@@ -315,11 +295,10 @@ spec('parser', function () {
   spec('expression', function () {
     var assertExpression = assertParser(parser.expression);
     var assertNotExpression = function (src, expectedError) {
-      var error = parser.tryParseError(parser.expression, src);
+      var error = parser.parse(parser.expression, src);
+      assert.ok(error.isError);
       if (expectedError) {
         assert.containsFields(error, expectedError);
-      } else {
-        assert.ok(error);
       }
     };
     
@@ -534,7 +513,9 @@ spec('parser', function () {
       });
       
       spec("doesn't parse function call with no arg suffix and arguments", function () {
-        assertNotExpression('save @files to disk!');
+        assertExpression('save @files to disk!', {
+          isSemanticFailure: true
+        });
       });
   
       spec('definition', function () {
@@ -818,10 +799,7 @@ spec('parser', function () {
   });
   
   spec('indentation syntax', function () {
-    var i = parser.sequence(['function', parser.multiple(parser.identifier)], parser.indent, ['block', parser.delimited(parser.identifier, parser.noindent)], parser.unindent,
-      function(term) {
-        return term;
-      });
+    var i = parser.sequence(['function', parser.multiple(parser.identifier)], parser.indent, ['block', parser.delimited(parser.identifier, parser.noindent)], parser.unindent);
     var shouldParse = function(src, expectedTerm) {
       assert.containsFields(parser.parsePartial(i, src), expectedTerm);
     };
@@ -841,30 +819,6 @@ spec('parser', function () {
   
   spec('module', function() {
     assert.containsFields(parser.parse(parser.module, 'one!\ntwo!\n'), {statements: {statements: [{function: {variable: ['one']}}, {function: {variable: ['two']}}]}});
-  });
-  
-  spec('parse errors', function () {
-    spec('simple', function () {
-      var intId = parser.sequence(parser.integer, parser.identifier, parser.identityTransform);
-
-      spec('fails on token', function () {
-        parser.tryParse(intId, '56 56', {
-          success: shouldNotCall,
-          failure: shouldCall(function (error) {
-            assert.containsFields(error, {index: 3});
-          })
-        });
-      });
-    });
-    
-    spec('module', function () {
-      parser.tryParse(parser.module, '{)', {
-        success: shouldNotCall,
-        failure: shouldCall(function (error) {
-          assert.ok(error);
-        })
-      });
-    });
   });
   
   spec('context', function () {
