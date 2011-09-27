@@ -160,13 +160,18 @@ spec('code generator', function () {
   spec('for each', function() {
     var f = cg.statements([cg.forEach(cg.variable(['items']), ['item'], cg.statements([cg.variable(['item'])]))]);
     
-    generatesExpression(f, 'var gen1_items,gen2_i,item;gen1_items=items;for(gen2_i=0;gen2_i<gen1_items.length;gen2_i++){item=gen1_items[gen2_i];item;}');
+    generatesExpression(f, 'var gen1_items,gen2_i,item;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){item=gen1_items[gen2_i];item;}');
   });
   
   spec('for', function() {
-    var f = cg.forStatement(cg.variable(['items']), cg.variable(['i']), cg.statements([cg.variable(['item'])]));
+    var f = cg.forStatement(
+      cg.definition(cg.variable(['i']), cg.integer(0)),
+      cg.operator('<', [cg.variable(['i']), cg.integer(10)]),
+      cg.definition(cg.variable(['i']), cg.operator('+', [cg.variable(['i']), cg.integer(1)])),
+      cg.statements([cg.variable(['i'])])
+    );
     
-    generatesReturnExpression(f, 'for(i=0;i<items.length;i++){item;}');
+    generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){i;}');
   });
   
   spec('method call', function () {

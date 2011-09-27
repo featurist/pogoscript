@@ -479,6 +479,16 @@ spec('parser', function () {
         });
       });
       
+      spec('for', function() {
+        assertExpression('for {n = 0} {@n <= 10} {n = @n + 1}\n  n',
+        {
+          isFor: true,
+          initialization: {target: {variable: ['n']}, source: {integer: 0}},
+          test: {operator: '<=', arguments: [{variable: ['n']}, {integer: 10}]},
+          increment: {target: {variable: ['n']}, source: {operator: '+', arguments: [{variable: ['n']}, {integer: 1}]}}
+        });
+      });
+      
       spec('operators', function() {
         spec('plus', function() {
           assertExpression('@a + @b', {

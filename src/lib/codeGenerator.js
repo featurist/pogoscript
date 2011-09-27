@@ -664,36 +664,12 @@ var generatedVariable = expressionTerm('generatedVariable', function(name) {
   };
 });
 
-var forStatement = expressionTerm('forStatement', function(collection, itemVariable, stmts) {
-  this.isFor = true;
-  this.collection = collection;
-  this.itemVariable = itemVariable;
-  this.statements = stmts;
-  
+var postIncrement = expressionTerm('postIncrement', function(expr) {
+  this.expression = expr;
   this.generateJavaScript = function(buffer, scope) {
-    buffer.write('for(');
-    itemVariable.generateJavaScript(buffer, scope);
-    buffer.write('=0;');
-    itemVariable.generateJavaScript(buffer, scope);
-    buffer.write('<');
-    collection.generateJavaScript(buffer, scope);
-    buffer.write('.length;');
-    itemVariable.generateJavaScript(buffer, scope);
-    buffer.write('++){');
-    stmts.generateJavaScript(buffer, scope);
-    buffer.write('}');
+    this.expression.generateJavaScript(buffer, scope);
+    buffer.write('++');
   };
-  this.definitions = function(scope) {
-    var defs = [];
-    var itemName = itemVariable.definitionName(scope);
-    if (itemName) {
-      defs.push(itemName);
-    }
-    defs.push.apply(defs, stmts.definitions(scope));
-    return defs;
-  };
-  this.generateJavaScriptStatement = this.generateJavaScript;
-  this.generateJavaScriptReturn = this.generateJavaScript;
 });
 
 var forEach = expressionTerm('forEach', function(collection, itemVariable, stmts) {
@@ -703,9 +679,13 @@ var forEach = expressionTerm('forEach', function(collection, itemVariable, stmts
   s.push.apply(s, stmts.statements);
   var statementsWithItemAssignment = statements(s);
   
+  var init = definition(indexVar, integer(0));
+  var test = operator('<', [indexVar, fieldReference(itemsVar, ['length'])]);
+  var incr = postIncrement(indexVar);
+  
   return statements([
     definition(itemsVar, collection),
-    forStatement(itemsVar, indexVar, statementsWithItemAssignment)
+    forStatement(init, test, incr, statementsWithItemAssignment)
   ]);
 });
 
@@ -717,6 +697,49 @@ macros.addMacro(['for', 'each', 'in', 'do'], function(basicExpression) {
   var itemVariable = block.parameters[0].parameter;
   
   return forEach(collection, itemVariable, block.body);
+});
+
+var forStatement = expressionTerm('forStatement', function(init, test, incr, stmts) {
+  this.isFor = true;
+  this.initialization = init;
+  this.test = test;
+  this.increment = incr;
+  this.statements = stmts;
+  
+  this.indexVariable = init.target;
+  
+  this.generateJavaScript = function(buffer, scope) {
+    buffer.write('for(');
+    this.initialization.generateJavaScript(buffer, scope);
+    buffer.write(';');
+    this.test.generateJavaScript(buffer, scope);
+    buffer.write(';');
+    this.increment.generateJavaScript(buffer, scope);
+    buffer.write('){');
+    this.statements.generateJavaScript(buffer, scope);
+    buffer.write('}');
+  };
+  this.generateJavaScriptStatement = this.generateJavaScript;
+  this.generateJavaScriptReturn = this.generateJavaScript;
+  
+  this.definitions = function(scope) {
+    var defs = [];
+    var indexName = this.indexVariable.definitionName(scope);
+    if (indexName) {
+      defs.push(indexName);
+    }
+    defs.push.apply(defs, stmts.definitions(scope));
+    return defs;
+  };
+});
+
+macros.addMacro(['for'], function(basicExpression) {
+  var args = basicExpression.arguments();
+  var init = args[0].body.statements[0];
+  var test = args[1].body.statements[0];
+  var incr = args[2].body.statements[0];
+  
+  return forStatement(init, test, incr);
 });
 
 var subExpression = expressionTerm('subExpression', function (expr) {
