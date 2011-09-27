@@ -27,6 +27,18 @@
 			<string>variable.parameter.junglescript</string>
 		</dict>
 		<dict>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>declaration</string>
+				</dict>
+			</dict>
+			<key>match</key>
+			<string>^(.*)=</string>
+		</dict>
+		<dict>
 			<key>begin</key>
 			<string>'</string>
 			<key>end</key>
