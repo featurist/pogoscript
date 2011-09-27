@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>fileTypes</key>
+	<array>
+		<string>jungle</string>
+	</array>
+	<key>foldingStartMarker</key>
+	<string>\{\s*$</string>
+	<key>foldingStopMarker</key>
+	<string>^\s*\}</string>
+	<key>name</key>
+	<string>JungleScript</string>
+	<key>patterns</key>
+	<array>
+		<dict>
+			<key>match</key>
+			<string>@[_a-zA-Z][_a-zA-Z0-9]*\b</string>
+			<key>name</key>
+			<string>variable.junglescript</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>\?[_a-zA-Z][_a-zA-Z0-9]*\b</string>
+			<key>name</key>
+			<string>variable.parameter.junglescript</string>
+		</dict>
+		<dict>
+			<key>begin</key>
+			<string>'</string>
+			<key>end</key>
+			<string>'</string>
+			<key>name</key>
+			<string>string.quoted.single.junglescript</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>match</key>
+					<string>\\.</string>
+					<key>name</key>
+					<string>constant.character.escape.junglescript</string>
+				</dict>
+			</array>
+		</dict>
+	</array>
+	<key>scopeName</key>
+	<string>source.junglescript</string>
+	<key>uuid</key>
+	<string>680491D0-A323-4442-8262-AB07B93CC386</string>
+</dict>
+</plist>
