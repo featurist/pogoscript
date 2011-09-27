@@ -43,7 +43,37 @@
 				</dict>
 			</array>
 		</dict>
+		<dict>
+			<key>begin</key>
+			<string>"</string>
+			<key>end</key>
+			<string>"</string>
+			<key>name</key>
+			<string>string.quoted.double.junglescript</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>include</key>
+					<string>#interpolated</string>
+				</dict>
+			</array>
+		</dict>
 	</array>
+	<key>repository</key>
+	<dict>
+		<key>interpolated</key>
+		<dict>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>match</key>
+					<string>@[_a-zA-Z][_a-zA-Z0-9]*\b</string>
+					<key>name</key>
+					<string>variable</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 	<key>scopeName</key>
 	<string>source.junglescript</string>
 	<key>uuid</key>
