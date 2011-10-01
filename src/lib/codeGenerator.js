@@ -11,14 +11,6 @@ var parseError = exports.parseError = function (term, message, expected) {
   return e;
 };
 
-var semanticFailure = function(term, message) {
-  return new function() {
-    this.isSemanticFailure = true;
-    this.term = term;
-    this.message = message;
-  };
-};
-
 var ExpressionPrototype = new function () {
   this.generateJavaScriptReturn = function (buffer, scope) {
     buffer.write('return ');
@@ -68,6 +60,15 @@ var expressionTerm = function (name, constructor) {
     return new F();
   };
 };
+
+var semanticFailure = expressionTerm('semanticFailure', function(terms, message) {
+  this.isSemanticFailure = true;
+  this.terms = terms;
+  this.message = message;
+  this.generateJavaScript = function(buffer, scope) {
+    throw new Error(this.message);
+  };
+});
 
 exports.identifier = function (name) {
   return {
@@ -158,9 +159,10 @@ var functionCall = expressionTerm('functionCall', function (fun, arguments) {
   };
 });
 
-var block = expressionTerm('block', function (parameters, body) {
+var block = expressionTerm('block', function (parameters, body, dontReturnLastStatement) {
   this.body = body;
   this.isBlock = true;
+  this.dontReturnLastStatement = dontReturnLastStatement;
   this.parameters = parameters;
   this.generateJavaScript = function (buffer, scope) {
     buffer.write('function(');
@@ -173,7 +175,11 @@ var block = expressionTerm('block', function (parameters, body) {
       parameter.generateJavaScript(buffer, scope);
     });
     buffer.write('){');
-    body.generateJavaScriptReturn(buffer, scope.subScope());
+    if (this.dontReturnLastStatement) {
+      body.generateJavaScript(buffer, scope.subScope());
+    } else {
+      body.generateJavaScriptReturn(buffer, scope.subScope());
+    }
     buffer.write('}');
   };
 });
@@ -193,7 +199,7 @@ var writeToBufferWithDelimiter = function (array, delimiter, buffer, scope, writ
   });
 };
 
-expressionTerm('methodCall', function (object, name, arguments) {
+var methodCall = expressionTerm('methodCall', function (object, name, arguments) {
   this.object = object;
   this.name = name;
   this.arguments = arguments;
@@ -299,7 +305,7 @@ expressionTerm('module', function (statements) {
   this.statements = statements;
   
   this.generateJavaScript = function (buffer, scope) {
-    functionCall(subExpression(block([], this.statements))).generateJavaScript(buffer, new Scope());
+    functionCall(subExpression(block([], this.statements, true))).generateJavaScript(buffer, new Scope());
   };
 });
 
@@ -356,12 +362,14 @@ var definition = expressionTerm('definition', function (target, source) {
     source.generateJavaScript(buffer, scope);
   };
   this.definitions = function (scope) {
-    var def = target.definitionName(scope);
-    if (def) {
-      return [def];
-    } else {
-      return [];
+    var defs = [];
+    var t = target.definitionName(scope);
+    if (t) {
+      defs.push(t);
     }
+    var s = this.source.definitions(scope);
+    defs = defs.concat(s);
+    return defs;
   };
   
   addWalker(this, 'target', 'source');
@@ -393,6 +401,33 @@ expressionTerm('basicExpression', function(terminals) {
     });
   };
   
+  this.methodCall = function(expression) {
+    this.buildBlocks();
+    
+    var name = this.name();
+    var hasName = name.length > 0;
+    var args = this.arguments();
+    var hasArgs = args.length > 0 || this.isNoArgumentFunctionCall();
+    
+    if (hasName && !hasArgs) {
+      return fieldReference(expression, name);
+    }
+    
+    if (hasName && hasArgs) {
+      return methodCall(expression, name, args);
+    }
+    
+    if (!hasName && hasArgs) {
+      if (args.length == 1) {
+        return indexer(expression, args[0]);
+      } else {
+        return semanticFailure(args.slice(1), 'index only requires one argument, these are not required')
+      }
+    }
+    
+    return semanticFailure([this], "basic expression with no name and no arguments, how'd that happen?");
+  };
+  
   this.expression = function () {
     this.buildBlocks();
     var terminals = this.terminals;
@@ -421,7 +456,7 @@ expressionTerm('basicExpression', function(terminals) {
     var arguments = this.arguments();
 
     if (isNoArgCall && arguments.length > 0) {
-      return semanticFailure(this, 'this function has arguments and an exclaimation mark (implying no arguments)');
+      return semanticFailure([this], "this function has arguments and an exclaimation mark (implying no arguments)");
     }
 
     return functionCall(variable(name), arguments);
@@ -462,7 +497,18 @@ expressionTerm('basicExpression', function(terminals) {
   };
   
   this.definitionTarget = function (source) {
-    return definition(variable(this.name()), this.makeSourceWithParameters(source));
+    var name = this.name();
+    var arguments = this.arguments();
+    
+    if (arguments.length > 0) {
+      return semanticFailure(arguments, 'these arguments cannot be used in definitions');
+    }
+    
+    if (name.length > 0) {
+      return definition(variable(this.name()), this.makeSourceWithParameters(source));
+    } else {
+      return semanticFailure(this.terminals, 'no name for definition');
+    }
   };
   
   this.hasNameAndNoArguments = function() {
@@ -668,7 +714,7 @@ var generatedVariable = expressionTerm('generatedVariable', function(name) {
   this.generateJavaScriptTarget = this.generateJavaScript;
   this.definitionName = function(scope) {
     var n = this.generatedName(scope);
-    return [this.generatedName(scope)];
+    return [n];
   };
 });
 
@@ -736,8 +782,7 @@ var forStatement = expressionTerm('forStatement', function(init, test, incr, stm
     if (indexName) {
       defs.push(indexName);
     }
-    defs.push.apply(defs, stmts.definitions(scope));
-    return defs;
+    return defs.concat(stmts.definitions(scope));
   };
 });
 
@@ -747,7 +792,32 @@ macros.addMacro(['for'], function(basicExpression) {
   var test = args[1].body.statements[0];
   var incr = args[2].body.statements[0];
   
-  return forStatement(init, test, incr);
+  return forStatement(init, test, incr, args[3].body);
+});
+
+var whileStatement = expressionTerm('whileStatement', function(test, statements) {
+  this.isWhile = true;
+  this.test = test;
+  this.statements = statements;
+  
+  this.generateJavaScript = function(buffer, scope) {
+    buffer.write('while(');
+    this.test.generateJavaScript(buffer, scope);
+    buffer.write('){');
+    this.statements.generateJavaScript(buffer, scope);
+    buffer.write('}');
+  };
+  
+  this.generateJavaScriptReturn = this.generateJavaScript;
+  this.generateJavaScriptStatement = this.generateJavaScript;
+});
+
+macros.addMacro(['while'], function(basicExpression) {
+  var args = basicExpression.arguments();
+  var test = args[0].body.statements[0];
+  var statements = args[1].body.statements;
+  
+  return whileStatement(test, statements);
 });
 
 var subExpression = expressionTerm('subExpression', function (expr) {

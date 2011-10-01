@@ -31,15 +31,8 @@ var generate = function(term) {
   return stream.toString();
 };
 
-var parse = function(source, callback) {
-  parser.parseModule(source, {
-    success: function (term) {
-      callback(undefined, term);
-    },
-    failure: function (error) {
-      callback(error);
-    }
-  });
+var parse = function(source) {
+  return parser.parseModule(source);
 };
 
 var printError = function(filename, source, error) {
@@ -68,25 +61,28 @@ var duplicateString = function(s, n) {
   return strings.join('');
 };
 
+var time = function(message, f) {
+  var before = new Date();
+  var result = f();
+  var after = new Date();
+  console.log(message, 'in', after - before, 'milliseconds');
+  return result;
+};
+
 var compile = function (filename) {
   fs.readFile(filename, 'utf-8', function (err, source) {
-    console.log('compiling', filename);
     if (!err) {
-      parse(source, function (error, term) {
-        if (error) {
-          printError(filename, source, error);
-        } else {
-          try {
-            var output = beautify(generate(term));
-            // var output = generate(term);
-          
-            // process.stdout.write(output);
-            fs.writeFile(jungleFilenameOf(filename), output);
-          } catch (e) {
-            console.log(e.stack);
-          }
-        }
-      });
+      var result = time('parsed', function () {return parse(source)});
+      if (result.isError) {
+        printError(filename, source, result);
+      } else {
+        var generated = time('generated', function() {return generate(result)});
+        var output = time('beautified', function() {return beautify(generated)});
+        // var output = generate(result);
+      
+        // process.stdout.write(output);
+        fs.writeFile(jungleFilenameOf(filename), output);
+      }
     } else {
       console.log(err.stack);
     }

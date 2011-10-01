@@ -1,7 +1,8 @@
 var _ = require('underscore');
 var terms = require('./codeGenerator');
+var util = require('util');
 
-var MemoTable = function () {
+var MemoTable = exports.MemoTable = function () {
   var memos = [];
   var addMemo = function(memo) {
     memos.push(memo);
@@ -19,12 +20,13 @@ var MemoTable = function () {
     addMemo(memo);
     return function (source, index, context) {
       var parseResult = memo.table[index];
-      if (parseResult) {
+      if (parseResult && parseResult.previousContext === context) {
         return parseResult;
       } else {
         parseResult = parser(source, index, context);
 
         if (!(parseResult && parseResult.dontMemoise)) {
+          parseResult.previousContext = context;
           memo.table[index] = parseResult;
         }
         
@@ -100,8 +102,8 @@ var nameParser = function (name, parser) {
   return parser;
 };
 
-var parseFailure = function(expected, index, context) {
-  return {isError: true, expected: expected, index: index, context: context};
+var parseFailure = function(expected, index, context, message) {
+  return {isError: true, expected: expected, index: index, context: context, message: message};
 };
 
 var createParser = function (name, originalRe, createTerm, dontIgnoreWhitespace) {
@@ -173,7 +175,7 @@ var sequence = (function () {
       for (var n = 0; n < subterms.length; n++) {
         var subterm = subterms[n];
         
-        parseResult = subterm.parser(source, index, context);
+        var parseResult = subterm.parser(source, index, context);
         
         if (!parseResult.isError) {
           subterm.addToTerm(term, parseResult);
@@ -269,8 +271,9 @@ var indentationForNextLineOnly = createParser(
   'indentation',
   /\n([ \t]*)/,
   function (match, i) {
-    return {indentation: i};
-  }
+    return {indentation: i, dontMemoise: true};
+  },
+  true
 );
 
 var stringStartsWith = function (bigString, toStartWith) {
@@ -283,7 +286,7 @@ var indent = exports.indent = memotable.memoise(function(source, index, context)
   if (result.isError) {
     return result;
   }
-  
+
   if (stringStartsWith(result.indentation, context.indentation)) {
     result.context = result.context.withIndentation(result.indentation);
     return result;
@@ -314,10 +317,10 @@ var unindent = exports.unindent = memotable.memoise(function(source, index, cont
         result.index = index;
         result.dontMemoise = true;
         result.context = result.context.oldIndentation();
-        result.context.stuff = true;
         return result;
       } else {
         var shortResult = indentationForNextLineOnly(source, index, context);
+
 
         if (shortResult.isError) {
           return result;
@@ -345,7 +348,7 @@ var noindent = exports.noindent = nameParser('new line', memotable.memoise(funct
 }));
 
 var startResetIndent = exports.startResetIndent = memotable.memoise(function(source, index, context){
-  var result = choice(indentation, whitespaceIncludingNewlines) (source, index, context);
+  var result = indentationOrWhitespaceIncludingNewlines(source, index, context);
   
   if (result.isError) {
     return result;
@@ -353,6 +356,8 @@ var startResetIndent = exports.startResetIndent = memotable.memoise(function(sou
   
   if (result.indentation) {
     result.context = context.withIndentation(result.indentation);
+  } else {
+    result.context = context.withIndentation(context.indentation);
   }
   
   return result;
@@ -364,7 +369,7 @@ var endResetIndent = exports.endResetIndent = memotable.memoise(function(source,
   if (result.isError) {
     return result;
   }
-  
+
   result.context = context.oldIndentation(result.indentation);
   return result;
 });
@@ -431,6 +436,9 @@ var Context = exports.Context = function () {
   
   this.withIndentation = function (indentation) {
     var newContext = new Context();
+    if (_.isUndefined(indentation)) {
+      throw new Error();
+    }
     newContext.indentation = indentation;
     newContext.previousIndentations = this.previousIndentations.slice();
     newContext.previousIndentations.unshift(this.indentation);
@@ -444,6 +452,9 @@ var Context = exports.Context = function () {
   this.oldIndentation = function () {
     var context = new Context();
     context.indentation = this.previousIndentations[0];
+    if (_.isUndefined(context.indentation)) {
+      throw new Error();
+    }
     context.previousIndentations = this.previousIndentations.slice(1);
     return context;
   };
@@ -466,7 +477,7 @@ var parse = exports.parse = function (parser, source, index, context, partial) {
     if (partial || (term && (term.index == source.length))) {
       return term;
     } else {
-      throw parseFailure([parser], term.index, term.context, 'did not parse whole file');
+      return parseFailure([parser], term.index, term.context, 'did not parse whole file');
     }
   });
   
@@ -523,7 +534,7 @@ var delimited = function (parser, delimiter, min, max) {
     
       if (delimiter) {
         var delimiterResult = delimiter(source, result.index, result.context);
-    
+        
         if (delimiterResult.isError) {
           if (parsedEnough()) {
             return terms;
@@ -603,6 +614,8 @@ var methodCall = nameParser('method call', transform(sequence(keyword(':'), ['me
       
       return this.methodCall.objectDefinitionTarget(expression, source);
     } else {
+      return this.methodCall.methodCall(expression);
+      
       var objectOperator = this.methodCall.expression();
       
       if (objectOperator.isFunctionCall) {

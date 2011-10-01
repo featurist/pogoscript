@@ -468,6 +468,14 @@ spec('parser', function () {
         });
       });
       
+      spec('while', function() {
+        assertExpression('while {a} {b}', {
+          isWhile: true,
+          test: {variable: ['a']},
+          statements: [{variable: ['b']}]
+        });
+      });
+      
       spec('operators', function() {
         spec('plus', function() {
           assertExpression('@a + @b', {
@@ -662,13 +670,26 @@ spec('parser', function () {
       });
       
       spec('with index', function () {
-        assertExpression('array: 9', {
-          index: 8,
-          object: {
-            index: 5,
-            variable: ['array']
-          },
-          indexer: {integer: 9}
+        spec('as integer', function () {
+          assertExpression('array: 9', {
+            index: 8,
+            object: {
+              index: 5,
+              variable: ['array']
+            },
+            indexer: {integer: 9}
+          });
+        });
+        
+        spec('as variable', function () {
+          assertExpression('array: @a', {
+            index: 9,
+            object: {
+              index: 5,
+              variable: ['array']
+            },
+            indexer: {variable: ['a']}
+          });
         });
       });
       
@@ -730,6 +751,47 @@ spec('parser', function () {
         ]
       });
     });
+    
+    spec('unwinds from one indents', function() {
+      assertStatements('block\n  x\n\nout', {
+        statements: [
+          {
+            function: {variable: ['block']},
+            arguments: [{
+              body: {
+                statements: [{variable: ['x']}]
+              }
+            }]
+          },
+          {variable: ['out']}
+        ]
+      });
+    });
+    
+    spec('unwinds from two indents', function() {
+      assertStatements('block\n  block\n    x\n\nout', {
+        statements: [
+          {
+            function: {variable: ['block']},
+            arguments: [{
+              body: {
+                statements: [
+                  {
+                    function: {variable: ['block']},
+                    arguments: [{
+                      body: {
+                        statements: [{variable: ['x']}]
+                      }
+                    }]
+                  }
+                ]
+              }
+            }]
+          },
+          {variable: ['out']}
+        ]
+      });
+    });
   });
   
   spec('indentation', function() {
@@ -754,7 +816,7 @@ spec('parser', function () {
       });
 
       spec('parses two unindents', function() {
-        assert.containsFields(parser.parsePartial(parser.multiple(parser.unindent, 2, 2), '\ns', 0, new parser.Context().withIndentation('  ').withIndentation('    ')), [{context: {indentation: '  '}}, {context: {indentation: ''}}]);
+        assert.containsFields(parser.parsePartial(parser.multiple(parser.unindent, 2, 2), '\n\ns', 0, new parser.Context().withIndentation('  ').withIndentation('    ')), [{context: {indentation: '  '}}, {context: {indentation: ''}}]);
       });
 
       spec('parses end of source', function() {
@@ -833,6 +895,49 @@ spec('parser', function () {
       assert.equal(c4.indentation, 6);
       var c5 = c4.oldIndentation();
       assert.equal(c5.indentation, 4);
+    });
+  });
+  
+  spec('memotable', function() {
+    var memotable = new parser.MemoTable();
+    var changingResult = 1;
+    var notToMemoise = memotable.memoise(function(source, index, context) {
+      return {dontMemoise: true, changingResult: changingResult++};
+    });
+    var toMemoise = memotable.memoise(function(source, index, context) {
+      return {changingResult: changingResult++};
+    });
+    
+    spec("memoises if context and index are the same", function() {
+      var context = {};
+      assert.containsFields(toMemoise('', 0, context), {
+        changingResult: 1
+      });
+      assert.containsFields(toMemoise('', 0, context), {
+        changingResult: 1
+      });
+    });
+    
+    spec("doesn't memoise if term returns dont memoise", function() {
+      var context = {};
+      assert.containsFields(notToMemoise('', 0, context), {
+        dontMemoise: true,
+        changingResult: 1
+      });
+      assert.containsFields(notToMemoise('', 0, context), {
+        dontMemoise: true,
+        changingResult: 2
+      });
+    });
+    
+    spec("reparses if context is different on second parse", function() {
+      var context = {};
+      assert.containsFields(toMemoise('', 0, context), {
+        changingResult: 1
+      });
+      assert.containsFields(toMemoise('', 0, {}), {
+        changingResult: 2
+      });
     });
   });
 });

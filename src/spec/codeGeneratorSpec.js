@@ -120,6 +120,12 @@ spec('code generator', function () {
       generatesReturnExpression(st, 'var one;return one=9;');
     });
     
+    spec('chained definitions', function () {
+      var st = cg.statements([cg.definition(cg.variable(['one']), cg.definition(cg.variable(['two']), cg.integer(9)))]);
+      
+      generatesReturnExpression(st, 'var one,two;return one=two=9;');
+    });
+    
     spec('with two definitions of the same variable', function () {
       var st = cg.statements([
         cg.definition(cg.variable(['x']), cg.integer(1)),
@@ -172,6 +178,12 @@ spec('code generator', function () {
     );
     
     generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){i;}');
+  });
+  
+  spec('while', function() {
+    var w = cg.whileStatement(cg.variable(['c']), cg.statements([cg.variable(['s'])]));
+    
+    generatesReturnExpression(w, 'while(c){s;}');
   });
   
   spec('method call', function () {
@@ -306,7 +318,7 @@ spec('code generator', function () {
         ]))])
       ]));
       
-      generatesExpression(s, '(function(){var x;x=1;return f(function(){x=2;return x;});})()');
+      generatesExpression(s, '(function(){var x;x=1;f(function(){x=2;return x;});})()');
     });
   });
   
