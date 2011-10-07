@@ -79,7 +79,7 @@ spec('parser', function () {
     });
     
     spec('parses identifier with symbol', function () {
-      assert.containsFields(parser.parse(parser.identifier, ' ++-/*<>='), {identifier: '++-/*<>=', index: 9});
+      assert.containsFields(parser.parse(parser.operator, ' ++-/*<>='), {identifier: '++-/*<>=', index: 9});
     });
   });
   
@@ -472,7 +472,7 @@ spec('parser', function () {
         assertExpression('while {a} {b}', {
           isWhile: true,
           test: {variable: ['a']},
-          statements: [{variable: ['b']}]
+          statements: {statements: [{variable: ['b']}]}
         });
       });
       
@@ -516,6 +516,20 @@ spec('parser', function () {
           assertExpression('@a or @b', {
             operator: '||',
             arguments: [{variable: ['a']}, {variable: ['b']}]
+          });
+        });
+        
+        spec('not', function() {
+          assertExpression('not @a', {
+            operator: '!',
+            arguments: [{variable: ['a']}]
+          });
+        });
+        
+        spec('negative', function() {
+          assertExpression('- @a', {
+            operator: '-',
+            arguments: [{variable: ['a']}]
           });
         });
       });
@@ -723,7 +737,7 @@ spec('parser', function () {
       });
     
       spec('separated by dots', function () {
-        assertStatements('one!.two!', statements);
+        assertStatements('one! .two!', statements);
       });
     
       spec('on two lines with one line empty', function () {

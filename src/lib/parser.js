@@ -102,6 +102,30 @@ var nameParser = function (name, parser) {
   return parser;
 };
 
+var ParseFailure = function(expected, index, context, message) {
+  this.isError = true;
+  this.expected = expected;
+  this.index = index;
+  this.context = context;
+  this.message = message;
+  
+  this.printError = function (sourceFile) {
+    process.stdout.write(this.message + '\n');
+    process.stdout.write('\n');
+    process.stderr.write('\nexpected:\n');
+
+    _.each(error.expected, function (ex) {
+      if (ex.parserName) {
+        process.stderr.write(ex.parserName + '\n');
+      } else {
+        process.stderr.write(ex + '\n');
+      }
+    });
+    
+    sourceFile.printIndex(this.index);
+  };
+}
+
 var parseFailure = function(expected, index, context, message) {
   return {isError: true, expected: expected, index: index, context: context, message: message};
 };
@@ -228,7 +252,17 @@ var whitespaceIncludingNewlines = createParser(
   true
 );
 
-var identifierRegExp = /[a-z+\/*_<>=-][a-z0-9+\/*_<>=-]*/i;
+var identifierRegExp = /[a-z_][a-z0-9_]*/i;
+
+var operator = exports.operator = createParser(
+  'identifier',
+  /[!@#$%^&*:<>.\\\/?=+-]+/,
+  function(op) {
+    if (op != '!' && op != '=' && op != '.' && op != ':' && op != '#') {
+      return terms.identifier(op);
+    }
+  }
+);
 
 var identifier = createParser(
   'identifier',
@@ -591,7 +625,7 @@ var noArgumentFunctionCallSuffix = transform(keyword('!'), function (result) {
   };
 });
 
-var terminal = nameParser('terminal', choice(integer, float, argument, identifier, parameter, string, noArgumentFunctionCallSuffix));
+var terminal = nameParser('terminal', choice(integer, float, argument, identifier, parameter, operator, string, noArgumentFunctionCallSuffix));
 
 var basicExpression = transform(multiple(terminal), function(terminals) {
   return terms.basicExpression(terminals);

@@ -69,6 +69,11 @@ spec('code generator', function () {
     generatesExpression(s, "(a*8)");
   });
   
+  spec('unary operator', function() {
+    var s = cg.operator('-', [cg.variable(['a'])]);
+    generatesExpression(s, "(-a)");
+  });
+  
   spec('block', function () {
     spec('with no parameters', function () {
       var b = cg.block([], cg.statements([cg.variable(['x'])]));

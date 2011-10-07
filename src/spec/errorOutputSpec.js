@@ -2,7 +2,7 @@ require('cupoftea');
 var assert = require('assert');
 var _ = require('underscore');
 var util = require('util');
-var errorOutput = require('../lib/errorOutput');
+var errorOutput = require('../lib/errorOutputJungle');
 require('./assertExtensions');
 
 spec('error output', function () {

@@ -66,8 +66,13 @@ var semanticFailure = expressionTerm('semanticFailure', function(terms, message)
   this.terms = terms;
   this.message = message;
   this.generateJavaScript = function(buffer, scope) {
-    throw new Error(this.message);
+    throw this;
   };
+  this.printError = function(sourceFile) {
+    process.stdout.write(this.message + '\n');
+    process.stdout.write('\n');
+    sourceFile.printIndex(this.index);
+  }
 });
 
 exports.identifier = function (name) {
@@ -815,7 +820,7 @@ var whileStatement = expressionTerm('whileStatement', function(test, statements)
 macros.addMacro(['while'], function(basicExpression) {
   var args = basicExpression.arguments();
   var test = args[0].body.statements[0];
-  var statements = args[1].body.statements;
+  var statements = args[1].body;
   
   return whileStatement(test, statements);
 });
@@ -835,9 +840,16 @@ var operator = expressionTerm('operator', function (op, args) {
   this.arguments = args;
   this.generateJavaScript = function(buffer, scope) {
     buffer.write('(');
-    this.arguments[0].generateJavaScript(buffer, scope);
-    buffer.write(op);
-    this.arguments[1].generateJavaScript(buffer, scope);
+    
+    if (this.arguments.length == 1) {
+      buffer.write(op);
+      this.arguments[0].generateJavaScript(buffer, scope);
+    } else {
+      this.arguments[0].generateJavaScript(buffer, scope);
+      buffer.write(op);
+      this.arguments[1].generateJavaScript(buffer, scope);
+    }
+    
     buffer.write(')');
   };
 });
@@ -846,7 +858,7 @@ var createOperator = function(expr) {
   return operator(expr.name()[0], expr.arguments());
 };
 
-_.each(['+', '*', '/', '-', '>=', '==', '===', '<=', '<', '>'], function(op) {
+_.each(['+', '*', '/', '-', '>=', '==', '!=', '===', '!==', '<=', '<', '>'], function(op) {
   macros.addMacro([op], createOperator);
 });
 
@@ -856,6 +868,10 @@ macros.addMacro(['and'], function (expr) {
 
 macros.addMacro(['or'], function (expr) {
   return operator('||', expr.arguments());
+});
+
+macros.addMacro(['not'], function (expr) {
+  return operator('!', expr.arguments());
 });
 
 var returnStatement = expressionTerm('returnStatement', function(expr) {
