@@ -90,6 +90,13 @@ var integer = expressionTerm('integer', function (value) {
 
 var boolean = expressionTerm('boolean', function(value) {
   this.boolean = value;
+  this.generateJavaScript = function (buffer, scope) {
+    if (this.boolean) {
+      buffer.write('true');
+    } else {
+      buffer.write('false');
+    }
+  };
 });
 
 var formatJavaScriptString = function(s) {
