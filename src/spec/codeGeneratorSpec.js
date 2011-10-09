@@ -281,6 +281,13 @@ spec('code generator', function () {
       ]);
       generatesExpression(h, "{streetAddress:address,'Content-Type':'text/plain'}");
     });
+    
+    spec('with true item', function() {
+      var h = cg.hash([
+        cg.hashEntry(['street', 'address'], cg.boolean(true))
+      ]);
+      generatesExpression(h, "{streetAddress:true}");
+    });
   });
   
   spec('walkTerm', function () {
