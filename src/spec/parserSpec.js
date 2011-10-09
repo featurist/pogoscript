@@ -1,35 +1,11 @@
 require('cupoftea');
 var assert = require('assert');
 var _ = require('underscore');
-var util = require('util');
 var parser = require('../lib/parser');
 var cg = require('../lib/codeGenerator');
 
 spec('parser', function () {
-  assert.containsFields = function (actual, expected, key, originalActual) {
-    var inspectedOriginalActual = util.inspect(originalActual);
-    
-    if (typeof(expected) == 'object') {
-      assert.ok(typeof(actual) == 'object', 'in ' + inspectedOriginalActual + ', expected ' + key + ' ' + util.inspect(actual) + ' to be an object');
-      
-      var parentKey;
-      if (key) {
-        parentKey = key + '.';
-      } else {
-        parentKey = '';
-      }
-      
-      var originalActual = (originalActual || actual);
-      for (var key in expected) {
-        assert.containsFields(actual[key], expected[key], parentKey + key, originalActual);
-      }
-    } else {
-      var inspectedActual = util.inspect(actual);
-      var inspectedExpected = util.inspect(expected);
-      var msg = 'in ' + inspectedOriginalActual + ', ' + key + ' ' + inspectedActual + ' should be equal to ' + inspectedExpected;
-      assert.deepEqual(expected, actual, msg);
-    }
-  };
+  assert.containsFields = require('./containsFields.js').containsFields;
   
   assert.doesntParse = function (obj) {
     assert.ok(obj.isError);
@@ -92,7 +68,7 @@ spec('parser', function () {
       assert.containsFields(parser.parsePartial(parser.string, " ''"), {index: 3, string: ''});
     });
     
-    spec('stirng with quoted single quote', function() {
+    spec('string with quoted single quote', function() {
       assert.containsFields(parser.parsePartial(parser.string, " 'Kate''s place'"), {index: 16, string: "Kate's place"});
     });
   });
