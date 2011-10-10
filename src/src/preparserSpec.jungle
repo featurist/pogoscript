@@ -6,43 +6,7 @@ should contain fields = (require '../spec/containsFields'): contains fields
 ?x should equal ?y =
   assert: equal @x @y
 
-preparse ?source =
-  preparser: preparse @source
-
 spec 'preparser'
-  spec 'new lines'
-    spec 'new lines'
-      (preparse 'one\ntwo\nthree') should equal 'one.two.three'
-  
-    spec 'new lines with empty lines'
-      (preparse 'one\n\ntwo') should equal 'one.two'
-  
-    spec 'starts with empty line'
-      (preparse '\none\ntwo') should equal 'one.two'
-  
-  spec 'indentation'
-    spec 'one level'
-      (preparse 'one\n  two\n  three') should equal 'one{two.three}'
-    
-    spec 'one level with empty lines'
-      (preparse 'one\n  two\n\n  three') should equal 'one{two.three}'
-    
-    spec 'one line indented'
-      (preparse 'one\n  two\nthree') should equal 'one{two}three'
-    
-    spec 'one line indented followed by another statement'
-      (preparse 'one\n  two\n\nthree') should equal 'one{two}.three'
-    
-    spec 'two levels'
-      (preparse 'one\n  two\n    three\n') should equal 'one{two{three}}'
-          
-    spec 'two levels with following args'
-      (preparse 'one\n  two\n    three\nfour') should equal 'one{two{three}}four'
-
-  spec 'indentation with brackets'
-    spec 'doesnt indent if line ends with brace'
-      (preparse 'one{\n  two\n  three\n}\nfour') should equal 'one{{two.three}}.four'
-
   spec 'line parser'
     parse = preparser: create line parser!
 
