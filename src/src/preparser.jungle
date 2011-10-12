@@ -63,7 +63,7 @@ exports: create indent stack = create indent stack =
 
 exports: create file parser =
   ?source
-    lines = @source: split '\n'
+    lines = source: split '\n'
     last line = #{no line}
     parse = create line parser!
 
