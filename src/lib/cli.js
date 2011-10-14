@@ -9,6 +9,7 @@ var parseArguments = function(args) {
   return {
     watch: _.contains(args, '--watch'),
     compile: _.contains(args, '--compile'),
+    pretty: !_.contains(args, '--notpretty'),
     filenames: _.filter(args, function(arg) {
       return !/^--/.test(arg);
     })
@@ -94,7 +95,10 @@ var generateCode = function(filename) {
       printError(filename, source, result);
     } else {
       var generated = time('generated', function() {return generate(result)});
-      generated = time('beautified', function() {return beautify(generated)});
+
+      if (options.pretty) {
+        generated = time('beautified', function() {return beautify(generated)});
+      }
       // var output = generate(result);
   
       // process.stdout.write(output);
