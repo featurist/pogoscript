@@ -277,7 +277,7 @@ var string = exports.string = createParser(
   'string',
   /'(([^']*'')*[^']*)'/,
   function(wholeMatch, str) {
-    return terms.string(str.replace("''", "'"));
+    return terms.string(str.replace(/''/g, "'"));
   }
 );
 
@@ -620,12 +620,10 @@ var parameter = sigilIdentifier('?', 'parameter', function (argumentName) {
 });
 
 var noArgumentFunctionCallSuffix = transform(keyword('!'), function (result) {
-  return {
-    noArgumentFunctionCallSuffix: true
-  };
+  return terms.noArgSuffix();
 });
 
-var terminal = nameParser('terminal', choice(integer, float, argument, identifier, parameter, operator, string, noArgumentFunctionCallSuffix));
+var terminal = nameParser('terminal', choice(float, integer, argument, identifier, parameter, operator, string, noArgumentFunctionCallSuffix));
 
 var basicExpression = transform(multiple(terminal), function(terminals) {
   return terms.basicExpression(terminals);
@@ -649,16 +647,6 @@ var methodCall = nameParser('method call', transform(sequence(keyword(':'), ['me
       return this.methodCall.objectDefinitionTarget(expression, source);
     } else {
       return this.methodCall.methodCall(expression);
-      
-      var objectOperator = this.methodCall.expression();
-      
-      if (objectOperator.isFunctionCall) {
-        return terms.methodCall(expression, objectOperator.function.variable, objectOperator.arguments);
-      } else if (objectOperator.isVariable) {
-        return terms.fieldReference(expression, objectOperator.variable);
-      } else {
-        return terms.indexer(expression, objectOperator);
-      }
     }
   };
   return term;

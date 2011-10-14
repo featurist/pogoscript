@@ -100,7 +100,7 @@ var boolean = expressionTerm('boolean', function(value) {
 });
 
 var formatJavaScriptString = function(s) {
-  return "'" + s.replace("'", "\\'") + "'";
+  return "'" + s.replace(/'/g, "\\'") + "'";
 };
 
 expressionTerm('string', function(value) {
@@ -130,6 +130,10 @@ var variable = expressionTerm('variable', function (name) {
   };
   
   addWalker(this);
+});
+
+var noArgSuffix = expressionTerm('noArgSuffix', function () {
+    this.noArgumentFunctionCallSuffix = true;
 });
 
 var parameter = expressionTerm('parameter', function (name) {
@@ -212,6 +216,7 @@ var writeToBufferWithDelimiter = function (array, delimiter, buffer, scope, writ
 };
 
 var methodCall = expressionTerm('methodCall', function (object, name, arguments) {
+  this.isMethodCall = true;
   this.object = object;
   this.name = name;
   this.arguments = arguments;
@@ -315,6 +320,7 @@ var Statements = function (statements) {
 
 expressionTerm('module', function (statements) {
   this.statements = statements;
+  this.isModule = true;
   
   this.generateJavaScript = function (buffer, scope) {
     functionCall(subExpression(block([], this.statements, true))).generateJavaScript(buffer, new Scope());
@@ -892,4 +898,19 @@ var returnStatement = expressionTerm('returnStatement', function(expr) {
 
 macros.addMacro(['return'], function(expr) {
   return returnStatement(expr.arguments()[0]);
+});
+
+var throwStatement = expressionTerm('throwStatement', function(expr) {
+  this.isThrow = true;
+  this.expression = expr;
+  this.generateJavaScriptStatement = function(buffer, scope) {
+    buffer.write('throw ');
+    this.expression.generateJavaScript(buffer, scope);
+    buffer.write(';');
+  };
+  this.generateJavaScriptReturn = this.generateJavaScriptStatement;
+});
+
+macros.addMacro(['throw'], function(expr) {
+  return throwStatement(expr.arguments()[0]);
 });

@@ -69,7 +69,7 @@ spec('parser', function () {
     });
     
     spec('string with quoted single quote', function() {
-      assert.containsFields(parser.parsePartial(parser.string, " 'Kate''s place'"), {index: 16, string: "Kate's place"});
+      assert.containsFields(parser.parsePartial(parser.string, " 'his name was ''Sue''.'"), {index: 24, string: "his name was 'Sue'."});
     });
   });
   
@@ -280,6 +280,10 @@ spec('parser', function () {
     
     spec('with just one terminal resolves to that terminal', function () {
       assertExpression('9', {integer: 9});
+    });
+    
+    spec('float', function () {
+      assertExpression('9.4', {float: 9.4});
     });
     
     spec('function call', function () {
@@ -595,6 +599,14 @@ spec('parser', function () {
         assertExpression('return 5', {
           index: 8,
           isReturn: true,
+          expression: {integer: 5}
+        });
+      });
+      
+      spec('throw', function() {
+        assertExpression('throw 5', {
+          index: 7,
+          isThrow: true,
           expression: {integer: 5}
         });
       });

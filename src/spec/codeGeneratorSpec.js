@@ -58,9 +58,9 @@ spec('code generator', function () {
       generatesExpression(s, "'a string'");
     });
     spec('with escaped single quote', function() {
-      var s = cg.string("Kate's place");
+      var s = cg.string("his name was 'Sue'. weird");
       
-      generatesExpression(s, "'Kate\\'s place'");
+      generatesExpression(s, "'his name was \\'Sue\\'. weird'");
     });
   });
   
@@ -218,6 +218,18 @@ spec('code generator', function () {
     spec('as return', function () {
       var m = cg.returnStatement(cg.variable(['a']));
       generatesReturnExpression(m, 'return a;');
+    });
+  });
+  
+  spec('throw', function () {
+    spec('as statement', function () {
+      var m = cg.throwStatement(cg.variable(['a']));
+      generatesStatement(m, 'throw a;');
+    });
+    
+    spec('as return', function () {
+      var m = cg.throwStatement(cg.variable(['a']));
+      generatesReturnExpression(m, 'throw a;');
     });
   });
   
