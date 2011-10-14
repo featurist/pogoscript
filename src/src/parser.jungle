@@ -19,6 +19,7 @@ grammar = #
             ['=', 'return ''='';']
             [',', 'return '','';']
             [':', 'return '':'';']
+            ['!', 'return ''!'';']
             ['\\.', 'return ''.'';']
             ['\\(', 'return ''('';']
             ['\\)', 'return '')'';']
@@ -68,13 +69,10 @@ grammar = #
             ['identifier', '$$ = yy.identifier(yytext);']
             ['argument', '$$ = yy.variable([yytext.substring(1)]);']
             ['parameter', '$$ = yy.parameter([yytext.substring(1)]);']
+            ['!', '$$ = yy.noArgSuffix();']
         ]
 
-p = create parser with grammar @grammar
-p: yy = terms
+parser = create parser with grammar @grammar
+parser: yy = terms
 
-ast = p: parse 'c ?x = {x.y}'
-memory stream = new (ms: MemoryStream!)
-scope = new (terms: Scope!)
-ast: generate java script (memory stream) @scope
-console:log (memory stream: to string!)
+exports: parse ?source = parser: parse @source

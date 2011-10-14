@@ -1,10 +1,7 @@
 require 'cupoftea'
-assert = require 'assert'
-preparser = require './preparser.jungle'
-should contain fields = (require '../spec/containsFields'): contains fields
+require './assertions.jungle'
 
-?x should equal ?y =
-  assert: equal @x @y
+preparser = require './preparser.jungle'
 
 spec 'preparser'
   spec 'line parser'
