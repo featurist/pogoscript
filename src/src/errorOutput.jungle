@@ -1,0 +1,2047 @@
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+  
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+    
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
+
+exports: source ?source index ?index to line and column =
+  lines = source: split '\n'
+  accumulated index = 0
+
+  for {l = 0} {@l < (lines: length)} {l = l + 1}
+    line = lines: @l
+    new accumulated index = ((accumulated index) + (line: length)) + 1
+
+    if ((@index >= (accumulated index)) and (@index < (new accumulated index)))
+      return #
+        line number (@l + 1)
+        line @line
+        column number ((@index - (accumulated index)) + 1)
+
+    accumulated index = new accumulated index
