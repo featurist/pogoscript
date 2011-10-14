@@ -1,4 +1,0 @@
-x = 9
-obj = create an object!
-field = obj: access a field
-obj: call a method with argument @field
