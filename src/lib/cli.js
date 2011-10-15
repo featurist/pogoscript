@@ -23,8 +23,8 @@ var beautify = function(code) {
   return uglify.uglify.gen_code(ast, {beautify: true});
 };
 
-var jungleFilenameOf = function (filename) {
-  return filename.replace(/\.jungle$/, '.js');
+var oceanFilenameOf = function (filename) {
+  return filename.replace(/\.ocean$/, '.js');
 };
 
 var generate = function(term) {
@@ -84,7 +84,7 @@ var SourceFile = function(filename, source) {
 
 var compile = function (filename) {
   var js = generateCode(filename);
-  fs.writeFileSync(jungleFilenameOf(filename), js);
+  fs.writeFileSync(oceanFilenameOf(filename), js);
 };
 
 var generateCode = function(filename) {
@@ -116,7 +116,7 @@ var generateCode = function(filename) {
   }
 };
 
-require.extensions['.jungle'] = function (module, filename) {
+require.extensions['.ocean'] = function (module, filename) {
   var content = generateCode (filename);
   module._compile(content, filename)
 }

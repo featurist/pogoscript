@@ -1,7 +1,7 @@
 require 'cupoftea'
-require './assertions.jungle'
+require './assertions.ocean'
 
-preparser = require './preparser.jungle'
+preparser = require './preparser.ocean'
 
 spec 'preparser'
   spec 'line parser'

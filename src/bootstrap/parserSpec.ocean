@@ -1,7 +1,7 @@
 require 'cupoftea'
-require './assertions.jungle'
+require './assertions.ocean'
 
-parse = require './parser.jungle': parse
+parse = require './parser.ocean': parse
 
 assume ?term is module with statements ?action =
     if (term: is module)
