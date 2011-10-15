@@ -35,6 +35,7 @@ spec 'parser'
             (expression 'total weight') should contain fields #
                 variable ['total', 'weight']
 
+    spec 'function calls'
         spec 'function call'
             (expression 'touch @file') should contain fields #
                 function #{variable ['touch']}
@@ -67,7 +68,8 @@ spec 'parser'
                         body #{statements [#{variable ['y']}]}
                         parameters [#{parameter ['y']}]
                 ]
-        
+    
+    spec 'object operations'
         spec 'method call'
             (expression 'object: method @argument') should contain fields #
                 is method call
@@ -87,6 +89,7 @@ spec 'parser'
                 object #{variable ['object']}
                 indexer #{variable ['x']}
 
+    spec 'blocks'
         spec 'block'
             (expression '{x.y}') should contain fields #
                 is block
@@ -106,40 +109,40 @@ spec 'parser'
                         #{variable ['y']}
                     ]
 
+    spec 'assignment'
         spec 'assignment'
-            spec 'assignment'
-                (expression 'x = y') should contain fields #
-                    is definition
-                    target #{variable ['x']}
-                    source #{variable ['y']}
+            (expression 'x = y') should contain fields #
+                is definition
+                target #{variable ['x']}
+                source #{variable ['y']}
 
-            spec 'field assignment'
-                (expression 'o: x = y') should contain fields #
-                    is definition
-                    target #
-                        is field reference
-                        object #{variable ['o']}
-                        name ['x']
+        spec 'field assignment'
+            (expression 'o: x = y') should contain fields #
+                is definition
+                target #
+                    is field reference
+                    object #{variable ['o']}
+                    name ['x']
 
-                    source #{variable ['y']}
+                source #{variable ['y']}
 
-            spec 'index assignment'
-                (expression 'o: @x = y') should contain fields #
-                    is definition
-                    target #
-                        is indexer
-                        object #{variable ['o']}
-                        indexer #{variable ['x']}
+        spec 'index assignment'
+            (expression 'o: @x = y') should contain fields #
+                is definition
+                target #
+                    is indexer
+                    object #{variable ['o']}
+                    indexer #{variable ['x']}
 
-                    source #{variable ['y']}
+                source #{variable ['y']}
 
-            spec 'assignment from field'
-                (expression 'x = y: z') should contain fields #
-                    is definition
-                    target #{variable ['x']}
-                    source #
-                        is field reference
-                        object #
-                            variable ['y']
+        spec 'assignment from field'
+            (expression 'x = y: z') should contain fields #
+                is definition
+                target #{variable ['x']}
+                source #
+                    is field reference
+                    object #
+                        variable ['y']
 
-                        name ['z']
+                    name ['z']
