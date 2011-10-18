@@ -103,6 +103,10 @@ var formatJavaScriptString = function(s) {
   return "'" + s.replace(/'/g, "\\'") + "'";
 };
 
+var normaliseString = exports.normaliseString = function(s) {
+  return s.substring(1, s.length - 1).replace(/''/g, "'");
+};
+
 expressionTerm('string', function(value) {
   this.isString = true;
   this.string = value;
@@ -611,10 +615,11 @@ var MacroDirectory = exports.MacroDirectory = function () {
 var macros = exports.macros = new MacroDirectory();
 
 var list = expressionTerm('list', function(items) {
-  this.list = items;
+  this.isList = true;
+  this.items = items;
   this.generateJavaScript = function (buffer, scope) {
     buffer.write('[');
-    writeToBufferWithDelimiter(this.list, ',', buffer, scope);
+    writeToBufferWithDelimiter(this.items, ',', buffer, scope);
     buffer.write(']');
   };
 });

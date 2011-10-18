@@ -699,7 +699,7 @@ var block = nameParser('block', transform(sequence(startBlock, ['body', statemen
 
 terminal.choices.push(block);
 
-var list = nameParser('list', transform(sequence(sequence(keyword('['), startResetIndent), ['items', delimited(expression, choice(keyword(','), statementTerminator), 0)], sequence(endResetIndent, keyword(']'))), function(term) {
+var list = nameParser('list', transform(sequence(sequence(keyword('['), startResetIndent), ['items', delimited(expression, statementTerminator, 0)], sequence(endResetIndent, keyword(']'))), function(term) {
   return terms.list.call(terms.list, term.items);
 }));
 

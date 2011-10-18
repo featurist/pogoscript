@@ -33,7 +33,37 @@ spec 'parser'
 
         spec 'variable'
             (expression 'total weight') should contain fields #
-                variable ['total', 'weight']
+                variable ['total'. 'weight']
+        
+        spec 'strings'
+            spec 'simple string'
+                (expression '''a string''') should contain fields #
+                    is string
+                    string 'a string'
+                    
+            spec 'string with single quotes'
+                (expression '''''''alright!'''' he said''') should contain fields #
+                    is string
+                    string '''alright!'' he said'
+        
+        spec 'lists'
+            spec 'empty'
+                (expression '[]') should contain fields #
+                    is list
+                    items []
+            
+            spec 'one item'
+                (expression '[1]') should contain fields #
+                    is list
+                    items [#{integer 1}]
+            
+            spec 'two items'
+                (expression '[1. 2]') should contain fields #
+                    is list
+                    items [
+                        #{integer 1}
+                        #{integer 2}
+                    ]
 
     spec 'function calls'
         spec 'function call'
@@ -43,12 +73,12 @@ spec 'parser'
 
         spec 'function call with no argument'
             (expression 'delete everything!') should contain fields #
-                function #{variable ['delete', 'everything']}
+                function #{variable ['delete'. 'everything']}
                 arguments []
 
         spec 'function call with block with parameters'
             (expression 'with file @file ?stream {stream}') should contain fields #
-                function #{variable ['with', 'file']}
+                function #{variable ['with'. 'file']}
                 arguments [
                     #{variable ['file']}
                     #
@@ -90,6 +120,12 @@ spec 'parser'
                 indexer #{variable ['x']}
 
     spec 'blocks'
+        spec 'empty block'
+            (expression '{}') should contain fields #
+                is block
+                parameters []
+                body #{statements []}
+                
         spec 'block'
             (expression '{x.y}') should contain fields #
                 is block

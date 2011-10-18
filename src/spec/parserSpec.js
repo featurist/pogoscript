@@ -337,15 +337,15 @@ spec('parser', function () {
           assertExpression('[]',
             {
               index: 2,
-              list: []
+              items: []
             });
         });
 
         spec('parses list with two integers', function () {
-          assertExpression('[1, 2]',
+          assertExpression('[1. 2]',
             {
               index: 6,
-              list: [{integer: 1}, {integer: 2}]
+              items: [{integer: 1}, {integer: 2}]
             });
         });
 
@@ -353,15 +353,15 @@ spec('parser', function () {
           assertExpression('[\n  1\n  2]',
             {
               index: 10,
-              list: [{integer: 1}, {integer: 2}]
+              items: [{integer: 1}, {integer: 2}]
             });
         });
 
         spec('parses list with integer and block', function () {
-          assertExpression('[1, ?a {}]',
+          assertExpression('[1. ?a {}]',
             {
               index: 10,
-              list: [{integer: 1}, {parameters: [{parameter: ['a']}], body: {statements: []}}]
+              items: [{integer: 1}, {parameters: [{parameter: ['a']}], body: {statements: []}}]
             });
         });
       });
