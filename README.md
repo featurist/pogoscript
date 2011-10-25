@@ -110,12 +110,33 @@ The curly braces can be replaced by an indented block underneath the function, l
     for each ?item in @list
         print @item
 
-The block is the indented line or lines after the function call. However if a parameter is declared (like `item` here), but there is no indented block to follow, then the rest of the enclosing block is the block. The following statement is the same as above:
+If a block is followed by another line, that line is part of the same function call. To see this in action, consider the familiar `do` `while` statement:
 
-    for each ?item in @list
-    print @item
+    item = 0
+    
+    do
+        print @item
+        item = @item + 1
+    while {@item < 10}
 
-Slightly odd, but I wonder if this style of notation could be used to support out arguments, arguments whose values are set after the function call. With this style, the "argument" isn't set, its a parameter to a function which is the rest of the block. It's almost a way of declaring variables with a function call.
+This is interpreted as one function call:
+
+    do {print @item. item = @item + 1} while {@item < 10}
+
+To write two statements, put an empty line below the block. For example, this `do` `while` isn't really a `do` `while`:
+
+    do
+        print @item
+        item = @item + 1
+    
+    while {@item < 10}
+
+This is interpreted as two function calls, one for the `do` and the other for the `while`:
+
+    do {print @item. item = @item + 1}
+    while {@item < 10}
+
+This syntax allows us to write control structures with regular functions and blocks that look indistinguishable from the built-in control structures. These functions can be macros too, allowing us to rewrite expressions at compile time. See below for more information on macros.
 
 ## Asynchronous Calls
 
