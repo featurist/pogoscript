@@ -58,16 +58,23 @@ grammar = #
             [''. '$$ = [];']
         ]
         'expression' [
-            ['expression : basic_expression'. '$$ = $3.methodCall($1);']
-            ['basic_expression = expression'. '$$ = $1.definitionTarget($3);']
-            ['expression : basic_expression = expression'. '$$ = $3.objectDefinitionTarget($1, $5);']
-            ['basic_expression'. '$$ = $1.expression();']
+            ['expression : complex_expression'. '$$ = $3.methodCall($1);']
+            ['complex_expression = expression'. '$$ = $1.definitionTarget($3);']
+            ['expression : complex_expression = expression'. '$$ = $3.objectDefinitionTarget($1, $5);']
+            ['complex_expression'. '$$ = $1.expression();']
+        ]
+        'complex_expression' [
+            ['basic_expression_list'. '$$ = yy.complexExpression($1);']
+        ]
+        'basic_expression_list' [
+            ['basic_expression_list , basic_expression'. '$1.push($3); $$ = $1;']
+            ['basic_expression'. '$$ = [$1];']
         ]
         'basic_expression' [
             ['terminal_list'. '$$ = yy.basicExpression($1);']
         ]
         'terminal_list' [
-            ['terminal_list terminal'. '$1.push($2); $$ = $1']
+            ['terminal_list terminal'. '$1.push($2); $$ = $1;']
             ['terminal'. '$$ = [$1];']
         ]
         'terminal' [

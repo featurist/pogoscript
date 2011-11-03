@@ -160,9 +160,12 @@ var concatName = function (nameSegments) {
 };
 
 var functionCall = expressionTerm('functionCall', function (fun, arguments) {
+  this.isFunctionCall = true;
+
   this.function = fun;
   this.arguments = arguments;
-  this.isFunctionCall = true;
+  this.optionalArguments = null;
+
   this.generateJavaScript = function (buffer, scope) {
     fun.generateJavaScript(buffer, scope);
     buffer.write('(');
@@ -423,7 +426,7 @@ expressionTerm('basicExpression', function(terminals) {
     });
   };
   
-  this.methodCall = function(expression) {
+  this.methodCall = function(objectExpression) {
     this.buildBlocks();
     
     var name = this.name();
@@ -432,16 +435,16 @@ expressionTerm('basicExpression', function(terminals) {
     var hasArgs = args.length > 0 || this.isNoArgumentFunctionCall();
     
     if (hasName && !hasArgs) {
-      return fieldReference(expression, name);
+      return fieldReference(objectExpression, name);
     }
     
     if (hasName && hasArgs) {
-      return methodCall(expression, name, args);
+      return methodCall(objectExpression, name, args);
     }
     
     if (!hasName && hasArgs) {
       if (args.length == 1) {
-        return indexer(expression, args[0]);
+        return indexer(objectExpression, args[0]);
       } else {
         return semanticFailure(args.slice(1), 'index only requires one argument, these are not required')
       }
@@ -580,6 +583,38 @@ expressionTerm('basicExpression', function(terminals) {
     this.terminals = _(this.terminals).filter(function(terminal) {
       return !terminal.isParameter;
     });
+  };
+});
+
+var complexExpression = expressionTerm('complexExpression', function (basicExpressionList) {
+  this.basicExpressions = basicExpressionList;
+
+  this.headExpression = function () {
+    return this.basicExpressions[0];
+  };
+
+  this.tailExpressions = function () {
+    return this.basicExpressions.slice(1);
+  }
+
+  this.expression = function () {
+    var funcCall = this.headExpression().expression();
+    funcCall.optionalArguments = _.map(this.tailExpressions(), function (optArg) {
+      return optArg.hashEntry();
+    });
+    return funcCall;
+  };
+
+  this.methodCall = function (objectExpression) {
+    return this.headExpression().methodCall(objectExpression);
+  };
+
+  this.definitionTarget = function (expression) {
+    return this.headExpression().definitionTarget(expression);
+  };
+
+  this.objectDefinitionTarget = function (objectExpression, expression) {
+    return this.headExpression().objectDefinitionTarget(objectExpression, expression);
   };
 });
 

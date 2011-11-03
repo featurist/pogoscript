@@ -139,6 +139,22 @@ spec 'parser'
                         body #{statements [#{variable ['y']}]}
                         parameters [#{parameter ['y']}]
                 ]
+
+        spec 'function call with two optional arguments'
+            (expression 'name @a, port 34, server @s') should contain fields #
+                function #{variable ['name']}
+                arguments [
+                    #{variable ['a']}
+                ]
+                optional arguments [
+                    #
+                        field ['port']
+                        value #{integer 34}
+
+                    #
+                        field ['server']
+                        value #{variable ['s']}
+                ]
     
     spec 'object operations'
         spec 'method call'
