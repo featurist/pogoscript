@@ -28,6 +28,7 @@ grammar = #
             ['\\['. 'return ''['';']
             ['\\]'. 'return '']'';']
             ['$'. 'return ''eof'';']
+            ['#'. 'return ''#'';']
             ['''([^'']*'''')*[^'']*'''. 'return ''string'';']
             ['.'. 'return ''non_token'';']
         ]
@@ -45,6 +46,11 @@ grammar = #
         ]
         'statements' [
             ['statements_list'. '$$ = yy.statements($1);']
+        ]
+        'hash_entries' [
+            ['hash_entries , basic_expression'. '$1.push($3.hashEntry()); $$ = $1;']
+            ['basic_expression'. '$$ = [$1.hashEntry()];']
+            [''. '$$ = [];']
         ]
         'statements_list' [
             ['statements_list . expression'. '$1.push($3); $$ = $1;']
@@ -68,6 +74,7 @@ grammar = #
             ['( expression )'. '$$ = $2;']
             ['{ statements }'. '$$ = yy.block([], $2);']
             ['[ statements_list ]'. '$$ = yy.list($2);']
+            ['# { hash_entries }'. '$$ = yy.hash($3);']
             ['float'. '$$ = yy.float(parseFloat(yytext));']
             ['integer'. '$$ = yy.integer(parseInt(yytext));']
             ['identifier'. '$$ = yy.identifier(yytext);']

@@ -641,6 +641,12 @@ var isLegalJavaScriptIdentifier = function(id) {
   return /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(id);
 };
 
+exports.hashEntries = function (entries) {
+  return _.map(entries, function (entry) {
+    return entry.hashEntry();
+  });
+};
+
 var hashEntry = expressionTerm('hashEntry', function(field, value) {
   this.field = field;
   this.value = value;
@@ -766,7 +772,7 @@ var forEach = expressionTerm('forEach', function(collection, itemVariable, stmts
   ]);
 });
 
-macros.addMacro(['for', 'each', 'in', 'do'], function(basicExpression) {
+var createForEach = function (basicExpression) {
   var args = basicExpression.arguments();
   var collection = args[0];
   var block = args[1];
@@ -774,7 +780,10 @@ macros.addMacro(['for', 'each', 'in', 'do'], function(basicExpression) {
   var itemVariable = block.parameters[0].parameter;
   
   return forEach(collection, itemVariable, block.body);
-});
+};
+
+macros.addMacro(['for', 'each', 'in', 'do'], createForEach);
+macros.addMacro(['for', 'each', 'in'], createForEach);
 
 var forStatement = expressionTerm('forStatement', function(init, test, incr, stmts) {
   this.isFor = true;
@@ -918,4 +927,28 @@ var throwStatement = expressionTerm('throwStatement', function(expr) {
 
 macros.addMacro(['throw'], function(expr) {
   return throwStatement(expr.arguments()[0]);
+});
+
+var breakStatement = expressionTerm('breakStatement', function () {
+  this.isBreak = true;
+  this.generateJavaScriptStatement = function (buffer, scope) {
+    buffer.write('break;');
+  };
+  this.generateJavaScriptReturn = this.generateJavaScriptStatement;
+});
+
+macros.addMacro(['break'], function(expr) {
+  return breakStatement();
+});
+
+var continueStatement = expressionTerm('continueStatement', function () {
+  this.isContinue = true;
+  this.generateJavaScriptStatement = function (buffer, scope) {
+    buffer.write('continue;');
+  };
+  this.generateJavaScriptReturn = this.generateJavaScriptStatement;
+});
+
+macros.addMacro(['continue'], function(expr) {
+  return continueStatement();
 });

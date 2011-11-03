@@ -232,6 +232,30 @@ spec('code generator', function () {
       generatesReturnExpression(m, 'throw a;');
     });
   });
+
+  spec('break', function () {
+    spec('as statement', function () {
+      var m = cg.breakStatement(cg.variable(['a']));
+      generatesStatement(m, 'break;');
+    });
+    
+    spec('as return', function () {
+      var m = cg.breakStatement(cg.variable(['a']));
+      generatesReturnExpression(m, 'break;');
+    });
+  });
+
+  spec('continue', function () {
+    spec('as statement', function () {
+      var m = cg.continueStatement(cg.variable(['a']));
+      generatesStatement(m, 'continue;');
+    });
+    
+    spec('as return', function () {
+      var m = cg.continueStatement(cg.variable(['a']));
+      generatesReturnExpression(m, 'continue;');
+    });
+  });
   
   spec('if', function () {
     spec('if statement', function () {

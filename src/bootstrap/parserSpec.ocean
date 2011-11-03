@@ -64,6 +64,47 @@ spec 'parser'
                         #{integer 1}
                         #{integer 2}
                     ]
+        
+        spec 'hashes'
+            spec 'empty hash'
+                (expression '#{}') should contain fields #
+                    is hash
+                    entries []
+                    
+            spec 'hash with one entry'
+                (expression '#{port 1234}') should contain fields #
+                    is hash
+                    entries [
+                        #
+                            field ['port']
+                            value #{integer 1234}
+                    ]
+                    
+            spec 'hash with two entries'
+                (expression '#{port 1234, ip address ''1.1.1.1''}') should contain fields #
+                    is hash
+                    entries [
+                        #
+                            field ['port']
+                            value #{integer 1234}
+                            
+                        #
+                            field ['ip'. 'address']
+                            value #{string '1.1.1.1'}
+                    ]
+                    
+            spec 'hash with true entry'
+                (expression '#{port 1234, readonly}') should contain fields #
+                    is hash
+                    entries [
+                        #
+                            field ['port']
+                            value #{integer 1234}
+                            
+                        #
+                            field ['readonly']
+                            value #{boolean @true}
+                    ]
 
     spec 'function calls'
         spec 'function call'

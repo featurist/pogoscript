@@ -610,6 +610,18 @@ spec('parser', function () {
           expression: {integer: 5}
         });
       });
+      
+      spec('break', function() {
+        assertExpression('break', {
+          isBreak: true
+        });
+      });
+      
+      spec('continue', function() {
+        assertExpression('continue', {
+          isContinue: true
+        });
+      });
     });
     
     spec('variable', function () {
