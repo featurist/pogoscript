@@ -194,6 +194,8 @@ var block = expressionTerm('block', function (parameters, body, dontReturnLastSt
   this.isBlock = true;
   this.dontReturnLastStatement = dontReturnLastStatement;
   this.parameters = parameters;
+  this.optionalParameters = null;
+
   this.generateJavaScript = function (buffer, scope) {
     buffer.write('function(');
     var first = true;
@@ -518,7 +520,7 @@ expressionTerm('basicExpression', function(terminals) {
   
     if (params.length > 0) {
       if (!source.isBlock) {
-        return block(params, source);
+        return block(params, statements([source]));
       } else {
         source.parameters = params;
         return source;
@@ -602,22 +604,49 @@ var complexExpression = expressionTerm('complexExpression', function (basicExpre
 
   this.tailExpressions = function () {
     return this.basicExpressions.slice(1);
+  };
+
+  this.hasTail = function () {
+    return this.tailExpressions().length > 0;
   }
+
+  this.hashEntries = function () {
+    return _.map(this.tailExpressions(), function (optArg) {
+      return optArg.hashEntry();
+    });
+  };
 
   this.expression = function () {
     var funcCall = this.headExpression().expression();
-    funcCall.optionalArguments = _.map(this.tailExpressions(), function (optArg) {
-      return optArg.hashEntry();
-    });
+    funcCall.optionalArguments = this.hashEntries();
     return funcCall;
   };
 
   this.methodCall = function (objectExpression) {
-    return this.headExpression().methodCall(objectExpression);
+    var objectOperation = this.headExpression().methodCall(objectExpression);
+
+    if (objectOperation.isMethodCall) {
+      objectOperation.optionalArguments = this.hashEntries();
+    } else if (this.hasTail()) {
+      return semanticFailure(this.tailExpressions(), 'only method calls can have optional arguments')
+    }
+
+    return objectOperation;
   };
 
   this.definitionTarget = function (expression) {
-    return this.headExpression().definitionTarget(expression);
+    var def = this.headExpression().definitionTarget(expression);
+    
+    if (this.hasTail()) {
+      if (def.source.isBlock) {
+        def.source.optionalParameters = this.hashEntries();
+      } else {
+        def.source = block([], statements([def.source]));
+        def.source.optionalParameters = this.hashEntries();
+      }
+    }
+
+    return def;
   };
 
   this.objectDefinitionTarget = function (objectExpression, expression) {

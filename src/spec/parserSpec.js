@@ -549,7 +549,7 @@ spec('parser', function () {
           assertExpression('identity ?a = a', {
             index: 15,
             target: {variable: ['identity']},
-            source: {parameters: [{parameter: ['a']}], body: {variable: ['a']}}
+            source: {parameters: [{parameter: ['a']}], body: {statements: [{variable: ['a']}]}}
           });
         });
         
@@ -571,7 +571,7 @@ spec('parser', function () {
               object: {variable: ['object']},
               name: ['method']
             },
-            source: {parameters: [{parameter: ['p']}], body: {variable: ['p']}}
+            source: {parameters: [{parameter: ['p']}], body: {statements: [{variable: ['p']}]}}
           });
         });
         

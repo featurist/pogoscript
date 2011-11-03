@@ -164,6 +164,16 @@ spec 'parser'
                 name ['method']
                 arguments [#{variable ['argument']}]
         
+        spec 'method call with optional arguments'
+            (expression 'object: method @argument, view @view') should contain fields #
+                is method call
+                object #{variable ['object']}
+                name ['method']
+                arguments [#{variable ['argument']}]
+                optional arguments [
+                    #{field ['view'], value #{variable ['view']}}
+                ]
+        
         spec 'field reference'
             (expression 'object: field') should contain fields #
                 is field reference
@@ -208,6 +218,24 @@ spec 'parser'
                 is definition
                 target #{variable ['x']}
                 source #{variable ['y']}
+
+        spec 'function definition'
+            spec 'function with one parameter'
+                (expression 'func ?x = x') should contain fields #
+                    is definition
+                    target #{variable ['func']}
+                    source #
+                        parameters [#{parameter ['x']}]
+                        body #{statements [#{variable ['x']}]}
+
+            spec 'function with one parameter, and one optional parameter'
+                (expression 'func ?x, port 80 = x') should contain fields #
+                    is definition
+                    target #{variable ['func']}
+                    source #
+                        parameters [#{parameter ['x']}]
+                        optional parameters [#{field ['port'], value #{integer 80}}]
+                        body #{statements [#{variable ['x']}]}
 
         spec 'field assignment'
             (expression 'o: x = y') should contain fields #
