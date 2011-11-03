@@ -208,9 +208,17 @@ spec('code generator', function () {
   });
   
   spec('method call', function () {
-    var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff'])]);
-    
-    generatesExpression(m, 'console.log(stuff)');
+    spec('method call', function () {
+      var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff'])]);
+      
+      generatesExpression(m, 'console.log(stuff)');
+    });
+
+    spec('method call with optional argument', function () {
+      var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff'])], [cg.hashEntry(['port'], cg.integer(45))]);
+      
+      generatesExpression(m, 'console.log(stuff,{port:45})');
+    });
   });
   
   spec('indexer', function () {

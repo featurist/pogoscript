@@ -169,22 +169,7 @@ var functionCall = expressionTerm('functionCall', function (fun, args, optionalA
   this.generateJavaScript = function (buffer, scope) {
     fun.generateJavaScript(buffer, scope);
     buffer.write('(');
-    var first = true;
-    _(this.arguments).each(function (arg) {
-      if (!first) {
-        buffer.write(',');
-      }
-      first = false;
-      arg.generateJavaScript(buffer, scope);
-    });
-
-    if (this.optionalArguments && this.optionalArguments.length > 0) {
-      if (!first) {
-        buffer.write(',');
-      }
-      hash(this.optionalArguments).generateJavaScript(buffer, scope);
-    }
-    
+    writeToBufferWithDelimiter(argsAndOptionalArgs(this.arguments, this.optionalArguments), ',', buffer, scope);
     buffer.write(')');
   };
 });
@@ -231,17 +216,29 @@ var writeToBufferWithDelimiter = function (array, delimiter, buffer, scope, writ
   });
 };
 
-var methodCall = expressionTerm('methodCall', function (object, name, arguments) {
+var argsAndOptionalArgs = function (args, optionalArgs) {
+  var a = args.slice();
+
+  if (optionalArgs && optionalArgs.length > 0) {
+    a.push(hash(optionalArgs));
+  }
+
+  return a;
+};
+
+var methodCall = expressionTerm('methodCall', function (object, name, arguments, optionalArguments) {
   this.isMethodCall = true;
   this.object = object;
   this.name = name;
   this.arguments = arguments;
+  this.optionalArguments = optionalArguments;
+
   this.generateJavaScript = function (buffer, scope) {
     this.object.generateJavaScript(buffer, scope);
     buffer.write('.');
     buffer.write(concatName(this.name));
     buffer.write('(');
-    writeToBufferWithDelimiter(this.arguments, ',', buffer, scope);
+    writeToBufferWithDelimiter(argsAndOptionalArgs(this.arguments, this.optionalArguments), ',', buffer, scope);
     buffer.write(')');
   };
   
@@ -339,7 +336,7 @@ expressionTerm('module', function (statements) {
   this.isModule = true;
   
   this.generateJavaScript = function (buffer, scope) {
-    functionCall(subExpression(block([], this.statements, true))).generateJavaScript(buffer, new Scope());
+    functionCall(subExpression(block([], this.statements, true)), []).generateJavaScript(buffer, new Scope());
   };
 });
 
