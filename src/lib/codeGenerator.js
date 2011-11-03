@@ -159,12 +159,12 @@ var concatName = function (nameSegments) {
   return name;
 };
 
-var functionCall = expressionTerm('functionCall', function (fun, arguments) {
+var functionCall = expressionTerm('functionCall', function (fun, args, optionalArgs) {
   this.isFunctionCall = true;
 
   this.function = fun;
-  this.arguments = arguments;
-  this.optionalArguments = null;
+  this.arguments = args;
+  this.optionalArguments = optionalArgs;
 
   this.generateJavaScript = function (buffer, scope) {
     fun.generateJavaScript(buffer, scope);
@@ -177,6 +177,13 @@ var functionCall = expressionTerm('functionCall', function (fun, arguments) {
       first = false;
       arg.generateJavaScript(buffer, scope);
     });
+
+    if (this.optionalArguments && this.optionalArguments.length > 0) {
+      if (!first) {
+        buffer.write(',');
+      }
+      hash(this.optionalArguments).generateJavaScript(buffer, scope);
+    }
     
     buffer.write(')');
   };

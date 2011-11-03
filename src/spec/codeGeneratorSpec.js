@@ -49,6 +49,22 @@ spec('code generator', function () {
       
       generatesExpression(f, 'f(a,b)');
     });
+    
+    spec('with no arguments and an optional argument', function () {
+      var f = cg.functionCall(cg.variable(['f']), [], [cg.hashEntry(['port'], cg.variable(['p']))]);
+      
+      generatesExpression(f, 'f({port:p})');
+    });
+    
+    spec('with an argument and two optional arguments', function () {
+      var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a'])],
+        [
+          cg.hashEntry(['port'], cg.variable(['p'])),
+          cg.hashEntry(['server'], cg.variable(['s']))
+        ]);
+      
+      generatesExpression(f, 'f(a,{port:p,server:s})');
+    });
   });
   
   spec('string', function() {
