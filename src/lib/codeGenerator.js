@@ -174,24 +174,63 @@ var functionCall = expressionTerm('functionCall', function (fun, args, optionalA
   };
 });
 
+var optional = expressionTerm('optional', function (options, name, defaultValue) {
+  this.options = options;
+  this.name = name;
+  this.defaultValue = defaultValue;
+
+  this.generateJavaScript = function (buffer, scope) {
+    buffer.write('(');
+    this.options.generateJavaScript(buffer, scope);
+    buffer.write('&&typeof ');
+    this.options.generateJavaScript(buffer, scope);
+    buffer.write('.' + concatName(this.name) + "!='undefined')?");
+    this.options.generateJavaScript(buffer, scope);
+    buffer.write('.' + concatName(this.name) + ':');
+    defaultValue.generateJavaScript(buffer, scope);
+  };
+});
+
 var block = expressionTerm('block', function (parameters, body, dontReturnLastStatement) {
   this.body = body;
   this.isBlock = true;
   this.dontReturnLastStatement = dontReturnLastStatement;
   this.parameters = parameters;
   this.optionalParameters = null;
+  this.hasOptionalParmeters = function () {
+    return this.optionalParameters && this.optionalParameters.length > 0;
+  };
+
+  this.bodyWithOptionals = function () {
+    if (this.hasOptionalParmeters()) {
+      var stmts = this.body.statements.slice();
+      var options = this.optionParameter;
+
+      _.each(this.optionalParameters, function (parm) {
+        stmts.unshift(definition(variable(parm.field), optional(options, parm.field, parm.value)));
+      });
+      return statements(stmts);
+    } else {
+      return this.body;
+    }
+  };
+
+  this.allParameters = function () {
+    var parms = this.parameters.slice();
+    
+    if (this.hasOptionalParmeters()) {
+      this.optionParameter = generatedVariable(['options']);
+      parms.push(this.optionParameter);
+    }
+
+    return parms;
+  };
 
   this.generateJavaScript = function (buffer, scope) {
     buffer.write('function(');
-    var first = true;
-    _(this.parameters).each(function (parameter) {
-      if (!first) {
-        buffer.write(',');
-      }
-      first = false;
-      parameter.generateJavaScript(buffer, scope);
-    });
+    writeToBufferWithDelimiter(this.allParameters(), ',', buffer, scope);
     buffer.write('){');
+    var body = this.bodyWithOptionals();
     if (this.dontReturnLastStatement) {
       body.generateJavaScript(buffer, scope.subScope());
     } else {

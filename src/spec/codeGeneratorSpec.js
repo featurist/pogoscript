@@ -114,6 +114,23 @@ spec('code generator', function () {
       
       generatesExpression(b, 'function(x,y){y(x);return x;}');
     });
+    
+    spec('with a parameter and two optional parameters', function () {
+      var b = cg.block(
+        [
+          cg.parameter(['x']),
+          cg.parameter(['y'])
+        ],
+        cg.statements([
+          cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]),
+          cg.variable(['x'])
+        ])
+      );
+
+      b.optionalParameters = [cg.hashEntry(['port'], cg.integer(80))];
+      
+      generatesExpression(b, "function(x,y,gen1_options){var port;port=(gen1_options&&typeof gen1_options.port!='undefined')?gen1_options.port:80;y(x);return x;}");
+    });
   });
   
   spec('statements', function () {
