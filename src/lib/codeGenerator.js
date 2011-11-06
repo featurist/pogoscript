@@ -446,15 +446,12 @@ var definition = expressionTerm('definition', function (target, source) {
 });
 
 expressionTerm('basicExpression', function(terminals) {
-  var isVariableExpression;
-  
   this.terminals = terminals;
   
   this.isVariableExpression = function () {
-    return _.isUndefined(isVariableExpression)?
-      (isVariableExpression = _(this.terminals).all(function (terminal) {
-        return terminal.identifier;
-      })): isVariableExpression;
+    return _(this.terminals).all(function (terminal) {
+      return terminal.identifier;
+    });
   };
   
   this.variable = function () {
@@ -498,11 +495,12 @@ expressionTerm('basicExpression', function(terminals) {
     return semanticFailure([this], "basic expression with no name and no arguments, how'd that happen?");
   };
   
-  this.expression = function () {
+  this.expression = function (optionalArguments) {
     this.buildBlocks();
     var terminals = this.terminals;
 
     var name = this.name();
+    var hasOptionalArguments = optionalArguments && optionalArguments.length > 0;
 
     if (name.length == 0 && terminals.length > 1) {
       return functionCall(terminals[0], terminals.splice(1));
@@ -513,7 +511,7 @@ expressionTerm('basicExpression', function(terminals) {
       return createMacro(this);
     }
 
-    if (this.isVariableExpression()) {
+    if (this.isVariableExpression() && !hasOptionalArguments) {
       return this.variable();
     }
 
@@ -525,7 +523,7 @@ expressionTerm('basicExpression', function(terminals) {
 
     var arguments = this.arguments();
 
-    if (isNoArgCall && arguments.length > 0) {
+    if (isNoArgCall && (arguments.length > 0 || hasOptionalArguments)) {
       return semanticFailure([this], "this function has arguments and an exclaimation mark (implying no arguments)");
     }
 
@@ -653,7 +651,7 @@ var complexExpression = expressionTerm('complexExpression', function (basicExpre
   };
 
   this.expression = function () {
-    var funcCall = this.headExpression().expression();
+    var funcCall = this.headExpression().expression(this.hashEntries());
     funcCall.optionalArguments = this.hashEntries();
     return funcCall;
   };

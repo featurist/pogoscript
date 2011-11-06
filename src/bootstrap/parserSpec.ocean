@@ -155,6 +155,16 @@ spec 'parser'
                         field ['server']
                         value #{variable ['s']}
                 ]
+
+        spec 'function call with no arguments and one optional argument'
+            (expression 'start server, port 34') should contain fields #
+                function #{variable ['start'. 'server']}
+                arguments []
+                optional arguments [
+                    #
+                        field ['port']
+                        value #{integer 34}
+                ]
     
     spec 'object operations'
         spec 'method call'
