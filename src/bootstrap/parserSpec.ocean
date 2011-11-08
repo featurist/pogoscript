@@ -45,6 +45,65 @@ spec 'parser'
                 (expression '''''''alright!'''' he said''') should contain fields #
                     is string
                     string '''alright!'' he said'
+
+        spec 'interpolated strings'
+            spec 'simple'
+                (expression '"a string"') should contain fields #
+                    is interpolated string
+                    components [
+                        #{string 'a string'}
+                    ]
+
+            spec 'null string'
+                (expression '""') should contain fields #
+                    is interpolated string
+                    components [
+                    ]
+
+            spec 'with single identifier variable'
+                (expression '"a boat @length meters in length"') should contain fields #
+                    is interpolated string
+                    components [
+                        #{string 'a boat '}
+                        #{variable ['length']}
+                        #{string ' meters in length'}
+                    ]
+
+            spec 'with single variable expression'
+                (expression '"a boat @(boat length) meters in length"') should contain fields #
+                    is interpolated string
+                    components [
+                        #{string 'a boat '}
+                        #{variable ['boat'. 'length']}
+                        #{string ' meters in length'}
+                    ]
+
+            spec 'with complex expression'
+                (expression '"a boat @(lookup boat length from (boat database)) meters in length"') should contain fields #
+                    is interpolated string
+                    components [
+                        #{string 'a boat '}
+                        #
+                            function #{variable ['lookup'. 'boat'. 'length'. 'from']}
+                            arguments [#{variable ['boat'. 'database']}]
+
+                        #{string ' meters in length'}
+                    ]
+
+            spec 'with inner interpolation'
+                (expression '"a boat @("@(boat length) meters") in length"') should contain fields #
+                    is interpolated string
+                    components [
+                        #{string 'a boat '}
+                        #
+                            is interpolated string
+                            components [
+                                #{variable ['boat'. 'length']}
+                                #{string ' meters'}
+                            ]
+
+                        #{string ' in length'}
+                    ]
         
         spec 'lists'
             spec 'empty'

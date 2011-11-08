@@ -103,11 +103,16 @@ var formatJavaScriptString = function(s) {
   return "'" + s.replace(/'/g, "\\'") + "'";
 };
 
+expressionTerm('interpolatedString', function (value) {
+  this.isInterpolatedString = true;
+  this.components = value;
+});
+
 var normaliseString = exports.normaliseString = function(s) {
   return s.substring(1, s.length - 1).replace(/''/g, "'");
 };
 
-expressionTerm('string', function(value) {
+var string = expressionTerm('string', function(value) {
   this.isString = true;
   this.string = value;
   this.generateJavaScript = function(buffer, scope) {
@@ -652,7 +657,9 @@ var complexExpression = expressionTerm('complexExpression', function (basicExpre
 
   this.expression = function () {
     var funcCall = this.headExpression().expression(this.hashEntries());
-    funcCall.optionalArguments = this.hashEntries();
+    if (funcCall.isFunctionCall) {
+      funcCall.optionalArguments = this.hashEntries();
+    }
     return funcCall;
   };
 
@@ -1057,3 +1064,31 @@ var continueStatement = expressionTerm('continueStatement', function () {
 macros.addMacro(['continue'], function(expr) {
   return continueStatement();
 });
+
+var interpolation = exports.interpolation = new function () {
+  this.stack = [];
+
+  this.startInterpolation = function () {
+    this.stack.unshift({brackets: 0});
+  };
+
+  this.openBracket = function () {
+    this.stack[0].brackets++;
+  };
+
+  this.closeBracket = function () {
+    this.stack[0].brackets--;
+  };
+
+  this.finishedInterpolation = function () {
+    return this.stack[0].brackets < 0;
+  };
+
+  this.stopInterpolation = function () {
+    this.stack.shift();
+  };
+
+  this.interpolating = function () {
+    return this.stack.length > 0;
+  };
+};
