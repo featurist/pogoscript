@@ -106,6 +106,27 @@ var formatJavaScriptString = function(s) {
 expressionTerm('interpolatedString', function (value) {
   this.isInterpolatedString = true;
   this.components = value;
+
+  this.componentsDelimitedByStrings = function () {
+    var comps = [];
+    var lastComponentWasExpression = false;
+
+    _.each(this.components, function (component) {
+      if (lastComponentWasExpression) {
+        comps.push(string(''));
+      }
+
+      comps.push(component);
+
+      lastComponentWasExpression = !component.isString;
+    });
+
+    return comps;
+  };
+
+  this.generateJavaScript = function (buffer, scope) {
+    writeToBufferWithDelimiter(this.componentsDelimitedByStrings(), '+', buffer, scope);
+  };
 });
 
 var normaliseString = exports.normaliseString = function(s) {

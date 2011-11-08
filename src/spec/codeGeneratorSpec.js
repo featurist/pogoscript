@@ -79,6 +79,20 @@ spec('code generator', function () {
       generatesExpression(s, "'his name was \\'Sue\\'. weird'");
     });
   });
+
+  spec('interpolated strings', function () {
+    spec('one string', function () {
+      var s = cg.interpolatedString([cg.string("a string")]);
+
+      generatesExpression(s, "'a string'");
+    });
+
+    spec('two expressions', function () {
+      var s = cg.interpolatedString([cg.variable(['x']), cg.variable(['y'])]);
+
+      generatesExpression(s, "x+''+y");
+    });
+  });
   
   spec('operator', function() {
     var s = cg.operator('*', [cg.variable(['a']), cg.integer(8)]);
