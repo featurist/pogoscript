@@ -18,6 +18,8 @@ grammar = #
             ['@' + (identifier pattern). 'return ''argument'';']
             ['\\?' + (identifier pattern). 'return ''parameter'';']
             [identifier pattern. 'return ''identifier'';']
+            ['[\\+\\*/^%~-][\\+\\*/^%~!=-]*'. 'return ''identifier'';']
+            ['[=!][\\+\\*/^%~!=-]+'. 'return ''identifier'';']
             ['='. 'return ''='';']
             [','. 'return '','';']
             [':'. 'return '':'';']
@@ -56,9 +58,13 @@ grammar = #
             ['statements_list'. '$$ = yy.statements($1);']
         ]
         'hash_entries' [
-            ['hash_entries , basic_expression'. '$1.push($3.hashEntry()); $$ = $1;']
+            ['hash_entries comma_dot basic_expression'. '$1.push($3.hashEntry()); $$ = $1;']
             ['basic_expression'. '$$ = [$1.hashEntry()];']
             [''. '$$ = [];']
+        ]
+        comma_dot [
+            ['.'. '$$ = $1;']
+            [','. '$$ = $1;']
         ]
         'statements_list' [
             ['statements_list . expression'. '$1.push($3); $$ = $1;']

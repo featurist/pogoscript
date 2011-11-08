@@ -31,9 +31,14 @@ spec 'parser'
             (expression '5.6') should contain fields #
                 float 5.6
 
-        spec 'variable'
-            (expression 'total weight') should contain fields #
-                variable ['total'. 'weight']
+        spec 'variables'
+            spec 'simple'
+                (expression 'total weight') should contain fields #
+                    variable ['total'. 'weight']
+
+            spec 'operators'
+                (expression '+ * / - ^ % != == !== ~') should contain fields #
+                    variable ['+'. '*'. '/'. '-'. '^'. '%'. '!='. '=='. '!=='. '~']
         
         spec 'strings'
             spec 'simple string'
@@ -141,6 +146,19 @@ spec 'parser'
                     
             spec 'hash with two entries'
                 (expression '#{port 1234, ip address ''1.1.1.1''}') should contain fields #
+                    is hash
+                    entries [
+                        #
+                            field ['port']
+                            value #{integer 1234}
+                            
+                        #
+                            field ['ip'. 'address']
+                            value #{string '1.1.1.1'}
+                    ]
+                    
+            spec 'hash with two entries on different lines'
+                (expression '#{port 1234. ip address ''1.1.1.1''}') should contain fields #
                     is hash
                     entries [
                         #
