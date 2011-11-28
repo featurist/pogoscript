@@ -69,14 +69,17 @@ Well, you can use brackets if you want nested function calls:
 
 ## Operators
 
-Operators are just functions that happen to have exotic names like `+` and `*`:
+Operators are just functions that happen to have exotic names like `+` and `*`.
 
-    5 + 4
-    @x + @y
+	5 + 4
+
+However, unlike normal functions, they don't require `@` symbols on their arguments:
+
+	total weight + 56
 
 There's no precedence so brackets will have to be used:
 
-    total height = (@header + (@item * @count)) + @footer
+    total height = (header + (item * count)) + footer
 
 But no precedence makes for a very simple and extendible language - a small price to pay.
 
@@ -210,10 +213,10 @@ Which is the usual mental async code that node hackers are used to. Better it be
 
 ## Functions without Arguments
 
-Calling a function with no arguments is done with the exclamation mark (`!`):
+Calling a function with no arguments is done with the exclamation mark (`!`), or a question mark (`?`):
 
     update page!
-    time = current time!
+    time = current time?
 
 ## Method Calls
 
@@ -235,14 +238,14 @@ The colon makes for a concise way to access module items:
 
 The colon can be used to express chains of method calls:
 
-    list: map ?i into {@i + 1}: include ?i where {@i < 5}: each ?i do {console: log @i}
+    list: map ?i into {i + 1}: include ?i where {i < 5}: each ?i do {console: log @i}
 
 And
 
     list: map ?i into {
-        @i + 1
+        i + 1
     }: include ?i where {
-        @i < 5
+        i < 5
     }: each ?i do {
         console: log @i
     }
@@ -490,7 +493,7 @@ The `catch` is able to catch exceptions thrown from each of the async calls. The
     try
         do 10 times
             contents = ~ @fs read file "example.txt"
-            print lines in @contents that match re:/connect/
+            print lines in @contents that match r"connect"
     finally
         console: log "finished"
 
@@ -576,18 +579,18 @@ To set it, put it on the left side of the assignment:
 
 Statements are one per line:
 
-    length = @width * @height
+    length = width * height
     do stuff!
 
 But if you want to put several statements onto one line, use the dot (`.`).
 
-    length = @width * @height. do stuff!
+    length = width * height. do stuff!
 
 # Macros
 
 Macros can be defined allowing code to be rewritten before it is compiled.
 
-    macro (++ ?i) =
+    macro (++ i) =
         assuming @i
             is variable
                 assignment with target @i and source (operator @i plus (integer 1))
@@ -595,7 +598,7 @@ Macros can be defined allowing code to be rewritten before it is compiled.
 Allowing the following code:
     
     x = 4
-    ++ @x
+    ++x
 
 To be rewritten as:
 
@@ -854,7 +857,7 @@ becomes
 If there are parameters in the call, they are added to the closest block to the right, so:
 
     map each ?item in @list to
-        @item + 10
+        item + 10
 
 becomes
 
