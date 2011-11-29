@@ -119,25 +119,25 @@ If a block is followed by another line, that line is part of the same function c
     
     do
         print @item
-        item = @item + 1
-    while {@item < 10}
+        item = item + 1
+    while {item < 10}
 
 This is interpreted as one function call:
 
-    do {print @item. item = @item + 1} while {@item < 10}
+    do {print @item. item = item + 1} while {item < 10}
 
 To write two statements, put an empty line below the block. For example, this `do` `while` isn't really a `do` `while`:
 
     do
         print @item
-        item = @item + 1
+        item = item + 1
     
-    while {@item < 10}
+    while {item < 10}
 
 This is interpreted as two function calls, one for the `do` and the other for the `while`:
 
-    do {print @item. item = @item + 1}
-    while {@item < 10}
+    do {print @item. item = item + 1}
+    while {item < 10}
 
 This syntax allows us to write control structures with regular functions and blocks that look indistinguishable from the built-in control structures. These functions can be macros too, allowing us to rewrite expressions at compile time. See below for more information on macros.
 
@@ -254,18 +254,18 @@ And, even:
 
     list:
         map ?i into
-            @i + 1
+            i + 1
         include ?i where
-            @i < 5
+            i < 5
         each ?i do
             console: log @i
     
 Are the same as:
 
     mapped = list: map ?i into
-        @i + 1
+        i + 1
     filtered = mapped: include ?i where
-        @i < 5
+        i < 5
     filtered: each ?i do
         console: log @i
 
@@ -320,15 +320,15 @@ To express a lambda without declaring it, specify its parameters with the questi
 
 In fact, there are several ways to define a function, all these are identical:
 
-    succ ?n = @n + 1
+    succ ?n = n + 1
     
     succ ?n =
-        @n + 1
+        n + 1
     
-    succ = ?n {@n + 1}
+    succ = ?n {n + 1}
     
     succ = ?n
-        @n + 1
+        n + 1
     
     succ = ? + 1
 
@@ -388,7 +388,7 @@ And to use it:
     server: listen 3000 "127.0.0.1"
 
     ~ wait for condition, check every (1 second)
-        (number of requests) > 500
+        number of requests > 500
         
     console: log "we hit 500 requests!"
     server: close!
@@ -539,7 +539,7 @@ Public definitions are accessible from outside the object, these are declared on
     create clickable element ?n = object
         public name = n
         
-        element = $ ('#' + @name)
+        element = $ ('#' + name)
         
         element: click
             alert @name
@@ -621,6 +621,7 @@ This is defined like this:
             assuming @call
                 is function call with name ?name and arguments ?arguments
                     method call on object @object with name @name and arguments @arguments
+
         statements (method calls)
 
 And would result in the following code:
@@ -761,12 +762,12 @@ Referencing a hash follows the same syntax as referencing a list, only it can us
 
 The usual control flow statements are all implemented using functions, there is no special syntax for these. For example, the humble `if` statement:
 
-    if (@x > 0)
+    if (x > 0)
         print "x is greater than zero"
 
 Is easily implemented by a built-in function. If-else is as you'd expect too:
 
-    if (@x > 0)
+    if (x > 0)
         print "x is greater than zero"
     else
         print "x is less than or equal to zero"
@@ -799,7 +800,7 @@ As it happens, this would be a built in function. Of course, we'd need to define
 
 If one _doesn't_ want the next statement to be part of the same function, then put an blank line in between:
 
-    if (@x > 0)
+    if (x > 0)
         print "x is greater than zero"
 
     another statement with @x
