@@ -32,7 +32,7 @@ PogoScript is a language optimised for readability. It's also a language that co
 
     my favourite book = library: find book with title containing "dark"
 
-The idea is to trick you into thinking you're reading English. For this Pogo allows spaces in function, method and variable names. In terms of JavaScript, the names get compressed down into camel case names: so `add book` becomes `addBook`. But its not just about putting spaces back into names, its also about where you put the arguments, in Pogo, arguments can be placed anywhere in a function or method's name:
+The idea is to trick you into thinking you're reading English. For this Pogo allows spaces in function, method and variable names. In terms of JavaScript, the names get compressed down into camel case names: so `add book` becomes `addBook`. But it's not just about putting spaces back into names, it's also about where you put the arguments, in Pogo, arguments can be placed anywhere in a function or method's name:
 
     select from @list if ?select =
         included items = []
