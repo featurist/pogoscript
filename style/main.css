@@ -43,6 +43,7 @@ h1.pogo {
   margin-left: auto;
   margin-bottom: 0.4em;
   float:none;
+  color: #FF2C74;
 }
 .content {
   width: 600px;
@@ -50,7 +51,7 @@ h1.pogo {
 }
 h1, h2, h3, h4 {
     background-color: #798256;
-    color: #FF2C74;
+    color: #A12320;
     margin-left: -25px;
     display:inline-block;
 }

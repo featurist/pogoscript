@@ -2,7 +2,7 @@
 layout: main
 ---
 
-# What is it?
+## What is it?
 
 PogoScript is a language optimised for readability. It's also a language that compiles to JavaScript, so it shares all the dynamic loveliness of JavaScript.
 
