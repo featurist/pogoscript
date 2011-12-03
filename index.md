@@ -8,19 +8,18 @@ PogoScript is a language optimised for readability. It's also a language that co
 
 ## Ok, what does it look like?
 
-    library =
-        object
-            :books = []
+    library = object
+        :books = []
 
-            :add book ?book =
-                books: push @book
+        :add book ?book =
+            books: push @book
 
-            :find book with title containing (a portion of a title) =
-                title regex = re/.*@(a portion of a title).*/i
+        :find book with title containing (a portion of a title) =
+            title regex = re/.*@(a portion of a title).*/i
 
-                for each ?book in (:books)
-                    if (title regex: test (book:title))
-                        return @book
+            for each ?book in (:books)
+                if (title regex: test (book:title))
+                    return @book
 
     new book with title ?:title, :number of pages = object {}
 
