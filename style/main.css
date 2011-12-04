@@ -16,7 +16,7 @@ body {
   font-family: sans-serif;
 }
 .pogo-word {
-  background-color: #FF2C74;
+  background-color: #A12320;
   color: #798256;
   padding: 0pt 0pt 10pt 10pt;
   -webkit-border-radius: 10px;
@@ -25,7 +25,6 @@ body {
 }
 header {
   background-color: #798256;
-  color: #FF2C74;
   text-align: center;
   padding: 0.5em;
 }
@@ -43,7 +42,6 @@ h1.pogo {
   margin-left: auto;
   margin-bottom: 0.4em;
   float:none;
-  color: #FF2C74;
 }
 .content {
   width: 600px;
