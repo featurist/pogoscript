@@ -26,7 +26,7 @@ PogoScript is a language optimised for readability. It's also a language that co
     library: add book with title "Heart of Darkness",
         number of pages 96
 
-The idea is to trick you into thinking you're not reading code. Spaces are allowed in identifiers - no more word conjugation hacks like camel case, hyphens or underscores. Also arguments (and indeed block parameters) can be placed anywhere in a function call. Careful placement of an argument can give it a _lot_ of meaning:
+The idea is to trick you into thinking you're not reading code. Spaces are allowed in identifiers - no more word conjugation hacks like camel case, hyphens or underscores. Arguments (and indeed block parameters) can be placed anywhere in a function call. Careful placement of an argument can give it a _lot_ of meaning:
 
     select from @list if (is selected) =
         included items = []
