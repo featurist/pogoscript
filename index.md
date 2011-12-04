@@ -11,14 +11,14 @@ PogoScript is a language optimised for readability. It's also a language that co
     library = object
         :books = []
 
-        :add book ?book =
+        :add book @book =
             :books: push @book
 
-    new book with title ?title, number of pages = object
+    new book with title @title, number of pages = object
         :title = title
         :number of pages = number of pages
 
-    library: add book with title ?title, details ... =
+    library: add book with title @title, details ... =
         add book (new book with title @title, details ...)
 
     library: add book with title "Wuthering Heights",
@@ -28,7 +28,7 @@ PogoScript is a language optimised for readability. It's also a language that co
 
 The idea is to trick you into thinking you're not reading code. Spaces are allowed in identifiers - no more word conjugation hacks like camel case, hyphens or underscores. Also arguments (and indeed block parameters) can be placed anywhere in a function call. Careful placement of an argument can give it a _lot_ of meaning:
 
-    select from ?list if (is selected) =
+    select from @list if (is selected) =
         included items = []
 
         for each ?item in @list
@@ -37,7 +37,7 @@ The idea is to trick you into thinking you're not reading code. Spaces are allow
 
         included items
 
-    library: select books with more than ?minimum pages =
+    library: select books with more than @minimum pages =
         select ?book from @books if
             book: number of pages > minimum
 
