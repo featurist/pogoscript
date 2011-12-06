@@ -5,7 +5,7 @@ var containsFields = exports.containsFields = function (actual, expected, key, o
   var inspectedOriginalActual = util.inspect(originalActual);
   
   if (typeof(expected) == 'object') {
-    assert.ok(typeof(actual) == 'object', 'in ' + inspectedOriginalActual + ', expected ' + key + ' ' + util.inspect(actual) + ' to be an object');
+    assert.ok(typeof(actual) == 'object' && actual !== null, 'in ' + inspectedOriginalActual + ', expected ' + key + ' ' + util.inspect(actual) + ' to be an object');
     
     var parentKey;
     if (key) {
