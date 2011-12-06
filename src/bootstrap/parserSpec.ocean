@@ -354,3 +354,31 @@ spec 'parser'
                         variable ['y']
 
                     name ['z']
+
+        spec 'assignment from method call'
+            (expression 'x = y: z @a') should contain fields #
+                is definition
+                target #{variable ['x']}
+                source #
+                    is method call
+                    object #
+                        variable ['y']
+
+                    name ['z']
+                    arguments [#{variable ['a']}]
+
+        spec 'field assignment from method call'
+            (expression 'i: x = y: z @a') should contain fields #
+                is definition
+                target #
+                    is field reference
+                    object #{variable ['i']}
+                    name ['x']
+
+                source #
+                    is method call
+                    object #
+                        variable ['y']
+
+                    name ['z']
+                    arguments [#{variable ['a']}]
