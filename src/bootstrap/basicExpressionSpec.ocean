@@ -14,6 +14,11 @@ spec 'basic expression'
   variable = cg: variable ['a']
   block = cg: block [] (cg: statements [variable])
   id ?name = cg: identifier @name
+  int ?n =
+    cg: integer @n
+    
+  string ?n =
+    cg: string @n
   
   spec 'has arguments'
     spec 'with one variable'
@@ -75,3 +80,25 @@ spec 'basic expression'
       
     spec 'with two identifiers and arg'
       terminals [id 'car'. cg: variable ['car']. id 'idle'] should have name ['car'. 'idle']
+
+  spec 'hash entry'
+    hash entry ?terminals should contain fields ?f =
+      (cg: basic expression @terminals: hash entry!) should contain fields @f
+  
+    spec 'with an argument'
+      hash entry [id 'port'. int 10] should contain fields #
+        is hash entry
+        field ['port']
+        value #{integer 10}
+  
+    spec 'without an argument'
+      hash entry [id 'port'] should contain fields #
+        is hash entry
+        field ['port']
+        value #{boolean @true}
+  
+    spec 'with a string name'
+      hash entry [string 'the port'. int 8] should contain fields #
+        is hash entry
+        field ['the port']
+        value #{integer 8}

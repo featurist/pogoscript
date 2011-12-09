@@ -1,0 +1,56 @@
+require 'cupoftea'
+cg = require './codeGenerator/codeGenerator'
+require './assertions.ocean'
+
+int ?n =
+  cg: integer @n
+
+id ?name = cg: identifier @name
+
+variable ?name = cg: variable [name]
+
+expression ?e should contain fields ?f =
+  (cg: complex expression @e: expression!) should contain fields @f
+
+spec 'complex expression'
+  spec 'has arguments'
+    expression ?e should have arguments =
+      (cg: complex expression @e: has arguments!) should be truthy
+    
+    spec 'with arguments in head'
+      expression [[id 'a'. int 10]] should have arguments
+
+  spec 'expression'
+    spec 'with just one argument is that argument'
+      expression [[int 9]] should contain fields #
+        is integer
+        integer 9
+
+    spec 'with name is variable'
+      expression [[id 'a'. id 'variable']] should contain fields #
+        is variable
+        variable ['a'. 'variable']
+
+    spec 'with name and argument is function call'
+      expression [[id 'a'. id 'variable'. int 10]] should contain fields #
+        is function call
+        function #{is variable. variable ['a'. 'variable']}
+        arguments [#{integer 10}]
+
+    spec 'with name and optional args is function call with optional args'
+      expression [[id 'a'. id 'variable']. [id 'port'. int 80]] should contain fields #
+        is function call
+        function #{is variable. variable ['a'. 'variable']}
+        arguments []
+        optional arguments [#{field ['port'], value #{integer 80}}]
+
+  spec 'object operation -> expression'
+    expression ?object ?operation should contain fields ?fields =
+      (cg: complex expression @operation: object operation @object: expression!) should contain fields @fields
+  
+    spec 'method call'
+      expression (variable 'a') [[id 'method'. int 10]] should contain fields #
+        is method call
+        object #{variable ['a']}
+        name ['method']
+        arguments [#{integer 10}]

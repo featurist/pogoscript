@@ -1,3 +1,4 @@
+var cg = require('../../lib/codeGenerator');
 var _ = require('underscore');
 var semanticFailure = require('../../lib/semanticFailure');
 
@@ -43,6 +44,23 @@ module.exports = function (terminals) {
           parameters = [];
         }
       });
+    };
+    
+    this.hashEntry = function () {
+      var args = this.arguments();
+      var name = this.name();
+
+      if (name.length > 0 && args.length == 1) {
+        return cg.hashEntry(name, args[0]);
+      }
+
+      if (name.length > 0 && args.length == 0) {
+        return cg.hashEntry(name, cg.boolean(true));
+      }
+      
+      if (name.length == 0 && args.length == 2 && args[0].isString) {
+        return cg.hashEntry([args[0].string], args[1])
+      }
     };
   };
 };

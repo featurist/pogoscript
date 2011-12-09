@@ -79,7 +79,9 @@ exports.identifier = function (name) {
 };
 
 var integer = expressionTerm('integer', function (value) {
+  this.isInteger = true;
   this.integer = value;
+  
   this.generateJavaScript = function (buffer, scope) {
     buffer.write(this.integer.toString());
   };
@@ -846,8 +848,10 @@ exports.hashEntries = function (entries) {
 };
 
 var hashEntry = expressionTerm('hashEntry', function(field, value) {
+  this.isHashEntry = true;
   this.field = field;
   this.value = value;
+  
   this.generateJavaScriptHashEntry = function(buffer, scope) {
     var f = concatName(this.field);
     if (isLegalJavaScriptIdentifier(f)) {
