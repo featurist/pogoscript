@@ -4,6 +4,7 @@ var ms = require('./memorystream');
 var _ = require('underscore');
 var uglify = require('uglify-js');
 var errorOutput = require('./errorOutput');
+var util = require('util');
 
 var parseArguments = function(args) {
   return {
@@ -38,6 +39,7 @@ var parse = function(source) {
 };
 
 var printError = function(filename, source, error) {
+  console.log(util.inspect(error, undefined, 10));
   error.printError(new SourceFile(filename, source));
   
   process.stderr.write(error.message + '\n');

@@ -880,6 +880,10 @@ spec('parser', function () {
       assert.containsFields(parser.parsePartial(i, src), expectedTerm);
     };
     
+    spec('simple', function() {
+      shouldParse('func\n  block1', {function: [{identifier: 'func'}], block: [{identifier: 'block1'}]});
+    });
+    
     spec('normal', function() {
       shouldParse('func\n  block1\n  block2\nout', {function: [{identifier: 'func'}], block: [{identifier: 'block1'}, {identifier: 'block2'}]});
     });
@@ -894,7 +898,13 @@ spec('parser', function () {
   });
   
   spec('module', function() {
-    assert.containsFields(parser.parse(parser.module, 'one!\ntwo!\n'), {statements: {statements: [{function: {variable: ['one']}}, {function: {variable: ['two']}}]}});
+    spec('with function with block', function() {
+      assert.containsFields(parser.parse(parser.module, "one 'hi'\n  two!"), {statements: {statements: [{function: {variable: ['one']}}]}});
+    });
+    
+    spec('with two statements', function() {
+      assert.containsFields(parser.parse(parser.module, 'one!\ntwo!\n'), {statements: {statements: [{function: {variable: ['one']}}, {function: {variable: ['two']}}]}});
+    });
   });
   
   spec('context', function () {

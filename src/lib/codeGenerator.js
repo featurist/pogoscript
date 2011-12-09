@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var util = require('util');
 
 var parseError = exports.parseError = function (term, message, expected) {
   expected = expected || [];
@@ -25,7 +26,15 @@ var ExpressionPrototype = new function () {
     return [];
   };
   this.definitionName = function(scope) {
-  }
+  };
+  this.show = function (desc) {
+    var inspectedTerm = util.inspect(this, false, 10);
+    if (desc) {
+      console.log(desc, inspectedTerm);
+    } else {
+      console.log(inspectedTerm);
+    }
+  };
 };
 
 var addWalker = function () {
@@ -61,19 +70,7 @@ var expressionTerm = function (name, constructor) {
   };
 };
 
-var semanticFailure = expressionTerm('semanticFailure', function(terms, message) {
-  this.isSemanticFailure = true;
-  this.terms = terms;
-  this.message = message;
-  this.generateJavaScript = function(buffer, scope) {
-    throw this;
-  };
-  this.printError = function(sourceFile) {
-    process.stdout.write(this.message + '\n');
-    process.stdout.write('\n');
-    sourceFile.printIndex(this.index);
-  }
-});
+var semanticFailure = require('./semanticFailure');
 
 exports.identifier = function (name) {
   return {
@@ -451,7 +448,7 @@ var definition = expressionTerm('definition', function (target, source) {
   this.target = target;
   this.source = source;
   this.isDefinition = true;
-  
+
   this.generateJavaScript = function (buffer, scope) {
     target.generateJavaScriptTarget(buffer, scope);
     buffer.write('=');
@@ -470,6 +467,22 @@ var definition = expressionTerm('definition', function (target, source) {
   
   addWalker(this, 'target', 'source');
 });
+  
+var makeSourceWithParameters = function(source, params, optionalParams) {
+  if (params.length > 0 || (optionalParams && optionalParams.length > 0)) {
+    if (!source.isBlock) {
+      var b = block(params, statements([source]));
+      b.optionalParameters = optionalParams;
+      return b;
+    } else {
+      source.parameters = params;
+      source.optionalParameters = optionalParams;
+      return source;
+    }
+  } else {
+    return source;
+  }
+};
 
 expressionTerm('basicExpression', function(terminals) {
   this.terminals = terminals;
@@ -574,19 +587,19 @@ expressionTerm('basicExpression', function(terminals) {
       return hashEntry([args[0].string], args[1]);
     }
   };
-  
-  this.makeSourceWithParameters = function(source) {
-    var params = this.parameters();
-  
-    if (params.length > 0) {
-      if (!source.isBlock) {
-        return block(params, statements([source]));
-      } else {
-        source.parameters = params;
-        return source;
-      }
+
+  this.target = function () {
+    var name = this.name();
+    var arguments = this.arguments();
+    
+    if (arguments.length > 0) {
+      return semanticFailure(arguments, 'these arguments cannot be used in definitions');
+    }
+    
+    if (name.length > 0) {
+      return definitionTarget(variable(this.name()), this.parameters());
     } else {
-      return source;
+      return semanticFailure(this.terminals, 'no name for definition');
     }
   };
   
@@ -599,7 +612,7 @@ expressionTerm('basicExpression', function(terminals) {
     }
     
     if (name.length > 0) {
-      return definition(variable(this.name()), this.makeSourceWithParameters(source));
+      return definition(variable(this.name()), makeSourceWithParameters(source, this.parameters()));
     } else {
       return semanticFailure(this.terminals, 'no name for definition');
     }
@@ -611,7 +624,7 @@ expressionTerm('basicExpression', function(terminals) {
   
   this.objectDefinitionTarget = function(expression, source) {
     if (this.hasNameAndNoArguments()) {
-      return definition(fieldReference(expression, this.name()), this.makeSourceWithParameters(source));
+      return definition(fieldReference(expression, this.name()), makeSourceWithParameters(source, this.parameters()));
     } else if (this.isTerminalExpression()) {
       return definition(indexer(expression, this.terminal()), source);
     } else {
@@ -629,6 +642,10 @@ expressionTerm('basicExpression', function(terminals) {
   
   this.isNoArgumentFunctionCall = function() {
     return this.terminals[this.terminals.length - 1].noArgumentFunctionCallSuffix;
+  };
+  
+  this.hasArguments = function () {
+    return this.arguments().length > 0;
   };
   
   this.arguments = function() {
@@ -655,7 +672,46 @@ expressionTerm('basicExpression', function(terminals) {
   };
 });
 
+expressionTerm('definitionTarget', function (target, parameters, optionalParameters) {
+  this.target = target;
+  this.parameters = parameters;
+  this.optionalParameters = optionalParameters;
+  this.isTarget = target;
+
+  this.definition = function (source) {
+    return definition(this.target, makeSourceWithParameters(source.expression(), this.parameters, this.optionalParameters));
+  };
+});
+
+expressionTerm('objectOperationExpression', function (object, operation) {
+  this.isObjectOperationExpression = true;
+  this.object = object;
+  this.operation = operation;
+
+  this.operation.show('operation');
+  this.show('objectOperationExpression');
+
+  this.expression = function () {
+    return this.operation.objectOperation(this.object.expression());
+  };
+
+  this.target = function () {
+    return definitionTarget(this.operation.objectOperationTarget(this.object), this.operation.parameters());
+  };
+});
+
+expressionTerm('definitionExpression', function (target, source) {
+  this.isDefinitionExpression = true;
+  this.target = target;
+  this.source = source;
+
+  this.expression = function () {
+    return this.target.target().definition(this.source);
+  };
+});
+
 var complexExpression = expressionTerm('complexExpression', function (basicExpressionList) {
+  this.isComplexExpression = true;
   this.basicExpressions = basicExpressionList;
 
   this.headExpression = function () {
@@ -684,6 +740,12 @@ var complexExpression = expressionTerm('complexExpression', function (basicExpre
     return funcCall;
   };
 
+  this.target = function () {
+    var t = this.headExpression().target();
+    t.optionalParameters = this.hashEntries();
+    return t;
+  };
+
   this.methodCall = function (objectExpression) {
     var objectOperation = this.headExpression().methodCall(objectExpression);
 
@@ -695,6 +757,7 @@ var complexExpression = expressionTerm('complexExpression', function (basicExpre
 
     return objectOperation;
   };
+  this.objectOperation = this.methodCall;
 
   this.definitionTarget = function (expression) {
     var def = this.headExpression().definitionTarget(expression);
@@ -714,6 +777,8 @@ var complexExpression = expressionTerm('complexExpression', function (basicExpre
   this.objectDefinitionTarget = function (objectExpression, expression) {
     return this.headExpression().objectDefinitionTarget(objectExpression, expression);
   };
+
+  this.objectOperationTarget = this.objectDefinitionTarget;
 });
 
 var MacroDirectory = exports.MacroDirectory = function () {

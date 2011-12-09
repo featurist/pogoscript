@@ -1,0 +1,77 @@
+require 'cupoftea'
+cg = require './codeGenerator/codeGenerator'
+require './assertions.ocean'
+
+spec 'basic expression'
+  with terminals ?terminals should not have arguments =
+    ex = cg: basic expression @terminals
+    (ex: has arguments!) should be falsy
+    
+  with terminals ?terminals should have arguments =
+    ex = cg: basic expression @terminals
+    (ex: has arguments!) should be truthy
+  
+  variable = cg: variable ['a']
+  block = cg: block [] (cg: statements [variable])
+  id ?name = cg: identifier @name
+  
+  spec 'has arguments'
+    spec 'with one variable'
+      with terminals [variable] should have arguments
+    
+    spec 'with a block'
+      with terminals [block] should have arguments
+    
+    spec 'with name and a block'
+      with terminals [id 'c'. block] should have arguments
+      
+  spec 'doesnt have arguments'
+    spec 'with just an identifier'
+      with terminals [id 'a'] should not have arguments
+      
+    spec 'with two identifiers'
+      with terminals [id 'a'. id 'b'] should not have arguments
+
+  spec 'arguments'
+    terminals ?terminals should have arguments ?arguments =
+      (cg: basic expression @terminals: arguments!) should contain fields @arguments
+    
+    spec 'single variable'
+      terminals [variable] should have arguments [variable]
+    
+    spec 'variable with name'
+      terminals [id 'move'. variable] should have arguments [variable]
+    
+    spec 'block'
+      terminals [block] should have arguments [#{
+        is block
+        body #{
+          statements [#{is variable, variable ['a']}]
+        }
+      }]
+    
+    spec 'block with a parameter'
+      terminals [cg: parameter ['x']. block] should have arguments [#{
+        is block
+        parameters [#{is parameter, parameter ['x']}]
+        body #{
+          statements [#{is variable, variable ['a']}]
+        }
+      }]
+    
+  spec 'has name'
+    terminals ?terminals should have a name =
+      (cg: basic expression @terminals: has name!) should be truthy
+
+    spec 'with two identifiers'
+      terminals [id 'car'. id 'idle'] should have a name
+
+  spec 'name'
+    terminals ?terminals should have name ?name =
+      (cg: basic expression @terminals: name!) should contain fields @name
+      
+    spec 'with two identifiers'
+      terminals [id 'car'. id 'idle'] should have name ['car'. 'idle']
+      
+    spec 'with two identifiers and arg'
+      terminals [id 'car'. cg: variable ['car']. id 'idle'] should have name ['car'. 'idle']

@@ -114,7 +114,7 @@ var ParseFailure = function(expected, index, context, message) {
     process.stdout.write('\n');
     process.stderr.write('\nexpected:\n');
 
-    _.each(error.expected, function (ex) {
+    _.each(this.expected, function (ex) {
       if (ex.parserName) {
         process.stderr.write(ex.parserName + '\n');
       } else {
@@ -127,7 +127,7 @@ var ParseFailure = function(expected, index, context, message) {
 }
 
 var parseFailure = function(expected, index, context, message) {
-  return {isError: true, expected: expected, index: index, context: context, message: message};
+  return new ParseFailure(expected, index, context, message);
 };
 
 var createParser = function (name, originalRe, createTerm, dontIgnoreWhitespace) {

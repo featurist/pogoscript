@@ -51,13 +51,13 @@ grammar = #
     start 'module'
 
     bnf #
-        'module' [
+        module [
             ['statements eof'. 'return yy.module($1);']
         ]
-        'statements' [
+        statements [
             ['statements_list'. '$$ = yy.statements($1);']
         ]
-        'hash_entries' [
+        hash_entries [
             ['hash_entries comma_dot basic_expression'. '$1.push($3.hashEntry()); $$ = $1;']
             ['basic_expression'. '$$ = [$1.hashEntry()];']
             [''. '$$ = [];']
@@ -66,33 +66,35 @@ grammar = #
             ['.'. '$$ = $1;']
             [','. '$$ = $1;']
         ]
-        'statements_list' [
-            ['statements_list . expression'. '$1.push($3); $$ = $1;']
-            ['expression'. '$$ = [$1];']
+        statements_list [
+            ['statements_list . statement'. '$1.push($3); $$ = $1;']
+            ['statement'. '$$ = [$1];']
             [''. '$$ = [];']
         ]
-        'expression' [
-            ['expression : complex_expression'. '$$ = $3.methodCall($1);']
-            ['complex_expression = expression'. '$$ = $1.definitionTarget($3);']
-            ['expression : complex_expression = expression'. '$$ = $3.objectDefinitionTarget($1, $5);']
-            ['complex_expression'. '$$ = $1.expression();']
+        statement [
+            ['expression'. '$$ = $1.expression();']
         ]
-        'complex_expression' [
+        expression [
+            ['expression : expression'. '$$ = yy.objectOperationExpression($1, $3);']
+            ['expression = expression'. '$$ = yy.definitionExpression($1, $3);']
+            ['complex_expression'. '$$ = $1;']
+        ]
+        complex_expression [
             ['basic_expression_list'. '$$ = yy.complexExpression($1);']
         ]
-        'basic_expression_list' [
+        basic_expression_list [
             ['basic_expression_list , basic_expression'. '$1.push($3); $$ = $1;']
             ['basic_expression'. '$$ = [$1];']
         ]
-        'basic_expression' [
+        basic_expression [
             ['terminal_list'. '$$ = yy.basicExpression($1);']
         ]
-        'terminal_list' [
+        terminal_list [
             ['terminal_list terminal'. '$1.push($2); $$ = $1;']
             ['terminal'. '$$ = [$1];']
         ]
-        'terminal' [
-            ['( expression )'. '$$ = $2;']
+        terminal [
+            ['( statement )'. '$$ = $2;']
             ['{ statements }'. '$$ = yy.block([], $2);']
             ['[ statements_list ]'. '$$ = yy.list($2);']
             ['# { hash_entries }'. '$$ = yy.hash($3);']
@@ -105,19 +107,19 @@ grammar = #
             ['interpolated_string'. '$$ = $1;']
             ['!'. '$$ = yy.noArgSuffix();']
         ]
-        'interpolated_terminal' [
-            ['( expression )'. '$$ = $2;']
+        interpolated_terminal [
+            ['( statement )'. '$$ = $2;']
             ['identifier'. '$$ = yy.variable([$1]);']
         ]
-        'interpolated_string' [
+        interpolated_string [
             ['start_interpolated_string interpolated_string_components end_interpolated_string'. '$$ = yy.interpolatedString($2);']
             ['start_interpolated_string end_interpolated_string'. '$$ = yy.interpolatedString([]);']
         ]
-        'interpolated_string_components' [
+        interpolated_string_components [
             ['interpolated_string_components interpolated_string_component'. '$1.push($2); $$ = $1;']
             ['interpolated_string_component'. '$$ = [$1];']
         ]
-        'interpolated_string_component' [
+        interpolated_string_component [
             ['interpolated_string_terminal_start interpolated_terminal'. '$$ = $2;']
             ['interpolated_string_body'. '$$ = yy.string($1);']
         ]
