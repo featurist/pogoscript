@@ -11,15 +11,23 @@ module.exports = function (terminals) {
     };
     
     this.name = function () {
-      return this._name || this._name || _(this.terminals).filter(function (terminal) {
+      return this._name || (this._name = _(this.terminals).filter(function (terminal) {
         return terminal.identifier;
       }).map(function (identifier) {
         return identifier.identifier;
-      });
+      }));
+    };
+    
+    this.containsCallPunctuation = function () {
+      return this._containsCallPunctuation || (this._containsCallPunctuation =
+        this.terminals[this.terminals.length - 1].noArgumentFunctionCallSuffix
+      );
     };
     
     this.hasArguments = function () {
-      return this.arguments().length > 0;
+      return this._hasArguments || (this._hasArguments =
+        this.arguments().length > 0 || this.containsCallPunctuation()
+      );
     };
 
     this.arguments = function() {

@@ -131,3 +131,55 @@ spec 'complex expression'
         source #
           is variable
           variable ['y']
+
+  spec 'definition'
+    definition ?target ?source should contain fields ?fields =
+      (cg: complex expression @target: definition @source) should contain fields @fields
+    
+    spec 'function definition'
+      definition [[id 'function'. variable 'x']] @block should contain fields #
+        is definition
+        target #
+          is variable
+          variable ['function']
+        
+        source #
+          is block
+          parameters [#{parameter ['x']}]
+          body #{statements [#{variable ['x']}]}
+    
+    spec 'function definition with optional parameter'
+      definition [[id 'function'. variable 'x']. [id 'port'. int 80]] (variable 'y') should contain fields #
+        is definition
+        target #
+          is variable
+          variable ['function']
+        
+        source #
+          is block
+          parameters [#{parameter ['x']}]
+          optional parameters [#{field ['port'], value #{integer 80}}]
+          body #{statements [#{variable ['y']}]}
+    
+    spec 'function definition without block'
+      definition [[id 'function'. variable 'x']] (variable 'y') should contain fields #
+        is definition
+        target #
+          is variable
+          variable ['function']
+        
+        source #
+          is block
+          parameters [#{parameter ['x']}]
+          body #{statements [#{variable ['y']}]}
+    
+    spec 'variable definition'
+      definition [[id 'function']] (variable 'y') should contain fields #
+        is definition
+        target #
+          is variable
+          variable ['function']
+        
+        source #
+          is variable
+          variable ['y']

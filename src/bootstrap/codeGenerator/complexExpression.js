@@ -34,7 +34,7 @@ module.exports = function (listOfTerminals) {
     
     this.hasArguments = function () {
       return this._hasArguments || (this._hasArguments = 
-        (this.head().arguments().length > 0) || (this.optionalArguments().length > 0)
+        this.head().hasArguments() || (this.optionalArguments().length > 0)
       );
     };
     
@@ -101,7 +101,9 @@ module.exports = function (listOfTerminals) {
         expression.optionalParameters = optionalParameters;
         return expression;
       } else {
-        return cg.block(parameters, cg.statements([expression]), optionalParameters);
+        var block = cg.block(parameters, cg.statements([expression]));
+        block.optionalParameters = optionalParameters;
+        return block;
       }
     };
     
@@ -134,6 +136,16 @@ module.exports = function (listOfTerminals) {
           return this.operation.objectOperationDefinition(this.object, source);
         };
       };
+    };
+    
+    this.definition = function (source) {
+      if (this.head().hasName()) {
+        if (this.hasParameters()) {
+          return cg.definition(cg.variable(this.head().name()), this.blockify(source, this.parameters(), this.optionalParameters()));
+        } else {
+          return cg.definition(cg.variable(this.head().name()), source);
+        }
+      }
     };
   };
 };

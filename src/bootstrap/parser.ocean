@@ -1,5 +1,5 @@
 jison parser = require 'jison':Parser
-terms = require '../lib/codeGenerator'
+terms = require './codeGenerator/codeGenerator'
 ms = require '../lib/memorystream'
 
 create parser with grammar ?grammar =
@@ -75,16 +75,16 @@ grammar = #
             ['expression'. '$$ = $1.expression();']
         ]
         expression [
-            ['expression : expression'. '$$ = yy.objectOperationExpression($1, $3);']
-            ['expression = expression'. '$$ = yy.definitionExpression($1, $3);']
+            ['expression : expression'. '$$ = $3.objectOperation($1.expression());']
+            ['expression = expression'. '$$ = $1.definition($3.expression());']
             ['complex_expression'. '$$ = $1;']
         ]
         complex_expression [
             ['basic_expression_list'. '$$ = yy.complexExpression($1);']
         ]
         basic_expression_list [
-            ['basic_expression_list , basic_expression'. '$1.push($3); $$ = $1;']
-            ['basic_expression'. '$$ = [$1];']
+            ['basic_expression_list , terminal_list'. '$1.push($3); $$ = $1;']
+            ['terminal_list'. '$$ = [$1];']
         ]
         basic_expression [
             ['terminal_list'. '$$ = yy.basicExpression($1);']

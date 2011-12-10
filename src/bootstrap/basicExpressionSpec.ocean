@@ -20,6 +20,8 @@ spec 'basic expression'
   string ?n =
     cg: string @n
   
+  no arg punctuation = cg: no arg suffix!
+  
   spec 'has arguments'
     spec 'with one variable'
       with terminals [variable] should have arguments
@@ -29,6 +31,9 @@ spec 'basic expression'
     
     spec 'with name and a block'
       with terminals [id 'c'. block] should have arguments
+    
+    spec 'with name, no arguments but a no arg punctuation'
+      with terminals [id 'c'. no arg punctuation] should have arguments
       
   spec 'doesnt have arguments'
     spec 'with just an identifier'

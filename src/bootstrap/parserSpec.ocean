@@ -308,7 +308,7 @@ spec 'parser'
 
         spec 'function definition'
             spec 'function with one parameter'
-                (expression 'func ?x = x') should contain fields #
+                (expression 'func @x = x') should contain fields #
                     is definition
                     target #{variable ['func']}
                     source #
@@ -316,7 +316,7 @@ spec 'parser'
                         body #{statements [#{variable ['x']}]}
 
             spec 'function with one parameter, and one optional parameter'
-                (expression 'func ?x, port 80 = x') should contain fields #
+                (expression 'func @x, port 80 = x') should contain fields #
                     is definition
                     target #{variable ['func']}
                     source #

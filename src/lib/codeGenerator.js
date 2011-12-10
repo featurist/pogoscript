@@ -451,11 +451,16 @@ var definition = expressionTerm('definition', function (target, source) {
   this.source = source;
   this.isDefinition = true;
 
+  this.expression = function () {
+    return this;
+  };
+
   this.generateJavaScript = function (buffer, scope) {
     target.generateJavaScriptTarget(buffer, scope);
     buffer.write('=');
     source.generateJavaScript(buffer, scope);
   };
+  
   this.definitions = function (scope) {
     var defs = [];
     var t = target.definitionName(scope);
