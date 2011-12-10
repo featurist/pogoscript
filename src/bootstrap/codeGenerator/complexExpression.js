@@ -1,6 +1,7 @@
 var basicExpression = require('./basicExpression');
 var _ = require('underscore');
 var cg = require('../../lib/codeGenerator');
+var errors = require('./errors');
 
 module.exports = function (listOfTerminals) {
   return new function () {
@@ -65,6 +66,59 @@ module.exports = function (listOfTerminals) {
       }
     };
     
+    this.parameters = function () {
+      if (this._parameters) {
+        return this._parameters;
+      }
+      
+      var args = this.head().arguments();
+      var variableArgs = _(args).filter(function (arg) {
+        if (arg.isVariable) {
+          return true;
+        } else {
+          errors.addTermWithMessage(arg, 'this cannot be used as a parameter');
+          return false;
+        }
+      });
+      return this._parameters = _(variableArgs).map(function (v) {
+        return cg.parameter(v.variable);
+      });
+    };
+    
+    this.optionalParameters = function () {
+      return this.optionalArguments();
+    };
+    
+    this.hasParameters = function () {
+      return this._hasParameters || (this._hasParameters =
+        this.parameters().length > 0 || this.optionalParameters().length > 0
+      );
+    };
+    
+    this.blockify = function (expression, parameters, optionalParameters) {
+      if (expression.isBlock) {
+        expression.parameters = parameters;
+        expression.optionalParameters = optionalParameters;
+        return expression;
+      } else {
+        return cg.block(parameters, cg.statements([expression]), optionalParameters);
+      }
+    };
+    
+    this.objectOperationDefinition = function (object, source) {
+      if (this.head().hasName()) {
+        if (this.hasParameters()) {
+          return cg.definition(cg.fieldReference(object, this.head().name()), this.blockify(source, this.parameters(), this.optionalParameters()));
+        } else {
+          return cg.definition(cg.fieldReference(object, this.head().name()), source);
+        }
+      } else {
+        if (!this.hasTail() && this.head().arguments().length == 1) {
+          return cg.definition(cg.indexer(object, this.head().arguments()[0]), source);
+        }
+      }
+    };
+    
     this.objectOperation = function (object) {
       var complexExpression = this;
       
@@ -74,6 +128,10 @@ module.exports = function (listOfTerminals) {
         
         this.expression = function () {
           return this.operation.objectOperationExpression(this.object);
+        };
+        
+        this.definition = function (source) {
+          return this.operation.objectOperationDefinition(this.object, source);
         };
       };
     };
