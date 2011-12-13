@@ -1,6 +1,6 @@
 var _ = require('underscore');
 
-exports.errors = new function () {
+module.exports = new function () {
   this.errors = [];
   
   this.clear = function () {

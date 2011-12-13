@@ -35,6 +35,11 @@ var ExpressionPrototype = new function () {
       console.log(inspectedTerm);
     }
   };
+  this.blockify = function (parameters, optionalParameters) {
+    var b = block(parameters, statements([this]));
+    b.optionalParameters = optionalParameters;
+    return b;
+  };
 };
 
 var addWalker = function () {
@@ -158,6 +163,10 @@ var variable = expressionTerm('variable', function (name) {
     return this.variable;
   };
   
+  this.parameter = function () {
+    return parameter(this.variable);
+  };
+  
   addWalker(this);
 });
 
@@ -249,6 +258,12 @@ var block = expressionTerm('block', function (parameters, body, dontReturnLastSt
     }
 
     return parms;
+  };
+  
+  this.blockify = function (parameters, optionParameters) {
+    this.parameters = parameters;
+    this.optionalParameters = optionalParameters;
+    return this;
   };
 
   this.generateJavaScript = function (buffer, scope) {
@@ -376,6 +391,12 @@ var Statements = function (statements) {
   
   this.generateJavaScript = function (buffer, scope) {
     this.generateStatements(this.statements, buffer, scope);
+  };
+  
+  this.blockify = function (parameters, optionalParameters) {
+    var b = block(parameters, this);
+    b.optionalParameters = optionalParameters;
+    return b;
   };
   
   this.generateJavaScriptReturn = function (buffer, scope) {

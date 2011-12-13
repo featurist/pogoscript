@@ -18,7 +18,7 @@ grammar = #
             ['@' + (identifier pattern). 'return ''argument'';']
             ['\\?' + (identifier pattern). 'return ''parameter'';']
             [identifier pattern. 'return ''identifier'';']
-            ['[\\+\\*/^%~-][\\+\\*/^%~!=-]*'. 'return ''identifier'';']
+            ['[\\+\\*/^%~-][\\+\\*/^%~!=-]*'. 'return ''operator'';']
             ['[=!][\\+\\*/^%~!=-]+'. 'return ''identifier'';']
             ['='. 'return ''='';']
             [','. 'return '','';']
@@ -75,8 +75,15 @@ grammar = #
             ['expression'. '$$ = $1.expression();']
         ]
         expression [
-            ['expression : expression'. '$$ = $3.objectOperation($1.expression());']
             ['expression = expression'. '$$ = $1.definition($3.expression());']
+            ['operator_expression'. '$$ = $1;']
+        ]
+        operator_expression [
+            ['operator_expression operator object_operation'. '$1.addOperatorExpression($2, $3); $$ = $1;']
+            ['object_operation'. '$$ = yy.operatorExpression($1);']
+        ]
+        object_operation [
+            ['object_operation : complex_expression'. '$$ = $3.objectOperation($1.expression());']
             ['complex_expression'. '$$ = $1;']
         ]
         complex_expression [

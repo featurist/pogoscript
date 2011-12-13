@@ -35,10 +35,6 @@ spec 'parser'
             spec 'simple'
                 (expression 'total weight') should contain fields #
                     variable ['total'. 'weight']
-
-            spec 'operators'
-                (expression '+ * / - ^ % != == !== ~') should contain fields #
-                    variable ['+'. '*'. '/'. '-'. '^'. '%'. '!='. '=='. '!=='. '~']
         
         spec 'strings'
             spec 'simple string'
@@ -299,6 +295,13 @@ spec 'parser'
                         #{variable ['y']}
                     ]
 
+    spec 'operators'
+        spec 'should be lower precedence than object operation'
+            (expression 'o:m 2 +- o:x') should contain fields #
+                is function call
+                function #{variable ['+-']}
+                arguments []
+      
     spec 'assignment'
         spec 'assignment'
             (expression 'x = y') should contain fields #

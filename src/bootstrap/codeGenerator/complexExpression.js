@@ -147,5 +147,13 @@ module.exports = function (listOfTerminals) {
         }
       }
     };
+    
+    this.parameter = function () {
+      if (this.head().hasName() && !this.hasArguments()) {
+        return cg.parameter(this.head().name());
+      } else {
+        return errors.addTermWithMessage(this, 'this cannot be used as a parameter');
+      }
+    };
   };
 };

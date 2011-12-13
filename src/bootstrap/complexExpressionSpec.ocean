@@ -183,3 +183,12 @@ spec 'complex expression'
         source #
           is variable
           variable ['y']
+
+    spec 'parameter'
+        parameter ?p should contain fields ?fields =
+            (cg: complex expression @p: parameter!) should contain fields @fields
+        
+        spec 'variable'
+            parameter [[id 'a']] should contain fields #
+                is parameter
+                parameter ['a']

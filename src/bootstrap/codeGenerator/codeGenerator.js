@@ -17,3 +17,4 @@ exports.list = cg.list;
 exports.hash = cg.hash;
 exports.noArgSuffix = cg.noArgSuffix;
 exports.complexExpression = require('./complexExpression');
+exports.operatorExpression = require('./operatorExpression');
