@@ -18,3 +18,4 @@ exports.hash = cg.hash;
 exports.noArgSuffix = cg.noArgSuffix;
 exports.complexExpression = require('./complexExpression');
 exports.operatorExpression = require('./operatorExpression');
+exports.macros = require('./macros');

@@ -2,6 +2,7 @@ var basicExpression = require('./basicExpression');
 var _ = require('underscore');
 var cg = require('../../lib/codeGenerator');
 var errors = require('./errors');
+var macros = require('./macros');
 
 module.exports = function (listOfTerminals) {
   return new function () {
@@ -41,7 +42,7 @@ module.exports = function (listOfTerminals) {
     this.expression = function () {
       if (this.head().hasName()) {
         if (this.hasArguments()) {
-          return cg.functionCall(cg.variable(this.head().name()), this.head().arguments(), this.optionalArguments());
+          return macros.invocation(this.head().name(), this.head().arguments(), this.optionalArguments());
         } else {
           return cg.variable(this.head().name());
         }
@@ -91,7 +92,7 @@ module.exports = function (listOfTerminals) {
     
     this.hasParameters = function () {
       return this._hasParameters || (this._hasParameters =
-        this.parameters().length > 0 || this.optionalParameters().length > 0
+        this.head().hasParameters() || this.optionalParameters().length > 0
       );
     };
     
@@ -110,13 +111,13 @@ module.exports = function (listOfTerminals) {
     this.objectOperationDefinition = function (object, source) {
       if (this.head().hasName()) {
         if (this.hasParameters()) {
-          return cg.definition(cg.fieldReference(object, this.head().name()), this.blockify(source, this.parameters(), this.optionalParameters()));
+          return cg.definition(cg.fieldReference(object, this.head().name()), source.blockify(this.parameters(), this.optionalParameters()));
         } else {
-          return cg.definition(cg.fieldReference(object, this.head().name()), source);
+          return cg.definition(cg.fieldReference(object, this.head().name()), source.scopify());
         }
       } else {
         if (!this.hasTail() && this.head().arguments().length == 1) {
-          return cg.definition(cg.indexer(object, this.head().arguments()[0]), source);
+          return cg.definition(cg.indexer(object, this.head().arguments()[0]), source.scopify());
         }
       }
     };
@@ -141,9 +142,9 @@ module.exports = function (listOfTerminals) {
     this.definition = function (source) {
       if (this.head().hasName()) {
         if (this.hasParameters()) {
-          return cg.definition(cg.variable(this.head().name()), this.blockify(source, this.parameters(), this.optionalParameters()));
+          return cg.definition(cg.variable(this.head().name()), source.blockify(this.parameters(), this.optionalParameters()));
         } else {
-          return cg.definition(cg.variable(this.head().name()), source);
+          return cg.definition(cg.variable(this.head().name()), source.scopify());
         }
       }
     };

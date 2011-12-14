@@ -40,6 +40,9 @@ var ExpressionPrototype = new function () {
     b.optionalParameters = optionalParameters;
     return b;
   };
+  this.scopify = function () {
+    return this;
+  };
 };
 
 var addWalker = function () {
@@ -260,10 +263,14 @@ var block = expressionTerm('block', function (parameters, body, dontReturnLastSt
     return parms;
   };
   
-  this.blockify = function (parameters, optionParameters) {
+  this.blockify = function (parameters, optionalParameters) {
     this.parameters = parameters;
     this.optionalParameters = optionalParameters;
     return this;
+  };
+  
+  this.scopify = function () {
+    return functionCall(this, []);
   };
 
   this.generateJavaScript = function (buffer, scope) {
@@ -834,6 +841,16 @@ var MacroDirectory = exports.MacroDirectory = function () {
     
     if (nameTree) {
       return nameTree['create macro'];
+    }
+  };
+  
+  this.invocation = function (name, arguments, optionalArguments) {
+    var macro = this.findMacro(name);
+    
+    if (macro) {
+      return macro(name, arguments, optionalArguments);
+    } else {
+      return functionCall(variable(name), arguments, optionalArguments);
     }
   };
 };

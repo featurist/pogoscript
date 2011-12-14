@@ -13,6 +13,8 @@ parameter ?name = cg: parameter [name]
 
 block = cg: block [] (cg: statements [variable 'x'])
 
+no arg punctuation = cg: no arg suffix!
+
 expression ?e should contain fields ?f =
   (cg: complex expression @e: expression!) should contain fields @f
 
@@ -40,6 +42,10 @@ spec 'complex expression'
         is function call
         function #{is variable. variable ['a'. 'variable']}
         arguments [#{integer 10}]
+
+    spec 'finds macro'
+      expression [[id 'if'. variable. block]] should contain fields #
+        is if expression
 
     spec 'with name and optional args is function call with optional args'
       expression [[id 'a'. id 'variable']. [id 'port'. int 80]] should contain fields #
@@ -173,6 +179,18 @@ spec 'complex expression'
           parameters [#{parameter ['x']}]
           body #{statements [#{variable ['y']}]}
     
+    spec 'no arg function definition'
+      definition [[id 'function'. no arg punctuation]] (variable 'y') should contain fields #
+        is definition
+        target #
+          is variable
+          variable ['function']
+        
+        source #
+          is block
+          parameters []
+          body #{statements [#{variable ['y']}]}
+    
     spec 'variable definition'
       definition [[id 'function']] (variable 'y') should contain fields #
         is definition
@@ -183,6 +201,23 @@ spec 'complex expression'
         source #
           is variable
           variable ['y']
+
+    spec 'variable definition with scope'
+      definition [[id 'function']] (cg: block [] (cg: statements [variable 'y'])) should contain fields #
+        is definition
+        target #
+          is variable
+          variable ['function']
+        
+        source #
+          is function call
+          function #
+            is block
+            parameters []
+            body #
+                statements [#{variable ['y']}]
+        
+          arguments []
 
     spec 'parameter'
         parameter ?p should contain fields ?fields =

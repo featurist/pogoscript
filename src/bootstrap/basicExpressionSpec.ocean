@@ -68,6 +68,33 @@ spec 'basic expression'
           statements [#{is variable, variable ['a']}]
         }
       }]
+
+  spec 'parameters'
+    target ?expression has some parameters =
+      (cg: basic expression @expression: has parameters!) should be truthy
+      
+    target ?expression doesnt have some parameters =
+      (cg: basic expression @expression: has parameters!) should be falsy
+  
+    target ?expression has parameters ?parameters =
+      (cg: basic expression @expression: parameters!) should contain fields @parameters
+  
+    spec 'single name'
+      target [id 'car'] doesnt have some parameters
+  
+    spec 'name and variable'
+        spec 'has parameters'
+            target [id 'car'. variable] has some parameters
+
+        spec 'parameters'
+            target [id 'car'. variable] has parameters [#{parameter ['a']}]
+  
+    spec 'no arg punctuation'
+        spec 'has parameters'
+            target [id 'car'. no arg punctuation] has some parameters
+            
+        spec 'parameters'
+            target [id 'car'. no arg punctuation] has parameters []
     
   spec 'has name'
     terminals ?terminals should have a name =

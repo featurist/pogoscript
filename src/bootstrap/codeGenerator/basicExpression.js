@@ -1,6 +1,7 @@
 var cg = require('../../lib/codeGenerator');
 var _ = require('underscore');
 var semanticFailure = require('../../lib/semanticFailure');
+var errors = require('./errors');
 
 module.exports = function (terminals) {
   return new function () {
@@ -39,6 +40,31 @@ module.exports = function (terminals) {
           return !terminal.identifier && !terminal.noArgumentFunctionCallSuffix && !terminal.isParameter;
         });
       }
+    };
+
+    this.parameters = function () {
+      if (this._parameters) {
+        return this._parameters;
+      }
+      
+      var args = this.arguments();
+      var variableArgs = _(args).filter(function (arg) {
+        if (arg.isVariable) {
+          return true;
+        } else {
+          errors.addTermWithMessage(arg, 'this cannot be used as a parameter');
+          return false;
+        }
+      });
+      return this._parameters = _(variableArgs).map(function (v) {
+        return cg.parameter(v.variable);
+      });
+    };
+    
+    this.hasParameters = function () {
+      return this._hasParameters || (this._hasParameters =
+        this.containsCallPunctuation() || this.arguments().length > 0
+      );
     };
     
     this._buildBlocks = function () {

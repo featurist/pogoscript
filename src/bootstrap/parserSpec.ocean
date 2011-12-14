@@ -358,6 +358,26 @@ spec 'parser'
 
                     name ['z']
 
+        spec 'assignment of command'
+            (expression 'x! = 8') should contain fields #
+                is definition
+                target #{variable ['x']}
+                source #
+                    is block
+                    parameters []
+                    body #
+                        statements [#{integer 8}]
+
+        spec 'assignment of query'
+            (expression 'x? = 8') should contain fields #
+                is definition
+                target #{variable ['x']}
+                source #
+                    is block
+                    parameters []
+                    body #
+                        statements [#{integer 8}]
+
         spec 'assignment from method call'
             (expression 'x = y: z @a') should contain fields #
                 is definition
