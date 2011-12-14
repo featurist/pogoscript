@@ -19,3 +19,13 @@ exports.noArgSuffix = cg.noArgSuffix;
 exports.complexExpression = require('./complexExpression');
 exports.operatorExpression = require('./operatorExpression');
 exports.macros = require('./macros');
+
+exports.lexOperator = function (op) {
+  if (/^[:,.#=]$/.test(op)) {
+    return op;
+  } else if (/^[!?]$/.test(op)) {
+    return 'no_arg';
+  } else {
+    return 'operator';
+  }
+};
