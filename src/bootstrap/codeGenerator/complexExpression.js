@@ -5,11 +5,13 @@ var errors = require('./errors');
 var macros = require('./macros');
 
 module.exports = function (listOfTerminals) {
-  return new function () {
+  return cg.term(function () {
     this.isComplexExpression = true;
     this.basicExpressions = _(listOfTerminals).map(function (terminals) {
       return basicExpression(terminals);
     });
+    
+    this.subterms('basicExpressions');
     
     this.head = function () {
       return this._firstExpression || (this._firstExpression = this.basicExpressions[0]);
@@ -49,6 +51,8 @@ module.exports = function (listOfTerminals) {
       } else {
         if (!this.hasTail() && this.head().arguments().length == 1) {
           return this.head().arguments()[0];
+        } else {
+          return errors.addTermWithMessage(this, 'value cannot have optional arguments');
         }
       }
     };
@@ -156,5 +160,5 @@ module.exports = function (listOfTerminals) {
         return errors.addTermWithMessage(this, 'this cannot be used as a parameter');
       }
     };
-  };
+  });
 };

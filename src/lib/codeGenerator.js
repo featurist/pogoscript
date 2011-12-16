@@ -27,12 +27,14 @@ var ExpressionPrototype = new function () {
   };
   this.definitionName = function(scope) {
   };
+  this.inspectTerm = function () {
+    return util.inspect(this, false, 10);
+  };
   this.show = function (desc) {
-    var inspectedTerm = util.inspect(this, false, 10);
     if (desc) {
-      console.log(desc, inspectedTerm);
+      console.log(desc, this.inspectTerm());
     } else {
-      console.log(inspectedTerm);
+      console.log(this.inspectTerm());
     }
   };
   this.blockify = function (parameters, optionalParameters) {
@@ -43,6 +45,61 @@ var ExpressionPrototype = new function () {
   this.scopify = function () {
     return this;
   };
+
+  this.subterms = function () {
+    this._subtermNames = Array.prototype.slice.call(arguments, 0);
+  };
+  
+  this.mergeLocations = function (locations) {
+    if (locations.length <= 0) {
+      throw new Error('no locations for term: ' + this.inspectTerm() + '\n');
+    }
+    
+    firstLines = _.map(locations, function (l) {
+      return l.firstLine;
+    });
+    
+    lastLines = _.map(locations, function (l) {
+      return l.lastLine;
+    });
+    
+    firstColumns = _.map(locations, function (l) {
+      return l.firstColumn;
+    });
+    
+    lastColumns = _.map(locations, function (l) {
+      return l.lastColumn;
+    });
+    
+    return {
+      firstLine: _.min(firstLines),
+      lastLine: _.max(lastLines),
+      firstColumn: _.min(firstColumns),
+      lastColumn: _.max(lastColumns)
+    };
+  };
+  
+  this.allSubterms = function () {
+    var term = this;
+    return _.flatten(_.map(this._subtermNames, function (name) {
+      return term[name];
+    }));
+  };
+  
+  this.location = function () {
+    var term = this;
+    
+    return this._location || (this._location = (
+      term.mergeLocations(_.map(term.allSubterms(), function (subterm) {
+        return subterm.location();
+      }))
+    ));
+  };
+};
+
+var term = exports.term = function (members) {
+  members.prototype = ExpressionPrototype;
+  return new members();
 };
 
 var addWalker = function () {
@@ -86,9 +143,10 @@ exports.identifier = function (name) {
   };
 };
 
-var integer = expressionTerm('integer', function (value) {
+var integer = expressionTerm('integer', function (value, location) {
   this.isInteger = true;
   this.integer = value;
+  this.location = location;
   
   this.generateJavaScript = function (buffer, scope) {
     buffer.write(this.integer.toString());
@@ -228,10 +286,10 @@ var optional = expressionTerm('optional', function (options, name, defaultValue)
   };
 });
 
-var block = expressionTerm('block', function (parameters, body, dontReturnLastStatement) {
+var block = expressionTerm('block', function (parameters, body) {
   this.body = body;
   this.isBlock = true;
-  this.dontReturnLastStatement = dontReturnLastStatement;
+  this.dontReturnLastStatement = false;
   this.parameters = parameters;
   this.optionalParameters = null;
   this.hasOptionalParmeters = function () {
@@ -428,7 +486,9 @@ expressionTerm('module', function (statements) {
   this.isModule = true;
   
   this.generateJavaScript = function (buffer, scope) {
-    functionCall(subExpression(block([], this.statements, true)), []).generateJavaScript(buffer, new Scope());
+    var b = block([], this.statements);
+    b.dontReturnLastStatement = true;
+    functionCall(subExpression(b), []).generateJavaScript(buffer, new Scope());
   };
 });
 

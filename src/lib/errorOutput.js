@@ -17,3 +17,15 @@ var sourceIndexToLineAndColumn = exports.sourceIndexToLineAndColumn = function(s
     accumulatedIndex = newAccumulatedIndex;
   }
 };
+
+var sourceIndexToLineAndColumn = exports.sourceLocationToLineAndColumn = function(source, location) {
+  var lines = source.split(/\n/);
+  
+  if (location.first_line == location.last_line) {
+    return {
+      
+    }
+  } else {
+    
+  }
+};

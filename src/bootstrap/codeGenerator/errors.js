@@ -34,7 +34,7 @@ module.exports = new function () {
       this.printError = function(sourceFile) {
         process.stdout.write(this.message + '\n');
         process.stdout.write('\n');
-        sourceFile.printIndex(this.index);
+        sourceFile.printLocation(this.terms[0].location());
       };
     };
     this.errors.push(e);

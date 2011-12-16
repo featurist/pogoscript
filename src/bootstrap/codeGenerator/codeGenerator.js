@@ -29,3 +29,18 @@ exports.lexOperator = function (op) {
     return 'operator';
   }
 };
+
+exports.loc = function (term, location) {
+  var loc = {
+    firstLine: location.first_line,
+    lastLine: location.last_line,
+    firstColumn: location.first_column,
+    lastColumn: location.last_column
+  };
+  
+  term.location = function () {
+    return loc;
+  };
+  
+  return term;
+};

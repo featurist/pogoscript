@@ -4,8 +4,9 @@ var semanticFailure = require('../../lib/semanticFailure');
 var errors = require('./errors');
 
 module.exports = function (terminals) {
-  return new function () {
+  return cg.term(function () {
     this.terminals = terminals;
+    this.subterms('terminals');
     
     this.hasName = function () {
       return this.name().length > 0;
@@ -96,5 +97,5 @@ module.exports = function (terminals) {
         return cg.hashEntry([args[0].string], args[1])
       }
     };
-  };
+  });
 };
