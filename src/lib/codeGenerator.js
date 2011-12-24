@@ -177,7 +177,7 @@ expressionTerm('interpolatedString', function (value) {
     var lastComponentWasExpression = false;
 
     _.each(this.components, function (component) {
-      if (lastComponentWasExpression) {
+      if (lastComponentWasExpression && !component.isString) {
         comps.push(string(''));
       }
 
@@ -243,7 +243,7 @@ var parameter = expressionTerm('parameter', function (name) {
   };
 });
 
-var concatName = function (nameSegments) {
+var concatName = exports.concatName = function (nameSegments) {
   var name = nameSegments[0];
   
   for (var n = 1; n < nameSegments.length; n++) {
@@ -277,9 +277,9 @@ var optional = expressionTerm('optional', function (options, name, defaultValue)
   this.generateJavaScript = function (buffer, scope) {
     buffer.write('(');
     this.options.generateJavaScript(buffer, scope);
-    buffer.write('&&typeof ');
+    buffer.write('&&');
     this.options.generateJavaScript(buffer, scope);
-    buffer.write('.' + concatName(this.name) + "!='undefined')?");
+    buffer.write('.' + concatName(this.name) + "!=null)?");
     this.options.generateJavaScript(buffer, scope);
     buffer.write('.' + concatName(this.name) + ':');
     defaultValue.generateJavaScript(buffer, scope);
@@ -879,7 +879,7 @@ var complexExpression = expressionTerm('complexExpression', function (basicExpre
 var MacroDirectory = exports.MacroDirectory = function () {
   var nameTreeRoot = {};
   
-  this.addMacro = function(name, createMacro) {
+  this.nameNode = function (name) {
     var nameTree = nameTreeRoot;
     _(name).each(function(nameSegment) {
       if (!nameTree[nameSegment]) {
@@ -888,20 +888,60 @@ var MacroDirectory = exports.MacroDirectory = function () {
         nameTree = nameTree[nameSegment];
       }
     });
+    return nameTree;
+  };
+  
+  this.addMacro = function(name, createMacro) {
+    var nameTree = this.nameNode(name);
     nameTree['create macro'] = createMacro;
   };
   
-  this.findMacro = function(name) {
-    var nameTree = nameTreeRoot;
-    _(name).each(function(nameSegment) {
-      if (nameTree) {
-        nameTree = nameTree[nameSegment];
-      }
-    });
+  this.addWildCardMacro = function (name, matchMacro) {
+    var nameTree = this.nameNode(name);
     
-    if (nameTree) {
-      return nameTree['create macro'];
+    var matchMacros = nameTree['match macro'];
+    if (!matchMacros) {
+      matchMacros = nameTree['match macro'] = [];
     }
+    
+    matchMacros.push(matchMacro);
+  };
+  
+  this.findMacro = function(name) {
+    var findMatchingWildMacro = function (wildMacros, name) {
+      for (var n = 0; n < wildMacros.length; n++) {
+        var macro = wildMacros[n](name);
+        if (macro) {
+          return macro;
+        }
+      }
+    };
+    
+    var findMacroInTree = function (nameTree, name, index, wildMacros) {
+      if (index < name.length) {
+        var subtree = nameTree[name[index]];
+        
+        if (subtree) {
+          var matchMacros = subtree['match macro'];
+          if (matchMacros) {
+            wildMacros = matchMacros.concat(wildMacros);
+          }
+          return findMacroInTree(subtree, name, index + 1, wildMacros);
+        } else {
+          return findMatchingWildMacro(wildMacros, name);
+        }
+      } else {
+        var createMacro = nameTree['create macro'];
+        
+        if (createMacro) {
+          return nameTree['create macro'];
+        } else {
+          return findMatchingWildMacro(wildMacros, name);
+        }
+      }
+    };
+    
+    return findMacroInTree(nameTreeRoot, name, 0, []);
   };
   
   this.invocation = function (name, arguments, optionalArguments) {
@@ -965,6 +1005,13 @@ var hashEntry = expressionTerm('hashEntry', function(field, value) {
     buffer.write(':');
     this.value.generateJavaScript(buffer, scope);
   };
+});
+
+var ifCases = expressionTerm('ifCases', function (cases, _else) {
+  this.isIfExpression = true;
+  
+  this.cases = cases;
+  this._else = _else;
 });
 
 var ifExpression = expressionTerm('ifExpression', function (condition, then, _else) {
@@ -1178,8 +1225,10 @@ var operator = expressionTerm('operator', function (op, args) {
       this.arguments[0].generateJavaScript(buffer, scope);
     } else {
       this.arguments[0].generateJavaScript(buffer, scope);
-      buffer.write(op);
-      this.arguments[1].generateJavaScript(buffer, scope);
+      for(var n = 1; n < this.arguments.length; n++) {
+        buffer.write(op);
+        this.arguments[n].generateJavaScript(buffer, scope);
+      }
     }
     
     buffer.write(')');

@@ -92,17 +92,30 @@ spec('code generator', function () {
 
       generatesExpression(s, "x+''+y");
     });
+
+    spec('expression in string', function () {
+      var s = cg.interpolatedString([cg.string("before "), cg.variable(['x']), cg.string(' after')]);
+
+      generatesExpression(s, "'before '+x+' after'");
+    });
   });
   
-  spec('operator', function() {
-    var s = cg.operator('*', [cg.variable(['a']), cg.integer(8)]);
-    generatesExpression(s, "(a*8)");
-  });
-  
-  spec('unary operator', function() {
-    var s = cg.operator('-', [cg.variable(['a'])]);
-    generatesExpression(s, "(-a)");
-  });
+  spec('operators', function () {
+    spec('two argument operator', function() {
+      var s = cg.operator('*', [cg.variable(['a']), cg.integer(8)]);
+      generatesExpression(s, "(a*8)");
+    });
+
+    spec('multiple argument operator', function() {
+      var s = cg.operator('*', [cg.variable(['a']), cg.integer(8), cg.variable(['b'])]);
+      generatesExpression(s, "(a*8*b)");
+    });
+
+    spec('unary operator', function() {
+      var s = cg.operator('-', [cg.variable(['a'])]);
+      generatesExpression(s, "(-a)");
+    });
+  })
   
   spec('block', function () {
     spec('with no parameters', function () {
@@ -143,7 +156,7 @@ spec('code generator', function () {
 
       b.optionalParameters = [cg.hashEntry(['port'], cg.integer(80))];
       
-      generatesExpression(b, "function(x,y,gen1_options){var port;port=(gen1_options&&typeof gen1_options.port!='undefined')?gen1_options.port:80;y(x);return x;}");
+      generatesExpression(b, "function(x,y,gen1_options){var port;port=(gen1_options&&gen1_options.port!=null)?gen1_options.port:80;y(x);return x;}");
     });
   });
   
@@ -432,6 +445,12 @@ spec('code generator', function () {
       assert.equal(md.findMacro(['one']), 1);
     });
     
+    spec("longer name doesn't find macro with shorter name", function() {
+      var md = new cg.MacroDirectory();
+      md.addMacro(['one'], 1);
+      assert.equal(md.findMacro(['one', 'two']), undefined);
+    });
+    
     spec('finds correct macro among two', function() {
       var md = new cg.MacroDirectory();
       md.addMacro(['one'], 1);
@@ -444,6 +463,59 @@ spec('code generator', function () {
       md.addMacro(['one', 'two'], 2);
       md.addMacro(['one', 'two'], 3);
       assert.equal(md.findMacro(['one', 'two']), 3);
+    });
+    
+    spec('wild card macros', function() {
+      spec('wild card macro with further name requirement', function () {
+        var md = new cg.MacroDirectory();
+
+        var macro = {};
+
+        var wild = function (name) {
+          if (name.length == 3 && name[2] == 'three') {
+            return macro;
+          }
+        };
+
+        md.addWildCardMacro(['one', 'two'], wild);
+
+        assert.equal(md.findMacro(['one', 'two']), undefined);
+        assert.equal(md.findMacro(['one', 'two', 'three']), macro);
+        assert.equal(md.findMacro(['one', 'two', 'four']), undefined);
+      });
+      
+      spec('wild card macro with exact name', function () {
+        var md = new cg.MacroDirectory();
+
+        var macro = {};
+
+        var wild = function (name) {
+          return macro;
+        };
+
+        md.addWildCardMacro(['one', 'two'], wild);
+
+        assert.equal(md.findMacro(['one', 'two']), macro);
+      });
+      
+      spec('normal macros have priority over wild card macros', function () {
+        var md = new cg.MacroDirectory();
+
+        var macro = {};
+
+        var wild = function (name) {
+          if (name.length == 3 && name[2] == 'three') {
+            return macro;
+          }
+        };
+
+        md.addWildCardMacro(['one', 'two'], wild);
+        md.addMacro(['one', 'two', 'three'], 3);
+
+        assert.equal(md.findMacro(['one', 'two']), undefined);
+        assert.equal(md.findMacro(['one', 'two', 'three']), 3);
+        assert.equal(md.findMacro(['one', 'two', 'four']), undefined);
+      });
     });
   });
 });
