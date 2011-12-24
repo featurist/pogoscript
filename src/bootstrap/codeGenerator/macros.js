@@ -12,14 +12,28 @@ _.each(['+', '*', '/', '-', '>=', '==', '!=', '===', '!==', '<=', '<', '>'], fun
 });
 
 var createIfExpression = function(name, arguments) {
-  var _else = arguments[2];
-  var then = arguments[1];
+  var cases = [];
   
-  return cg.ifExpression(arguments[0], then.body, _else? _else.body: undefined);
+  for (var n = 0; n + 1 < arguments.length; n += 2) {
+    cases.push({condition: arguments[n], action: arguments[n + 1].body});
+  }
+  
+  var _else;
+  
+  if (arguments.length % 2 == 1) {
+    _else = arguments[arguments.length - 1].body;
+  }
+  
+  return cg.ifCases(cases, _else);
 };
 
-macros.addMacro(['if'], createIfExpression);
-macros.addMacro(['if', 'else'], createIfExpression);
+var matchIfMacro = function (name) {
+  if (/^if(ElseIf)*(Else)?$/.test(cg.concatName(name))) {
+    return createIfExpression;
+  }
+};
+
+macros.addWildCardMacro(['if'], matchIfMacro);
 
 macros.addMacro(['new'], function(name, arguments) {
   return cg.newOperator(arguments[0]);

@@ -104,8 +104,8 @@ grammar = #
             ['argument'. '$$ = yy.loc(yy.variable([yytext.substring(1)]), @$);']
             ['parameter'. '$$ = yy.loc(yy.parameter([yytext.substring(1)]), @$);']
             ['string'. '$$ = yy.loc(yy.string(yy.normaliseString(yytext)), @$);']
-            ['interpolated_string'. '$$ = yy.loc($1);']
-            ['no_arg'. '$$ = yy.loc(yy.noArgSuffix());']
+            ['interpolated_string'. '$$ = yy.loc($1, @$);']
+            ['no_arg'. '$$ = yy.loc(yy.noArgSuffix(), @$);']
         ]
         interpolated_terminal [
             ['( statement )'. '$$ = $2;']

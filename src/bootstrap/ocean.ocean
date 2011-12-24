@@ -70,7 +70,6 @@ run source ?source with filename ?filename =
     if (errors: has errors!)
         errors: print errors (index for file @filename with source @source)
     else
-        console: log 'no errors'
         js = generate js from term @term
         beautiful js = beautify @js
         console: log (beautiful js)
