@@ -345,10 +345,15 @@ var block = expressionTerm('block', function (parameters, body) {
   };
 });
 
-var writeToBufferWithDelimiter = function (array, delimiter, buffer, scope, writer) {
-  writer = writer || function (item, buffer) {
-    item.generateJavaScript(buffer, scope);
-  };
+var writeToBufferWithDelimiter = function (array, delimiter, buffer, scope) {
+  var writer;
+  if (typeof scope == 'function') {
+    writer = scope;
+  } else {
+    writer = function (item) {
+      item.generateJavaScript(buffer, scope);
+    };
+  }
   
   var first = true;
   _(array).each(function (item) {
@@ -356,7 +361,7 @@ var writeToBufferWithDelimiter = function (array, delimiter, buffer, scope, writ
       buffer.write(delimiter);
     }
     first = false;
-    writer(item, buffer);
+    writer(item);
   });
 };
 
@@ -443,8 +448,8 @@ var Statements = function (statements) {
     
     if (namesDefined.length > 0) {
       buffer.write ('var ');
-      writeToBufferWithDelimiter(namesDefined, ',', buffer, scope, function (item, b) {
-        b.write(item);
+      writeToBufferWithDelimiter(namesDefined, ',', buffer, function (item) {
+        buffer.write(item);
       });
       buffer.write(';');
     }
@@ -973,8 +978,8 @@ var hash = expressionTerm('hash', function(entries) {
   
   this.generateJavaScript = function(buffer, scope) {
     buffer.write('{');
-    writeToBufferWithDelimiter(this.entries, ',', buffer, scope, function (item, b) {
-      item.generateJavaScriptHashEntry(b, scope);
+    writeToBufferWithDelimiter(this.entries, ',', buffer, function (item) {
+      item.generateJavaScriptHashEntry(buffer, scope);
     });
     buffer.write('}');
   };
@@ -1012,6 +1017,38 @@ var ifCases = expressionTerm('ifCases', function (cases, _else) {
   
   this.cases = cases;
   this._else = _else;
+
+  this.generateJavaScriptStatement = function (buffer, scope, generateReturnStatements) {
+    writeToBufferWithDelimiter(this.cases, 'else ', buffer, function (case_) {
+      buffer.write('if(');
+      case_.condition.generateJavaScript(buffer, scope);
+      buffer.write('){');
+      if (generateReturnStatements) {
+        case_.action.generateJavaScriptReturn(buffer, scope);
+      } else {
+        case_.action.generateJavaScript(buffer, scope);
+      }
+      buffer.write('}');
+    });
+
+    if (this._else) {
+      buffer.write('else{');
+      if (generateReturnStatements) {
+        this._else.generateJavaScriptReturn(buffer, scope);
+      } else {
+        this._else.generateJavaScript(buffer, scope);
+      }
+      buffer.write('}');
+    }
+  };
+
+  this.generateJavaScript = function (buffer, scope) {
+    functionCall(subExpression(block([], statements([this]))), []).generateJavaScript(buffer, scope);
+  };
+
+  this.generateJavaScriptReturn = function (buffer, scope) {
+    this.generateJavaScriptStatement(buffer, scope, true);
+  };
 });
 
 var ifExpression = expressionTerm('ifExpression', function (condition, then, _else) {

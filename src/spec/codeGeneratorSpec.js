@@ -327,13 +327,13 @@ spec('code generator', function () {
   
   spec('if', function () {
     spec('if statement', function () {
-      var m = cg.statements([cg.ifExpression(cg.variable(['obj']), cg.statements([cg.variable(['stuff'])]))]);
+      var m = cg.statements([cg.ifCases([{condition: cg.variable(['obj']), action: cg.statements([cg.variable(['stuff'])])}])]);
     
       generatesExpression(m, 'if(obj){stuff;}');
     });
   
     spec('if expression', function () {
-      var m = cg.ifExpression(cg.variable(['obj']), cg.statements([cg.variable(['stuff'])]));
+      var m = cg.ifCases([{condition: cg.variable(['obj']), action: cg.statements([cg.variable(['stuff'])])}]);
     
       generatesExpression(m, '(function(){if(obj){return stuff;}})()');
     });
