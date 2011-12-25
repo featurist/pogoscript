@@ -290,13 +290,13 @@ var optional = expressionTerm('optional', function (options, name, defaultValue)
   };
 });
 
-var block = expressionTerm('block', function (parameters, body) {
+var block = expressionTerm('block', function (parameters, body, options) {
   this.body = body;
   this.isBlock = true;
-  this.dontReturnLastStatement = false;
+  this.returnLastStatement = options && options.returnLastStatement != null? options.returnLastStatement: true;
   this.parameters = parameters;
   this.optionalParameters = null;
-  this.redefinesSelf = false;
+  this.redefinesSelf = options && options.redefinesSelf != null? options.redefinesSelf: false;
   
   this.hasOptionalParmeters = function () {
     return this.optionalParameters && this.optionalParameters.length > 0;
@@ -360,10 +360,10 @@ var block = expressionTerm('block', function (parameters, body) {
     writeToBufferWithDelimiter(this.allParameters(), ',', buffer, scope);
     buffer.write('){');
     var body = this.completeBody();
-    if (this.dontReturnLastStatement) {
-      body.generateJavaScript(buffer, scope.subScope());
-    } else {
+    if (this.returnLastStatement) {
       body.generateJavaScriptReturn(buffer, scope.subScope());
+    } else {
+      body.generateJavaScript(buffer, scope.subScope());
     }
     buffer.write('}');
   };
@@ -515,9 +515,7 @@ var module = expressionTerm('module', function (statements) {
   this.isModule = true;
   
   this.generateJavaScript = function (buffer, scope) {
-    var b = block([], this.statements);
-    b.redefinesSelf = true;
-    b.dontReturnLastStatement = true;
+    var b = block([], this.statements, {returnLastStatement: false, redefinesSelf: true});
     functionCall(subExpression(b), []).generateJavaScript(buffer, new Scope());
   };
 });

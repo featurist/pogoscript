@@ -24,6 +24,8 @@ exports.macros = require('./macros');
 exports.lexOperator = function (op) {
   if (/^[:,.#=]$/.test(op)) {
     return op;
+  } else if (op == '=>') {
+    return op;
   } else if (/^[!?]$/.test(op)) {
     return 'no_arg';
   } else {

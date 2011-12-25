@@ -115,7 +115,9 @@ module.exports = function (listOfTerminals) {
     this.objectOperationDefinition = function (object, source) {
       if (this.head().hasName()) {
         if (this.hasParameters()) {
-          return cg.definition(cg.fieldReference(object, this.head().name()), source.blockify(this.parameters(), this.optionalParameters()));
+          var block = source.blockify(this.parameters(), this.optionalParameters());
+          block.redefinesSelf = true;
+          return cg.definition(cg.fieldReference(object, this.head().name()), block);
         } else {
           return cg.definition(cg.fieldReference(object, this.head().name()), source.scopify());
         }

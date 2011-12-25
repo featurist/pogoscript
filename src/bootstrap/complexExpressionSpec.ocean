@@ -111,6 +111,7 @@ spec 'complex expression'
         
         source #
           is block
+          redefines self
           parameters [#{parameter ['x']}]
           body #{statements [#{variable ['y']}]}
     

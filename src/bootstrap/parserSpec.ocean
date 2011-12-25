@@ -280,12 +280,14 @@ spec 'parser'
             (expression '{}') should contain fields #
                 is block
                 parameters []
+                redefines self @false
                 body #{statements []}
                 
         spec 'block'
             (expression '{x.y}') should contain fields #
                 is block
                 parameters []
+                redefines self @false
                 body #{statements [
                     #{variable ['x']}
                     #{variable ['y']}
@@ -295,6 +297,18 @@ spec 'parser'
             (expression '?x {x.y}') should contain fields #
                 is block
                 parameters [#{parameter ['x']}]
+                redefines self @false
+                body #
+                    statements [
+                        #{variable ['x']}
+                        #{variable ['y']}
+                    ]
+
+        spec 'block with parameter, redefining self'
+            (expression '?x => {x.y}') should contain fields #
+                is block
+                parameters [#{parameter ['x']}]
+                redefines self @true
                 body #
                     statements [
                         #{variable ['x']}
