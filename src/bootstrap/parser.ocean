@@ -77,6 +77,7 @@ grammar = #
         ]
         object_operation [
             ['object_operation : complex_expression'. '$$ = $3.objectOperation($1.expression());']
+            [': complex_expression'. '$$ = $2.objectOperation(yy.selfExpression());']
             ['complex_expression'. '$$ = $1;']
         ]
         complex_expression [

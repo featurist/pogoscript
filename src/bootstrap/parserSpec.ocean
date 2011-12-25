@@ -263,6 +263,12 @@ spec 'parser'
                 object #{variable ['object']}
                 name ['field']
         
+        spec 'self field reference'
+            (expression ':field') should contain fields #
+                is field reference
+                object #{variable ['self']}
+                name ['field']
+        
         spec 'indexer'
             (expression 'object: @x') should contain fields #
                 is indexer

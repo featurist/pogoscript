@@ -231,6 +231,10 @@ var variable = expressionTerm('variable', function (name) {
   addWalker(this);
 });
 
+var selfExpression = exports.selfExpression = function () {
+  return variable(['self']);
+};
+
 var noArgSuffix = expressionTerm('noArgSuffix', function () {
     this.noArgumentFunctionCallSuffix = true;
 });
@@ -292,22 +296,42 @@ var block = expressionTerm('block', function (parameters, body) {
   this.dontReturnLastStatement = false;
   this.parameters = parameters;
   this.optionalParameters = null;
+  this.redefinesSelf = false;
+  
   this.hasOptionalParmeters = function () {
     return this.optionalParameters && this.optionalParameters.length > 0;
   };
-
-  this.bodyWithOptionals = function () {
+  
+  this.statementsForOptionalParameters = function () {
     if (this.hasOptionalParmeters()) {
-      var stmts = this.body.statements.slice();
       var options = this.optionParameter;
 
-      _.each(this.optionalParameters, function (parm) {
-        stmts.unshift(definition(variable(parm.field), optional(options, parm.field, parm.value)));
+      return _.map(this.optionalParameters, function (parm) {
+        return definition(variable(parm.field), optional(options, parm.field, parm.value));
       });
-      return statements(stmts);
     } else {
-      return this.body;
+      return [];
     }
+  };
+  
+  this.statementForSelf = function () {
+    if (this.redefinesSelf) {
+      return [definition(selfExpression(), variable(['this']))];
+    } else {
+      return [];
+    }
+  };
+  
+  this.allStatements = function () {
+    return this.statementForSelf().concat(
+      this.statementsForOptionalParameters().concat(
+        this.body.statements
+      )
+    );
+  };
+  
+  this.completeBody = function () {
+    return statements(this.allStatements());
   };
 
   this.allParameters = function () {
@@ -335,7 +359,7 @@ var block = expressionTerm('block', function (parameters, body) {
     buffer.write('function(');
     writeToBufferWithDelimiter(this.allParameters(), ',', buffer, scope);
     buffer.write('){');
-    var body = this.bodyWithOptionals();
+    var body = this.completeBody();
     if (this.dontReturnLastStatement) {
       body.generateJavaScript(buffer, scope.subScope());
     } else {
@@ -486,12 +510,13 @@ var Statements = function (statements) {
   this.generateJavaScriptStatement = this.generateJavaScript;
 };
 
-expressionTerm('module', function (statements) {
+var module = expressionTerm('module', function (statements) {
   this.statements = statements;
   this.isModule = true;
   
   this.generateJavaScript = function (buffer, scope) {
     var b = block([], this.statements);
+    b.redefinesSelf = true;
     b.dontReturnLastStatement = true;
     functionCall(subExpression(b), []).generateJavaScript(buffer, new Scope());
   };

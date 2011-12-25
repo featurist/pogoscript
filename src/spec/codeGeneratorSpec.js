@@ -142,6 +142,23 @@ spec('code generator', function () {
       generatesExpression(b, 'function(x,y){y(x);return x;}');
     });
     
+    spec('block with new context', function () {
+      var b = cg.block(
+        [
+          cg.parameter(['x']),
+          cg.parameter(['y'])
+        ],
+        cg.statements([
+          cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]),
+          cg.variable(['x'])
+        ])
+      );
+      
+      b.redefinesSelf = true;
+      
+      generatesExpression(b, 'function(x,y){var self;self=this;y(x);return x;}');
+    });
+    
     spec('with a parameter and two optional parameters', function () {
       var b = cg.block(
         [
@@ -453,7 +470,7 @@ spec('code generator', function () {
         ]))])
       ]));
       
-      generatesExpression(s, '(function(){var x;x=1;f(function(){x=2;return x;});})()');
+      generatesExpression(s, '(function(){var self,x;self=this;x=1;f(function(){x=2;return x;});})()');
     });
   });
   
