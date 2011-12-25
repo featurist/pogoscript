@@ -327,9 +327,27 @@ spec('code generator', function () {
   
   spec('if', function () {
     spec('if statement', function () {
-      var m = cg.statements([cg.ifCases([{condition: cg.variable(['obj']), action: cg.statements([cg.variable(['stuff'])])}])]);
+      var m = cg.statements([cg.ifCases([{
+        condition: cg.variable(['obj']),
+        action: cg.statements([cg.variable(['stuff'])])
+      }])]);
     
       generatesExpression(m, 'if(obj){stuff;}');
+    });
+  
+    spec('if else if else statement', function () {
+      var m = cg.statements([cg.ifCases([{
+          condition: cg.variable(['x', 'ok']),
+          action: cg.statements([cg.variable(['x'])])
+        },
+        {
+          condition: cg.variable(['y', 'ok']),
+          action: cg.statements([cg.variable(['y'])])
+        }],
+        cg.statements([cg.variable(['other', 'stuff'])])
+      )]);
+    
+      generatesExpression(m, 'if(xOk){x;}else if(yOk){y;}else{otherStuff;}');
     });
   
     spec('if expression', function () {
@@ -339,9 +357,10 @@ spec('code generator', function () {
     });
   
     spec('if else statement', function () {
-      var m = cg.statements([cg.ifExpression(
-        cg.variable(['obj']),
-        cg.statements([cg.variable(['stuff'])]),
+      var m = cg.statements([cg.ifCases([{
+          condition: cg.variable(['obj']),
+          action: cg.statements([cg.variable(['stuff'])])
+        }],
         cg.statements([cg.variable(['other', 'stuff'])])
       )]);
     
@@ -349,7 +368,7 @@ spec('code generator', function () {
     });
   
     spec('if else expression', function () {
-      var m = cg.ifExpression(cg.variable(['obj']), cg.statements([cg.variable(['stuff'])]), cg.statements([cg.variable(['other', 'stuff'])]));
+      var m = cg.ifCases([{condition: cg.variable(['obj']), action: cg.statements([cg.variable(['stuff'])])}], cg.statements([cg.variable(['other', 'stuff'])]));
     
       generatesExpression(m, '(function(){if(obj){return stuff;}else{return otherStuff;}})()');
     });
