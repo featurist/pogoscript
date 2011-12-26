@@ -248,14 +248,38 @@ var parameter = expressionTerm('parameter', function (name) {
 });
 
 var concatName = exports.concatName = function (nameSegments) {
-  var name = nameSegments[0];
+  var name = '';
   
-  for (var n = 1; n < nameSegments.length; n++) {
+  for (var n = 0; n < nameSegments.length; n++) {
     var segment = nameSegments[n];
-    name += segment[0].toUpperCase() + segment.substring(1);
+    name += nameSegmentRenderedInJavaScript(segment, n == 0);
   }
   
   return name;
+};
+
+var nameSegmentRenderedInJavaScript = function (nameSegment, isFirst) {
+  if (/[_$a-zA-Z0-9]+/.test(nameSegment)) {
+    if (isFirst) {
+      return nameSegment;
+    } else {
+      return capitalise(nameSegment);
+    }
+  } else {
+    return operatorRenderedInJavaScript(nameSegment);
+  }
+};
+
+var capitalise = function (s) {
+  return s[0].toUpperCase() + s.substring(1);
+};
+
+var operatorRenderedInJavaScript = function (operator) {
+  var javaScriptName = '';
+  for (var n = 0; n < operator.length; n++) {
+    javaScriptName += '$' + operator.charCodeAt(n).toString(16);
+  }
+  return javaScriptName;
 };
 
 var functionCall = expressionTerm('functionCall', function (fun, args, optionalArgs) {

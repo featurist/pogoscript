@@ -27,9 +27,10 @@ spec 'operator expression'
         e: add operator '+-' expression (complex expression [id 'b'])
         
         (e: expression!) should contain fields #
-            is function call
-            function #{variable ['+-']}
-            arguments [#{variable ['a']}. #{variable ['b']}]
+            is method call
+            object #{variable ['a']}
+            name ['+-']
+            arguments [#{variable ['b']}]
 
     spec 'a +- b */ c'
         e = expression [id 'a']
@@ -37,9 +38,10 @@ spec 'operator expression'
         e: add operator '*/' expression (complex expression [id 'c'])
         
         (e: expression!) should contain fields #
-            is function call
-            function #{variable ['+-'. '*/']}
-            arguments [#{variable ['a']}. #{variable ['b']}. #{variable ['c']}]
+            is method call
+            object #{variable ['a']}
+            name ['+-'. '*/']
+            arguments [#{variable ['b']}. #{variable ['c']}]
     
     spec 'looks up macro'
         e = expression [id 'a']
@@ -64,8 +66,12 @@ spec 'operator expression'
             
             (e: definition (variable 'c')) should contain fields #
                 is definition
-                target #{variable ['*/']}
+                target #
+                    is field reference
+                    object #{variable ['a']}
+                    name ['*/']
+                    
                 source #
                     is block
-                    parameters [#{parameter ['a']}. #{parameter ['b']}]
+                    parameters [#{parameter ['b']}]
                     body #{statements [#{variable ['c']}]}

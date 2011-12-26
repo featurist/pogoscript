@@ -318,9 +318,20 @@ spec 'parser'
     spec 'operators'
         spec 'should be lower precedence than object operation'
             (expression 'o:m 2 +- o:x') should contain fields #
-                is function call
-                function #{variable ['+-']}
-                arguments []
+                is method call
+                object #
+                    is method call
+                    object #{variable ['o']}
+                    name ['m']
+                    arguments [#{integer 2}]
+                    
+                name ['+-']
+                arguments [
+                    #
+                        is field reference
+                        object #{variable ['o']}
+                        name ['x']
+                ]
       
     spec 'assignment'
         spec 'assignment'

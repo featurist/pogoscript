@@ -23,6 +23,28 @@ spec('code generator', function () {
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
+  spec('concatName', function () {
+    spec('one identifier', function () {
+      assert.equal(cg.concatName(['one']), 'one');
+    });
+    
+    spec('two identifiers', function () {
+      assert.equal(cg.concatName(['one', 'two']), 'oneTwo');
+    });
+    
+    spec('explicit case', function () {
+      assert.equal(cg.concatName(['One', 'Two']), 'OneTwo');
+    });
+    
+    spec('underscores', function () {
+      assert.equal(cg.concatName(['_one', '_two']), '_one_two');
+    });
+    
+    spec('operators', function () {
+      assert.equal(cg.concatName(['+*']), '$2b$2a');
+    });
+  });
+  
   spec('variable', function () {
     spec('with one identifier', function () {
       generatesExpression(cg.variable(['one']), 'one');

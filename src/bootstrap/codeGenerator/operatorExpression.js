@@ -23,7 +23,7 @@ module.exports = function (complexExpression) {
         if (macro) {
           return macro(this.name, argumentExpressions);
         } else {
-          return cg.functionCall(cg.variable(this.name), argumentExpressions);
+          return cg.methodCall(argumentExpressions[0], this.name, argumentExpressions.slice(1));
         }
       } else {
         return this.arguments[0].expression();
@@ -32,10 +32,12 @@ module.exports = function (complexExpression) {
     
     this.definition = function (source) {
       if (this.arguments.length > 1) {
-        var parms = _(this.arguments).map(function (arg) {
+        var object = this.arguments[0].expression();
+        var parms = _(this.arguments.slice(1)).map(function (arg) {
           return arg.parameter();
         });
-        return cg.definition(cg.variable(this.name), source.blockify(parms));
+        
+        return cg.definition(cg.fieldReference(object, this.name), source.blockify(parms));
       } else {
         return this.arguments[0].definition(source);
       }
