@@ -176,7 +176,7 @@ spec 'parser'
                             
                         #
                             field ['readonly']
-                            value #{boolean @true}
+                            value @undefined
                     ]
 
     spec 'function calls'
@@ -184,6 +184,16 @@ spec 'parser'
             (expression 'touch @file') should contain fields #
                 function #{variable ['touch']}
                 arguments [#{variable ['file']}]
+
+        spec 'function call with self argument'
+            (expression 'touch @:file') should contain fields #
+                function #{variable ['touch']}
+                arguments [
+                  #
+                    is field reference
+                    object #{variable ['self']}
+                    name ['file']
+                ]
 
         spec 'function call with no argument'
             (expression 'delete everything!') should contain fields #

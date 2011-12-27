@@ -15,6 +15,7 @@ exports.interpolatedString = cg.interpolatedString;
 exports.module = cg.module;
 exports.interpolation = cg.interpolation;
 exports.list = cg.list;
+exports.fieldReference = cg.fieldReference;
 exports.hash = cg.hash;
 exports.noArgSuffix = cg.noArgSuffix;
 exports.complexExpression = require('./complexExpression');
