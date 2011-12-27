@@ -39,16 +39,15 @@ macros.addMacro(['new'], function(name, arguments) {
   return cg.newOperator(arguments[0]);
 });
 
-var createForEach = function (arguments) {
+var createForEach = function (name, arguments) {
   var collection = arguments[0];
   var block = arguments[1];
-  
+
   var itemVariable = block.parameters[0].parameter;
   
   return cg.forEach(collection, itemVariable, block.body);
 };
 
-macros.addMacro(['for', 'each', 'in'], createForEach);
 macros.addMacro(['for', 'each', 'in'], createForEach);
 
 macros.addMacro(['for'], function(name, arguments) {

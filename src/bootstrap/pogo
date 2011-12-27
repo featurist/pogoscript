@@ -5,7 +5,7 @@ var preparser = require('./preparser');
 var ms = require('../lib/memorystream');
 var parse = require('./parser').parse;
 var uglify = require('uglify-js');
-var argv = require('optimist').argv;
+var argv = require('optimist').boolean('c').argv;
 var errors = require('./codeGenerator/errors');
 
 var preparse = preparser.createFileParser();
@@ -26,7 +26,7 @@ var compileFile = function (filename) {
   var beautifulJs = beautify(js);
   
   var jsFilename = filename.replace(/\.pogo$/, '.js');
-  fs.writeFileSync(filename, beautifulJs);
+  fs.writeFileSync(jsFilename, beautifulJs);
 };
 
 var runFile = function (filename) {
