@@ -1,5 +1,5 @@
 (function() {
-    var self, fs, preparser, ms, parse, uglify, errors, preparse, generateCode, beautify, generateJavaScriptFromPogoFile, sourceLocationIndex, duplicateStringTimes;
+    var self, fs, preparser, ms, parse, uglify, errors, preparse, generateCode, beautify, generateJavaScriptFromPogoFile, sourceLocationIndex;
     self = this;
     fs = require("fs");
     preparser = require("./preparser");
@@ -73,23 +73,27 @@
                     process.stderr.write(line + "\n");
                 }
             };
-            return self.printLocation = function(location) {
+            self.printLocation = function(location) {
+                var spaces, markers;
                 self = this;
                 process.stderr.write(filename + ":" + location.firstLine + "\n");
                 self.printLinesInRange({
                     from: location.firstLine,
                     to: location.lastLine
                 });
-                return process.stderr.write(duplicateStringTimes(" ", location.firstColumn) + duplicateStringTimes("^", location.lastColumn - location.firstColumn) + "\n");
+                spaces = self.duplicateStringTimes(" ", location.firstColumn);
+                markers = self.duplicateStringTimes("^", location.lastColumn - location.firstColumn);
+                return process.stderr.write(spaces + markers + "\n");
+            };
+            return self.duplicateStringTimes = function(s, n) {
+                var strings, i;
+                self = this;
+                strings = [];
+                for (i = 0; i < n; i = i + 1) {
+                    strings.push(s);
+                }
+                return strings.join("");
             };
         });
-    };
-    duplicateStringTimes = function(s, n) {
-        var strings, i;
-        strings = [];
-        for (i = 0; i < n; i = i + 1) {
-            strings.push(s);
-        }
-        return strings.join("");
     };
 })();

@@ -51,13 +51,15 @@ source location index, filename, source =
           process:stderr:write (line + '\n')
 
     :print location @location =
-      process:stderr:write (((filename + ':') + location: first line) + '\n')
-      :print lines in range #{from (location: first line), to (location: last line)}
-      process:stderr:write (((duplicate string ' ' (location: first column) times) + (duplicate string '^' ((location: last column) - (location:first column)) times)) + '\n')
+      process:stderr:write (filename + ':' + location: first line + '\n')
+      :print lines in range, from (location: first line), to (location: last line)
+      spaces = :duplicate string ' ' (location: first column) times
+      markers = :duplicate string '^' (location: last column - location:first column) times
+      process:stderr:write (spaces + markers + '\n')
 
-duplicate string @s @n times =
-    strings = []
-    for {i = 0} {i < n} {i = i + 1}
-      strings: push @s
+    :duplicate string @s @n times =
+        strings = []
+        for {i = 0} {i < n} {i = i + 1}
+          strings: push @s
 
-    strings: join ''
+        strings: join ''
