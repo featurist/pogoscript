@@ -1320,8 +1320,10 @@ var subExpression = expressionTerm('subExpression', function (expr) {
 });
 
 var operator = expressionTerm('operator', function (op, args) {
+  this.isOperator = true;
   this.operator = op;
   this.arguments = args;
+
   this.generateJavaScript = function(buffer, scope) {
     buffer.write('(');
     

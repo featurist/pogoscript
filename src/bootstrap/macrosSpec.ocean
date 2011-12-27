@@ -57,3 +57,30 @@ spec 'macros'
                         condition #{variable ['false']}
                         action #{statements [#{variable ['b']}]}
                 ]
+
+        spec 'operators'
+          spec 'a + b'
+            op = cg: operator expression (cg: complex expression [[id 'a']])
+            op: add operator '+' expression (cg: complex expression [[id 'b']])
+            
+            (op: expression!) should contain fields #
+              is operator
+              operator '+'
+              arguments [
+                #{variable ['a']}
+                #{variable ['b']}
+              ]
+              
+          spec 'a + b + c'
+            op = cg: operator expression (cg: complex expression [[id 'a']])
+            op: add operator '+' expression (cg: complex expression [[id 'b']])
+            op: add operator '+' expression (cg: complex expression [[id 'c']])
+            
+            (op: expression!) should contain fields #
+              is operator
+              operator '+'
+              arguments [
+                #{variable ['a']}
+                #{variable ['b']}
+                #{variable ['c']}
+              ]

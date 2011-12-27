@@ -11,6 +11,24 @@ _.each(['+', '*', '/', '-', '>=', '==', '!=', '===', '!==', '<=', '<', '>', '|',
   macros.addMacro([op], createOperator);
 });
 
+var matchMultiOperator = function (name) {
+  var firstOp = name[0];
+  
+  for (var n = 1; n < name.length; n++) {
+    if (name[n] != firstOp) {
+      return;
+    }
+  }
+  
+  return function (name, arguments) {
+    return cg.operator(name[0], arguments);
+  };
+};
+
+_.each(['+'], function(op) {
+  macros.addWildCardMacro([op], matchMultiOperator);
+});
+
 var createIfExpression = function(name, arguments) {
   var cases = [];
   
