@@ -35,12 +35,12 @@ generate java script from pogo file @filename =
   term = parse @p
   
   if (errors: has errors?)
-    errors: print errors (index for file @filename with source @contents)
+    errors: print errors (source location printer, filename @filename, source @contents)
     process: exit 1
   else
     generate code @term
 
-index for file @filename with source @source =
+source location index, filename, source =
   object =>
     :lines in range @range =
       lines = source: split (new (RegExp '\n'))

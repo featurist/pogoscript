@@ -1,5 +1,5 @@
 (function() {
-    var self, fs, preparser, ms, parse, uglify, errors, preparse, generateCode, beautify, generateJavaScriptFromPogoFile, indexForFileWithSource, duplicateStringTimes;
+    var self, fs, preparser, ms, parse, uglify, errors, preparse, generateCode, beautify, generateJavaScriptFromPogoFile, sourceLocationIndex, duplicateStringTimes;
     self = this;
     fs = require("fs");
     preparser = require("./preparser");
@@ -43,13 +43,19 @@
         p = preparse(contents);
         term = parse(p);
         if (errors.hasErrors()) {
-            errors.printErrors(indexForFileWithSource(filename, contents));
+            errors.printErrors(sourceLocationPrinter({
+                filename: filename,
+                source: contents
+            }));
             return process.exit(1);
         } else {
             return generateCode(term);
         }
     };
-    indexForFileWithSource = function(filename, source) {
+    sourceLocationIndex = function(gen1_options) {
+        var filename, source;
+        filename = gen1_options && gen1_options.filename != null ? gen1_options.filename : true;
+        source = gen1_options && gen1_options.source != null ? gen1_options.source : true;
         return object(function() {
             self = this;
             self.linesInRange = function(range) {
@@ -59,11 +65,11 @@
                 return lines.slice(range.from - 1, range.to);
             };
             self.printLinesInRange = function(range) {
-                var gen1_items, gen2_i, line;
+                var gen2_items, gen3_i, line;
                 self = this;
-                gen1_items = self.linesInRange(range);
-                for (gen2_i = 0; gen2_i < gen1_items.length; gen2_i++) {
-                    line = gen1_items[gen2_i];
+                gen2_items = self.linesInRange(range);
+                for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
+                    line = gen2_items[gen3_i];
                     process.stderr.write(line + "\n");
                 }
             };
