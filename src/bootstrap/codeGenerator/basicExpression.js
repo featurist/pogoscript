@@ -90,7 +90,7 @@ module.exports = function (terminals) {
       }
 
       if (name.length > 0 && args.length == 0) {
-        return cg.hashEntry(name, cg.boolean(true));
+        return cg.hashEntry(name);
       }
       
       if (name.length == 0 && args.length == 2 && args[0].isString) {

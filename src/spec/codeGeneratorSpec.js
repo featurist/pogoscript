@@ -82,10 +82,11 @@ spec('code generator', function () {
       var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a'])],
         [
           cg.hashEntry(['port'], cg.variable(['p'])),
-          cg.hashEntry(['server'], cg.variable(['s']))
+          cg.hashEntry(['server'], cg.variable(['s'])),
+          cg.hashEntry(['start'])
         ]);
       
-      generatesExpression(f, 'f(a,{port:p,server:s})');
+      generatesExpression(f, 'f(a,{port:p,server:s,start:true})');
     });
   });
   
@@ -193,9 +194,12 @@ spec('code generator', function () {
         ])
       );
 
-      b.optionalParameters = [cg.hashEntry(['port'], cg.integer(80))];
+      b.optionalParameters = [
+        cg.hashEntry(['port'], cg.integer(80)),
+        cg.hashEntry(['start'])
+      ];
       
-      generatesExpression(b, "function(x,y,gen1_options){var port;port=(gen1_options&&gen1_options.port!=null)?gen1_options.port:80;y(x);return x;}");
+      generatesExpression(b, "function(x,y,gen1_options){var port,start;port=(gen1_options&&gen1_options.port!=null)?gen1_options.port:80;start=(gen1_options&&gen1_options.start!=null)?gen1_options.start:undefined;y(x);return x;}");
     });
   });
   

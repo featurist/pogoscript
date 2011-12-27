@@ -301,6 +301,14 @@ var optional = expressionTerm('optional', function (options, name, defaultValue)
   this.options = options;
   this.name = name;
   this.defaultValue = defaultValue;
+  
+  this.properDefaultValue = function () {
+    if (this.defaultValue === undefined) {
+      return variable(['undefined']);
+    } else {
+      return this.defaultValue;
+    }
+  };
 
   this.generateJavaScript = function (buffer, scope) {
     buffer.write('(');
@@ -310,7 +318,7 @@ var optional = expressionTerm('optional', function (options, name, defaultValue)
     buffer.write('.' + concatName(this.name) + "!=null)?");
     this.options.generateJavaScript(buffer, scope);
     buffer.write('.' + concatName(this.name) + ':');
-    defaultValue.generateJavaScript(buffer, scope);
+    this.properDefaultValue().generateJavaScript(buffer, scope);
   };
 });
 
@@ -1046,16 +1054,29 @@ var hashEntry = expressionTerm('hashEntry', function(field, value) {
   this.isHashEntry = true;
   this.field = field;
   this.value = value;
+
+  this.legalFieldName = function () {
+    var f = concatName(this.field);
+    if (isLegalJavaScriptIdentifier(f)) {
+      return f;
+    } else {
+      return formatJavaScriptString(f);
+    }
+  }
+  
+  this.valueOrTrue = function () {
+    if (this.value === undefined) {
+      return boolean(true);
+    } else {
+      return this.value;
+    }
+  };
   
   this.generateJavaScriptHashEntry = function(buffer, scope) {
     var f = concatName(this.field);
-    if (isLegalJavaScriptIdentifier(f)) {
-      buffer.write(f);
-    } else {
-      buffer.write(formatJavaScriptString(f));
-    }
+    buffer.write(this.legalFieldName());
     buffer.write(':');
-    this.value.generateJavaScript(buffer, scope);
+    this.valueOrTrue().generateJavaScript(buffer, scope);
   };
 });
 

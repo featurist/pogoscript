@@ -54,8 +54,8 @@
     };
     sourceLocationIndex = function(gen1_options) {
         var filename, source;
-        filename = gen1_options && gen1_options.filename != null ? gen1_options.filename : true;
-        source = gen1_options && gen1_options.source != null ? gen1_options.source : true;
+        filename = gen1_options && gen1_options.filename != null ? gen1_options.filename : undefined;
+        source = gen1_options && gen1_options.source != null ? gen1_options.source : undefined;
         return object(function() {
             self = this;
             self.linesInRange = function(range) {

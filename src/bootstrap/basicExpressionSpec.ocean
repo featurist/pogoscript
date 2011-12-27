@@ -127,7 +127,7 @@ spec 'basic expression'
       hash entry [id 'port'] should contain fields #
         is hash entry
         field ['port']
-        value #{boolean @true}
+        value @undefined
   
     spec 'with a string name'
       hash entry [string 'the port'. int 8] should contain fields #

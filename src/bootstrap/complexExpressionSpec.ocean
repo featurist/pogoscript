@@ -156,7 +156,7 @@ spec 'complex expression'
           body #{statements [#{variable ['x']}]}
     
     spec 'function definition with optional parameter'
-      definition [[id 'function'. variable 'x']. [id 'port'. int 80]] (variable 'y') should contain fields #
+      definition [[id 'function'. variable 'x']. [id 'port'. int 80]. [id 'name']] (variable 'y') should contain fields #
         is definition
         target #
           is variable
@@ -165,7 +165,10 @@ spec 'complex expression'
         source #
           is block
           parameters [#{parameter ['x']}]
-          optional parameters [#{field ['port'], value #{integer 80}}]
+          optional parameters [
+            #{field ['port'], value #{integer 80}}
+            #{field ['name'], value @undefined}
+          ]
           body #{statements [#{variable ['y']}]}
     
     spec 'function definition without block'
