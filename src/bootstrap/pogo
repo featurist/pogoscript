@@ -1,90 +1,12 @@
 #!/usr/bin/env node
 
-var fs = require('fs');
-var preparser = require('./preparser');
-var ms = require('../lib/memorystream');
-var parse = require('./parser').parse;
-var uglify = require('uglify-js');
 var argv = require('optimist').boolean('c').argv;
-var errors = require('./codeGenerator/errors');
-
-var preparse = preparser.createFileParser();
-
-var generateCode = function (term) {
-  var memoryStream = new ms.MemoryStream();
-  term.generateJavaScript(memoryStream);
-  return memoryStream.toString();
-};
-
-var beautify = function (code) {
-  var ast = uglify.parser.parse(code);
-  return uglify.uglify.gen_code(ast, {beautify: true});
-};
-
-var compileFile = function (filename) {
-  var js = generateJavaScriptFromPogoFile(filename);
-  var beautifulJs = beautify(js);
-  
-  var jsFilename = filename.replace(/\.pogo$/, '.js');
-  fs.writeFileSync(jsFilename, beautifulJs);
-};
-
-var runFile = function (filename) {
-  var js = generateJavaScriptFromPogoFile(filename);
-
-  module.filename = fs.realpathSync(filename);
-  process.argv[1] = module.filename
-  module._compile(js, filename);
-};
-
-var generateJavaScriptFromPogoFile = function(filename) {
-  var contents = fs.readFileSync(filename, 'utf-8');
-  var p = preparse(contents);
-  var term = parse(p);
-  
-  if (errors.hasErrors()) {
-    errors.printErrors(indexForFileWithSource(filename, contents));
-    process.exit(1);
-  } else {
-    return generateCode(term);
-  }
-};
-
-var indexForFileWithSource = function (filename, source) {
-  return new function () {
-    this.linesInRange = function (range) {
-      lines = source.split(/\n/);
-      return lines.slice(range.from - 1, range.to);
-    }
-    
-    this.printLinesInRange = function (range) {
-      var linesInRange = this.linesInRange(range);
-      for (var n in linesInRange) {
-        var line = linesInRange[n];
-        process.stderr.write(line + '\n');
-      }
-    };
-
-    this.printLocation = function (location) {
-      process.stderr.write(filename + ':' + location.firstLine + '\n');
-      this.printLinesInRange({from: location.firstLine, to: location.lastLine});
-      process.stderr.write(duplicateStringTimes(' ', location.firstColumn) + duplicateStringTimes('^', location.lastColumn - location.firstColumn) + '\n');
-    };
-  };
-};
-
-var duplicateStringTimes = function (s, n) {
-  var strings = [];
-  for (var i = 0; i < n; i++) {
-    strings.push(s);
-  }
-  return strings.join('');
-};
+var commandLine = require('./commandLine');
 
 if (argv.c) {
   for (var i in argv._) {
-    compileFile(argv._[i]);
+    commandLine.compileFile(argv._[i]);
   }
 } else {
-  runFile(argv._[0]);
+  commandLine.runFile(argv._[0]);
 }

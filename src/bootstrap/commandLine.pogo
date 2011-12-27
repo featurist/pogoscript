@@ -1,9 +1,8 @@
 fs = require 'fs'
 preparser = require './preparser'
 ms = require '../lib/memorystream'
-parse = require './parser'
+parse = require './parser': parse
 uglify = require 'uglify-js'
-argv = require 'optimist': argv
 errors = require './codeGenerator/errors'
 
 preparse = preparser: create file parser!
@@ -41,7 +40,7 @@ generate java script from pogo file @filename =
   else
     generate code @term
 
-index for file @file with source @source =
+index for file @filename with source @source =
   object =>
     :lines in range @range =
       lines = source: split (new (RegExp '\n'))
@@ -62,9 +61,3 @@ duplicate string @s @n times =
       strings: push @s
 
     strings: join ''
-
-if (argv: c)
-  for each ?filename in (argv:_)
-    compile file @filename
-else
-  run file (argv:_:0)
