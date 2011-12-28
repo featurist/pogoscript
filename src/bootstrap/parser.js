@@ -42,6 +42,7 @@
     parser = createParserWithGrammar(grammar);
     parser.yy = terms;
     exports.parse = function(source) {
+        self = this;
         return parser.parse(source);
     };
 })();

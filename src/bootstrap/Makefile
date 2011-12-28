@@ -8,8 +8,8 @@ commandLine.pogo : preparser.js parser.js
 preparser.js : preparser.pogo
 	pogo -c preparser.pogo
 
-parser.js : parser.ocean
-	ocean --compile parser.ocean
+parser.js : parser.pogo
+	pogo -c parser.pogo
 
 runtime.js : runtime.pogo
 	pogo -c runtime.pogo

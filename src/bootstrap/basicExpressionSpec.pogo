@@ -20,7 +20,7 @@ spec 'basic expression'
   string @n =
     cg: string @n
   
-  no arg punctuation = cg: no arg suffix!
+  no arg punctuation = cg: no arg suffix?
   
   spec 'has arguments'
     spec 'with one variable'
@@ -71,13 +71,13 @@ spec 'basic expression'
 
   spec 'parameters'
     target @expression has some parameters =
-      (cg: basic expression @expression: has parameters!) should be truthy
+      (cg: basic expression @expression: has parameters?) should be truthy
       
     target @expression doesnt have some parameters =
-      (cg: basic expression @expression: has parameters!) should be falsy
+      (cg: basic expression @expression: has parameters?) should be falsy
   
     target @expression has parameters @parameters =
-      (cg: basic expression @expression: parameters!) should contain fields @parameters
+      (cg: basic expression @expression: parameters?) should contain fields @parameters
   
     spec 'single name'
       target [id 'car'] doesnt have some parameters
@@ -98,14 +98,14 @@ spec 'basic expression'
     
   spec 'has name'
     terminals @terminals should have a name =
-      (cg: basic expression @terminals: has name!) should be truthy
+      (cg: basic expression @terminals: has name?) should be truthy
 
     spec 'with two identifiers'
       terminals [id 'car'. id 'idle'] should have a name
 
   spec 'name'
     terminals @terminals should have name @name =
-      (cg: basic expression @terminals: name!) should contain fields @name
+      (cg: basic expression @terminals: name?) should contain fields @name
       
     spec 'with two identifiers'
       terminals [id 'car'. id 'idle'] should have name ['car'. 'idle']

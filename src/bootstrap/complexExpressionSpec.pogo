@@ -13,15 +13,15 @@ parameter @name = cg: parameter [name]
 
 block = cg: block [] (cg: statements [variable 'x'])
 
-no arg punctuation = cg: no arg suffix!
+no arg punctuation = cg: no arg suffix?
 
 expression @e should contain fields @f =
-  (cg: complex expression @e: expression!) should contain fields @f
+  (cg: complex expression @e: expression?) should contain fields @f
 
 spec 'complex expression'
   spec 'has arguments'
     expression @e should have arguments =
-      (cg: complex expression @e: has arguments!) should be truthy
+      (cg: complex expression @e: has arguments?) should be truthy
     
     spec 'with arguments in head'
       expression [[id 'a'. int 10]] should have arguments
@@ -56,7 +56,7 @@ spec 'complex expression'
 
   spec 'object operation -> expression'
     expression @object @operation should contain fields @fields =
-      (cg: complex expression @operation: object operation @object: expression!) should contain fields @fields
+      (cg: complex expression @operation: object operation @object: expression?) should contain fields @fields
   
     spec 'method call'
       expression (variable 'a') [[id 'method'. int 10]] should contain fields #
@@ -225,7 +225,7 @@ spec 'complex expression'
 
     spec 'parameter'
         parameter @p should contain fields @fields =
-            (cg: complex expression @p: parameter!) should contain fields @fields
+            (cg: complex expression @p: parameter?) should contain fields @fields
         
         spec 'variable'
             parameter [[id 'a']] should contain fields #

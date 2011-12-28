@@ -121,4 +121,4 @@ exports: create file parser! =
     number of unwind brackets = indent stack: count unindents while unwinding to ''
     write (last line) appending (concat '}' (number of unwind brackets) times)
 
-    stream: to string!
+    stream: to string?

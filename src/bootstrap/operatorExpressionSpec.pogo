@@ -18,7 +18,7 @@ spec 'operator expression'
     spec 'a'
         e = expression [id 'a']
         
-        (e: expression!) should contain fields #
+        (e: expression?) should contain fields #
             is variable
             variable ['a']
 
@@ -26,7 +26,7 @@ spec 'operator expression'
         e = expression [id 'a']
         e: add operator '+-' expression (complex expression [id 'b'])
         
-        (e: expression!) should contain fields #
+        (e: expression?) should contain fields #
             is method call
             object #{variable ['a']}
             name ['+-']
@@ -37,7 +37,7 @@ spec 'operator expression'
         e: add operator '+-' expression (complex expression [id 'b'])
         e: add operator '*/' expression (complex expression [id 'c'])
         
-        (e: expression!) should contain fields #
+        (e: expression?) should contain fields #
             is method call
             object #{variable ['a']}
             name ['+-'. '*/']
@@ -47,7 +47,7 @@ spec 'operator expression'
         e = expression [id 'a']
         e: add operator '+' expression (complex expression [id 'b'])
     
-        (e: expression!) should contain fields #
+        (e: expression?) should contain fields #
             operator '+'
             arguments [#{variable ['a']}. #{variable ['b']}]
 

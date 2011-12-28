@@ -3,7 +3,7 @@ cg = require './codeGenerator/codeGenerator'
 require './assertions.pogo'
 
 expression @e =
-    cg: complex expression [e]: expression!
+    cg: complex expression [e]: expression?
 
 id @name = cg: identifier @name
 variable @name = cg: variable [name]
@@ -63,7 +63,7 @@ spec 'macros'
             op = cg: operator expression (cg: complex expression [[id 'a']])
             op: add operator '+' expression (cg: complex expression [[id 'b']])
             
-            (op: expression!) should contain fields #
+            (op: expression?) should contain fields #
               is operator
               operator '+'
               arguments [
@@ -76,7 +76,7 @@ spec 'macros'
             op: add operator '+' expression (cg: complex expression [[id 'b']])
             op: add operator '+' expression (cg: complex expression [[id 'c']])
             
-            (op: expression!) should contain fields #
+            (op: expression?) should contain fields #
               is operator
               operator '+'
               arguments [
