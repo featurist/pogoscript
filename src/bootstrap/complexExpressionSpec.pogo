@@ -1,26 +1,26 @@
 require 'cupoftea'
 cg = require './codeGenerator/codeGenerator'
-require './assertions.ocean'
+require './assertions.pogo'
 
-int ?n =
+int @n =
   cg: integer @n
 
-id ?name = cg: identifier @name
+id @name = cg: identifier @name
 
-variable ?name = cg: variable [name]
+variable @name = cg: variable [name]
 
-parameter ?name = cg: parameter [name]
+parameter @name = cg: parameter [name]
 
 block = cg: block [] (cg: statements [variable 'x'])
 
 no arg punctuation = cg: no arg suffix!
 
-expression ?e should contain fields ?f =
+expression @e should contain fields @f =
   (cg: complex expression @e: expression!) should contain fields @f
 
 spec 'complex expression'
   spec 'has arguments'
-    expression ?e should have arguments =
+    expression @e should have arguments =
       (cg: complex expression @e: has arguments!) should be truthy
     
     spec 'with arguments in head'
@@ -55,7 +55,7 @@ spec 'complex expression'
         optional arguments [#{field ['port'], value #{integer 80}}]
 
   spec 'object operation -> expression'
-    expression ?object ?operation should contain fields ?fields =
+    expression @object @operation should contain fields @fields =
       (cg: complex expression @operation: object operation @object: expression!) should contain fields @fields
   
     spec 'method call'
@@ -86,7 +86,7 @@ spec 'complex expression'
         name ['field']
 
   spec 'object operation -> definition'
-    definition ?object ?operation ?source should contain fields ?fields =
+    definition @object @operation @source should contain fields @fields =
       (cg: complex expression @operation: object operation @object: definition @source) should contain fields @fields
     
     spec 'method definition'
@@ -140,7 +140,7 @@ spec 'complex expression'
           variable ['y']
 
   spec 'definition'
-    definition ?target ?source should contain fields ?fields =
+    definition @target @source should contain fields @fields =
       (cg: complex expression @target: definition @source) should contain fields @fields
     
     spec 'function definition'
@@ -224,7 +224,7 @@ spec 'complex expression'
           arguments []
 
     spec 'parameter'
-        parameter ?p should contain fields ?fields =
+        parameter @p should contain fields @fields =
             (cg: complex expression @p: parameter!) should contain fields @fields
         
         spec 'variable'
