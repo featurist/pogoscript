@@ -79,6 +79,10 @@ module.exports = function (terminals) {
           parameters = [];
         }
       });
+      
+      _(parameters).each(function (parm) {
+        errors.addTermWithMessage(parm, 'block parameter with no block');
+      });
     };
     
     this.hashEntry = function () {
