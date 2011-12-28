@@ -63,3 +63,7 @@ source location printer, filename, source =
           strings: push @s
 
         strings: join ''
+
+require: extensions: '.pogo' = ?module ?filename
+  content = generate java script from pogo file @filename
+  module: _compile @content @filename

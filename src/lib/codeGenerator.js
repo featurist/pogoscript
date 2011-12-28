@@ -384,7 +384,11 @@ var block = expressionTerm('block', function (parameters, body, options) {
   };
   
   this.scopify = function () {
-    return functionCall(this, []);
+    if (this.parameters.length == 0) {
+      return functionCall(this, []);
+    } else {
+      return this;
+    }
   };
 
   this.generateJavaScript = function (buffer, scope) {

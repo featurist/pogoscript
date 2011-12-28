@@ -4,6 +4,8 @@ var assert = require('assert');
 var _ = require('underscore');
 require('cupoftea');
 
+var shouldContainFields = require('./containsFields.js').containsFields;
+
 spec('code generator', function () {
   var generatesExpression = function (term, expectedGeneratedCode) {
     var stream = new MemoryStream();
@@ -141,6 +143,24 @@ spec('code generator', function () {
   })
   
   spec('block', function () {
+    spec('scopify', function () {
+      spec('without parameters', function () {
+        var b = cg.block([], cg.statements([cg.variable(['a'])]));
+        
+        var scopifiedBlock = b.scopify();
+        shouldContainFields(scopifiedBlock, {
+          isFunctionCall: true,
+          arguments: []
+        });
+        assert.equal(scopifiedBlock.function, b);
+      });
+      
+      spec('with parameters', function () {
+        var b = cg.block([cg.parameter(['a'])], cg.statements([cg.variable(['a'])]));
+        assert.equal(b.scopify(), b);
+      });
+    });
+    
     spec('with no parameters', function () {
       var b = cg.block([], cg.statements([cg.variable(['x'])]));
       

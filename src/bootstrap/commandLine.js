@@ -96,4 +96,9 @@
             };
         });
     };
+    require.extensions[".pogo"] = function(module, filename) {
+        var content;
+        content = generateJavaScriptFromPogoFile(filename);
+        return module._compile(content, filename);
+    };
 })();
