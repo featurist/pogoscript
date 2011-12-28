@@ -1,7 +1,7 @@
 require 'cupoftea'
 cg = require '../lib/codeGenerator'
 cg new = require './codeGenerator/codeGenerator'
-require './assertions.ocean'
+require './assertions.pogo'
 
 spec 'term'
     spec 'subterms'
@@ -16,7 +16,7 @@ spec 'term'
         ]
     
     spec 'locations'
-        location ?fl ?ll ?fc ?lc = #
+        location @fl @ll @fc @lc = #
             first_line @fl
             last_line @ll
             first_column @fc
