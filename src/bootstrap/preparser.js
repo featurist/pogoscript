@@ -59,11 +59,14 @@
             return array[array.length - 1];
         };
         return object(function() {
+            self = this;
             this.indentTo = function(i) {
+                self = this;
                 return indents.push(i);
             };
             return this.countUnindentsWhileUnwindingTo = function(i) {
                 var unindentCount;
+                self = this;
                 unindentCount = 0;
                 while (peek(indents) != i) {
                     unindentCount = unindentCount + 1;
@@ -74,6 +77,7 @@
         });
     };
     exports.createFileParser = function() {
+        self = this;
         return function(source) {
             var lines, lastLine, parse, stream, indentStack, plusIf, write, writeAppending, concatTimes, gen1_items, gen2_i, sline, line, numberOfUnwindBrackets;
             lines = source.split("\n");
