@@ -1,23 +1,23 @@
 require 'cupoftea'
 cg = require './codeGenerator/codeGenerator'
-require './assertions.ocean'
+require './assertions.pogo'
 
 spec 'basic expression'
-  with terminals ?terminals should not have arguments =
+  with terminals @terminals should not have arguments =
     ex = cg: basic expression @terminals
-    (ex: has arguments!) should be falsy
+    (ex: has arguments?) should be falsy
     
-  with terminals ?terminals should have arguments =
+  with terminals @terminals should have arguments =
     ex = cg: basic expression @terminals
-    (ex: has arguments!) should be truthy
+    (ex: has arguments?) should be truthy
   
   variable = cg: variable ['a']
   block = cg: block [] (cg: statements [variable])
-  id ?name = cg: identifier @name
-  int ?n =
+  id @name = cg: identifier @name
+  int @n =
     cg: integer @n
     
-  string ?n =
+  string @n =
     cg: string @n
   
   no arg punctuation = cg: no arg suffix!
@@ -43,8 +43,8 @@ spec 'basic expression'
       with terminals [id 'a'. id 'b'] should not have arguments
 
   spec 'arguments'
-    terminals ?terminals should have arguments ?arguments =
-      (cg: basic expression @terminals: arguments!) should contain fields @arguments
+    terminals @terminals should have arguments @arguments =
+      (cg: basic expression @terminals: arguments?) should contain fields @arguments
     
     spec 'single variable'
       terminals [variable] should have arguments [variable]
@@ -70,13 +70,13 @@ spec 'basic expression'
       }]
 
   spec 'parameters'
-    target ?expression has some parameters =
+    target @expression has some parameters =
       (cg: basic expression @expression: has parameters!) should be truthy
       
-    target ?expression doesnt have some parameters =
+    target @expression doesnt have some parameters =
       (cg: basic expression @expression: has parameters!) should be falsy
   
-    target ?expression has parameters ?parameters =
+    target @expression has parameters @parameters =
       (cg: basic expression @expression: parameters!) should contain fields @parameters
   
     spec 'single name'
@@ -97,14 +97,14 @@ spec 'basic expression'
             target [id 'car'. no arg punctuation] has parameters []
     
   spec 'has name'
-    terminals ?terminals should have a name =
+    terminals @terminals should have a name =
       (cg: basic expression @terminals: has name!) should be truthy
 
     spec 'with two identifiers'
       terminals [id 'car'. id 'idle'] should have a name
 
   spec 'name'
-    terminals ?terminals should have name ?name =
+    terminals @terminals should have name @name =
       (cg: basic expression @terminals: name!) should contain fields @name
       
     spec 'with two identifiers'
@@ -114,8 +114,8 @@ spec 'basic expression'
       terminals [id 'car'. cg: variable ['car']. id 'idle'] should have name ['car'. 'idle']
 
   spec 'hash entry'
-    hash entry ?terminals should contain fields ?f =
-      (cg: basic expression @terminals: hash entry!) should contain fields @f
+    hash entry @terminals should contain fields @f =
+      (cg: basic expression @terminals: hash entry?) should contain fields @f
   
     spec 'with an argument'
       hash entry [id 'port'. int 10] should contain fields #
