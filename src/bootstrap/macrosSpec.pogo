@@ -1,13 +1,13 @@
 require 'cupoftea'
 cg = require './codeGenerator/codeGenerator'
-require './assertions.ocean'
+require './assertions.pogo'
 
-expression ?e =
+expression @e =
     cg: complex expression [e]: expression!
 
-id ?name = cg: identifier @name
-variable ?name = cg: variable [name]
-block ?name = cg: block [] (cg: statements [variable @name])
+id @name = cg: identifier @name
+variable @name = cg: variable [name]
+block @name = cg: block [] (cg: statements [variable @name])
 
 spec 'macros'
     spec 'if'
