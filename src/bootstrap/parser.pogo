@@ -128,7 +128,7 @@ grammar = #
             ['interpolated_string_body'. '$$ = yy.string($1);']
         ]
 
-parser = create parser with grammar @grammar
+exports: parser = parser = create parser with grammar @grammar
 parser: yy = terms
 
 exports: parse @source = parser: parse @source

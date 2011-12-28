@@ -17,19 +17,19 @@ beautify @code =
   uglify: uglify: gen_code @ast, beautify
 
 exports: compile file @filename =
-  js = generate java script from pogo file @filename
+  js = js from pogo file @filename
   beautiful js = beautify @js
   js filename = filename: replace (new (RegExp '\.pogo$')) '.js'
   fs: write file sync (js filename) (beautiful js)
 
 exports: run file @filename =
-  js = generate java script from pogo file @filename
+  js = js from pogo file @filename
   
   module: filename = fs: realpath sync @filename
   process: argv: 1 = module: filename
   module: _compile @js @filename
 
-generate java script from pogo file @filename =
+js from pogo file @filename =
   contents = fs: read file sync @filename 'utf-8'
   p = preparse @contents
   term = parse @p
@@ -65,5 +65,5 @@ source location printer, filename, source =
         strings: join ''
 
 require: extensions: '.pogo' = ?module ?filename
-  content = generate java script from pogo file @filename
+  content = js from pogo file @filename
   module: _compile @content @filename
