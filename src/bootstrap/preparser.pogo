@@ -1,6 +1,6 @@
 fs = require 'fs'
 ms = require '../lib/memorystream'
-require './runtime.ocean'
+require './runtime.pogo'
 
 exports: create line parser = create line parser! =
   last indentation = ''
