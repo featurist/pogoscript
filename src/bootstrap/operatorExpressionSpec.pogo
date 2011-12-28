@@ -1,17 +1,17 @@
 require 'cupoftea'
 cg = require './codeGenerator/codeGenerator'
-require './assertions.ocean'
+require './assertions.pogo'
 
-expression ?expression =
+expression @expression =
     cg: operator expression (complex expression @expression)
 
-complex expression ?expression =
+complex expression @expression =
     cg: complex expression [expression]
 
-variable ?name =
+variable @name =
     cg: variable [name]
 
-id ?name =
+id @name =
     cg: identifier @name
 
 spec 'operator expression'
