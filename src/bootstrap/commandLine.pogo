@@ -40,7 +40,7 @@ generate java script from pogo file @filename =
   else
     generate code @term
 
-source location index, filename, source =
+source location printer, filename, source =
   object =>
     :lines in range @range =
       lines = source: split (new (RegExp '\n'))

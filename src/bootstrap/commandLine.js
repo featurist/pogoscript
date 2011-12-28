@@ -1,5 +1,5 @@
 (function() {
-    var self, fs, preparser, ms, parse, uglify, errors, preparse, generateCode, beautify, generateJavaScriptFromPogoFile, sourceLocationIndex;
+    var self, fs, preparser, ms, parse, uglify, errors, preparse, generateCode, beautify, generateJavaScriptFromPogoFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     preparser = require("./preparser");
@@ -52,7 +52,7 @@
             return generateCode(term);
         }
     };
-    sourceLocationIndex = function(gen1_options) {
+    sourceLocationPrinter = function(gen1_options) {
         var filename, source;
         filename = gen1_options && gen1_options.filename != null ? gen1_options.filename : undefined;
         source = gen1_options && gen1_options.source != null ? gen1_options.source : undefined;
