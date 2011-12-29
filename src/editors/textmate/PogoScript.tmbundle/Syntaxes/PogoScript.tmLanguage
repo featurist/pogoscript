@@ -22,6 +22,12 @@
 		</dict>
 		<dict>
 			<key>match</key>
+			<string>[()]</string>
+			<key>name</key>
+			<string>variable.language.pogoscript</string>
+		</dict>
+		<dict>
+			<key>match</key>
 			<string>\?[_a-zA-Z][_a-zA-Z0-9]*\b</string>
 			<key>name</key>
 			<string>variable.parameter.pogoscript</string>
