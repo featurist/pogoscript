@@ -1,5 +1,5 @@
 (function() {
-    var self, fs, preparser, ms, parse, uglify, errors, preparse, generateCode, beautify, generateJavaScriptFromPogoFile, sourceLocationPrinter;
+    var self, fs, preparser, ms, parse, uglify, errors, preparse, generateCode, beautify, jsFilenameFromPogoFilename, jsFromPogoFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     preparser = require("./preparser");
@@ -24,20 +24,23 @@
     exports.compileFile = function(filename) {
         var js, beautifulJs, jsFilename;
         self = this;
-        js = generateJavaScriptFromPogoFile(filename);
+        js = jsFromPogoFile(filename);
         beautifulJs = beautify(js);
-        jsFilename = filename.replace(new RegExp(".pogo$"), ".js");
+        jsFilename = jsFilenameFromPogoFilename(filename);
         return fs.writeFileSync(jsFilename, beautifulJs);
+    };
+    jsFilenameFromPogoFilename = function(pogo) {
+        return pogo.replace(new RegExp(".pogo$"), "") + ".js";
     };
     exports.runFile = function(filename) {
         var js;
         self = this;
-        js = generateJavaScriptFromPogoFile(filename);
+        js = jsFromPogoFile(filename);
         module.filename = fs.realpathSync(filename);
         process.argv[1] = module.filename;
         return module._compile(js, filename);
     };
-    generateJavaScriptFromPogoFile = function(filename) {
+    jsFromPogoFile = function(filename) {
         var contents, p, term;
         contents = fs.readFileSync(filename, "utf-8");
         p = preparse(contents);
@@ -98,7 +101,7 @@
     };
     require.extensions[".pogo"] = function(module, filename) {
         var content;
-        content = generateJavaScriptFromPogoFile(filename);
+        content = jsFromPogoFile(filename);
         return module._compile(content, filename);
     };
 })();

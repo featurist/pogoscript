@@ -19,8 +19,11 @@ beautify @code =
 exports: compile file @filename =
   js = js from pogo file @filename
   beautiful js = beautify @js
-  js filename = filename: replace (new (RegExp '\.pogo$')) '.js'
+  js filename = js filename from pogo filename @filename
   fs: write file sync (js filename) (beautiful js)
+
+js filename from pogo filename @pogo =
+  pogo: replace (new (RegExp '\.pogo$')) '' + '.js'
 
 exports: run file @filename =
   js = js from pogo file @filename
