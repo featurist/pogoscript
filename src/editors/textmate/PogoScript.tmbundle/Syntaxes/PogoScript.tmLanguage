@@ -4,27 +4,27 @@
 <dict>
 	<key>fileTypes</key>
 	<array>
-		<string>ocean</string>
+		<string>pogo</string>
 	</array>
 	<key>foldingStartMarker</key>
 	<string>\{\s*$</string>
 	<key>foldingStopMarker</key>
 	<string>^\s*\}</string>
 	<key>name</key>
-	<string>OceanScript</string>
+	<string>PogoScript</string>
 	<key>patterns</key>
 	<array>
 		<dict>
 			<key>match</key>
 			<string>@[_a-zA-Z][_a-zA-Z0-9]*\b</string>
 			<key>name</key>
-			<string>variable.oceanscript</string>
+			<string>variable.language.pogoscript</string>
 		</dict>
 		<dict>
 			<key>match</key>
 			<string>\?[_a-zA-Z][_a-zA-Z0-9]*\b</string>
 			<key>name</key>
-			<string>variable.parameter.oceanscript</string>
+			<string>variable.parameter.pogoscript</string>
 		</dict>
 		<dict>
 			<key>begin</key>
@@ -32,14 +32,14 @@
 			<key>end</key>
 			<string>'</string>
 			<key>name</key>
-			<string>string.quoted.single.oceanscript</string>
+			<string>string.quoted.single.pogoscript</string>
 			<key>patterns</key>
 			<array>
 				<dict>
 					<key>match</key>
 					<string>\\.</string>
 					<key>name</key>
-					<string>constant.character.escape.oceanscript</string>
+					<string>constant.character.escape.pogoscript</string>
 				</dict>
 			</array>
 		</dict>
@@ -49,7 +49,7 @@
 			<key>end</key>
 			<string>"</string>
 			<key>name</key>
-			<string>string.quoted.double.oceanscript</string>
+			<string>string.quoted.double.pogoscript</string>
 			<key>patterns</key>
 			<array>
 				<dict>
@@ -69,7 +69,7 @@
 					<key>match</key>
 					<string>@[_a-zA-Z][_a-zA-Z0-9]*\b</string>
 					<key>name</key>
-					<string>variable</string>
+					<string>variable.language.pogoscript</string>
 				</dict>
 				<dict>
 					<key>begin</key>
@@ -82,7 +82,7 @@
 					<array>
 						<dict>
 							<key>include</key>
-							<string>source.oceanscript</string>
+							<string>source.pogoscript</string>
 						</dict>
 					</array>
 				</dict>
@@ -90,7 +90,7 @@
 		</dict>
 	</dict>
 	<key>scopeName</key>
-	<string>source.oceanscript</string>
+	<string>source.pogoscript</string>
 	<key>uuid</key>
 	<string>680491D0-A323-4442-8262-AB07B93CC386</string>
 </dict>
