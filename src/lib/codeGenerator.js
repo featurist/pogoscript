@@ -1,5 +1,6 @@
 var _ = require('underscore');
 var util = require('util');
+var errors = require('../bootstrap/codeGenerator/errors');
 
 var parseError = exports.parseError = function (term, message, expected) {
   expected = expected || [];
@@ -37,13 +38,19 @@ var ExpressionPrototype = new function () {
       console.log(this.inspectTerm());
     }
   };
+
   this.blockify = function (parameters, optionalParameters) {
     var b = block(parameters, statements([this]));
     b.optionalParameters = optionalParameters;
     return b;
   };
+
   this.scopify = function () {
     return this;
+  };
+
+  this.parameter = function () {
+    return errors.addTermWithMessage(this, 'this cannot be used as a parameter');
   };
 
   this.subterms = function () {
@@ -216,16 +223,21 @@ expressionTerm('float', function (value) {
 var variable = expressionTerm('variable', function (name) {
   this.variable = name;
   this.isVariable = true;
+  
   this.generateJavaScript = function (buffer, scope) {
     buffer.write(concatName(this.variable));
   };
+  
   this.generateJavaScriptTarget = this.generateJavaScript;
+  
+  this.generateJavaScriptParameter = this.generateJavaScript;
+  
   this.definitionName = function(scope) {
     return this.variable;
   };
   
   this.parameter = function () {
-    return parameter(this.variable);
+    return parameter(this);
   };
   
   addWalker(this);
@@ -239,11 +251,12 @@ var noArgSuffix = expressionTerm('noArgSuffix', function () {
     this.noArgumentFunctionCallSuffix = true;
 });
 
-var parameter = expressionTerm('parameter', function (name) {
-  this.parameter = name;
+var parameter = expressionTerm('parameter', function (expression) {
+  this.expression = expression;
   this.isParameter = true;
+  
   this.generateJavaScript = function (buffer, scope) {
-    buffer.write(concatName(this.parameter));
+    this.expression.generateJavaScriptParameter(buffer, scope);
   };
 });
 

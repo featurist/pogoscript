@@ -207,7 +207,23 @@ spec 'parser'
                     #{variable ['file']}
                     #
                         body #{statements [#{variable ['stream']}]}
-                        parameters [#{parameter ['stream']}]
+                        parameters [#{
+                          is parameter
+                          expression #{variable ['stream']}
+                        }]
+                ]
+
+        spec 'function call with block with long parameters'
+            (expression 'open database ?(database connection) {database connection}') should contain fields #
+                function #{variable ['open'. 'database']}
+                arguments [
+                    #
+                        parameters [
+                            #
+                                is parameter
+                                expression #{variable ['database'. 'connection']}
+                        ]
+                        body #{statements [#{variable ['database'. 'connection']}]}
                 ]
 
         spec 'function call with two blocks with parameters'
@@ -216,11 +232,17 @@ spec 'parser'
                 arguments [
                     #
                         body #{statements [#{variable ['x']}]}
-                        parameters [#{parameter ['x']}]
+                        parameters [#{
+                          is parameter
+                          expression #{variable ['x']}
+                        }]
 
                     #
                         body #{statements [#{variable ['y']}]}
-                        parameters [#{parameter ['y']}]
+                        parameters [#{
+                          is parameter
+                          expression #{variable ['y']}
+                        }]
                 ]
 
         spec 'function call with two optional arguments'
@@ -306,7 +328,7 @@ spec 'parser'
         spec 'block with parameter'
             (expression '?x {x.y}') should contain fields #
                 is block
-                parameters [#{parameter ['x']}]
+                parameters [#{is parameter, expression #{variable ['x']}}]
                 redefines self @false
                 body #
                     statements [
@@ -317,7 +339,7 @@ spec 'parser'
         spec 'block with parameter, redefining self'
             (expression '?x => {x.y}') should contain fields #
                 is block
-                parameters [#{parameter ['x']}]
+                parameters [#{is parameter, expression #{variable ['x']}}]
                 redefines self @true
                 body #
                     statements [
@@ -356,7 +378,7 @@ spec 'parser'
                     is definition
                     target #{variable ['func']}
                     source #
-                        parameters [#{parameter ['x']}]
+                        parameters [#{is parameter, expression #{variable ['x']}}]
                         body #{statements [#{variable ['x']}]}
 
             spec 'function with one parameter, and one optional parameter'
@@ -364,7 +386,7 @@ spec 'parser'
                     is definition
                     target #{variable ['func']}
                     source #
-                        parameters [#{parameter ['x']}]
+                        parameters [#{is parameter, expression #{variable ['x']}}]
                         optional parameters [#{field ['port'], value #{integer 80}}]
                         body #{statements [#{variable ['x']}]}
 

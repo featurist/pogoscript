@@ -49,6 +49,9 @@ module.exports = function (terminals) {
       }
       
       var args = this.arguments();
+      return this._parameters = _(args).map(function (arg) {
+        return arg.parameter();
+      });
       var variableArgs = _(args).filter(function (arg) {
         if (arg.isVariable) {
           return true;

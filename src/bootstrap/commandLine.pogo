@@ -44,7 +44,7 @@ source location printer, filename, source =
   object =>
     :lines in range @range =
       lines = source: split (new (RegExp '\n'))
-      lines: slice ((range:from) - 1) (range:to)
+      lines: slice (range:from - 1) (range:to)
 
     :print lines in range @range =
       for each ?line in (:lines in range @range)

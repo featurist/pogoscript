@@ -72,22 +72,7 @@ module.exports = function (listOfTerminals) {
     };
     
     this.parameters = function () {
-      if (this._parameters) {
-        return this._parameters;
-      }
-      
-      var args = this.head().arguments();
-      var variableArgs = _(args).filter(function (arg) {
-        if (arg.isVariable) {
-          return true;
-        } else {
-          errors.addTermWithMessage(arg, 'this cannot be used as a parameter');
-          return false;
-        }
-      });
-      return this._parameters = _(variableArgs).map(function (v) {
-        return cg.parameter(v.variable);
-      });
+      return this.head().parameters();
     };
     
     this.optionalParameters = function () {
