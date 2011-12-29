@@ -364,6 +364,19 @@ spec 'parser'
                         object #{variable ['o']}
                         name ['x']
                 ]
+                
+        spec 'unary operators should be higher precedence than binary operators'
+            (expression 'a && ! b') should contain fields #
+                is operator
+                operator '&&'
+                
+                arguments [
+                    #{variable ['a']}
+                    #
+                        is operator
+                        operator '!'
+                        arguments [#{variable ['b']}]
+                ]
       
     spec 'assignment'
         spec 'assignment'

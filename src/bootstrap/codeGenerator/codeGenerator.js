@@ -20,15 +20,22 @@ exports.hash = cg.hash;
 exports.noArgSuffix = cg.noArgSuffix;
 exports.complexExpression = require('./complexExpression');
 exports.operatorExpression = require('./operatorExpression');
+exports.operator = cg.operator;
 exports.macros = require('./macros');
 
+exports.expression = function (e) {
+  return new function () {
+    this.expression = function () {
+      return e;
+    };
+  };
+};
+
 exports.lexOperator = function (op) {
-  if (/^[:,.#=]$/.test(op)) {
+  if (/^[!?:,.#=]$/.test(op)) {
     return op;
   } else if (op == '=>') {
     return op;
-  } else if (/^[!?]$/.test(op)) {
-    return 'no_arg';
   } else {
     return 'operator';
   }

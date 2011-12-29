@@ -73,8 +73,12 @@ grammar = #
             ['operator_expression'. '$$ = $1;']
         ]
         operator_expression [
-            ['operator_expression operator object_operation'. '$1.addOperatorExpression($2, $3); $$ = $1;']
-            ['object_operation'. '$$ = yy.operatorExpression($1);']
+            ['operator_expression operator unary_operator_expression'. '$1.addOperatorExpression($2, $3); $$ = $1;']
+            ['unary_operator_expression'. '$$ = yy.operatorExpression($1);']
+        ]
+        unary_operator_expression [
+            ['object_operation'. '$$ = $1;']
+            ['unary_operator object_operation'. '$$ = yy.expression(yy.operator($1, [$2.expression()]));']
         ]
         object_operation [
             ['object_operation : complex_expression'. '$$ = $3.objectOperation($1.expression());']
@@ -86,10 +90,21 @@ grammar = #
         ]
         basic_expression_list [
             ['basic_expression_list , terminal_list'. '$1.push($3); $$ = $1;']
-            ['terminal_list'. '$$ = [$1];']
+            ['terminal_list_no_arg'. '$$ = [$1];']
+        ]
+        terminal_list_no_arg [
+            ['terminal_list no_arg_punctuation'. '$1.push($2); $$ = $1;']
+            ['terminal_list'. '$$ = $1;']
         ]
         basic_expression [
             ['terminal_list'. '$$ = yy.basicExpression($1);']
+        ]
+        no_arg_punctuation [
+            ['no_arg'. '$$ = yy.loc(yy.noArgSuffix(), @$);']
+        ]
+        no_arg [
+            ['!'. '$$ = $1;']
+            ['?'. '$$ = $1;']
         ]
         terminal_list [
             ['terminal_list terminal'. '$1.push($2); $$ = $1;']
@@ -110,7 +125,10 @@ grammar = #
             ['parameter'. '$$ = yy.loc(yy.parameter(yy.variable([yytext.substring(1)])), @$);']
             ['string'. '$$ = yy.loc(yy.string(yy.normaliseString(yytext)), @$);']
             ['interpolated_string'. '$$ = yy.loc($1, @$);']
-            ['no_arg'. '$$ = yy.loc(yy.noArgSuffix(), @$);']
+        ]
+        unary_operator [
+            ['operator'. '$$ = $1;']
+            ['!'. '$$ = $1;']
         ]
         interpolated_terminal [
             ['( statement )'. '$$ = $2;']
