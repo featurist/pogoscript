@@ -51,16 +51,20 @@ source location printer, filename, source =
       lines = source: split (new (RegExp '\n'))
       lines: slice (range:from - 1) (range:to)
 
-    :print lines in range @range =
-      for each ?line in (:lines in range @range)
-          process:stderr:write (line + '\n')
+    :print lines in range, prefix '', from, to =
+      for each ?line in (:lines in range, from @from, to @to)
+          process:stderr:write (prefix + line + '\n')
 
     :print location @location =
       process:stderr:write (filename + ':' + location: first line + '\n')
-      :print lines in range, from (location: first line), to (location: last line)
-      spaces = :duplicate string ' ' (location: first column) times
-      markers = :duplicate string '^' (location: last column - location:first column) times
-      process:stderr:write (spaces + markers + '\n')
+      
+      if (location: first line == location: last line)
+        :print lines in range, from (location: first line), to (location: last line)
+        spaces = :duplicate string ' ' (location: first column) times
+        markers = :duplicate string '^' (location: last column - location:first column) times
+        process:stderr:write (spaces + markers + '\n')
+      else
+        :print lines in range, prefix '> ', from (location: first line), to (location: last line)
 
     :duplicate string @s @n times =
         strings = []

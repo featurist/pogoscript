@@ -29,28 +29,66 @@ module.exports = function (listOfTerminals) {
       if (this._optionalArguments) {
         return this._optionalArguments;
       } else {
-        return this._optionalArguments = _(this.tail()).map(function (e) {
-          return e.hashEntry();
+        var tail = this.tail();
+        var tailLength = tail.length;
+        var n = 0;
+        
+        return this._optionalArguments = _(tail).map(function (e) {
+          n++;
+          return e.hashEntry({withoutBlock: n == tailLength});
         });
       }
     };
     
+    this.tailBlock = function () {
+      if (this._hasTailBlock) {
+        return this._tailBlock;
+      } else {
+        var tail = this.tail();
+        if (tail.length > 0) {
+          var block = tail[tail.length - 1].hashEntryBlock();
+          
+          this._hasTailBlock = block;
+          return this._tailBlock = block;
+        } else {
+          this._hasTailBlock = false;
+          this._tailBlock = undefined;
+        }
+      }
+    }
+    
+    this.arguments = function () {
+      if (this._arguments) {
+        return this._arguments;
+      } else {
+        var args = this.head().arguments();
+        
+        var tailBlock = this.tailBlock();
+        
+        if (tailBlock) {
+          return this._arguments = args.concat(tailBlock);
+        } else {
+          return this._arguments = args;
+        }
+      }
+    }
+    
     this.hasArguments = function () {
       return this._hasArguments || (this._hasArguments = 
-        this.head().hasArguments() || (this.optionalArguments().length > 0)
+        this.head().hasArguments() || (this.optionalArguments().length > 0) || this.tailBlock()
       );
     };
     
     this.expression = function () {
       if (this.head().hasName()) {
         if (this.hasArguments()) {
-          return macros.invocation(this.head().name(), this.head().arguments(), this.optionalArguments());
+          return macros.invocation(this.head().name(), this.arguments(), this.optionalArguments());
         } else {
           return cg.variable(this.head().name());
         }
       } else {
-        if (!this.hasTail() && this.head().arguments().length == 1) {
-          return this.head().arguments()[0];
+        if (!this.hasTail() && this.arguments().length == 1) {
+          return this.arguments()[0];
         } else {
           return errors.addTermWithMessage(this, 'value cannot have optional arguments');
         }
@@ -60,13 +98,13 @@ module.exports = function (listOfTerminals) {
     this.objectOperationExpression = function (object) {
       if (this.head().hasName()) {
         if (this.hasArguments()) {
-          return cg.methodCall(object, this.head().name(), this.head().arguments(), this.optionalArguments());
+          return cg.methodCall(object, this.head().name(), this.arguments(), this.optionalArguments());
         } else {
           return cg.fieldReference(object, this.head().name());
         }
       } else {
-        if (!this.hasTail() && this.head().arguments().length == 1) {
-          return cg.indexer(object, this.head().arguments()[0]);
+        if (!this.hasTail() && this.arguments().length == 1) {
+          return cg.indexer(object, this.arguments()[0]);
         }
       }
     };
@@ -107,8 +145,8 @@ module.exports = function (listOfTerminals) {
           return cg.definition(cg.fieldReference(object, this.head().name()), source.scopify());
         }
       } else {
-        if (!this.hasTail() && this.head().arguments().length == 1) {
-          return cg.definition(cg.indexer(object, this.head().arguments()[0]), source.scopify());
+        if (!this.hasTail() && this.arguments().length == 1) {
+          return cg.definition(cg.indexer(object, this.arguments()[0]), source.scopify());
         }
       }
     };

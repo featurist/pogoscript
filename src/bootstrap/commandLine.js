@@ -70,26 +70,40 @@
                 lines = source.split(new RegExp("\n"));
                 return lines.slice(range.from - 1, range.to);
             };
-            self.printLinesInRange = function(range) {
-                var gen3_items, gen4_i, line;
+            self.printLinesInRange = function(gen3_options) {
+                var prefix, from, to, gen4_items, gen5_i, line;
                 self = this;
-                gen3_items = self.linesInRange(range);
-                for (gen4_i = 0; gen4_i < gen3_items.length; gen4_i++) {
-                    line = gen3_items[gen4_i];
-                    process.stderr.write(line + "\n");
+                prefix = gen3_options && gen3_options.prefix != null ? gen3_options.prefix : "";
+                from = gen3_options && gen3_options.from != null ? gen3_options.from : undefined;
+                to = gen3_options && gen3_options.to != null ? gen3_options.to : undefined;
+                gen4_items = self.linesInRange({
+                    from: from,
+                    to: to
+                });
+                for (gen5_i = 0; gen5_i < gen4_items.length; gen5_i++) {
+                    line = gen4_items[gen5_i];
+                    process.stderr.write(prefix + line + "\n");
                 }
             };
             self.printLocation = function(location) {
-                var spaces, markers;
                 self = this;
                 process.stderr.write(filename + ":" + location.firstLine + "\n");
-                self.printLinesInRange({
-                    from: location.firstLine,
-                    to: location.lastLine
-                });
-                spaces = self.duplicateStringTimes(" ", location.firstColumn);
-                markers = self.duplicateStringTimes("^", location.lastColumn - location.firstColumn);
-                return process.stderr.write(spaces + markers + "\n");
+                if (location.firstLine == location.lastLine) {
+                    var spaces, markers;
+                    self.printLinesInRange({
+                        from: location.firstLine,
+                        to: location.lastLine
+                    });
+                    spaces = self.duplicateStringTimes(" ", location.firstColumn);
+                    markers = self.duplicateStringTimes("^", location.lastColumn - location.firstColumn);
+                    return process.stderr.write(spaces + markers + "\n");
+                } else {
+                    return self.printLinesInRange({
+                        prefix: "> ",
+                        from: location.firstLine,
+                        to: location.lastLine
+                    });
+                }
             };
             return self.duplicateStringTimes = function(s, n) {
                 var strings, i;

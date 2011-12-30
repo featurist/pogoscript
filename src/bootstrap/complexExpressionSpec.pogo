@@ -25,6 +25,24 @@ spec 'complex expression'
     
     spec 'with arguments in head'
       expression [[id 'a'. int 10]] should have arguments
+    
+    spec 'with no arg arguments'
+      expression [[id 'a'. no arg punctuation]] should have arguments
+    
+    spec 'with tail block'
+      expression [[id 'a']. [id 'readonly'. block]] should have arguments
+      
+  spec 'arguments'
+    expression @e should have arguments @a =
+      (cg: complex expression @e: arguments?) should contain fields @a
+    
+    spec 'with arguments in head'
+      expression [[id 'a'. int 10]] should have arguments [#{integer 10}]
+    
+    spec 'with tail block'
+      expression [[id 'a']. [id 'readonly'. block]] should have arguments [
+        #{is block}
+      ]
 
   spec 'expression'
     spec 'with just one argument is that argument'
@@ -52,6 +70,21 @@ spec 'complex expression'
         is function call
         function #{is variable. variable ['a'. 'variable']}
         arguments []
+        optional arguments [#{field ['port'], value #{integer 80}}]
+
+    spec 'with block after optional arguments'
+      expression [[id 'a'. id 'variable']. [id 'port'. int 80. block]] should contain fields #
+        is function call
+        function #{is variable. variable ['a'. 'variable']}
+        arguments [
+            #
+                is block
+                body #{
+                  statements [
+                    #{variable ['x']}
+                  ]
+                }
+        ]
         optional arguments [#{field ['port'], value #{integer 80}}]
 
   spec 'object operation -> expression'

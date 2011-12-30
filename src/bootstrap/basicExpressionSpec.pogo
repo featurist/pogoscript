@@ -1,6 +1,7 @@
 require 'cupoftea'
 cg = require './codeGenerator/codeGenerator'
 require './assertions.pogo'
+assert = require 'assert'
 
 spec 'basic expression'
   with terminals @terminals should not have arguments =
@@ -134,3 +135,31 @@ spec 'basic expression'
         is hash entry
         field ['the port']
         value #{integer 8}
+
+  spec 'hash entry, without block'
+    hash entry @terminals should contain fields @f =
+      (cg: basic expression @terminals: hash entry, without block) should contain fields @f
+      
+    spec 'with block'
+      hash entry [id 'port'. int 10. block] should contain fields #
+        is hash entry
+        field ['port']
+        value #{integer 10}
+      
+    spec 'without arguments'
+      hash entry [id 'port'] should contain fields #
+        is hash entry
+        field ['port']
+        value @undefined
+
+  spec 'hash entry block'
+    hash entry block @terminals should contain fields @f =
+      (cg: basic expression @terminals: hash entry block?) should contain fields @f
+
+    spec 'with block'
+      hash entry block [id 'port'. int 10. block] should contain fields #
+        is block
+        body #{statements [#{variable ['a']}]}
+
+    spec 'without block'
+      assert: (cg: basic expression [id 'port'. int 10]: hash entry block?) equal @undefined

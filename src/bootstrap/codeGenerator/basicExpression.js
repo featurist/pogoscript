@@ -88,9 +88,15 @@ module.exports = function (terminals) {
       });
     };
     
-    this.hashEntry = function () {
+    this.hashEntry = function (options) {
+      var withoutBlock = options && options.withoutBlock;
+      
       var args = this.arguments();
       var name = this.name();
+      
+      if (withoutBlock && args.length > 0 && args[args.length - 1].isBlock) {
+        args = args.slice(0, args.length - 1);
+      }
 
       if (name.length > 0 && args.length == 1) {
         return cg.hashEntry(name, args[0]);
@@ -102,6 +108,18 @@ module.exports = function (terminals) {
       
       if (name.length == 0 && args.length == 2 && args[0].isString) {
         return cg.hashEntry([args[0].string], args[1])
+      }
+      
+      return errors.addTermWithMessage(this, 'cannot be a hash entry');
+    };
+    
+    this.hashEntryBlock = function () {
+      var args = this.arguments();
+      
+      var lastArgument = args[args.length - 1];
+      
+      if (lastArgument.isBlock) {
+        return lastArgument;
       }
     };
   });
