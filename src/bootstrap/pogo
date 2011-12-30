@@ -1,11 +1,15 @@
 #!/usr/bin/env node --prof --prof_browser_mode
 
-var argv = require('optimist').boolean('c').alias('c', 'compile').argv;
+var argv = require('optimist')
+    .boolean('c').alias('c', 'compile')
+    .boolean('u').alias('u', 'ugly')
+    .argv;
+    
 var commandLine = require('./commandLine');
 
-if (argv.c) {
+if (argv.compile) {
   for (var i in argv._) {
-    commandLine.compileFile(argv._[i]);
+    commandLine.compileFile(argv._[i], {ugly: argv.ugly});
   }
 } else {
   commandLine.runFile(argv._[0]);

@@ -61,7 +61,7 @@ var createForEach = function (name, arguments) {
   var collection = arguments[0];
   var block = arguments[1];
 
-  var itemVariable = block.parameters[0].parameter;
+  var itemVariable = block.parameters[0].expression;
   
   return cg.forEach(collection, itemVariable, block.body);
 };

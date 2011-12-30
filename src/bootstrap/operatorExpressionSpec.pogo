@@ -73,5 +73,5 @@ spec 'operator expression'
                     
                 source #
                     is block
-                    parameters [#{parameter ['b']}]
+                    parameters [#{is parameter, expression #{variable ['b']}}]
                     body #{statements [#{variable ['c']}]}

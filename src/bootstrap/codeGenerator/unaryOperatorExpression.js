@@ -13,7 +13,6 @@
             self.operator = operator;
             self.expr = expression;
             return self.expression = function() {
-                console.log('unary opeartor expression');
                 var foundMacro;
                 self = this;
                 foundMacro = macros.findMacro([ self.operator ]);

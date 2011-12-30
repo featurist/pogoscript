@@ -174,13 +174,13 @@ spec('code generator', function () {
     });
     
     spec('with two parameters', function () {
-      var b = cg.block([cg.parameter(['x']), cg.parameter(['y'])], cg.statements([cg.variable(['x'])]));
+      var b = cg.block([cg.parameter(cg.variable(['x'])), cg.parameter(cg.variable(['y']))], cg.statements([cg.variable(['x'])]));
       
       generatesExpression(b, 'function(x,y){return x;}');
     });
     
     spec('with two parameters and two statements', function () {
-      var b = cg.block([cg.parameter(['x']), cg.parameter(['y'])], cg.statements([cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]), cg.variable(['x'])]));
+      var b = cg.block([cg.parameter(cg.variable(['x'])), cg.parameter(cg.variable(['y']))], cg.statements([cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]), cg.variable(['x'])]));
       
       generatesExpression(b, 'function(x,y){y(x);return x;}');
     });
@@ -188,8 +188,8 @@ spec('code generator', function () {
     spec('block with new context', function () {
       var b = cg.block(
         [
-          cg.parameter(['x']),
-          cg.parameter(['y'])
+          cg.parameter(cg.variable(['x'])),
+          cg.parameter(cg.variable(['y']))
         ],
         cg.statements([
           cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]),
@@ -205,8 +205,8 @@ spec('code generator', function () {
     spec('with a parameter and two optional parameters', function () {
       var b = cg.block(
         [
-          cg.parameter(['x']),
-          cg.parameter(['y'])
+          cg.parameter(cg.variable(['x'])),
+          cg.parameter(cg.variable(['y']))
         ],
         cg.statements([
           cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]),
@@ -292,7 +292,7 @@ spec('code generator', function () {
   });
   
   spec('for each', function() {
-    var f = cg.statements([cg.forEach(cg.variable(['items']), ['item'], cg.statements([cg.variable(['item'])]))]);
+    var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.variable(['item'])]))]);
     
     generatesExpression(f, 'var gen1_items,gen2_i,item;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){item=gen1_items[gen2_i];item;}');
   });

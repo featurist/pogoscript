@@ -34,7 +34,7 @@ module.exports = function (complexExpression) {
       if (this.arguments.length > 1) {
         var object = this.arguments[0].expression();
         var parms = _(this.arguments.slice(1)).map(function (arg) {
-          return arg.parameter();
+          return arg.expression().parameter();
         });
         
         return cg.definition(cg.fieldReference(object, this.name), source.blockify(parms));

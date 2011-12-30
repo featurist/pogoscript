@@ -21,13 +21,16 @@
             beautify: true
         });
     };
-    exports.compileFile = function(filename) {
-        var js, beautifulJs, jsFilename;
+    exports.compileFile = function(filename, gen1_options) {
+        var ugly, js, jsFilename;
         self = this;
+        ugly = gen1_options && gen1_options.ugly != null ? gen1_options.ugly : undefined;
         js = jsFromPogoFile(filename);
-        beautifulJs = beautify(js);
+        if (!ugly) {
+            js = beautify(js);
+        }
         jsFilename = jsFilenameFromPogoFilename(filename);
-        return fs.writeFileSync(jsFilename, beautifulJs);
+        return fs.writeFileSync(jsFilename, js);
     };
     jsFilenameFromPogoFilename = function(pogo) {
         return pogo.replace(new RegExp(".pogo$"), "") + ".js";
@@ -55,10 +58,10 @@
             return generateCode(term);
         }
     };
-    sourceLocationPrinter = function(gen1_options) {
+    sourceLocationPrinter = function(gen2_options) {
         var filename, source;
-        filename = gen1_options && gen1_options.filename != null ? gen1_options.filename : undefined;
-        source = gen1_options && gen1_options.source != null ? gen1_options.source : undefined;
+        filename = gen2_options && gen2_options.filename != null ? gen2_options.filename : undefined;
+        source = gen2_options && gen2_options.source != null ? gen2_options.source : undefined;
         return object(function() {
             self = this;
             self.linesInRange = function(range) {
@@ -68,11 +71,11 @@
                 return lines.slice(range.from - 1, range.to);
             };
             self.printLinesInRange = function(range) {
-                var gen2_items, gen3_i, line;
+                var gen3_items, gen4_i, line;
                 self = this;
-                gen2_items = self.linesInRange(range);
-                for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
-                    line = gen2_items[gen3_i];
+                gen3_items = self.linesInRange(range);
+                for (gen4_i = 0; gen4_i < gen3_items.length; gen4_i++) {
+                    line = gen3_items[gen4_i];
                     process.stderr.write(line + "\n");
                 }
             };

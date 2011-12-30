@@ -99,7 +99,7 @@ spec 'complex expression'
         
         source #
           is block
-          parameters [#{parameter ['x']}]
+          parameters [#{is parameter, expression #{variable ['x']}}]
     
     spec 'method definition without block'
       definition (variable 'object') [[id 'method'. variable 'x']] (variable 'y') should contain fields #
@@ -112,7 +112,7 @@ spec 'complex expression'
         source #
           is block
           redefines self
-          parameters [#{parameter ['x']}]
+          parameters [#{is parameter, expression #{variable ['x']}}]
           body #{statements [#{variable ['y']}]}
     
     spec 'field definition'
@@ -152,7 +152,7 @@ spec 'complex expression'
         
         source #
           is block
-          parameters [#{parameter ['x']}]
+          parameters [#{is parameter, expression #{variable ['x']}}]
           body #{statements [#{variable ['x']}]}
     
     spec 'function definition with optional parameter'
@@ -164,7 +164,7 @@ spec 'complex expression'
         
         source #
           is block
-          parameters [#{parameter ['x']}]
+          parameters [#{is parameter, expression #{variable ['x']}}]
           optional parameters [
             #{field ['port'], value #{integer 80}}
             #{field ['name'], value @undefined}
@@ -180,7 +180,7 @@ spec 'complex expression'
         
         source #
           is block
-          parameters [#{parameter ['x']}]
+          parameters [#{is parameter, expression #{variable ['x']}}]
           body #{statements [#{variable ['y']}]}
     
     spec 'no arg function definition'
@@ -225,9 +225,9 @@ spec 'complex expression'
 
     spec 'parameter'
         parameter @p should contain fields @fields =
-            (cg: complex expression @p: parameter?) should contain fields @fields
+            (cg: complex expression @p: expression? : parameter?) should contain fields @fields
         
         spec 'variable'
             parameter [[id 'a']] should contain fields #
                 is parameter
-                parameter ['a']
+                expression #{variable ['a']}

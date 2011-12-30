@@ -1235,7 +1235,7 @@ var postIncrement = expressionTerm('postIncrement', function(expr) {
 var forEach = expressionTerm('forEach', function(collection, itemVariable, stmts) {
   var itemsVar = generatedVariable(['items']);
   var indexVar = generatedVariable(['i']);
-  var s = [definition(variable(itemVariable), indexer(itemsVar, indexVar))];
+  var s = [definition(itemVariable, indexer(itemsVar, indexVar))];
   s.push.apply(s, stmts.statements);
   var statementsWithItemAssignment = statements(s);
   

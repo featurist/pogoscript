@@ -16,11 +16,13 @@ beautify @code =
   ast = uglify: parser: parse @code
   uglify: uglify: gen_code @ast, beautify
 
-exports: compile file @filename =
+exports: compile file @filename, ugly =
   js = js from pogo file @filename
-  beautiful js = beautify @js
+  if (not @ugly)
+    js = beautify @js
+    
   js filename = js filename from pogo filename @filename
-  fs: write file sync (js filename) (beautiful js)
+  fs: write file sync (js filename) @js
 
 js filename from pogo filename @pogo =
   pogo: replace (new (RegExp '\.pogo$')) '' + '.js'
