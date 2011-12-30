@@ -1,4 +1,4 @@
-pogo : commandLine.js
+pogo : commandLine.js codeGenerator/unaryOperatorExpression.js
 
 commandLine.js : commandLine.pogo
 	pogo -c commandLine.pogo
@@ -13,3 +13,6 @@ parser.js : parser.pogo
 
 runtime.js : runtime.pogo
 	pogo -c runtime.pogo
+
+codeGenerator/unaryOperatorExpression.js : codeGenerator/unaryOperatorExpression.pogo
+	pogo -c codeGenerator/unaryOperatorExpression.pogo

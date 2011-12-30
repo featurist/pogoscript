@@ -78,7 +78,7 @@ grammar = #
         ]
         unary_operator_expression [
             ['object_operation'. '$$ = $1;']
-            ['unary_operator object_operation'. '$$ = yy.expression(yy.operator($1, [$2.expression()]));']
+            ['unary_operator object_operation'. '$$ = yy.newUnaryOperatorExpression({operator: $1, expression: $2.expression()});']
         ]
         object_operation [
             ['object_operation : complex_expression'. '$$ = $3.objectOperation($1.expression());']

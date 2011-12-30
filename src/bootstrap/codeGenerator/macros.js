@@ -7,7 +7,7 @@ var createOperator = function(name, arguments) {
   return cg.operator(name[0], arguments);
 };
 
-_.each(['+', '*', '/', '-', '>=', '==', '!=', '===', '!==', '<=', '<', '>', '|', '&', '||', '&&'], function(op) {
+_.each(['+', '*', '/', '-', '>=', '==', '!=', '===', '!==', '<=', '<', '>', '|', '&', '||', '&&', '!'], function(op) {
   macros.addMacro([op], createOperator);
 });
 

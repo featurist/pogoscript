@@ -27,7 +27,7 @@
             statement: [ [ "expression", "$$ = $1.expression();" ] ],
             expression: [ [ "expression = expression", "$$ = $1.definition($3.expression());" ], [ "operator_expression", "$$ = $1;" ] ],
             operator_expression: [ [ "operator_expression operator unary_operator_expression", "$1.addOperatorExpression($2, $3); $$ = $1;" ], [ "unary_operator_expression", "$$ = yy.operatorExpression($1);" ] ],
-            unary_operator_expression: [ [ "object_operation", "$$ = $1;" ], [ "unary_operator object_operation", "$$ = yy.expression(yy.operator($1, [$2.expression()]));" ] ],
+            unary_operator_expression: [ [ "object_operation", "$$ = $1;" ], [ "unary_operator object_operation", "$$ = yy.newUnaryOperatorExpression({operator: $1, expression: $2.expression()});" ] ],
             object_operation: [ [ "object_operation : complex_expression", "$$ = $3.objectOperation($1.expression());" ], [ ": complex_expression", "$$ = $2.objectOperation(yy.selfExpression());" ], [ "complex_expression", "$$ = $1;" ] ],
             complex_expression: [ [ "basic_expression_list", "$$ = yy.complexExpression($1);" ] ],
             basic_expression_list: [ [ "basic_expression_list , terminal_list", "$1.push($3); $$ = $1;" ], [ "terminal_list_no_arg", "$$ = [$1];" ] ],

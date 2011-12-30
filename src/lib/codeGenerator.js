@@ -105,8 +105,11 @@ var ExpressionPrototype = new function () {
 };
 
 var term = exports.term = function (members) {
-  members.prototype = ExpressionPrototype;
-  return new members();
+  var constructor = function () {
+    members.call(this);
+  };
+  constructor.prototype = ExpressionPrototype;
+  return new constructor();
 };
 
 var addWalker = function () {
