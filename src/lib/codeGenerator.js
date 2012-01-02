@@ -223,9 +223,10 @@ expressionTerm('float', function (value) {
   };
 });
 
-var variable = expressionTerm('variable', function (name) {
+var variable = expressionTerm('variable', function (name, options) {
   this.variable = name;
   this.isVariable = true;
+  this.shadow = options && options.shadow;
   
   this.generateJavaScript = function (buffer, scope) {
     buffer.write(concatName(this.variable));
@@ -236,7 +237,9 @@ var variable = expressionTerm('variable', function (name) {
   this.generateJavaScriptParameter = this.generateJavaScript;
   
   this.definitionName = function(scope) {
-    return this.variable;
+    if (this.shadow || !scope.isDefined(concatName(this.variable))) {
+      return this.variable;
+    }
   };
   
   this.parameter = function () {
@@ -247,7 +250,7 @@ var variable = expressionTerm('variable', function (name) {
 });
 
 var selfExpression = exports.selfExpression = function () {
-  return variable(['self']);
+  return variable(['self'], {shadow: true});
 };
 
 var noArgSuffix = expressionTerm('noArgSuffix', function () {
@@ -513,16 +516,13 @@ var Statements = function (statements) {
       return list.concat(defs);
     }, []).map(function (name) {
       return concatName(name);
-    }).filter(function (name) {
-      if (!scope.isDefined(name)) {
-        scope.define(name);
-        return true;
-      } else {
-        return false;
-      }
-    }).value();
+    }).uniq().value();
     
     if (namesDefined.length > 0) {
+      _(namesDefined).each(function (name) {
+        scope.define(name);
+      });
+      
       buffer.write ('var ');
       writeToBufferWithDelimiter(namesDefined, ',', buffer, function (item) {
         buffer.write(item);
@@ -1220,7 +1220,9 @@ var generatedVariable = expressionTerm('generatedVariable', function(name) {
   this.generateJavaScriptTarget = this.generateJavaScript;
   this.definitionName = function(scope) {
     var n = this.generatedName(scope);
-    return [n];
+    if (!scope.isDefined(concatName([n]))) {
+      return [n];
+    }
   };
 });
 
