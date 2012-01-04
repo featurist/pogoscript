@@ -59,13 +59,15 @@
             return array[array.length - 1];
         };
         return object(function() {
+            var self;
             self = this;
             this.indentTo = function(i) {
+                var self;
                 self = this;
                 return indents.push(i);
             };
             return this.countUnindentsWhileUnwindingTo = function(i) {
-                var unindentCount;
+                var self, unindentCount;
                 self = this;
                 unindentCount = 0;
                 while (peek(indents) != i) {
@@ -77,6 +79,7 @@
         });
     };
     exports.createFileParser = function() {
+        var self;
         self = this;
         return function(source) {
             var lines, lastLine, parse, stream, indentStack, plusIf, write, writeAppending, concatTimes, gen1_items, gen2_i, sline, line, numberOfUnwindBrackets;
@@ -96,12 +99,16 @@
             };
             write = function(l) {
                 if (!l.noLine) {
-                    return stream.write(l.line + "\n");
+                    return stream.write(l.line.replace("\\", "\\\\") + "\n");
                 }
             };
             writeAppending = function(l, s) {
                 if (!l.noLine) {
-                    return stream.write(l.line + s + "\n");
+                    if (s) {
+                        var s;
+                        s = " " + s;
+                    }
+                    return stream.write(l.line.replace("\\", "\\\\") + s + "\n");
                 }
             };
             concatTimes = function(s, n) {
@@ -119,13 +126,13 @@
                 sline = gen1_items[gen2_i];
                 line = parse(sline);
                 if (line.isNewLine) {
-                    writeAppending(lastLine, plusIf("", ".", !(line.isFirstLine || lastLine.endsWithBracket || line.startsWithBracket)));
+                    writeAppending(lastLine, plusIf("", "\\.", !(line.isFirstLine || lastLine.endsWithBracket || line.startsWithBracket)));
                 }
                 if (line.isEmpty) {
                     write(lastLine);
                 }
                 if (line.isIndent) {
-                    writeAppending(lastLine, plusIf("", "{", !lastLine.endsWithBracket));
+                    writeAppending(lastLine, plusIf("", "\\{", !lastLine.endsWithBracket));
                     indentStack.indentTo(line.indentation);
                 }
                 if (line.isUnindent) {
@@ -134,13 +141,13 @@
                     if (line.startsWithBracket) {
                         numberOfUnwindBrackets = numberOfUnwindBrackets - 1;
                     }
-                    lastLineEnding = concatTimes("}", numberOfUnwindBrackets);
-                    writeAppending(lastLine, plusIf(lastLineEnding, ".", lastLine.isEmpty));
+                    lastLineEnding = concatTimes("\\}", numberOfUnwindBrackets);
+                    writeAppending(lastLine, plusIf(lastLineEnding, "\\.", lastLine.isEmpty));
                 }
                 lastLine = line;
             }
             numberOfUnwindBrackets = indentStack.countUnindentsWhileUnwindingTo("");
-            writeAppending(lastLine, concatTimes("}", numberOfUnwindBrackets));
+            writeAppending(lastLine, concatTimes("\\}", numberOfUnwindBrackets));
             return stream.toString();
         };
     };

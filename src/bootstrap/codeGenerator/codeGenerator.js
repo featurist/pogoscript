@@ -38,8 +38,12 @@ exports.lexOperator = function (op) {
   } else if (op == '=>') {
     return op;
   } else {
-    return 'operator';
+    return 'raw_operator';
   }
+};
+
+exports.normaliseOperator = function (op) {
+  return op.replace('\\\\', '\\');
 };
 
 exports.loc = function (term, location) {

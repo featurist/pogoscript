@@ -79,11 +79,14 @@ exports: create file parser! =
 
     write @l =
       if (not (l: no line))
-        stream: write (l: line + '\n')
+        stream: write (l: line: replace '\\' '\\\\'  + '\n')
 
     write @l appending @s =
       if (not (l: no line))
-        stream: write (l: line + s + '\n')
+        if @s
+          s = ' ' + s
+          
+        stream: write (l: line: replace '\\' '\\\\' + s + '\n')
 
     concat @s @n times =
       r = ''
@@ -97,13 +100,13 @@ exports: create file parser! =
       line = parse @sline
 
       if (line: is new line)
-        write (last line) appending ('' plus '.' if (not (((line: is first line) or (last line: ends with bracket)) or (line: starts with bracket))))
+        write (last line) appending ('' plus '\\.' if (not (((line: is first line) or (last line: ends with bracket)) or (line: starts with bracket))))
 
       if (line: is empty)
         write (last line)
 
       if (line: is indent)
-        write (last line) appending ('' plus '{' if (not (last line: ends with bracket)))
+        write (last line) appending ('' plus '\\{' if (not (last line: ends with bracket)))
         indent stack: indent to (line: indentation)
 
       if (line: is unindent)
@@ -112,13 +115,13 @@ exports: create file parser! =
         if (line: starts with bracket)
           number of unwind brackets = number of unwind brackets - 1
 
-        last line ending = concat '}' (number of unwind brackets) times
+        last line ending = concat '\\}' (number of unwind brackets) times
 
-        write (last line) appending ((last line ending) plus '.' if (last line: is empty))
+        write (last line) appending ((last line ending) plus '\\.' if (last line: is empty))
 
       last line = line
 
     number of unwind brackets = indent stack: count unindents while unwinding to ''
-    write (last line) appending (concat '}' (number of unwind brackets) times)
+    write (last line) appending (concat '\\}' (number of unwind brackets) times)
 
     stream: to string?

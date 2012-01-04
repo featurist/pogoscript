@@ -25,7 +25,8 @@ grammar = #
             ['}'. 'return ''}'';']
             ['\\['. 'return ''['';']
             ['\\]'. 'return '']'';']
-            ['[:=,?!.@`~#$%^&*+<>/?\|-]+'. 'return yy.lexOperator(yytext);']
+            ['\\\\[{}.]'. 'return yytext.substring(1);']
+            ['[:=,?!.@`~#$%^&*+<>/?\\\\|-]+'. 'return yy.lexOperator(yytext);']
             ['$'. 'return ''eof'';']
             ['''([^'']*'''')*[^'']*'''. 'return ''string'';']
             ['"'. 'this.begin(''interpolated_string''); return ''start_interpolated_string'';']
@@ -33,7 +34,8 @@ grammar = #
             [['interpolated_string_terminal']. identifier pattern. 'this.popState(); return ''identifier'';']
             [['interpolated_string_terminal']. '\\('. 'yy.interpolation.startInterpolation(); this.begin(''INITIAL''); return ''('';']
             [['interpolated_string']. '"'. 'this.popState(); return ''end_interpolated_string'';']
-            [['interpolated_string']. '[^"@]*'. 'return ''interpolated_string_body'';']
+            [['interpolated_string']. '\\\\\\.'. '/* ignore */']
+            [['interpolated_string']. '[^"@\\\\]*'. 'return ''interpolated_string_body'';']
             ['.'. 'return ''non_token'';']
         ]
 
@@ -125,6 +127,9 @@ grammar = #
             ['parameter'. '$$ = yy.loc(yy.parameter(yy.variable([yytext.substring(1)])), @$);']
             ['string'. '$$ = yy.loc(yy.string(yy.normaliseString(yytext)), @$);']
             ['interpolated_string'. '$$ = yy.loc($1, @$);']
+        ]
+        operator [
+            ['raw_operator'. '$$ = yy.normaliseOperator(yytext);']
         ]
         unary_operator [
             ['operator'. '$$ = $1;']
