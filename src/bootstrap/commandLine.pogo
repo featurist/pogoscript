@@ -24,6 +24,11 @@ exports: compile file @filename, ugly =
   js filename = js filename from pogo filename @filename
   fs: write file sync (js filename) @js
 
+exports: preparse file @filename =
+  contents = fs: read file sync @filename 'utf-8'
+  preparsed pogo = preparse @contents
+  console: log (preparsed pogo)
+
 js filename from pogo filename @pogo =
   pogo: replace (new (RegExp '\.pogo$')) '' + '.js'
 

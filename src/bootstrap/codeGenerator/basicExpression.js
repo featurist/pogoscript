@@ -118,7 +118,7 @@ module.exports = function (terminals) {
       
       var lastArgument = args[args.length - 1];
       
-      if (lastArgument.isBlock) {
+      if (lastArgument && lastArgument.isBlock) {
         return lastArgument;
       }
     };

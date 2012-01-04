@@ -163,3 +163,6 @@ spec 'basic expression'
 
     spec 'without block'
       assert: (cg: basic expression [id 'port'. int 10]: hash entry block?) equal @undefined
+
+    spec 'without hash'
+      assert: (cg: basic expression [id 'port']: hash entry block?) equal @undefined

@@ -3,6 +3,7 @@
 var argv = require('optimist')
     .boolean('c').alias('c', 'compile')
     .boolean('u').alias('u', 'ugly')
+    .boolean('preparse')
     .argv;
     
 var commandLine = require('./commandLine');
@@ -10,6 +11,10 @@ var commandLine = require('./commandLine');
 if (argv.compile) {
   for (var i in argv._) {
     commandLine.compileFile(argv._[i], {ugly: argv.ugly});
+  }
+} else if (argv.preparse) {
+  for (var i in argv._) {
+    commandLine.preparseFile(argv._[i]);
   }
 } else {
   commandLine.runFile(argv._[0]);

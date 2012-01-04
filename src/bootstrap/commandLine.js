@@ -22,7 +22,7 @@
         });
     };
     exports.compileFile = function(filename, gen1_options) {
-        var ugly, js, jsFilename;
+        var self, ugly, js, jsFilename;
         self = this;
         ugly = gen1_options && gen1_options.ugly != null ? gen1_options.ugly : undefined;
         js = jsFromPogoFile(filename);
@@ -32,11 +32,18 @@
         jsFilename = jsFilenameFromPogoFilename(filename);
         return fs.writeFileSync(jsFilename, js);
     };
+    exports.preparseFile = function(filename) {
+        var self, contents, preparsedPogo;
+        self = this;
+        contents = fs.readFileSync(filename, "utf-8");
+        preparsedPogo = preparse(contents);
+        return console.log(preparsedPogo);
+    };
     jsFilenameFromPogoFilename = function(pogo) {
         return pogo.replace(new RegExp(".pogo$"), "") + ".js";
     };
     exports.runFile = function(filename) {
-        var js;
+        var self, js;
         self = this;
         js = jsFromPogoFile(filename);
         module.filename = fs.realpathSync(filename);
@@ -63,15 +70,16 @@
         filename = gen2_options && gen2_options.filename != null ? gen2_options.filename : undefined;
         source = gen2_options && gen2_options.source != null ? gen2_options.source : undefined;
         return object(function() {
+            var self;
             self = this;
             self.linesInRange = function(range) {
-                var lines;
+                var self, lines;
                 self = this;
                 lines = source.split(new RegExp("\n"));
                 return lines.slice(range.from - 1, range.to);
             };
             self.printLinesInRange = function(gen3_options) {
-                var prefix, from, to, gen4_items, gen5_i, line;
+                var self, prefix, from, to, gen4_items, gen5_i, line;
                 self = this;
                 prefix = gen3_options && gen3_options.prefix != null ? gen3_options.prefix : "";
                 from = gen3_options && gen3_options.from != null ? gen3_options.from : undefined;
@@ -86,6 +94,7 @@
                 }
             };
             self.printLocation = function(location) {
+                var self;
                 self = this;
                 process.stderr.write(filename + ":" + location.firstLine + "\n");
                 if (location.firstLine == location.lastLine) {
@@ -106,7 +115,7 @@
                 }
             };
             return self.duplicateStringTimes = function(s, n) {
-                var strings, i;
+                var self, strings, i;
                 self = this;
                 strings = [];
                 for (i = 0; i < n; i = i + 1) {
