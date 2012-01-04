@@ -34,7 +34,9 @@ grammar = #
             [['interpolated_string_terminal']. identifier pattern. 'this.popState(); return ''identifier'';']
             [['interpolated_string_terminal']. '\\('. 'yy.interpolation.startInterpolation(); this.begin(''INITIAL''); return ''('';']
             [['interpolated_string']. '"'. 'this.popState(); return ''end_interpolated_string'';']
-            [['interpolated_string']. '\\\\\\.'. '/* ignore */']
+            [['interpolated_string']. '\\\\[{}.]'. '/* ignore */']
+            [['interpolated_string']. '\\\\\\\\\\\\\\\\'. 'return ''escaped_escape_interpolated_string_body'';']
+            [['interpolated_string']. '\\\\\\\\.'. 'return ''escaped_interpolated_string_body'';']
             [['interpolated_string']. '[^"@\\\\]*'. 'return ''interpolated_string_body'';']
             ['.'. 'return ''non_token'';']
         ]
@@ -150,6 +152,8 @@ grammar = #
         interpolated_string_component [
             ['interpolated_string_terminal_start interpolated_terminal'. '$$ = $2;']
             ['interpolated_string_body'. '$$ = yy.string($1);']
+            ['escaped_interpolated_string_body'. '$$ = yy.string($1.substring(1));']
+            ['escaped_escape_interpolated_string_body'. '$$ = yy.string($1.substring(2));']
         ]
 
 exports: parser = parser = create parser with grammar @grammar
