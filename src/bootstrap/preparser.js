@@ -99,7 +99,7 @@
             };
             write = function(l) {
                 if (!l.noLine) {
-                    return stream.write(l.line.replace("\\", "\\\\") + "\n");
+                    return stream.write(l.line.replace(new RegExp("\\\\", "g"), "\\\\") + "\n");
                 }
             };
             writeAppending = function(l, s) {
@@ -108,7 +108,7 @@
                         var s;
                         s = " " + s;
                     }
-                    return stream.write(l.line.replace("\\", "\\\\") + s + "\n");
+                    return stream.write(l.line.replace(new RegExp("\\\\", "g"), "\\\\") + s + "\n");
                 }
             };
             concatTimes = function(s, n) {

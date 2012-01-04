@@ -2,7 +2,7 @@
     var self;
     self = this;
     global.object = function(members) {
-        var c;
+        var self, c;
         self = this;
         c = function() {
             members.call(this);
@@ -11,7 +11,7 @@
         return new c;
     };
     global.objectExtending = function(base, members) {
-        var c;
+        var self, c;
         self = this;
         c = function() {
             members.call(this);

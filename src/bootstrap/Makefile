@@ -5,7 +5,7 @@ commandLine.js : commandLine.pogo
 
 commandLine.pogo : preparser.js parser.js
 
-preparser.js : preparser.pogo
+preparser.js : preparser.pogo runtime.js
 	pogo -c preparser.pogo
 
 parser.js : parser.pogo
