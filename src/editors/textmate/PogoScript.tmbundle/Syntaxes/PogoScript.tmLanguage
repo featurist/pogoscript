@@ -33,6 +33,18 @@
 			<string>variable.parameter.pogoscript</string>
 		</dict>
 		<dict>
+			<key>match</key>
+			<string>\b[0-9]+\b</string>
+			<key>name</key>
+			<string>constant.numeric.pogoscript</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>=&gt;|[.?!,=]</string>
+			<key>name</key>
+			<string>keyword</string>
+		</dict>
+		<dict>
 			<key>begin</key>
 			<string>'</string>
 			<key>end</key>
@@ -83,7 +95,7 @@
 					<key>end</key>
 					<string>\)</string>
 					<key>name</key>
-					<string>string.interpolation</string>
+					<string>source.pogoscript</string>
 					<key>patterns</key>
 					<array>
 						<dict>
