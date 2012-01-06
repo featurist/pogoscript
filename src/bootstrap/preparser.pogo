@@ -61,7 +61,7 @@ exports: create indent stack = create indent stack! =
 
       unindent count
 
-exports: create file parser! =
+exports: new file parser? =
   ?source
     lines = source: split '\n'
     last line = #{no line}

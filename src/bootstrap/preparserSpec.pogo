@@ -65,7 +65,7 @@ spec 'preparser'
         (indent stack: count unindents while unwinding to '') should equal 2
 
   spec 'source parser'
-    parse = preparser: create file parser!
+    parse = preparser: new file parser?
 
     spec 'new lines'
       spec 'new lines'

@@ -2,6 +2,7 @@ require 'cupoftea'
 require './assertions.pogo'
 
 parse = require './parser.pogo': parse
+preparse = require './preparser.pogo': new file parser?
 
 assume @term is module with statements @action =
     if (term: is module)
@@ -16,7 +17,7 @@ assume @statements has just one statement @action =
         throw (new (Error ('expected statements to have just one statement, found ' + statements: statements: length)))
 
 expression @source =
-    term = parse @source
+    term = parse (preparse @source)
     assume @term is module with statements ?statements
         assume @statements has just one statement ?s
             s

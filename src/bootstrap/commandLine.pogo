@@ -5,7 +5,7 @@ parse = require './parser': parse
 uglify = require 'uglify-js'
 errors = require './codeGenerator/errors'
 
-preparse = preparser: create file parser!
+preparse = preparser: new file parser?
 
 generate code @term =
   memory stream = new (ms: MemoryStream)
