@@ -79,13 +79,10 @@ exports: new file parser? =
 
     write @l =
       if (not (l: no line))
-        stream: write (l: line: replace (new (RegExp '\\\\' 'g')) '\\\\'  + '\n')
+        stream: write (l: line: replace (new (RegExp '\\\\' 'g')) '\\\\' + '\n')
 
     write @l appending @s =
       if (not (l: no line))
-        if @s
-          s = ' ' + s
-          
         stream: write (l: line: replace (new (RegExp '\\\\' 'g')) '\\\\' + s + '\n')
 
     concat @s @n times =

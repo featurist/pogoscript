@@ -26,7 +26,7 @@ grammar = #
             ['\\['. 'return ''['';']
             ['\\]'. 'return '']'';']
             ['\\\\[{}.]'. 'return yytext.substring(1);']
-            ['[:=,?!.@`~#$%^&*+<>/?\\\\|-]+'. 'return yy.lexOperator(yytext);']
+            ['([:=,?!.@`~#$%^&*+<>/?|-]|\\\\)+'. 'return yy.lexOperator(yytext);']
             ['$'. 'return ''eof'';']
             ['''([^'']*'''')*[^'']*'''. 'return ''string'';']
             ['"'. 'this.begin(''interpolated_string''); return ''start_interpolated_string'';']
@@ -152,7 +152,7 @@ grammar = #
         interpolated_string_component [
             ['interpolated_string_terminal_start interpolated_terminal'. '$$ = $2;']
             ['interpolated_string_body'. '$$ = yy.string($1);']
-            ['escaped_interpolated_string_body'. '$$ = yy.string($1.substring(1));']
+            ['escaped_interpolated_string_body'. '$$ = yy.string(yy.normaliseInterpolatedString($1.substring(1)));']
             ['escaped_escape_interpolated_string_body'. '$$ = yy.string($1.substring(2));']
         ]
 

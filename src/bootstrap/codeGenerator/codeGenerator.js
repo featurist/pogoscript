@@ -10,6 +10,7 @@ exports.identifier = cg.identifier;
 exports.integer = cg.integer;
 exports.float = cg.float;
 exports.normaliseString = cg.normaliseString;
+exports.normaliseInterpolatedString = cg.normaliseInterpolatedString;
 exports.string = cg.string;
 exports.interpolatedString = cg.interpolatedString;
 exports.module = cg.module;
@@ -43,7 +44,7 @@ exports.lexOperator = function (op) {
 };
 
 exports.normaliseOperator = function (op) {
-  return op.replace('\\\\', '\\');
+  return op.replace(/\\\\/g, '\\');
 };
 
 exports.loc = function (term, location) {

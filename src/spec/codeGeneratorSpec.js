@@ -98,6 +98,13 @@ spec('code generator', function () {
       
       generatesExpression(s, "'a string'");
     });
+    
+    spec('with newline', function() {
+      var s = cg.string("one\ntwo");
+      
+      generatesExpression(s, "'one\\ntwo'");
+    });
+    
     spec('with escaped single quote', function() {
       var s = cg.string("his name was 'Sue'. weird");
       
@@ -108,6 +115,12 @@ spec('code generator', function () {
   spec('interpolated strings', function () {
     spec('one string', function () {
       var s = cg.interpolatedString([cg.string("a string")]);
+
+      generatesExpression(s, "'a string'");
+    });
+
+    spec('two strings', function () {
+      var s = cg.interpolatedString([cg.string("a "), cg.string("string")]);
 
       generatesExpression(s, "'a string'");
     });

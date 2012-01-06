@@ -174,8 +174,26 @@ var boolean = expressionTerm('boolean', function(value) {
   };
 });
 
+var actualCharacters = [
+  [/\\\\/g, '\\', /\\/g, '\\\\'],
+  [/\\b/g, '\b', new RegExp('\b', 'g'), '\\b'],
+  [/\\f/g, '\f', /\f/g, '\\f'],
+  [/\\n/g, '\n', /\n/g, '\\n'],
+  [/\\0/g, '\0', /\0/g, '\\0'],
+  [/\\r/g, '\r', /\r/g, '\\r'],
+  [/\\t/g, '\t', /\t/g, '\\t'],
+  [/\\v/g, '\v', /\v/g, '\\v'],
+  [/\\'/g, "'", /'/g, "\\'"],
+  [/\\"/g, '"', /"/g, '\\"']
+];
+
 var formatJavaScriptString = function(s) {
-  return "'" + s.replace(/'/g, "\\'") + "'";
+  for (var i = 0; i < actualCharacters.length; i++) {
+    var mapping = actualCharacters[i];
+    s = s.replace(mapping[2], mapping[3]);
+  }
+  
+  return "'" + s + "'";
 };
 
 expressionTerm('interpolatedString', function (value) {
@@ -185,15 +203,21 @@ expressionTerm('interpolatedString', function (value) {
   this.componentsDelimitedByStrings = function () {
     var comps = [];
     var lastComponentWasExpression = false;
+    var lastComponentWasString = false;
 
     _.each(this.components, function (component) {
       if (lastComponentWasExpression && !component.isString) {
         comps.push(string(''));
       }
-
-      comps.push(component);
+      
+      if (lastComponentWasString && component.isString) {
+        comps[comps.length - 1] = string(comps[comps.length - 1].string + component.string);
+      } else {
+        comps.push(component);
+      }
 
       lastComponentWasExpression = !component.isString;
+      lastComponentWasString = component.isString;
     });
 
     return comps;
@@ -206,6 +230,15 @@ expressionTerm('interpolatedString', function (value) {
 
 var normaliseString = exports.normaliseString = function(s) {
   return s.substring(1, s.length - 1).replace(/''/g, "'").replace(/\\\\/g, '\\');
+};
+
+var normaliseInterpolatedString = exports.normaliseInterpolatedString = function (s) {
+  for (var i = 0; i < actualCharacters.length; i++) {
+    var mapping = actualCharacters[i];
+    s = s.replace(mapping[0], mapping[1]);
+  }
+
+  return s;
 };
 
 var string = expressionTerm('string', function(value) {

@@ -47,6 +47,11 @@ spec 'parser'
                 (expression '''''''alright!'''' he said''') should contain fields #
                     is string
                     string '''alright!'' he said'
+                    
+            spec 'string with backslash'
+                (expression "'one \\ two'") should contain fields #
+                    is string
+                    string "one \\ two"
 
         spec 'interpolated strings'
             spec 'simple'
@@ -54,6 +59,14 @@ spec 'parser'
                     is interpolated string
                     components [
                         #{string 'a string'}
+                    ]
+
+            spec 'with newline'
+                (expression '"one\ntwo"') should contain fields #
+                    is interpolated string
+                    components [
+                        #{string "one"}
+                        #{string "\ntwo"}
                     ]
 
             spec 'null string'
@@ -364,6 +377,16 @@ spec 'parser'
                         is field reference
                         object #{variable ['o']}
                         name ['x']
+                ]
+                
+        spec 'parses backslash'
+            (expression "2 +\\+ 1") should contain fields #
+                is method call
+                object #{integer 2}
+                    
+                name ["+\\+"]
+                arguments [
+                    #{integer 1}
                 ]
                 
         spec 'unary operators should be higher precedence than binary operators'
