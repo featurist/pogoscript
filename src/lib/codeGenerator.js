@@ -229,7 +229,7 @@ expressionTerm('interpolatedString', function (value) {
 });
 
 var normaliseString = exports.normaliseString = function(s) {
-  return s.substring(1, s.length - 1).replace(/''/g, "'").replace(/\\\\/g, '\\');
+  return s.substring(1, s.length - 1).replace(/''/g, "'").replace(/\\\\/g, '\\').replace(/\\[.{}]/g, '');
 };
 
 var normaliseInterpolatedString = exports.normaliseInterpolatedString = function (s) {
