@@ -69,6 +69,14 @@ spec 'parser'
                         #{string "\ntwo"}
                     ]
 
+            spec 'with indentation'
+                (expression '"one\n  two"') should contain fields #
+                    is interpolated string
+                    components [
+                        #{string "one"}
+                        #{string "\n  two"}
+                    ]
+
             spec 'null string'
                 (expression '""') should contain fields #
                     is interpolated string

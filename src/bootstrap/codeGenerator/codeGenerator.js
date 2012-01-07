@@ -61,3 +61,5 @@ exports.loc = function (term, location) {
   
   return term;
 };
+
+exports.stringBrackets = 0;
