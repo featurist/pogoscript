@@ -159,7 +159,7 @@ grammar = #
             ['interpolated_string_terminal_start interpolated_terminal'. '$$ = $2;']
             ['interpolated_string_body'. '$$ = yy.string($1);']
             ['escaped_interpolated_string_body'. '$$ = yy.string(yy.normaliseInterpolatedString($1.substring(1)));']
-            ['escaped_escape_interpolated_string_body'. '$$ = yy.string($1.substring(2));']
+            ['escaped_escape_interpolated_string_body'. '$$ = yy.string($1.substring(3));']
         ]
 
 exports: parser = parser = create parser with grammar @grammar

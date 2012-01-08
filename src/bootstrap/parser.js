@@ -42,7 +42,7 @@
             interpolated_terminal: [ [ "( statement )", "$$ = $2;" ], [ "identifier", "$$ = yy.variable([$1]);" ] ],
             interpolated_string: [ [ "start_interpolated_string interpolated_string_components end_interpolated_string", "$$ = yy.interpolatedString($2);" ], [ "start_interpolated_string end_interpolated_string", "$$ = yy.interpolatedString([]);" ] ],
             interpolated_string_components: [ [ "interpolated_string_components interpolated_string_component", "$1.push($2); $$ = $1;" ], [ "interpolated_string_component", "$$ = [$1];" ] ],
-            interpolated_string_component: [ [ "interpolated_string_terminal_start interpolated_terminal", "$$ = $2;" ], [ "interpolated_string_body", "$$ = yy.string($1);" ], [ "escaped_interpolated_string_body", "$$ = yy.string(yy.normaliseInterpolatedString($1.substring(1)));" ], [ "escaped_escape_interpolated_string_body", "$$ = yy.string($1.substring(2));" ] ]
+            interpolated_string_component: [ [ "interpolated_string_terminal_start interpolated_terminal", "$$ = $2;" ], [ "interpolated_string_body", "$$ = yy.string($1);" ], [ "escaped_interpolated_string_body", "$$ = yy.string(yy.normaliseInterpolatedString($1.substring(1)));" ], [ "escaped_escape_interpolated_string_body", "$$ = yy.string($1.substring(3));" ] ]
         }
     };
     exports.parser = parser = createParserWithGrammar(grammar);
