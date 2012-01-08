@@ -205,11 +205,11 @@ spec 'complex expression'
           variable ['y']
     
     spec 'index method definition'
-      definition (variable 'object') [[variable 'x'. variable 'p']] (variable 'y') should contain fields #
+      definition (variable 'object') [[cg: string 'xyz'. variable 'p']] (variable 'y') should contain fields #
         is definition
         target #
           is indexer
-          indexer #{variable ['x']}
+          indexer #{string 'xyz'}
           object #{variable ['object']}
         
         source #
@@ -223,6 +223,26 @@ spec 'complex expression'
           
           parameters [
             #{is parameter. expression #{variable ['p']}}
+          ]
+    
+    spec 'index method definition with no args'
+      definition (variable 'object') [[cg: string 'xyz'. no arg punctuation]] (variable 'y') should contain fields #
+        is definition
+        target #
+          is indexer
+          indexer #{string 'xyz'}
+          object #{variable ['object']}
+        
+        source #
+          is block
+          body #
+            statements [
+              #
+                is variable
+                variable ['y']
+            ]
+          
+          parameters [
           ]
 
   spec 'definition'

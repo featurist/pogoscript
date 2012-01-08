@@ -43,25 +43,21 @@ module.exports = function (terminals) {
       }
     };
 
-    this.parameters = function () {
+    this.parameters = function (options) {
+			var skipFirstParameter = options && options.skipFirstParameter;
+	
       if (this._parameters) {
         return this._parameters;
       }
       
       var args = this.arguments();
+
+			if (skipFirstParameter) {
+				args = args.slice(1);
+			}
+
       return this._parameters = _(args).map(function (arg) {
         return arg.parameter();
-      });
-      var variableArgs = _(args).filter(function (arg) {
-        if (arg.isVariable) {
-          return true;
-        } else {
-          errors.addTermWithMessage(arg, 'this cannot be used as a parameter');
-          return false;
-        }
-      });
-      return this._parameters = _(variableArgs).map(function (v) {
-        return cg.parameter(v.variable);
       });
     };
     
