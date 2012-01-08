@@ -40,7 +40,7 @@
         return console.log(preparsedPogo);
     };
     jsFilenameFromPogoFilename = function(pogo) {
-        return pogo.replace(new RegExp(".pogo$"), "") + ".js";
+        return pogo.replace(new RegExp("\\.pogo$"), "") + ".js";
     };
     exports.runFile = function(filename) {
         var self, js;
@@ -103,8 +103,8 @@
                         from: location.firstLine,
                         to: location.lastLine
                     });
-                    spaces = self.duplicateStringTimes(" ", location.firstColumn);
-                    markers = self.duplicateStringTimes("^", location.lastColumn - location.firstColumn);
+                    spaces = self.times(" ", location.firstColumn);
+                    markers = self.times("^", location.lastColumn - location.firstColumn);
                     return process.stderr.write(spaces + markers + "\n");
                 } else {
                     return self.printLinesInRange({
@@ -114,7 +114,7 @@
                     });
                 }
             };
-            return self.duplicateStringTimes = function(s, n) {
+            return self.times = function(s, n) {
                 var self, strings, i;
                 self = this;
                 strings = [];

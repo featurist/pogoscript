@@ -13,7 +13,7 @@
             self = this;
             self.operator = operator;
             self.expr = expression;
-            return self.expression = function() {
+            self.expression = function() {
                 var self, foundMacro;
                 self = this;
                 foundMacro = macros.findMacro([ self.operator ]);
@@ -23,6 +23,7 @@
                     return cg.methodCall(self.expr, [ self.operator ], []);
                 }
             };
+            return self.subterms("operator", "expr");
         });
     };
 })();

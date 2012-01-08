@@ -39,6 +39,10 @@ module.exports = function (complexExpression) {
         
         return cg.definition(cg.fieldReference(object, this.name), source.blockify(parms));
       } else {
+				if (!this.arguments[0].definition) {
+					// console.log('argument', this.arguments[0]);
+					console.log('argument', require('util').inspect(this.arguments[0], true, 10));
+				}
         return this.arguments[0].definition(source);
       }
     }

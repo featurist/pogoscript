@@ -13,3 +13,5 @@ exports: new unary operator expression, operator, expression =
                 found macro [:operator] [:expr]
             else
                 cg: method call (:expr) [:operator] []
+        
+        :subterms 'operator' 'expr'
