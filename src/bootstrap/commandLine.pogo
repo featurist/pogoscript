@@ -65,13 +65,13 @@ source location printer, filename, source =
       
       if (location: first line == location: last line)
         :print lines in range, from (location: first line), to (location: last line)
-        spaces = :duplicate string ' ' (location: first column) times
-        markers = :duplicate string '^' (location: last column - location:first column) times
+        spaces = :' ' times (location: first column)
+        markers = :'^' times (location: last column - location:first column)
         process:stderr:write (spaces + markers + '\n')
       else
         :print lines in range, prefix '> ', from (location: first line), to (location: last line)
 
-    :duplicate string @s @n times =
+    :@s times @n =
         strings = []
         for {i = 0} {i < n} {i = i + 1}
           strings: push @s
