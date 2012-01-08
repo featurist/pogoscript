@@ -10,6 +10,7 @@ exports.identifier = cg.identifier;
 exports.integer = cg.integer;
 exports.float = cg.float;
 exports.normaliseString = cg.normaliseString;
+exports.normaliseInterpolatedString = cg.normaliseInterpolatedString;
 exports.string = cg.string;
 exports.interpolatedString = cg.interpolatedString;
 exports.module = cg.module;
@@ -22,6 +23,7 @@ exports.complexExpression = require('./complexExpression');
 exports.operatorExpression = require('./operatorExpression');
 exports.newUnaryOperatorExpression = require('./unaryOperatorExpression').newUnaryOperatorExpression;
 exports.operator = cg.operator;
+exports.splat = cg.splat;
 exports.macros = require('./macros');
 
 exports.expression = function (e) {
@@ -43,7 +45,7 @@ exports.lexOperator = function (op) {
 };
 
 exports.normaliseOperator = function (op) {
-  return op.replace('\\\\', '\\');
+  return op.replace(/\\\\/g, '\\');
 };
 
 exports.loc = function (term, location) {
@@ -60,3 +62,5 @@ exports.loc = function (term, location) {
   
   return term;
 };
+
+exports.stringBrackets = 0;

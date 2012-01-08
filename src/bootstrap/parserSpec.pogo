@@ -2,6 +2,7 @@ require 'cupoftea'
 require './assertions.pogo'
 
 parse = require './parser.pogo': parse
+preparse = require './preparser.pogo': new file parser?
 
 assume @term is module with statements @action =
     if (term: is module)
@@ -16,7 +17,7 @@ assume @statements has just one statement @action =
         throw (new (Error ('expected statements to have just one statement, found ' + statements: statements: length)))
 
 expression @source =
-    term = parse @source
+    term = parse (preparse @source)
     assume @term is module with statements ?statements
         assume @statements has just one statement ?s
             s
@@ -46,6 +47,11 @@ spec 'parser'
                 (expression '''''''alright!'''' he said''') should contain fields #
                     is string
                     string '''alright!'' he said'
+                    
+            spec 'string with backslash'
+                (expression "'one \\ two'") should contain fields #
+                    is string
+                    string "one \\ two"
 
         spec 'interpolated strings'
             spec 'simple'
@@ -53,6 +59,22 @@ spec 'parser'
                     is interpolated string
                     components [
                         #{string 'a string'}
+                    ]
+
+            spec 'with newline'
+                (expression '"one\ntwo"') should contain fields #
+                    is interpolated string
+                    components [
+                        #{string "one"}
+                        #{string "\ntwo"}
+                    ]
+
+            spec 'with indentation'
+                (expression '"one\n  two"') should contain fields #
+                    is interpolated string
+                    components [
+                        #{string "one"}
+                        #{string "\n  two"}
                     ]
 
             spec 'null string'
@@ -193,6 +215,14 @@ spec 'parser'
                     is field reference
                     object #{variable ['self']}
                     name ['file']
+                ]
+
+        spec 'function call with splat argument'
+            (expression 'touch @files ...') should contain fields #
+                function #{variable ['touch']}
+                arguments [
+                  #{variable ['files']}
+                  #{is splat}
                 ]
 
         spec 'function call with no argument'
@@ -363,6 +393,16 @@ spec 'parser'
                         is field reference
                         object #{variable ['o']}
                         name ['x']
+                ]
+                
+        spec 'parses backslash'
+            (expression "2 +\\+ 1") should contain fields #
+                is method call
+                object #{integer 2}
+                    
+                name ["+\\+"]
+                arguments [
+                    #{integer 1}
                 ]
                 
         spec 'unary operators should be higher precedence than binary operators'

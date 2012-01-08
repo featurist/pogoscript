@@ -74,6 +74,38 @@ spec('code generator', function () {
       generatesExpression(f, 'f(a,b)');
     });
     
+    spec('splats', function () {
+      spec('just splat', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['b']), cg.splat()]);
+      
+        generatesExpression(f, 'f.apply(null,b)');
+      });
+      
+      spec('args before', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.variable(['b']), cg.splat()]);
+      
+        generatesExpression(f, 'f.apply(null,[a].concat(b))');
+      });
+      
+      spec('args after', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.splat(), cg.variable(['b'])]);
+      
+        generatesExpression(f, 'f.apply(null,a.concat([b]))');
+      });
+      
+      spec('two splats', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.variable(['b']), cg.splat(), cg.variable(['c']), cg.variable(['d']), cg.splat(), cg.variable(['e'])]);
+      
+        generatesExpression(f, 'f.apply(null,[a].concat(b).concat([c]).concat(d).concat([e]))');
+      });
+
+      spec('splat with optional args', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['b']), cg.splat()], [cg.hashEntry(['port'], cg.variable(['p']))]);
+      
+        generatesExpression(f, 'f.apply(null,b.concat([{port:p}]))');
+      });
+    });
+    
     spec('with no arguments and an optional argument', function () {
       var f = cg.functionCall(cg.variable(['f']), [], [cg.hashEntry(['port'], cg.variable(['p']))]);
       
@@ -98,6 +130,13 @@ spec('code generator', function () {
       
       generatesExpression(s, "'a string'");
     });
+    
+    spec('with newline', function() {
+      var s = cg.string("one\ntwo");
+      
+      generatesExpression(s, "'one\\ntwo'");
+    });
+    
     spec('with escaped single quote', function() {
       var s = cg.string("his name was 'Sue'. weird");
       
@@ -108,6 +147,12 @@ spec('code generator', function () {
   spec('interpolated strings', function () {
     spec('one string', function () {
       var s = cg.interpolatedString([cg.string("a string")]);
+
+      generatesExpression(s, "'a string'");
+    });
+
+    spec('two strings', function () {
+      var s = cg.interpolatedString([cg.string("a "), cg.string("string")]);
 
       generatesExpression(s, "'a string'");
     });
@@ -325,6 +370,38 @@ spec('code generator', function () {
       var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff'])], [cg.hashEntry(['port'], cg.integer(45))]);
       
       generatesExpression(m, 'console.log(stuff,{port:45})');
+    });
+
+    spec('splats', function () {
+      spec('just splat', function () {
+        var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()]);
+      
+        generatesExpression(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,b);');
+      });
+      
+      spec('args before', function () {
+        var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.variable(['b']), cg.splat()]);
+      
+        generatesExpression(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,[a].concat(b));');
+      });
+      
+      spec('args after', function () {
+        var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.splat(), cg.variable(['b'])]);
+      
+        generatesExpression(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,a.concat([b]));');
+      });
+      
+      spec('two splats', function () {
+        var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.variable(['b']), cg.splat(), cg.variable(['c']), cg.variable(['d']), cg.splat(), cg.variable(['e'])]);
+      
+        generatesExpression(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,[a].concat(b).concat([c]).concat(d).concat([e]));');
+      });
+
+      spec('splat with optional args', function () {
+        var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()], [cg.hashEntry(['port'], cg.variable(['p']))]);
+      
+        generatesExpression(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,b.concat([{port:p}]));');
+      });
     });
   });
   

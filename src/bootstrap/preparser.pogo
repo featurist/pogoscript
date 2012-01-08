@@ -2,7 +2,7 @@ fs = require 'fs'
 ms = require '../lib/memorystream'
 require './runtime.pogo'
 
-exports: create line parser = create line parser! =
+exports: new line parser = new line parser? =
   last indentation = ''
   indentation pattern = new (RegExp '^( *)(.*)$')
   is empty line pattern = new (RegExp '^\\s*$')
@@ -44,7 +44,7 @@ exports: create line parser = create line parser! =
 
         line
 
-exports: create indent stack = create indent stack! =
+exports: new indent stack = new indent stack? =
   indents = ['']
   peek @array = array: (array: length - 1)
 
@@ -61,15 +61,15 @@ exports: create indent stack = create indent stack! =
 
       unindent count
 
-exports: create file parser! =
+exports: new file parser? =
   ?source
     lines = source: split '\n'
     last line = #{no line}
-    parse = create line parser!
+    parse = new line parser?
 
     stream = new (ms: MemoryStream!)
 
-    indent stack = create indent stack!
+    indent stack = new indent stack?
 
     @s plus @a if @c =
       if @c
@@ -79,13 +79,10 @@ exports: create file parser! =
 
     write @l =
       if (not (l: no line))
-        stream: write (l: line: replace (new (RegExp '\\\\' 'g')) '\\\\'  + '\n')
+        stream: write (l: line: replace (new (RegExp '\\\\' 'g')) '\\\\' + '\n')
 
     write @l appending @s =
       if (not (l: no line))
-        if @s
-          s = ' ' + s
-          
         stream: write (l: line: replace (new (RegExp '\\\\' 'g')) '\\\\' + s + '\n')
 
     concat @s @n times =

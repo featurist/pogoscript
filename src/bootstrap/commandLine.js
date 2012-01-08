@@ -7,7 +7,7 @@
     parse = require("./parser").parse;
     uglify = require("uglify-js");
     errors = require("./codeGenerator/errors");
-    preparse = preparser.createFileParser();
+    preparse = preparser.newFileParser();
     generateCode = function(term) {
         var memoryStream;
         memoryStream = new ms.MemoryStream;

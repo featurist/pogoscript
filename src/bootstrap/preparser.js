@@ -1,10 +1,10 @@
 (function() {
-    var self, fs, ms, createLineParser, createIndentStack;
+    var self, fs, ms, newLineParser, newIndentStack;
     self = this;
     fs = require("fs");
     ms = require("../lib/memorystream");
     require("./runtime");
-    exports.createLineParser = createLineParser = function() {
+    exports.newLineParser = newLineParser = function() {
         var lastIndentation, indentationPattern, isEmptyLinePattern, lineEndsWithBracketPattern, lineStartsWithBracketPattern, isFirstLine, isEmpty, startsWithBracket, endsWithBracket;
         lastIndentation = "";
         indentationPattern = new RegExp("^( *)(.*)$");
@@ -52,7 +52,7 @@
             }
         };
     };
-    exports.createIndentStack = createIndentStack = function() {
+    exports.newIndentStack = newIndentStack = function() {
         var indents, peek;
         indents = [ "" ];
         peek = function(array) {
@@ -78,7 +78,7 @@
             };
         });
     };
-    exports.createFileParser = function() {
+    exports.newFileParser = function() {
         var self;
         self = this;
         return function(source) {
@@ -87,9 +87,9 @@
             lastLine = {
                 noLine: true
             };
-            parse = createLineParser();
+            parse = newLineParser();
             stream = new ms.MemoryStream;
-            indentStack = createIndentStack();
+            indentStack = newIndentStack();
             plusIf = function(s, a, c) {
                 if (c) {
                     return s + a;
@@ -104,10 +104,6 @@
             };
             writeAppending = function(l, s) {
                 if (!l.noLine) {
-                    if (s) {
-                        var s;
-                        s = " " + s;
-                    }
                     return stream.write(l.line.replace(new RegExp("\\\\", "g"), "\\\\") + s + "\n");
                 }
             };

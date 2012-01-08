@@ -87,10 +87,10 @@ module.exports = function (listOfTerminals) {
           return cg.variable(this.head().name());
         }
       } else {
-        if (!this.hasTail() && this.arguments().length == 1) {
+        if (!this.hasTail() && this.arguments().length == 1 && !this.head().containsCallPunctuation()) {
           return this.arguments()[0];
         } else {
-          return errors.addTermWithMessage(this, 'value cannot have optional arguments');
+          return cg.functionCall(this.arguments()[0], this.arguments().slice(1));
         }
       }
     };
@@ -103,14 +103,16 @@ module.exports = function (listOfTerminals) {
           return cg.fieldReference(object, this.head().name());
         }
       } else {
-        if (!this.hasTail() && this.arguments().length == 1) {
+        if (!this.hasTail() && this.arguments().length == 1 && !this.head().containsCallPunctuation()) {
           return cg.indexer(object, this.arguments()[0]);
+        } else {
+          return cg.functionCall(cg.indexer(object, this.arguments()[0]), this.arguments().slice(1));
         }
       }
     };
     
-    this.parameters = function () {
-      return this.head().parameters();
+    this.parameters = function (options) {
+      return this.head().parameters(options);
     };
     
     this.optionalParameters = function () {
@@ -145,9 +147,13 @@ module.exports = function (listOfTerminals) {
           return cg.definition(cg.fieldReference(object, this.head().name()), source.scopify());
         }
       } else {
-        if (!this.hasTail() && this.arguments().length == 1) {
+        if (!this.hasTail() && this.arguments().length == 1 && !this.head().containsCallPunctuation()) {
           return cg.definition(cg.indexer(object, this.arguments()[0]), source.scopify());
-        }
+        } else {
+          var block = source.blockify(this.parameters({skipFirstParameter: true}), this.optionalParameters());
+          block.redefinesSelf = true;
+          return cg.definition(cg.indexer(object, this.arguments()[0]), block);
+				}
       }
     };
     

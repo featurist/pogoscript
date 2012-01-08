@@ -50,6 +50,18 @@ spec 'complex expression'
         is integer
         integer 9
 
+    spec 'all arguments is function call, first argument is function'
+      expression [[variable 'z'. int 9]] should contain fields #
+        is function call
+        function #{variable ['z']}
+        arguments [#{integer 9}]
+
+    spec 'one argument and call punctuation is function call'
+      expression [[variable 'z'. no arg punctuation]] should contain fields #
+        is function call
+        function #{variable ['z']}
+        arguments []
+
     spec 'with name is variable'
       expression [[id 'a'. id 'variable']] should contain fields #
         is variable
@@ -112,6 +124,26 @@ spec 'complex expression'
         object #{variable ['a']}
         indexer #{integer 10}
 
+    spec 'index call with arguments'
+      expression (variable 'a') [[variable 'z'. int 10]] should contain fields #
+        is function call
+        function #
+          is indexer
+          object #{variable ['a']}
+          indexer #{variable ['z']}
+        
+        arguments [#{integer 10}]
+
+    spec 'index call with no arguments'
+      expression (variable 'a') [[variable 'z'. no arg punctuation]] should contain fields #
+        is function call
+        function #
+          is indexer
+          object #{variable ['a']}
+          indexer #{variable ['z']}
+        
+        arguments []
+
     spec 'field reference'
       expression (variable 'a') [[id 'field']] should contain fields #
         is field reference
@@ -171,6 +203,47 @@ spec 'complex expression'
         source #
           is variable
           variable ['y']
+    
+    spec 'index method definition'
+      definition (variable 'object') [[cg: string 'xyz'. variable 'p']] (variable 'y') should contain fields #
+        is definition
+        target #
+          is indexer
+          indexer #{string 'xyz'}
+          object #{variable ['object']}
+        
+        source #
+          is block
+          body #
+            statements [
+              #
+                is variable
+                variable ['y']
+            ]
+          
+          parameters [
+            #{is parameter. expression #{variable ['p']}}
+          ]
+    
+    spec 'index method definition with no args'
+      definition (variable 'object') [[cg: string 'xyz'. no arg punctuation]] (variable 'y') should contain fields #
+        is definition
+        target #
+          is indexer
+          indexer #{string 'xyz'}
+          object #{variable ['object']}
+        
+        source #
+          is block
+          body #
+            statements [
+              #
+                is variable
+                variable ['y']
+            ]
+          
+          parameters [
+          ]
 
   spec 'definition'
     definition @target @source should contain fields @fields =
