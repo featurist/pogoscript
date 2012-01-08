@@ -87,10 +87,10 @@ module.exports = function (listOfTerminals) {
           return cg.variable(this.head().name());
         }
       } else {
-        if (!this.hasTail() && this.arguments().length == 1) {
+        if (!this.hasTail() && this.arguments().length == 1 && !this.head().containsCallPunctuation()) {
           return this.arguments()[0];
         } else {
-          return errors.addTermWithMessage(this, 'value cannot have optional arguments');
+          return cg.functionCall(this.arguments()[0], this.arguments().slice(1));
         }
       }
     };
@@ -103,8 +103,10 @@ module.exports = function (listOfTerminals) {
           return cg.fieldReference(object, this.head().name());
         }
       } else {
-        if (!this.hasTail() && this.arguments().length == 1) {
+        if (!this.hasTail() && this.arguments().length == 1 && !this.head().containsCallPunctuation()) {
           return cg.indexer(object, this.arguments()[0]);
+        } else {
+          return cg.functionCall(cg.indexer(object, this.arguments()[0]), this.arguments().slice(1));
         }
       }
     };
