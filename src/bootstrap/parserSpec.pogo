@@ -217,6 +217,14 @@ spec 'parser'
                     name ['file']
                 ]
 
+        spec 'function call with splat argument'
+            (expression 'touch @files ...') should contain fields #
+                function #{variable ['touch']}
+                arguments [
+                  #{variable ['files']}
+                  #{is splat}
+                ]
+
         spec 'function call with no argument'
             (expression 'delete everything!') should contain fields #
                 function #{variable ['delete'. 'everything']}

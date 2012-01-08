@@ -74,6 +74,38 @@ spec('code generator', function () {
       generatesExpression(f, 'f(a,b)');
     });
     
+    spec('splats', function () {
+      spec('just splat', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['b']), cg.splat()]);
+      
+        generatesExpression(f, 'f.apply(null,b)');
+      });
+      
+      spec('args before', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.variable(['b']), cg.splat()]);
+      
+        generatesExpression(f, 'f.apply(null,[a].concat(b))');
+      });
+      
+      spec('args after', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.splat(), cg.variable(['b'])]);
+      
+        generatesExpression(f, 'f.apply(null,a.concat([b]))');
+      });
+      
+      spec('two splats', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.variable(['b']), cg.splat(), cg.variable(['c']), cg.variable(['d']), cg.splat(), cg.variable(['e'])]);
+      
+        generatesExpression(f, 'f.apply(null,[a].concat(b).concat([c]).concat(d).concat([e]))');
+      });
+
+      spec('splat with optional args', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['b']), cg.splat()], [cg.hashEntry(['port'], cg.variable(['p']))]);
+      
+        generatesExpression(f, 'f.apply(null,b.concat([{port:p}]))');
+      });
+    });
+    
     spec('with no arguments and an optional argument', function () {
       var f = cg.functionCall(cg.variable(['f']), [], [cg.hashEntry(['port'], cg.variable(['p']))]);
       

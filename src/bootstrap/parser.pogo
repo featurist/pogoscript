@@ -28,6 +28,7 @@ grammar = #
             ['\\\\[.]'. 'return yytext.substring(1);']
             ['\\\\[{]'. 'if (!yy.stringBrackets) {return yytext.substring(1);} else {++yy.stringBrackets;}']
             ['\\\\[}]'. 'if (!yy.stringBrackets) {return yytext.substring(1);} else {--yy.stringBrackets;}']
+            ['\\.\\.\\.'. 'return ''...''']
             ['([:=,?!.@`~#$%^&*+<>/?|-]|\\\\)+'. 'return yy.lexOperator(yytext);']
             ['$'. 'return ''eof'';']
             ['''([^'']*'''')*[^'']*'''. 'return ''string'';']
@@ -133,6 +134,7 @@ grammar = #
             ['parameter'. '$$ = yy.loc(yy.parameter(yy.variable([yytext.substring(1)])), @$);']
             ['string'. '$$ = yy.loc(yy.string(yy.normaliseString(yytext)), @$);']
             ['interpolated_string'. '$$ = yy.loc($1, @$);']
+            ['...'. '$$ = yy.loc(yy.splat(), @$);']
         ]
         operator [
             ['raw_operator'. '$$ = yy.normaliseOperator(yytext);']

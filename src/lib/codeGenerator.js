@@ -340,12 +340,70 @@ var functionCall = expressionTerm('functionCall', function (fun, args, optionalA
   this.function = fun;
   this.arguments = args;
   this.optionalArguments = optionalArgs;
+  this.splattedArguments = (function () {
+    // var args = argsAndOptionalArgs(args, optionalArgs);
+    
+    var splatArgs = [];
+    var previousArgs = [];
+    var foundSplat = false;
+    
+    for (var i = 0; i < args.length; i++) {
+      var current = args[i];
+      var next = args[i+1];
+      if (next && next.isSplat) {
+        foundSplat = true;
+        if (previousArgs.length > 0) {
+          splatArgs.push(list(previousArgs));
+          previousArgs = [];
+        }
+        splatArgs.push(current);
+        i++;
+      } else if (current.isSplat) {
+        errors.addTermWithMessage(current, 'splat keyword with no argument to splat');
+      } else {
+        previousArgs.push(current);
+      }
+    }
+    
+    if (optionalArgs && optionalArgs.length > 0) {
+      previousArgs.push(hash(optionalArgs));
+    }
+    
+    if (previousArgs.length > 0) {
+      splatArgs.push(list(previousArgs));
+    }
+    
+    if (foundSplat) {
+      return splatArgs;
+    }
+  })();
 
   this.generateJavaScript = function (buffer, scope) {
     fun.generateJavaScript(buffer, scope);
-    buffer.write('(');
-    writeToBufferWithDelimiter(argsAndOptionalArgs(this.arguments, this.optionalArguments), ',', buffer, scope);
-    buffer.write(')');
+    
+    var args = argsAndOptionalArgs(this.arguments, this.optionalArguments);
+    
+    if (this.splattedArguments) {
+      buffer.write('.apply(null,');
+
+      for (var i in this.splattedArguments) {
+        var splattedArgument = this.splattedArguments[i];
+        
+        if (i == 0) {
+          splattedArgument.generateJavaScript(buffer, scope);
+        } else {
+          buffer.write('.concat(');
+          splattedArgument.generateJavaScript(buffer, scope);
+          buffer.write(')');
+        }
+      }
+      
+      buffer.write(')');
+    } else {
+      buffer.write('(');
+      writeToBufferWithDelimiter(args, ',', buffer, scope);
+      buffer.write(')');
+    }
   };
 });
 
@@ -1495,4 +1553,10 @@ var interpolation = exports.interpolation = new function () {
   this.interpolating = function () {
     return this.stack.length > 0;
   };
+};
+
+exports.splat = function () {
+  return term(function () {
+    this.isSplat = true;
+  });
 };
