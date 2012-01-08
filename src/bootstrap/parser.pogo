@@ -29,7 +29,7 @@ grammar = #
             ['\\\\[{]'. 'if (!yy.stringBrackets) {return yytext.substring(1);} else {++yy.stringBrackets;}']
             ['\\\\[}]'. 'if (!yy.stringBrackets) {return yytext.substring(1);} else {--yy.stringBrackets;}']
             ['\\.\\.\\.'. 'return ''...''']
-            ['([:=,?!.@`~#$%^&*+<>/?|-]|\\\\)+'. 'return yy.lexOperator(yytext);']
+            ['([:=,?!.@`~#$%^&*+<>/?|-]|\\\\\\\\)+'. 'return yy.lexOperator(yytext);']
             ['$'. 'return ''eof'';']
             ['''([^'']*'''')*[^'']*'''. 'return ''string'';']
             ['"'. 'this.begin(''interpolated_string''); return ''start_interpolated_string'';']
