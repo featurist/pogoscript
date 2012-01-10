@@ -136,7 +136,7 @@ grammar = #
             ['interpolated_string'. '$$ = yy.loc($1, @$);']
             ['...'. '$$ = yy.loc(yy.splat(), @$);']
         ]
-        'block_start' [
+        block_start [
             ['@ {'. '$$ = ''@{''']
             ['@{'. '$$ = ''@{''']
         ]
