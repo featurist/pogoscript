@@ -35,7 +35,7 @@ exports.expression = function (e) {
 };
 
 exports.lexOperator = function (op) {
-  if (/^[!?:,.#=]$/.test(op)) {
+  if (/^[!?:,.#=@]$/.test(op)) {
     return op;
   } else if (op == '=>') {
     return op;

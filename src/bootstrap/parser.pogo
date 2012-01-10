@@ -26,7 +26,7 @@ grammar = #
             ['\\['. 'return ''['';']
             ['\\]'. 'return '']'';']
             ['\\\\[.]'. 'return yytext.substring(1);']
-            ['\\\\[{]'. 'if (!yy.stringBrackets) {return yytext.substring(1);} else {++yy.stringBrackets;}']
+            ['\\\\@[{]'. 'if (!yy.stringBrackets) {return yytext.substring(1);} else {++yy.stringBrackets;}']
             ['\\\\[}]'. 'if (!yy.stringBrackets) {return yytext.substring(1);} else {--yy.stringBrackets;}']
             ['\\.\\.\\.'. 'return ''...''']
             ['([:=,?!.@`~#$%^&*+<>/?|-]|\\\\\\\\)+'. 'return yy.lexOperator(yytext);']
@@ -122,10 +122,10 @@ grammar = #
         terminal [
             ['( statement )'. '$$ = $2;']
             ['?( statement )'. '$$ = yy.parameter($2);']
-            ['{ statements }'. '$$ = yy.loc(yy.block([], $2), @$);']
+            ['block_start statements }'. '$$ = yy.loc(yy.block([], $2), @$);']
             ['=> { statements }'. '$$ = yy.loc(yy.block([], $3, {redefinesSelf: true}), @$);']
             ['[ statements_list ]'. '$$ = yy.loc(yy.list($2), @$);']
-            ['# { hash_entries }'. '$$ = yy.loc(yy.hash($3), @$);']
+            ['{ hash_entries }'. '$$ = yy.loc(yy.hash($2), @$);']
             ['float'. '$$ = yy.loc(yy.float(parseFloat(yytext)), @$);']
             ['integer'. '$$ = yy.loc(yy.integer(parseInt(yytext)), @$);']
             ['identifier'. '$$ = yy.loc(yy.identifier(yytext), @$);']
@@ -135,6 +135,10 @@ grammar = #
             ['string'. '$$ = yy.loc(yy.string(yy.normaliseString(yytext)), @$);']
             ['interpolated_string'. '$$ = yy.loc($1, @$);']
             ['...'. '$$ = yy.loc(yy.splat(), @$);']
+        ]
+        'block_start' [
+            ['@ {'. '$$ = ''@{''']
+            ['@{'. '$$ = ''@{''']
         ]
         operator [
             ['raw_operator'. '$$ = yy.normaliseOperator(yytext);']

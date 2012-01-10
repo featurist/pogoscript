@@ -103,7 +103,7 @@ exports: new file parser? =
         write (last line)
 
       if (line: is indent)
-        write (last line) appending ('' plus '\\{' if (not (last line: ends with bracket)))
+        write (last line) appending ('' plus '\\@{' if (not (last line: ends with bracket)))
         indent stack: indent to (line: indentation)
 
       if (line: is unindent)

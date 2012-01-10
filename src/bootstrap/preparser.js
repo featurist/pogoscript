@@ -128,7 +128,7 @@
                     write(lastLine);
                 }
                 if (line.isIndent) {
-                    writeAppending(lastLine, plusIf("", "\\{", !lastLine.endsWithBracket));
+                    writeAppending(lastLine, plusIf("", "\\@{", !lastLine.endsWithBracket));
                     indentStack.indentTo(line.indentation);
                 }
                 if (line.isUnindent) {
