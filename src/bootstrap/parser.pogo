@@ -38,7 +38,7 @@ grammar = #
             [['interpolated_string_terminal']. '\\('. 'yy.interpolation.startInterpolation(); this.begin(''INITIAL''); return ''('';']
             [['interpolated_string']. '"'. 'this.popState(); return ''end_interpolated_string'';']
             [['interpolated_string']. '\\\\[.]'. '/* ignore */']
-            [['interpolated_string']. '\\\\[{]'. 'yy.stringBrackets++']
+            [['interpolated_string']. '\\\\@[{]'. 'yy.stringBrackets++']
             [['interpolated_string']. '\\\\[}]'. 'yy.stringBrackets--;']
             [['interpolated_string']. '\\\\\\\\\\\\\\\\'. 'return ''escaped_escape_interpolated_string_body'';']
             [['interpolated_string']. '\\\\\\\\.'. 'return ''escaped_interpolated_string_body'';']

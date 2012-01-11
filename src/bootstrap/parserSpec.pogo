@@ -149,12 +149,12 @@ spec 'parser'
         
         spec 'hashes'
             spec 'empty hash'
-                (expression '#{}') should contain fields #
+                (expression '{}') should contain fields #
                     is hash
                     entries []
                     
             spec 'hash with one entry'
-                (expression '#{port 1234}') should contain fields #
+                (expression '{port 1234}') should contain fields #
                     is hash
                     entries [
                         #
@@ -163,7 +163,7 @@ spec 'parser'
                     ]
                     
             spec 'hash with two entries'
-                (expression '#{port 1234, ip address ''1.1.1.1''}') should contain fields #
+                (expression '{port 1234, ip address ''1.1.1.1''}') should contain fields #
                     is hash
                     entries [
                         #
@@ -176,7 +176,7 @@ spec 'parser'
                     ]
                     
             spec 'hash with two entries on different lines'
-                (expression '#{port 1234. ip address ''1.1.1.1''}') should contain fields #
+                (expression '{port 1234. ip address ''1.1.1.1''}') should contain fields #
                     is hash
                     entries [
                         #
@@ -189,7 +189,7 @@ spec 'parser'
                     ]
                     
             spec 'hash with true entry'
-                (expression '#{port 1234, readonly}') should contain fields #
+                (expression '{port 1234, readonly}') should contain fields #
                     is hash
                     entries [
                         #
@@ -231,7 +231,7 @@ spec 'parser'
                 arguments []
 
         spec 'function call with block with parameters'
-            (expression 'with file @file ?stream {stream}') should contain fields #
+            (expression 'with file @file ?stream\n  stream') should contain fields #
                 function #{variable ['with'. 'file']}
                 arguments [
                     #{variable ['file']}
@@ -244,7 +244,7 @@ spec 'parser'
                 ]
 
         spec 'function call with block with long parameters'
-            (expression 'open database ?(database connection) {database connection}') should contain fields #
+            (expression 'open database ?(database connection)\n  database connection') should contain fields #
                 function #{variable ['open'. 'database']}
                 arguments [
                     #
@@ -257,7 +257,7 @@ spec 'parser'
                 ]
 
         spec 'function call with two blocks with parameters'
-            (expression 'name ?x {x} ?y {y}') should contain fields #
+            (expression 'name ?x @{x} ?y @ {y}') should contain fields #
                 function #{variable ['name']}
                 arguments [
                     #
@@ -339,14 +339,14 @@ spec 'parser'
 
     spec 'blocks'
         spec 'empty block'
-            (expression '{}') should contain fields #
+            (expression '@{}') should contain fields #
                 is block
                 parameters []
                 redefines self @false
                 body #{statements []}
                 
         spec 'block'
-            (expression '{x.y}') should contain fields #
+            (expression '@{x.y}') should contain fields #
                 is block
                 parameters []
                 redefines self @false
@@ -356,7 +356,7 @@ spec 'parser'
                 ]}
 
         spec 'block with parameter'
-            (expression '?x {x.y}') should contain fields #
+            (expression '?x\n  x.y') should contain fields #
                 is block
                 parameters [#{is parameter, expression #{variable ['x']}}]
                 redefines self @false
@@ -367,7 +367,7 @@ spec 'parser'
                     ]
 
         spec 'block with parameter, redefining self'
-            (expression '?x => {x.y}') should contain fields #
+            (expression '?x => @{x.y}') should contain fields #
                 is block
                 parameters [#{is parameter, expression #{variable ['x']}}]
                 redefines self @true
