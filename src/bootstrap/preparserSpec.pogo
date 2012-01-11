@@ -69,42 +69,42 @@ spec 'preparser'
 
     spec 'new lines'
       spec 'new lines'
-        (parse 'one\ntwo\nthree') should equal 'one \\.\ntwo \\.\nthree\n'
+        (parse 'one\ntwo\nthree') should equal 'one\\.\ntwo\\.\nthree\n'
     
       spec 'new lines with empty lines'
-        (parse 'one\n\ntwo') should equal 'one\n \\.\ntwo\n'
+        (parse 'one\n\ntwo') should equal 'one\n\\.\ntwo\n'
     
       spec 'starts with empty line'
-        (parse '\none\ntwo') should equal '\none \\.\ntwo\n'
+        (parse '\none\ntwo') should equal '\none\\.\ntwo\n'
     
     spec 'indentation'
       spec 'one level'
-        (parse 'one\n  two\n  three') should equal 'one \\{\n  two \\.\n  three \\}\n'
+        (parse 'one\n  two\n  three') should equal 'one\\@{\n  two\\.\n  three\\}\n'
       
       spec 'one level with empty lines'
-        (parse 'one\n  two\n\n  three') should equal 'one \\{\n  two\n \\.\n  three \\}\n'
+        (parse 'one\n  two\n\n  three') should equal 'one\\@{\n  two\n\\.\n  three\\}\n'
       
       spec 'one line indented'
-        (parse 'one\n  two\nthree') should equal 'one \\{\n  two \\}\nthree\n'
+        (parse 'one\n  two\nthree') should equal 'one\\@{\n  two\\}\nthree\n'
       
       spec 'one line indented followed by another statement'
-        (parse 'one\n  two\n\nthree') should equal 'one \\{\n  two\n \\}\\.\nthree\n'
+        (parse 'one\n  two\n\nthree') should equal 'one\\@{\n  two\n\\}\\.\nthree\n'
       
       spec 'two levels'
-        (parse 'one\n  two\n    three\n') should equal 'one \\{\n  two \\{\n    three\n \\}\\}\n'
+        (parse 'one\n  two\n    three\n') should equal 'one\\@{\n  two\\@{\n    three\n\\}\\}\n'
             
       spec 'two levels with following args'
-        (parse 'one\n  two\n    three\nfour') should equal 'one \\{\n  two \\{\n    three \\}\\}\nfour\n'
+        (parse 'one\n  two\n    three\nfour') should equal 'one\\@{\n  two\\@{\n    three\\}\\}\nfour\n'
 
     spec 'indentation with brackets'
       spec 'doesnt insert brace if indent is in brackets'
-        (parse 'one{\n  two\n  three\n}\nfour') should equal 'one{\n  two \\.\n  three\n} \\.\nfour\n'
+        (parse 'one{\n  two\n  three\n}\nfour') should equal 'one{\n  two\\.\n  three\n}\\.\nfour\n'
 
       spec 'still unwinds unindent, but not the last one because it has a bracket'
-        (parse 'one{\n  two\n  three\n    four\n}\nfive') should equal 'one{\n  two \\.\n  three \\{\n    four \\}\n} \\.\nfive\n'
+        (parse 'one{\n  two\n  three\n    four\n}\nfive') should equal 'one{\n  two\\.\n  three\\@{\n    four\\}\n}\\.\nfive\n'
 
       spec 'list with items on each line'
-        (parse 'list [\n1\n2\n3\n]') should equal 'list [\n1 \\.\n2 \\.\n3\n]\n'
+        (parse 'list [\n1\n2\n3\n]') should equal 'list [\n1\\.\n2\\.\n3\n]\n'
 
       spec 'list with items on each indented line'
-        (parse 'list [\n  1\n  2\n  3\n]') should equal 'list [\n  1 \\.\n  2 \\.\n  3\n]\n'
+        (parse 'list [\n  1\n  2\n  3\n]') should equal 'list [\n  1\\.\n  2\\.\n  3\n]\n'
