@@ -123,7 +123,7 @@ grammar = #
             ['( statement )'. '$$ = $2;']
             ['?( statement )'. '$$ = yy.parameter($2);']
             ['block_start statements }'. '$$ = yy.loc(yy.block([], $2), @$);']
-            ['=> { statements }'. '$$ = yy.loc(yy.block([], $3, {redefinesSelf: true}), @$);']
+            ['=> block_start statements }'. '$$ = yy.loc(yy.block([], $3, {redefinesSelf: true}), @$);']
             ['[ statements_list ]'. '$$ = yy.loc(yy.list($2), @$);']
             ['{ hash_entries }'. '$$ = yy.loc(yy.hash($2), @$);']
             ['float'. '$$ = yy.loc(yy.float(parseFloat(yytext)), @$);']
