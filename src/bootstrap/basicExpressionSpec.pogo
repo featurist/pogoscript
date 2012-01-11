@@ -54,19 +54,19 @@ spec 'basic expression'
       terminals [id 'move'. variable] should have arguments [variable]
     
     spec 'block'
-      terminals [block] should have arguments [#{
+      terminals [block] should have arguments [{
         is block
-        body #{
-          statements [#{is variable, variable ['a']}]
+        body {
+          statements [{is variable, variable ['a']}]
         }
       }]
     
     spec 'block with a parameter'
-      terminals [cg: parameter (cg: variable ['x']). block] should have arguments [#{
+      terminals [cg: parameter (cg: variable ['x']). block] should have arguments [{
         is block
-        parameters [#{is parameter, expression #{variable ['x']}}]
-        body #{
-          statements [#{is variable, variable ['a']}]
+        parameters [{is parameter, expression {variable ['x']}}]
+        body {
+          statements [{is variable, variable ['a']}]
         }
       }]
 
@@ -88,7 +88,7 @@ spec 'basic expression'
             target [id 'car'. variable] has some parameters
 
         spec 'parameters'
-            target [id 'car'. variable] has parameters [#{is parameter, expression #{variable ['a']}}]
+            target [id 'car'. variable] has parameters [{is parameter, expression {variable ['a']}}]
   
     spec 'no arg punctuation'
         spec 'has parameters'
@@ -119,47 +119,53 @@ spec 'basic expression'
       (cg: basic expression @terminals: hash entry?) should contain fields @f
   
     spec 'with an argument'
-      hash entry [id 'port'. int 10] should contain fields #
+      hash entry [id 'port'. int 10] should contain fields {
         is hash entry
         field ['port']
-        value #{integer 10}
+        value {integer 10}
+      }
   
     spec 'without an argument'
-      hash entry [id 'port'] should contain fields #
+      hash entry [id 'port'] should contain fields {
         is hash entry
         field ['port']
         value @undefined
+      }
   
     spec 'with a string name'
-      hash entry [string 'the port'. int 8] should contain fields #
+      hash entry [string 'the port'. int 8] should contain fields {
         is hash entry
         field ['the port']
-        value #{integer 8}
+        value {integer 8}
+      }
 
   spec 'hash entry, without block'
     hash entry @terminals should contain fields @f =
       (cg: basic expression @terminals: hash entry, without block) should contain fields @f
       
     spec 'with block'
-      hash entry [id 'port'. int 10. block] should contain fields #
+      hash entry [id 'port'. int 10. block] should contain fields {
         is hash entry
         field ['port']
-        value #{integer 10}
+        value {integer 10}
+      }
       
     spec 'without arguments'
-      hash entry [id 'port'] should contain fields #
+      hash entry [id 'port'] should contain fields {
         is hash entry
         field ['port']
         value @undefined
+      }
 
   spec 'hash entry block'
     hash entry block @terminals should contain fields @f =
       (cg: basic expression @terminals: hash entry block?) should contain fields @f
 
     spec 'with block'
-      hash entry block [id 'port'. int 10. block] should contain fields #
+      hash entry block [id 'port'. int 10. block] should contain fields {
         is block
-        body #{statements [#{variable ['a']}]}
+        body {statements [{variable ['a']}]}
+      }
 
     spec 'without block'
       assert: (cg: basic expression [id 'port'. int 10]: hash entry block?) equal @undefined
