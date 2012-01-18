@@ -1,4 +1,4 @@
-#!/usr/bin/env node --prof --prof_browser_mode
+#!/usr/bin/env node
 
 var argv = require('optimist')
     .boolean('c').alias('c', 'compile')
