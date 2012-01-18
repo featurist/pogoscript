@@ -142,6 +142,33 @@ spec('code generator', function () {
       
       generatesExpression(s, "'his name was \\'Sue\\'. weird'");
     });
+    
+    spec('normaliseString', function () {
+      spec('simple', function () {
+        var s = cg.normaliseString("'one'");
+        assert.equal(s, 'one');
+      });
+      
+      spec('with quotes', function () {
+        var s = cg.normaliseString("'it''s a ''camera''.'");
+        assert.equal(s, "it's a 'camera'.");
+      });
+      
+      spec('with preparser escapes', function () {
+        var s = cg.normaliseString("'one\\\\two\\\\three'");
+        assert.equal(s, "one\\two\\three");
+      });
+      
+      spec('with preparser end of line', function () {
+        var s = cg.normaliseString("'one\\.two\\.three'");
+        assert.equal(s, "one\ntwo\nthree");
+      });
+      
+      spec('with escaped preparser end of line', function () {
+        var s = cg.normaliseString("'one\\\\.two\\\\\\\\.three'");
+        assert.equal(s, "one\\.two\\\\.three");
+      });
+    });
   });
 
   spec('interpolated strings', function () {

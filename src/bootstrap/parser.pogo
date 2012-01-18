@@ -7,44 +7,45 @@ create parser with grammar @grammar =
 
 identifier pattern = '[a-zA-Z_$][a-zA-Z_$0-9]*'
 
-grammar = #
-    lex #
-        start conditions #{interpolated_string, interpolated_string_terminal}
+grammar = {
+    lex {
+        start conditions {interpolated_string, interpolated_string_terminal}
 
         rules [
-            ['\\s+'. '/* ignore whitespace */']
-            ['[0-9]+\\.[0-9]+'. 'return ''float'';']
+            ['\s+'. '/* ignore whitespace */']
+            ['[0-9]+\.[0-9]+'. 'return ''float'';']
             ['[0-9]+'. 'return ''integer'';']
             ['@' + identifier pattern. 'return ''argument'';']
             ['@:' + identifier pattern. 'return ''self_argument'';']
-            ['\\?' + identifier pattern. 'return ''parameter'';']
+            ['\?' + identifier pattern. 'return ''parameter'';']
             [identifier pattern. 'return ''identifier'';']
-            ['\\??\\('. 'if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return yytext;']
-            ['\\)'. 'if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.interpolation.stopInterpolation()}} return '')'';']
+            ['\??\('. 'if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return yytext;']
+            ['\)'. 'if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.interpolation.stopInterpolation()}} return '')'';']
             ['{'. 'return ''{'';']
             ['}'. 'return ''}'';']
-            ['\\['. 'return ''['';']
-            ['\\]'. 'return '']'';']
-            ['\\\\[.]'. 'return yytext.substring(1);']
-            ['\\\\@[{]'. 'if (!yy.stringBrackets) {return yytext.substring(1);} else {++yy.stringBrackets;}']
-            ['\\\\[}]'. 'if (!yy.stringBrackets) {return yytext.substring(1);} else {--yy.stringBrackets;}']
-            ['\\.\\.\\.'. 'return ''...''']
-            ['([:=,?!.@`~#$%^&*+<>/?|-]|\\\\\\\\)+'. 'return yy.lexOperator(yytext);']
+            ['\['. 'return ''['';']
+            ['\]'. 'return '']'';']
+            ['\\[.]'. 'return yytext.substring(1);']
+            ['\\@[{]'. 'if (!yy.stringBrackets) {return yytext.substring(1);} else {++yy.stringBrackets;}']
+            ['\\[}]'. 'if (!yy.stringBrackets) {return yytext.substring(1);} else {--yy.stringBrackets;}']
+            ['\.\.\.'. 'return ''...''']
+            ['([:=,?!.@`~#$%^&*+<>/?|-]|\\\\)+'. 'return yy.lexOperator(yytext);']
             ['$'. 'return ''eof'';']
             ['''([^'']*'''')*[^'']*'''. 'return ''string'';']
             ['"'. 'this.begin(''interpolated_string''); return ''start_interpolated_string'';']
             [['interpolated_string']. '@'. 'this.begin(''interpolated_string_terminal''); return ''interpolated_string_terminal_start'';']
             [['interpolated_string_terminal']. identifier pattern. 'this.popState(); return ''identifier'';']
-            [['interpolated_string_terminal']. '\\('. 'yy.interpolation.startInterpolation(); this.begin(''INITIAL''); return ''('';']
+            [['interpolated_string_terminal']. '\('. 'yy.interpolation.startInterpolation(); this.begin(''INITIAL''); return ''('';']
             [['interpolated_string']. '"'. 'this.popState(); return ''end_interpolated_string'';']
-            [['interpolated_string']. '\\\\[.]'. '/* ignore */']
-            [['interpolated_string']. '\\\\@[{]'. 'yy.stringBrackets++']
-            [['interpolated_string']. '\\\\[}]'. 'yy.stringBrackets--;']
-            [['interpolated_string']. '\\\\\\\\\\\\\\\\'. 'return ''escaped_escape_interpolated_string_body'';']
-            [['interpolated_string']. '\\\\\\\\.'. 'return ''escaped_interpolated_string_body'';']
-            [['interpolated_string']. '[^"@\\\\]*'. 'return ''interpolated_string_body'';']
+            [['interpolated_string']. '\\[.]'. '/* ignore */']
+            [['interpolated_string']. '\\@[{]'. 'yy.stringBrackets++']
+            [['interpolated_string']. '\\[}]'. 'yy.stringBrackets--;']
+            [['interpolated_string']. '\\\\\\\\'. 'return ''escaped_escape_interpolated_string_body'';']
+            [['interpolated_string']. '\\\\.'. 'return ''escaped_interpolated_string_body'';']
+            [['interpolated_string']. '[^"@\\]*'. 'return ''interpolated_string_body'';']
             ['.'. 'return ''non_token'';']
         ]
+    }
 
     operators [
         ['right'. '=']
@@ -53,7 +54,7 @@ grammar = #
 
     start 'module'
 
-    bnf #
+    bnf {
         module [
             ['statements eof'. 'return yy.module($1);']
         ]
@@ -165,6 +166,8 @@ grammar = #
             ['escaped_interpolated_string_body'. '$$ = yy.string(yy.normaliseInterpolatedString($1.substring(1)));']
             ['escaped_escape_interpolated_string_body'. '$$ = yy.string($1.substring(3));']
         ]
+    }
+}
 
 exports: parser = parser = create parser with grammar @grammar
 parser: yy = terms
