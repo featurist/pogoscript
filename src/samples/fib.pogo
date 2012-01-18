@@ -1,7 +1,5 @@
 fib @i =
-    if (i == 0)
-        1
-    else if (i == 1)
+    if ((i == 0) || (i == 1))
         1
     else
         fib (i - 1) + fib (i - 2)
