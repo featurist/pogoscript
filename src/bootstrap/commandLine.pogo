@@ -78,6 +78,6 @@ source location printer, filename, source =
 
             strings : join ''
 
-require : extensions : '.pogo' = #module #filename
+require : extensions : '.pogo' @module @filename =
   content = js from pogo file @filename
   module : _compile @content @filename

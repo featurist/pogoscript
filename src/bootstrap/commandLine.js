@@ -126,7 +126,8 @@
         });
     };
     require.extensions[".pogo"] = function(module, filename) {
-        var content;
+        var self, content;
+        self = this;
         content = jsFromPogoFile(filename);
         return module._compile(content, filename);
     };
