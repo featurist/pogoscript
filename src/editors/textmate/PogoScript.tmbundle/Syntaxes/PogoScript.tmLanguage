@@ -28,7 +28,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>\?[_a-zA-Z][_a-zA-Z0-9]*\b</string>
+			<string>[?#$%][_a-zA-Z][_a-zA-Z0-9]*\b</string>
 			<key>name</key>
 			<string>variable.parameter.pogoscript</string>
 		</dict>
