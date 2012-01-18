@@ -17,7 +17,7 @@ grammar = {
             ['[0-9]+'. 'return ''integer'';']
             ['@' + identifier pattern. 'return ''argument'';']
             ['@:' + identifier pattern. 'return ''self_argument'';']
-            ['\?' + identifier pattern. 'return ''parameter'';']
+            ['[?#]' + identifier pattern. 'return ''parameter'';']
             [identifier pattern. 'return ''identifier'';']
             ['\??\('. 'if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return yytext;']
             ['\)'. 'if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.interpolation.stopInterpolation()}} return '')'';']
