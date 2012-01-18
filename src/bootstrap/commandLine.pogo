@@ -57,7 +57,7 @@ source location printer, filename, source =
             lines : slice (range : from - 1) (range : to)
 
         : print lines in range, prefix '', from, to =
-            for each ?line in (: lines in range, from @from, to @to)
+            for each #line in (: lines in range, from @from, to @to)
                 process : stderr : write (prefix + line + "\n")
 
         : print location @location =
@@ -78,6 +78,6 @@ source location printer, filename, source =
 
             strings : join ''
 
-require : extensions : '.pogo' = ?module ?filename
+require : extensions : '.pogo' = #module #filename
   content = js from pogo file @filename
   module : _compile @content @filename

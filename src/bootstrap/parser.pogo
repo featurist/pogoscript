@@ -19,7 +19,7 @@ grammar = {
             ['@:' + identifier pattern. 'return ''self_argument'';']
             ['[?#]' + identifier pattern. 'return ''parameter'';']
             [identifier pattern. 'return ''identifier'';']
-            ['\??\('. 'if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return yytext;']
+            ['#?\('. 'if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return yytext;']
             ['\)'. 'if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.interpolation.stopInterpolation()}} return '')'';']
             ['{'. 'return ''{'';']
             ['}'. 'return ''}'';']
@@ -33,6 +33,7 @@ grammar = {
             ['$'. 'return ''eof'';']
             ['''([^'']*'''')*[^'']*'''. 'return ''string'';']
             ['"'. 'this.begin(''interpolated_string''); return ''start_interpolated_string'';']
+            [['interpolated_string']. '\\\\@'. 'return ''escaped_interpolated_string_terminal_start'';']
             [['interpolated_string']. '@'. 'this.begin(''interpolated_string_terminal''); return ''interpolated_string_terminal_start'';']
             [['interpolated_string_terminal']. identifier pattern. 'this.popState(); return ''identifier'';']
             [['interpolated_string_terminal']. '\('. 'yy.interpolation.startInterpolation(); this.begin(''INITIAL''); return ''('';']
@@ -122,7 +123,7 @@ grammar = {
         ]
         terminal [
             ['( statement )'. '$$ = $2;']
-            ['?( statement )'. '$$ = yy.parameter($2);']
+            ['#( statement )'. '$$ = yy.parameter($2);']
             ['block_start statements }'. '$$ = yy.loc(yy.block([], $2), @$);']
             ['=> block_start statements }'. '$$ = yy.loc(yy.block([], $3, {redefinesSelf: true}), @$);']
             ['[ statements_list ]'. '$$ = yy.loc(yy.list($2), @$);']
@@ -163,6 +164,7 @@ grammar = {
         interpolated_string_component [
             ['interpolated_string_terminal_start interpolated_terminal'. '$$ = $2;']
             ['interpolated_string_body'. '$$ = yy.string($1);']
+            ['escaped_interpolated_string_terminal_start'. '$$ = yy.string("@");']
             ['escaped_interpolated_string_body'. '$$ = yy.string(yy.normaliseInterpolatedString($1.substring(1)));']
             ['escaped_escape_interpolated_string_body'. '$$ = yy.string($1.substring(3));']
         ]
