@@ -1,12 +1,12 @@
 express = require 'express'
-require './runtime'
-
-app = express : create server?
+require '../bootstrap/runtime.pogo'
 
 web server @methods, port 3000 =
+    app = express : create server?
+
     app context = object =>
         : get @path @action =
-            app : get @path ?req ?res
+            app : get @path #req #res
                 request context = object =>
                     : request = req
                     : response = res
@@ -19,4 +19,4 @@ web server @methods, port 3000 =
 
 web server, port 4567 =>
     : get '/' =>
-        'Hello World\n'
+        "Hello World\n"
