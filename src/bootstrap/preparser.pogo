@@ -5,9 +5,9 @@ require './runtime.pogo'
 exports: new line parser = new line parser? =
   last indentation = ''
   indentation pattern = new (RegExp '^( *)(.*)$')
-  is empty line pattern = new (RegExp '^\\s*$')
-  line ends with bracket pattern = new (RegExp '[{([]\\s*$')
-  line starts with bracket pattern = new (RegExp '^\\s*[\\])}]')
+  is empty line pattern = new (RegExp '^\s*$')
+  line ends with bracket pattern = new (RegExp '[{([]\s*$')
+  line starts with bracket pattern = new (RegExp '^\s*[\])}]')
   is first line = true
   
   @line is empty =
@@ -21,14 +21,14 @@ exports: new line parser = new line parser? =
 
   ?line
       if (@line is empty)
-        line = #{is empty, line @line, is first line (is first line)}
+        line = {is empty, line @line, is first line (is first line)}
         line
       else
         indentation match = indentation pattern: exec @line
         indentation = indentation match: 1
         code = indentation match: 2
 
-        line = #
+        line = {
           line @line
           code @code
           indentation @indentation
@@ -38,6 +38,7 @@ exports: new line parser = new line parser? =
           ends with bracket (@line ends with bracket)
           starts with bracket (@line starts with bracket)
           is first line (is first line)
+        }
 
         is first line = false
         last indentation = indentation
@@ -55,7 +56,7 @@ exports: new indent stack = new indent stack? =
     this: count unindents while unwinding to @i =
       unindent count = 0
 
-      while {peek @indents != i}
+      while @{peek @indents != i}
         unindent count = unindent count + 1
         indents: pop!
 
@@ -63,8 +64,8 @@ exports: new indent stack = new indent stack? =
 
 exports: new file parser? =
   ?source
-    lines = source: split '\n'
-    last line = #{no line}
+    lines = source: split "\n"
+    last line = {no line}
     parse = new line parser?
 
     stream = new (ms: MemoryStream!)
@@ -79,15 +80,15 @@ exports: new file parser? =
 
     write @l =
       if (not (l: no line))
-        stream: write (l: line: replace (new (RegExp '\\\\' 'g')) '\\\\' + '\n')
+        stream: write (l: line: replace (new (RegExp '\\' 'g')) '\\' + "\n")
 
     write @l appending @s =
       if (not (l: no line))
-        stream: write (l: line: replace (new (RegExp '\\\\' 'g')) '\\\\' + s + '\n')
+        stream: write (l: line: replace (new (RegExp '\\' 'g')) '\\' + s + "\n")
 
     concat @s @n times =
       r = ''
-      while {n > 0}
+      while @{n > 0}
         r = r + s
         n = n - 1
 
@@ -97,13 +98,13 @@ exports: new file parser? =
       line = parse @sline
 
       if (line: is new line)
-        write (last line) appending ('' plus '\\.' if (not (((line: is first line) or (last line: ends with bracket)) or (line: starts with bracket))))
+        write (last line) appending ('' plus '\.' if (not (((line: is first line) or (last line: ends with bracket)) or (line: starts with bracket))))
 
       if (line: is empty)
         write (last line)
 
       if (line: is indent)
-        write (last line) appending ('' plus '\\@{' if (not (last line: ends with bracket)))
+        write (last line) appending ('' plus '\@{' if (not (last line: ends with bracket)))
         indent stack: indent to (line: indentation)
 
       if (line: is unindent)
@@ -112,13 +113,13 @@ exports: new file parser? =
         if (line: starts with bracket)
           number of unwind brackets = number of unwind brackets - 1
 
-        last line ending = concat '\\}' (number of unwind brackets) times
+        last line ending = concat '\}' (number of unwind brackets) times
 
-        write (last line) appending ((last line ending) plus '\\.' if (last line: is empty))
+        write (last line) appending ((last line ending) plus '\.' if (last line: is empty))
 
       last line = line
 
     number of unwind brackets = indent stack: count unindents while unwinding to ''
-    write (last line) appending (concat '\\}' (number of unwind brackets) times)
+    write (last line) appending (concat '\}' (number of unwind brackets) times)
 
     stream: to string?
