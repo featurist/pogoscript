@@ -95,8 +95,12 @@ grammar = {
             ['object_operation'. '$$ = $1;']
             ['unary_operator object_operation'. '$$ = yy.newUnaryOperatorExpression({operator: $1, expression: $2.expression()});']
         ]
+        object_reference_with_newline [
+            [': .'. '$$ = $1']
+            [':'. '$$ = $1']
+        ]
         object_operation [
-            ['object_operation : complex_expression'. '$$ = $3.objectOperation($1.expression());']
+            ['object_operation object_reference_with_newline complex_expression'. '$$ = $3.objectOperation($1.expression());']
             [': complex_expression'. '$$ = $2.objectOperation(yy.selfExpression());']
             ['complex_expression'. '$$ = $1;']
         ]
@@ -158,8 +162,8 @@ grammar = {
             ['identifier'. '$$ = yy.variable([$1]);']
         ]
         interpolated_string [
-            ['start_interpolated_string interpolated_string_components end_interpolated_string'. '$$ = yy.interpolatedString($2);']
-            ['start_interpolated_string end_interpolated_string'. '$$ = yy.interpolatedString([]);']
+            ['start_interpolated_string interpolated_string_components end_interpolated_string'. '$$ = yy.interpolatedString($2, @$.first_column);']
+            ['start_interpolated_string end_interpolated_string'. '$$ = yy.interpolatedString([], @$.first_column);']
         ]
         interpolated_string_components [
             ['interpolated_string_components interpolated_string_component'. '$1.push($2); $$ = $1;']
@@ -179,3 +183,4 @@ exports: parser = parser = create parser with grammar @grammar
 parser: yy = terms
 
 exports: parse @source = parser: parse @source
+exports: grammar = grammar

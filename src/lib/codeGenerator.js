@@ -196,9 +196,45 @@ var formatJavaScriptString = function(s) {
   return "'" + s + "'";
 };
 
-expressionTerm('interpolatedString', function (value) {
+expressionTerm('interpolatedString', function (value, columnStart) {
   this.isInterpolatedString = true;
-  this.components = value;
+  this.components = (function () {
+    var components = [];
+    var stringComponent;
+    
+    var removeIndentation = (function () {
+      var c = columnStart + 1;
+      var spaces = '';
+      while (c--) {
+        spaces += ' ';
+      }
+      var r = new RegExp('\n' + spaces, 'g');
+      
+      return function (s) {
+        return s.replace(r,'\n');
+      };
+    })();
+    
+    _.each(value, function (component) {
+      if (component.isString && !stringComponent) {
+        stringComponent = component.string;
+      } else if (component.isString) {
+        stringComponent += component.string;
+      } else {
+        if (stringComponent) {
+          components.push(string(removeIndentation(stringComponent)));
+          stringComponent = undefined;
+        }
+        components.push(component);
+      }
+    });
+    
+    if (stringComponent) {
+      components.push(string(removeIndentation(stringComponent)));
+    }
+    
+    return components;
+  })();
 
   this.componentsDelimitedByStrings = function () {
     var comps = [];

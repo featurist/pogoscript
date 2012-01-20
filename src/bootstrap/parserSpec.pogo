@@ -72,9 +72,7 @@ spec 'parser'
                 (expression '"one\ntwo"') should contain fields {
                     is interpolated string
                     components [
-                        {string "one"}
-                        {string "\n"}
-                        {string "two"}
+                        {string "one\ntwo"}
                     ]
                 }
 
@@ -82,9 +80,7 @@ spec 'parser'
                 (expression '"one\n  two"') should contain fields {
                     is interpolated string
                     components [
-                        {string "one"}
-                        {string "\n"}
-                        {string "  two"}
+                        {string "one\n  two"}
                     ]
                 }
 
@@ -367,6 +363,13 @@ spec 'parser'
         
         spec 'field reference'
             (expression 'object: field') should contain fields {
+                is field reference
+                object {variable ['object']}
+                name ['field']
+            }
+        
+        spec 'field reference with newline'
+            (expression "object:\nfield") should contain fields {
                 is field reference
                 object {variable ['object']}
                 name ['field']

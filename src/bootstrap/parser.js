@@ -29,7 +29,8 @@
             operator_with_newline: [ [ "operator .", "$$ = $1" ], [ "operator", "$$ = $1" ] ],
             operator_expression: [ [ "operator_expression operator_with_newline unary_operator_expression", "$1.addOperatorExpression($2, $3); $$ = $1;" ], [ "unary_operator_expression", "$$ = yy.operatorExpression($1);" ] ],
             unary_operator_expression: [ [ "object_operation", "$$ = $1;" ], [ "unary_operator object_operation", "$$ = yy.newUnaryOperatorExpression({operator: $1, expression: $2.expression()});" ] ],
-            object_operation: [ [ "object_operation : complex_expression", "$$ = $3.objectOperation($1.expression());" ], [ ": complex_expression", "$$ = $2.objectOperation(yy.selfExpression());" ], [ "complex_expression", "$$ = $1;" ] ],
+            object_reference_with_newline: [ [ ": .", "$$ = $1" ], [ ":", "$$ = $1" ] ],
+            object_operation: [ [ "object_operation object_reference_with_newline complex_expression", "$$ = $3.objectOperation($1.expression());" ], [ ": complex_expression", "$$ = $2.objectOperation(yy.selfExpression());" ], [ "complex_expression", "$$ = $1;" ] ],
             complex_expression: [ [ "basic_expression_list", "$$ = yy.complexExpression($1);" ] ],
             basic_expression_list: [ [ "basic_expression_list , terminal_list", "$1.push($3); $$ = $1;" ], [ "terminal_list_no_arg", "$$ = [$1];" ] ],
             terminal_list_no_arg: [ [ "terminal_list no_arg_punctuation", "$1.push($2); $$ = $1;" ], [ "terminal_list", "$$ = $1;" ] ],
@@ -42,7 +43,7 @@
             operator: [ [ "raw_operator", "$$ = yy.normaliseOperator(yytext);" ] ],
             unary_operator: [ [ "operator", "$$ = $1;" ], [ "!", "$$ = $1;" ] ],
             interpolated_terminal: [ [ "( statement )", "$$ = $2;" ], [ "identifier", "$$ = yy.variable([$1]);" ] ],
-            interpolated_string: [ [ "start_interpolated_string interpolated_string_components end_interpolated_string", "$$ = yy.interpolatedString($2);" ], [ "start_interpolated_string end_interpolated_string", "$$ = yy.interpolatedString([]);" ] ],
+            interpolated_string: [ [ "start_interpolated_string interpolated_string_components end_interpolated_string", "$$ = yy.interpolatedString($2, @$.first_column);" ], [ "start_interpolated_string end_interpolated_string", "$$ = yy.interpolatedString([], @$.first_column);" ] ],
             interpolated_string_components: [ [ "interpolated_string_components interpolated_string_component", "$1.push($2); $$ = $1;" ], [ "interpolated_string_component", "$$ = [$1];" ] ],
             interpolated_string_component: [ [ "interpolated_string_terminal_start interpolated_terminal", "$$ = $2;" ], [ "interpolated_string_body", "$$ = yy.string($1);" ], [ "escaped_interpolated_string_terminal_start", '$$ = yy.string("@");' ], [ "escaped_interpolated_string_body", "$$ = yy.string(yy.normaliseInterpolatedString($1.substring(1)));" ], [ "escaped_escape_interpolated_string_body", "$$ = yy.string($1.substring(3));" ] ]
         }
@@ -54,4 +55,5 @@
         self = this;
         return parser.parse(source);
     };
+    exports.grammar = grammar;
 })();
