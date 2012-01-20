@@ -478,6 +478,17 @@ spec 'parser'
                     }
                 ]
             }
+                
+        spec 'can have newlines immediately after operator'
+            (expression "a &&\nb") should contain fields {
+                is operator
+                operator '&&'
+                
+                arguments [
+                    {variable ['a']}
+                    {variable ['b']}
+                ]
+            }
       
     spec 'assignment'
         spec 'assignment'

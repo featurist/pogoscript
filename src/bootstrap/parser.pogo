@@ -83,8 +83,12 @@ grammar = {
             ['expression = expression'. '$$ = $1.definition($3.expression());']
             ['operator_expression'. '$$ = $1;']
         ]
+        operator_with_newline [
+            ['operator .'. '$$ = $1']
+            ['operator'. '$$ = $1']
+        ]
         operator_expression [
-            ['operator_expression operator unary_operator_expression'. '$1.addOperatorExpression($2, $3); $$ = $1;']
+            ['operator_expression operator_with_newline unary_operator_expression'. '$1.addOperatorExpression($2, $3); $$ = $1;']
             ['unary_operator_expression'. '$$ = yy.operatorExpression($1);']
         ]
         unary_operator_expression [
