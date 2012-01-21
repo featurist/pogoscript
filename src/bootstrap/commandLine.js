@@ -51,10 +51,9 @@
         return module._compile(js, filename);
     };
     jsFromPogoFile = function(filename) {
-        var contents, p, term;
+        var contents, term;
         contents = fs.readFileSync(filename, "utf-8");
-        p = preparse(contents);
-        term = parse(p);
+        term = parse(contents);
         if (errors.hasErrors()) {
             errors.printErrors(sourceLocationPrinter({
                 filename: filename,

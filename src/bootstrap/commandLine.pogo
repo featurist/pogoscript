@@ -41,8 +41,7 @@ exports : run file @filename =
 
 js from pogo file @filename =
   contents = fs : read file sync @filename 'utf-8'
-  p = preparse @contents
-  term = parse @p
+  term = parse @contents
   
   if (errors : has errors?)
     errors : print errors (source location printer, filename @filename, source @contents)
