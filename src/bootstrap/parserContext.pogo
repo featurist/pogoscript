@@ -11,11 +11,9 @@ exports: create parser context =
             tokens:shift?
 
         :set indentation @text =
-            console:log 'setting indentation' @text
             :indent stack:set indentation @text
 
         :unset indentation! =
-            console:log 'unsetting indentation'
             :indent stack:unset indentation!
 
         :indentation @text =

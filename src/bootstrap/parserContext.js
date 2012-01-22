@@ -21,13 +21,11 @@
                 self.setIndentation = function(text) {
                     var self;
                     self = this;
-                    console.log("setting indentation", text);
                     return self.indentStack.setIndentation(text);
                 };
                 self.unsetIndentation = function() {
                     var self;
                     self = this;
-                    console.log("unsetting indentation");
                     return self.indentStack.unsetIndentation();
                 };
                 self.indentation = function(text) {
