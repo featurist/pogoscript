@@ -1,8 +1,6 @@
 require './runtime'
 
 exports: create indent stack = create indent stack! =
-    peek @array = array: (array: length - 1)
-
     object =>
         :indents = [0]
         :indentation regex = new (RegExp '\n( *)$')
