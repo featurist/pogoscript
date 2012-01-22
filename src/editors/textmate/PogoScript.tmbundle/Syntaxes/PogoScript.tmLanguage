@@ -40,7 +40,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>=&gt;|[.:?!,=]</string>
+			<string>=&gt;|[.:?!,=]|self</string>
 			<key>name</key>
 			<string>keyword</string>
 		</dict>
