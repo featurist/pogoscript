@@ -3,17 +3,12 @@
     self = this;
     require("./runtime");
     exports.createIndentStack = createIndentStack = function() {
-        var peek;
-        peek = function(array) {
-            return array[array.length - 1];
-        };
         return object(function() {
             var self;
             self = this;
             self.indents = [ 0 ];
             self.indentationRegex = new RegExp("\\n( *)$");
             self.multiNewLineRegex = new RegExp("\\n *\\n");
-            self.newLineRegex = new RegExp("\\n");
             self.isMultiNewLine = function(text) {
                 var self;
                 self = this;
@@ -22,7 +17,7 @@
             self.hasNewLine = function(text) {
                 var self;
                 self = this;
-                return self.newLineRegex.test(text);
+                return self.indentationRegex.test(text);
             };
             self.indentation = function(newLine) {
                 var self;

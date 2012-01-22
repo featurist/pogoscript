@@ -5,13 +5,12 @@ exports: create indent stack = create indent stack! =
         :indents = [0]
         :indentation regex = new (RegExp '\n( *)$')
         :multi new line regex = new (RegExp '\n *\n')
-        :new line regex = new (RegExp '\n')
         
         :is @text multi new line =
             :multi new line regex: test @text
         
         : @text has new line? =
-            :new line regex: test @text
+            :indentation regex: test @text
         
         :indentation (new line) =
             :indentation regex: exec (new line): 1: length
