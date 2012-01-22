@@ -133,7 +133,7 @@ exports: grammar = {
             ['argument'. '$$ = yy.terms.loc(yy.terms.variable([yytext.substring(1)]), @$);']
             ['self_argument'. '$$ = yy.terms.loc(yy.terms.fieldReference(yy.terms.variable([''self'']), [yytext.substring(2)]), @$);']
             ['parameter'. '$$ = yy.terms.loc(yy.terms.parameter(yy.terms.variable([yytext.substring(1)])), @$);']
-            ['string'. '$$ = yy.terms.loc(yy.terms.string(yy.terms.normaliseString(yytext)), @$);']
+            ['string'. '$$ = yy.terms.loc(yy.terms.string(yy.terms.unindent(@$.first_column + 1, yy.terms.normaliseString(yytext))), @$);']
             ['interpolated_string'. '$$ = yy.terms.loc($1, @$);']
             ['...'. '$$ = yy.terms.loc(yy.terms.splat(), @$);']
         ]

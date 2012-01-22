@@ -57,6 +57,12 @@ spec 'parser'
                     is string
                     string "one \\ two"
                 }
+                    
+            spec 'multiline string'
+                (expression "  'one\n   two'") should contain fields {
+                    is string
+                    string "one\ntwo"
+                }
 
         spec 'interpolated strings'
             spec 'simple'
@@ -80,6 +86,14 @@ spec 'parser'
                     is interpolated string
                     components [
                         {string "one\n two"}
+                    ]
+                }
+
+            spec 'indented string'
+                (expression '  "one\n   two"') should contain fields {
+                    is interpolated string
+                    components [
+                        {string "one\ntwo"}
                     ]
                 }
 

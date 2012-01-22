@@ -10,6 +10,7 @@ exports.identifier = cg.identifier;
 exports.integer = cg.integer;
 exports.float = cg.float;
 exports.normaliseString = cg.normaliseString;
+exports.unindent = cg.unindent;
 exports.normaliseInterpolatedString = cg.normaliseInterpolatedString;
 exports.string = cg.string;
 exports.interpolatedString = cg.interpolatedString;

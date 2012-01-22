@@ -196,44 +196,36 @@ var formatJavaScriptString = function(s) {
   return "'" + s + "'";
 };
 
-expressionTerm('interpolatedString', function (value, columnStart) {
+var unindenter = function (columns) {
+  var r = new RegExp('\\n {' + columns + '}', 'g');
+  
+  return function (s) {
+    return s.replace(r,'\n');
+  };
+};
+
+var unindent = exports.unindent = function (columns, text) {
+  return unindenter(columns)(text);
+};
+
+expressionTerm('interpolatedString', function (components, columnStart) {
   this.isInterpolatedString = true;
   this.components = (function () {
-    var components = [];
-    var stringComponent;
+    var removeIndentation = unindenter(columnStart + 1);
     
-    var removeIndentation = (function () {
-      var c = columnStart + 1;
-      var spaces = '';
-      while (c--) {
-        spaces += ' ';
+    var collapsedComponents = collapse(components, function (c) {
+      if (c.isString) {
+        return c.string;
       }
-      var r = new RegExp('\n' + spaces, 'g');
-      
-      return function (s) {
-        return s.replace(r,'\n');
-      };
-    })();
-    
-    _.each(value, function (component) {
-      if (component.isString && !stringComponent) {
-        stringComponent = component.string;
-      } else if (component.isString) {
-        stringComponent += component.string;
-      } else {
-        if (stringComponent) {
-          components.push(string(removeIndentation(stringComponent)));
-          stringComponent = undefined;
-        }
-        components.push(component);
+    }, function (string, c) {
+      if (c.isString) {
+        return string + c.string;
       }
+    }, function (s) {
+      return string(removeIndentation(s));
     });
-    
-    if (stringComponent) {
-      components.push(string(removeIndentation(stringComponent)));
-    }
-    
-    return components;
+
+    return collapsedComponents;
   })();
 
   this.componentsDelimitedByStrings = function () {
@@ -1617,4 +1609,47 @@ exports.splat = function () {
   return term(function () {
     this.isSplat = true;
   });
+};
+
+var collapse = exports.collapse = function (list, isGroup, collapseItemIntoGroup, maybeFinishGroup) {
+  var currentGroup;
+  var collapsedList = [];
+  
+  var finishGroup;
+  
+  if (maybeFinishGroup) {
+    finishGroup = maybeFinishGroup;
+  } else {
+    finishGroup = function (group) {
+      return group;
+    }
+  }
+  
+  for (var n = 0; n < list.length; n++) {
+    var item = list[n];
+    if (currentGroup) {
+      var newGroup = collapseItemIntoGroup(currentGroup, item);
+      if (newGroup) {
+        currentGroup = newGroup;
+        continue;
+      }
+    }
+    
+    var group = isGroup(item);
+    if (typeof group != 'undefined') {
+      currentGroup = group;
+    } else {
+      if (currentGroup) {
+        collapsedList.push(finishGroup(currentGroup));
+        currentGroup = null;
+      }
+      collapsedList.push(item);
+    }
+  }
+  
+  if (currentGroup) {
+    collapsedList.push(finishGroup(currentGroup));
+  }
+  
+  return collapsedList;
 };
