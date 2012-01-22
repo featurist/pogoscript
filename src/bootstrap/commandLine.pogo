@@ -1,11 +1,8 @@
 fs = require 'fs'
-preparser = require './preparser'
 ms = require '../lib/memorystream'
 parse = require './parser': parse
 uglify = require 'uglify-js'
 errors = require './codeGenerator/errors'
-
-preparse = preparser : new file parser?
 
 generate code @term =
   memory stream = new (ms : MemoryStream)
@@ -24,11 +21,6 @@ exports : compile file @filename, ugly =
   js filename = js filename from pogo filename @filename
   fs : write file sync (js filename) @js
 
-exports : preparse file @filename =
-  contents = fs : read file sync @filename 'utf-8'
-  preparsed pogo = preparse @contents
-  console : log (preparsed pogo)
-
 js filename from pogo filename @pogo =
   pogo : replace (new (RegExp "\\.pogo$")) '' + '.js'
 
@@ -41,8 +33,7 @@ exports : run file @filename =
 
 js from pogo file @filename =
   contents = fs : read file sync @filename 'utf-8'
-  p = preparse @contents
-  term = parse @p
+  term = parse @contents
   
   if (errors : has errors?)
     errors : print errors (source location printer, filename @filename, source @contents)

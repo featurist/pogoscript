@@ -2,7 +2,6 @@ require 'cupoftea'
 require './assertions.pogo'
 
 parse = require './parser.pogo': parse
-preparse = require './preparser.pogo': new file parser?
 
 assume @term is module with statements @action =
     if (term: is module)
@@ -17,7 +16,7 @@ assume @statements has just one statement @action =
         throw (new (Error ('expected statements to have just one statement, found ' + statements: statements: length)))
 
 expression @source =
-    term = parse (preparse @source)
+    term = parse @source
     assume @term is module with statements #statements
         assume @statements has just one statement #s
             s
@@ -58,6 +57,12 @@ spec 'parser'
                     is string
                     string "one \\ two"
                 }
+                    
+            spec 'multiline string'
+                (expression "  'one\n   two'") should contain fields {
+                    is string
+                    string "one\ntwo"
+                }
 
         spec 'interpolated strings'
             spec 'simple'
@@ -72,9 +77,7 @@ spec 'parser'
                 (expression '"one\ntwo"') should contain fields {
                     is interpolated string
                     components [
-                        {string "one"}
-                        {string "\n"}
-                        {string "two"}
+                        {string "one\ntwo"}
                     ]
                 }
 
@@ -82,9 +85,15 @@ spec 'parser'
                 (expression '"one\n  two"') should contain fields {
                     is interpolated string
                     components [
-                        {string "one"}
-                        {string "\n"}
-                        {string "  two"}
+                        {string "one\n two"}
+                    ]
+                }
+
+            spec 'indented string'
+                (expression '  "one\n   two"') should contain fields {
+                    is interpolated string
+                    components [
+                        {string "one\ntwo"}
                     ]
                 }
 
@@ -372,6 +381,13 @@ spec 'parser'
                 name ['field']
             }
         
+        spec 'field reference with newline'
+            (expression "object:\nfield") should contain fields {
+                is field reference
+                object {variable ['object']}
+                name ['field']
+            }
+        
         spec 'self field reference'
             (expression ':field') should contain fields {
                 is field reference
@@ -476,6 +492,17 @@ spec 'parser'
                         operator '!'
                         arguments [{variable ['b']}]
                     }
+                ]
+            }
+                
+        spec 'can have newlines immediately after operator'
+            (expression "a &&\nb") should contain fields {
+                is operator
+                operator '&&'
+                
+                arguments [
+                    {variable ['a']}
+                    {variable ['b']}
                 ]
             }
       

@@ -11,25 +11,27 @@ spec 'term'
             this: subterms 'a' 'b'
         
         (term: all subterms?) should contain fields [
-            #{identifier 'a'}
-            #{identifier 'b'}
+            {identifier 'a'}
+            {identifier 'b'}
         ]
     
     spec 'locations'
-        location @fl @ll @fc @lc = #
+        location @fl @ll @fc @lc = {
             first_line @fl
             last_line @ll
             first_column @fc
             last_column @lc
+        }
     
         spec 'location'
             id = cg new: loc (cg: identifier 'a') (location 1 2 3 4)
             
-            (id: location?) should contain fields #
+            (id: location?) should contain fields {
                 first line 1
                 last line 2
                 first column 3
                 last column 4
+            }
         
         spec 'subterm location'
             term = cg: term
@@ -37,8 +39,9 @@ spec 'term'
                 this: b = cg new: loc (cg: identifier 'b') (location 1 1 2 12)
                 this: subterms 'a' 'b'
 
-            (term: location?) should contain fields #
+            (term: location?) should contain fields {
                 first line 1
                 last line 1
                 first column 2
                 last column 12
+            }

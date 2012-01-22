@@ -153,21 +153,6 @@ spec('code generator', function () {
         var s = cg.normaliseString("'it''s a ''camera''.'");
         assert.equal(s, "it's a 'camera'.");
       });
-      
-      spec('with preparser escapes', function () {
-        var s = cg.normaliseString("'one\\\\two\\\\three'");
-        assert.equal(s, "one\\two\\three");
-      });
-      
-      spec('with preparser end of line', function () {
-        var s = cg.normaliseString("'one\\.two\\.three'");
-        assert.equal(s, "one\ntwo\nthree");
-      });
-      
-      spec('with escaped preparser end of line', function () {
-        var s = cg.normaliseString("'one\\\\.two\\\\\\\\.three'");
-        assert.equal(s, "one\\.two\\\\.three");
-      });
     });
   });
 
@@ -703,5 +688,21 @@ spec('code generator', function () {
         assert.equal(md.findMacro(['one', 'two', 'four']), undefined);
       });
     });
+  });
+  
+  spec('roll', function () {
+    var list = [1, "a", "b", 3, "4", "5"];
+    
+    var collapsedList = cg.collapse(list, function (item) {
+      if (typeof item == 'string')
+        return item;
+    }, function (group, item) {
+      if (typeof item == 'string')
+        return group + item;
+    }, function (group) {
+      return "~" + group;
+    });
+    
+    shouldContainFields(collapsedList, [1, '~ab', 3, '~45']);
   });
 });

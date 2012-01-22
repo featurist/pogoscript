@@ -37,303 +37,363 @@ spec 'complex expression'
       (cg: complex expression @e: arguments?) should contain fields @a
     
     spec 'with arguments in head'
-      expression [[id 'a'. int 10]] should have arguments [#{integer 10}]
+      expression [[id 'a'. int 10]] should have arguments [{integer 10}]
     
     spec 'with tail block'
       expression [[id 'a']. [id 'readonly'. block]] should have arguments [
-        #{is block}
+        {is block}
       ]
 
   spec 'expression'
     spec 'with just one argument is that argument'
-      expression [[int 9]] should contain fields #
+      expression [[int 9]] should contain fields {
         is integer
         integer 9
+      }
 
     spec 'all arguments is function call, first argument is function'
-      expression [[variable 'z'. int 9]] should contain fields #
+      expression [[variable 'z'. int 9]] should contain fields {
         is function call
-        function #{variable ['z']}
-        arguments [#{integer 9}]
+        function {variable ['z']}
+        arguments [{integer 9}]
+      }
 
     spec 'one argument and call punctuation is function call'
-      expression [[variable 'z'. no arg punctuation]] should contain fields #
+      expression [[variable 'z'. no arg punctuation]] should contain fields {
         is function call
-        function #{variable ['z']}
+        function {variable ['z']}
         arguments []
+      }
 
     spec 'with name is variable'
-      expression [[id 'a'. id 'variable']] should contain fields #
+      expression [[id 'a'. id 'variable']] should contain fields {
         is variable
         variable ['a'. 'variable']
+      }
 
     spec 'with name and argument is function call'
-      expression [[id 'a'. id 'variable'. int 10]] should contain fields #
+      expression [[id 'a'. id 'variable'. int 10]] should contain fields {
         is function call
-        function #{is variable. variable ['a'. 'variable']}
-        arguments [#{integer 10}]
+        function {is variable. variable ['a'. 'variable']}
+        arguments [{integer 10}]
+      }
 
     spec 'finds macro'
-      expression [[id 'if'. variable. block]] should contain fields #
+      expression [[id 'if'. variable. block]] should contain fields {
         is if expression
+      }
 
     spec 'with name and optional args is function call with optional args'
-      expression [[id 'a'. id 'variable']. [id 'port'. int 80]] should contain fields #
+      expression [[id 'a'. id 'variable']. [id 'port'. int 80]] should contain fields {
         is function call
-        function #{is variable. variable ['a'. 'variable']}
+        function {is variable. variable ['a'. 'variable']}
         arguments []
-        optional arguments [#{field ['port'], value #{integer 80}}]
+        optional arguments [{field ['port'], value {integer 80}}]
+      }
 
     spec 'with block after optional arguments'
-      expression [[id 'a'. id 'variable']. [id 'port'. int 80. block]] should contain fields #
+      expression [[id 'a'. id 'variable']. [id 'port'. int 80. block]] should contain fields {
         is function call
-        function #{is variable. variable ['a'. 'variable']}
+        function {is variable. variable ['a'. 'variable']}
         arguments [
-            #
+            {
                 is block
-                body #{
+                body {
                   statements [
-                    #{variable ['x']}
+                    {variable ['x']}
                   ]
                 }
+            }
         ]
-        optional arguments [#{field ['port'], value #{integer 80}}]
+        optional arguments [{field ['port'], value {integer 80}}]
+      }
 
   spec 'object operation -> expression'
     expression @object @operation should contain fields @fields =
       (cg: complex expression @operation: object operation @object: expression?) should contain fields @fields
   
     spec 'method call'
-      expression (variable 'a') [[id 'method'. int 10]] should contain fields #
+      expression (variable 'a') [[id 'method'. int 10]] should contain fields {
         is method call
-        object #{variable ['a']}
+        object {variable ['a']}
         name ['method']
-        arguments [#{integer 10}]
+        arguments [{integer 10}]
+      }
   
     spec 'method call with optional arguments'
-      expression (variable 'a') [[id 'method'. int 10]. [id 'port'. int 80]] should contain fields #
+      expression (variable 'a') [[id 'method'. int 10]. [id 'port'. int 80]] should contain fields {
         is method call
-        object #{variable ['a']}
+        object {variable ['a']}
         name ['method']
-        arguments [#{integer 10}]
-        optional arguments [#{field ['port'], value #{integer 80}}]
+        arguments [{integer 10}]
+        optional arguments [{field ['port'], value {integer 80}}]
+      }
 
     spec 'index'
-      expression (variable 'a') [[int 10]] should contain fields #
+      expression (variable 'a') [[int 10]] should contain fields {
         is indexer
-        object #{variable ['a']}
-        indexer #{integer 10}
+        object {variable ['a']}
+        indexer {integer 10}
+      }
 
     spec 'index call with arguments'
-      expression (variable 'a') [[variable 'z'. int 10]] should contain fields #
+      expression (variable 'a') [[variable 'z'. int 10]] should contain fields {
         is function call
-        function #
+        function {
           is indexer
-          object #{variable ['a']}
-          indexer #{variable ['z']}
+          object {variable ['a']}
+          indexer {variable ['z']}
+        }
         
-        arguments [#{integer 10}]
+        arguments [{integer 10}]
+      }
 
     spec 'index call with no arguments'
-      expression (variable 'a') [[variable 'z'. no arg punctuation]] should contain fields #
+      expression (variable 'a') [[variable 'z'. no arg punctuation]] should contain fields {
         is function call
-        function #
+        function {
           is indexer
-          object #{variable ['a']}
-          indexer #{variable ['z']}
+          object {variable ['a']}
+          indexer {variable ['z']}
+        }
         
         arguments []
+      }
 
     spec 'field reference'
-      expression (variable 'a') [[id 'field']] should contain fields #
+      expression (variable 'a') [[id 'field']] should contain fields {
         is field reference
-        object #{variable ['a']}
+        object {variable ['a']}
         name ['field']
+      }
 
   spec 'object operation -> definition'
     definition @object @operation @source should contain fields @fields =
       (cg: complex expression @operation: object operation @object: definition @source) should contain fields @fields
     
     spec 'method definition'
-      definition (variable 'object') [[id 'method'. variable 'x']] @block should contain fields #
+      definition (variable 'object') [[id 'method'. variable 'x']] @block should contain fields {
         is definition
-        target #
+        target {
           is field reference
           name ['method']
-          object #{variable ['object']}
+          object {variable ['object']}
+        }
         
-        source #
+        source {
           is block
-          parameters [#{is parameter, expression #{variable ['x']}}]
+          parameters [{is parameter, expression {variable ['x']}}]
+        }
+      }
     
     spec 'method definition without block'
-      definition (variable 'object') [[id 'method'. variable 'x']] (variable 'y') should contain fields #
+      definition (variable 'object') [[id 'method'. variable 'x']] (variable 'y') should contain fields {
         is definition
-        target #
+        target {
           is field reference
           name ['method']
-          object #{variable ['object']}
+          object {variable ['object']}
+        }
         
-        source #
+        source {
           is block
           redefines self
-          parameters [#{is parameter, expression #{variable ['x']}}]
-          body #{statements [#{variable ['y']}]}
+          parameters [{is parameter, expression {variable ['x']}}]
+          body {statements [{variable ['y']}]}
+        }
+      }
     
     spec 'field definition'
-      definition (variable 'object') [[id 'x']] (variable 'y') should contain fields #
+      definition (variable 'object') [[id 'x']] (variable 'y') should contain fields {
         is definition
-        target #
+        target {
           is field reference
           name ['x']
-          object #{variable ['object']}
+          object {variable ['object']}
+        }
         
-        source #
+        source {
           is variable
           variable ['y']
+        }
+      }
     
     spec 'index definition'
-      definition (variable 'object') [[variable 'x']] (variable 'y') should contain fields #
+      definition (variable 'object') [[variable 'x']] (variable 'y') should contain fields {
         is definition
-        target #
+        target {
           is indexer
-          indexer #{variable ['x']}
-          object #{variable ['object']}
+          indexer {variable ['x']}
+          object {variable ['object']}
+        }
         
-        source #
+        source {
           is variable
           variable ['y']
+        }
+      }
     
     spec 'index method definition'
-      definition (variable 'object') [[cg: string 'xyz'. variable 'p']] (variable 'y') should contain fields #
+      definition (variable 'object') [[cg: string 'xyz'. variable 'p']] (variable 'y') should contain fields {
         is definition
-        target #
+        target {
           is indexer
-          indexer #{string 'xyz'}
-          object #{variable ['object']}
+          indexer {string 'xyz'}
+          object {variable ['object']}
+        }
         
-        source #
+        source {
           is block
-          body #
+          body {
             statements [
-              #
+              {
                 is variable
                 variable ['y']
+              }
             ]
+          }
           
           parameters [
-            #{is parameter. expression #{variable ['p']}}
+            {is parameter. expression {variable ['p']}}
           ]
+        }
+      }
     
     spec 'index method definition with no args'
-      definition (variable 'object') [[cg: string 'xyz'. no arg punctuation]] (variable 'y') should contain fields #
+      definition (variable 'object') [[cg: string 'xyz'. no arg punctuation]] (variable 'y') should contain fields {
         is definition
-        target #
+        target {
           is indexer
-          indexer #{string 'xyz'}
-          object #{variable ['object']}
+          indexer {string 'xyz'}
+          object {variable ['object']}
+        }
         
-        source #
+        source {
           is block
-          body #
+          body {
             statements [
-              #
+              {
                 is variable
                 variable ['y']
+              }
             ]
+          }
           
           parameters [
           ]
+        }
+      }
 
   spec 'definition'
     definition @target @source should contain fields @fields =
       (cg: complex expression @target: definition @source) should contain fields @fields
     
     spec 'function definition'
-      definition [[id 'function'. variable 'x']] @block should contain fields #
+      definition [[id 'function'. variable 'x']] @block should contain fields {
         is definition
-        target #
+        target {
           is variable
           variable ['function']
+        }
         
-        source #
+        source {
           is block
-          parameters [#{is parameter, expression #{variable ['x']}}]
-          body #{statements [#{variable ['x']}]}
+          parameters [{is parameter, expression {variable ['x']}}]
+          body {statements [{variable ['x']}]}
+        }
+      }
     
     spec 'function definition with optional parameter'
-      definition [[id 'function'. variable 'x']. [id 'port'. int 80]. [id 'name']] (variable 'y') should contain fields #
+      definition [[id 'function'. variable 'x']. [id 'port'. int 80]. [id 'name']] (variable 'y') should contain fields {
         is definition
-        target #
+        target {
           is variable
           variable ['function']
+        }
         
-        source #
+        source {
           is block
-          parameters [#{is parameter, expression #{variable ['x']}}]
+          parameters [{is parameter, expression {variable ['x']}}]
           optional parameters [
-            #{field ['port'], value #{integer 80}}
-            #{field ['name'], value @undefined}
+            {field ['port'], value {integer 80}}
+            {field ['name'], value @undefined}
           ]
-          body #{statements [#{variable ['y']}]}
+          body {statements [{variable ['y']}]}
+        }
+      }
     
     spec 'function definition without block'
-      definition [[id 'function'. variable 'x']] (variable 'y') should contain fields #
+      definition [[id 'function'. variable 'x']] (variable 'y') should contain fields {
         is definition
-        target #
+        target {
           is variable
           variable ['function']
+        }
         
-        source #
+        source {
           is block
-          parameters [#{is parameter, expression #{variable ['x']}}]
-          body #{statements [#{variable ['y']}]}
+          parameters [{is parameter, expression {variable ['x']}}]
+          body {statements [{variable ['y']}]}
+        }
+      }
     
     spec 'no arg function definition'
-      definition [[id 'function'. no arg punctuation]] (variable 'y') should contain fields #
+      definition [[id 'function'. no arg punctuation]] (variable 'y') should contain fields {
         is definition
-        target #
+        target {
           is variable
           variable ['function']
+        }
         
-        source #
+        source {
           is block
           parameters []
-          body #{statements [#{variable ['y']}]}
+          body {statements [{variable ['y']}]}
+        }
+      }
     
     spec 'variable definition'
-      definition [[id 'function']] (variable 'y') should contain fields #
+      definition [[id 'function']] (variable 'y') should contain fields {
         is definition
-        target #
+        target {
           is variable
           variable ['function']
+        }
         
-        source #
+        source {
           is variable
           variable ['y']
+        }
+      }
 
     spec 'variable definition with scope'
-      definition [[id 'function']] (cg: block [] (cg: statements [variable 'y'])) should contain fields #
+      definition [[id 'function']] (cg: block [] (cg: statements [variable 'y'])) should contain fields {
         is definition
-        target #
+        target {
           is variable
           variable ['function']
+        }
         
-        source #
+        source {
           is function call
-          function #
+          function {
             is block
             parameters []
-            body #
-                statements [#{variable ['y']}]
+            body {
+              statements [{variable ['y']}]
+            }
+          }
         
           arguments []
+        }
+      }
 
     spec 'parameter'
         parameter @p should contain fields @fields =
             (cg: complex expression @p: expression? : parameter?) should contain fields @fields
         
         spec 'variable'
-            parameter [[id 'a']] should contain fields #
+            parameter [[id 'a']] should contain fields {
                 is parameter
-                expression #{variable ['a']}
+                expression {variable ['a']}
+            }

@@ -4,7 +4,8 @@ sing @n bottles of beer on the wall =
         sing (n - 1) bottles of beer on the wall
 
 @n bottles of beer on the wall =
-    "@(@n bottles) of beer on the wall, @(@n bottles) of beer on the wall\ntake one down, pass it around, @((n - 1) bottles) of beer on the wall."
+    "@(@n bottles) of beer on the wall, @(@n bottles) of beer on the wall\n" +
+    "take one down, pass it around, @((n - 1) bottles) of beer on the wall."
 
 @n bottles =
     if (n == 0)

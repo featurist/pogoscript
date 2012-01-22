@@ -196,9 +196,37 @@ var formatJavaScriptString = function(s) {
   return "'" + s + "'";
 };
 
-expressionTerm('interpolatedString', function (value) {
+var unindenter = function (columns) {
+  var r = new RegExp('\\n {' + columns + '}', 'g');
+  
+  return function (s) {
+    return s.replace(r,'\n');
+  };
+};
+
+var unindent = exports.unindent = function (columns, text) {
+  return unindenter(columns)(text);
+};
+
+expressionTerm('interpolatedString', function (components, columnStart) {
   this.isInterpolatedString = true;
-  this.components = value;
+  this.components = (function () {
+    var removeIndentation = unindenter(columnStart + 1);
+    
+    var collapsedComponents = collapse(components, function (c) {
+      if (c.isString) {
+        return c.string;
+      }
+    }, function (string, c) {
+      if (c.isString) {
+        return string + c.string;
+      }
+    }, function (s) {
+      return string(removeIndentation(s));
+    });
+
+    return collapsedComponents;
+  })();
 
   this.componentsDelimitedByStrings = function () {
     var comps = [];
@@ -230,14 +258,6 @@ expressionTerm('interpolatedString', function (value) {
 
 var normaliseString = exports.normaliseString = function(s) {
   s = s.substring(1, s.length - 1);
-  
-  s = s.replace(/\\+[.{}]?/g, function (escapeSequence) {
-    if (escapeSequence[escapeSequence.length - 1] != '\\' && escapeSequence.length == 2) {
-      return '\n';
-    } else {
-      return escapeSequence.replace(/\\\\/g, '\\');
-    }
-  });
   
   return s.replace(/''/g, "'");
 };
@@ -1224,6 +1244,8 @@ var ifCases = expressionTerm('ifCases', function (cases, _else) {
   
   this.cases = cases;
   this._else = _else;
+  
+  this.subterms('cases', '_else');
 
   this.generateJavaScriptStatement = function (buffer, scope, generateReturnStatements) {
     writeToBufferWithDelimiter(this.cases, 'else ', buffer, function (case_) {
@@ -1587,4 +1609,47 @@ exports.splat = function () {
   return term(function () {
     this.isSplat = true;
   });
+};
+
+var collapse = exports.collapse = function (list, isGroup, collapseItemIntoGroup, maybeFinishGroup) {
+  var currentGroup;
+  var collapsedList = [];
+  
+  var finishGroup;
+  
+  if (maybeFinishGroup) {
+    finishGroup = maybeFinishGroup;
+  } else {
+    finishGroup = function (group) {
+      return group;
+    }
+  }
+  
+  for (var n = 0; n < list.length; n++) {
+    var item = list[n];
+    if (currentGroup) {
+      var newGroup = collapseItemIntoGroup(currentGroup, item);
+      if (newGroup) {
+        currentGroup = newGroup;
+        continue;
+      }
+    }
+    
+    var group = isGroup(item);
+    if (typeof group != 'undefined') {
+      currentGroup = group;
+    } else {
+      if (currentGroup) {
+        collapsedList.push(finishGroup(currentGroup));
+        currentGroup = null;
+      }
+      collapsedList.push(item);
+    }
+  }
+  
+  if (currentGroup) {
+    collapsedList.push(finishGroup(currentGroup));
+  }
+  
+  return collapsedList;
 };
