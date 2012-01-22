@@ -24,6 +24,8 @@ exports: create indent stack = create indent stack! =
         :set indentation @text =
             if (: @text has new line?)
                 :indents:unshift (:indentation @text)
+            else
+                :indents:unshift (:current indentation?)
         
         :unset indentation! =
             :indents:shift!

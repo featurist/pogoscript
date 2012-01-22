@@ -12,7 +12,8 @@ grammar = {
 
         rules [
             ['\s*$'. 'return yy.eof();']
-            ['\s*#?\(\s*'. 'yy.setIndentation(yytext); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.openBracket()} return yytext;']
+            ['\s*\(\s*'. 'yy.setIndentation(yytext); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.openBracket()} return "(";']
+            ['\s*#\(\s*'. 'yy.setIndentation(yytext); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.openBracket()} return "#(";']
             ['\s*\)'. 'yy.unsetIndentation(); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.closeBracket(); if (yy.terms.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.terms.interpolation.stopInterpolation()}} return '')'';']
             ['\s*{\s*'. 'yy.setIndentation(yytext); return ''{'';']
             ['\s*}\s*'. 'yy.unsetIndentation(); return ''}'';']

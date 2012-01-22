@@ -38,18 +38,15 @@
                 var self;
                 self = this;
                 if (self.hasNewLine(text)) {
-                    console.log("setting");
-                    self.indents.unshift(self.indentation(text));
-                    return console.log(self.indents);
+                    return self.indents.unshift(self.indentation(text));
+                } else {
+                    return self.indents.unshift(self.currentIndentation());
                 }
             };
             self.unsetIndentation = function() {
                 var self;
                 self = this;
-                console.log("unsetting");
-                console.log(self.indents);
-                self.indents.shift();
-                return console.log(self.indents);
+                return self.indents.shift();
             };
             self.tokensForEof = function() {
                 var self, tokens, indents;
