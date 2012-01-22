@@ -1,13 +1,11 @@
 (function() {
-    var self, fs, preparser, ms, parse, uglify, errors, preparse, generateCode, beautify, jsFilenameFromPogoFilename, jsFromPogoFile, sourceLocationPrinter;
+    var self, fs, ms, parse, uglify, errors, generateCode, beautify, jsFilenameFromPogoFilename, jsFromPogoFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
-    preparser = require("./preparser");
     ms = require("../lib/memorystream");
     parse = require("./parser").parse;
     uglify = require("uglify-js");
     errors = require("./codeGenerator/errors");
-    preparse = preparser.newFileParser();
     generateCode = function(term) {
         var memoryStream;
         memoryStream = new ms.MemoryStream;
@@ -31,13 +29,6 @@
         }
         jsFilename = jsFilenameFromPogoFilename(filename);
         return fs.writeFileSync(jsFilename, js);
-    };
-    exports.preparseFile = function(filename) {
-        var self, contents, preparsedPogo;
-        self = this;
-        contents = fs.readFileSync(filename, "utf-8");
-        preparsedPogo = preparse(contents);
-        return console.log(preparsedPogo);
     };
     jsFilenameFromPogoFilename = function(pogo) {
         return pogo.replace(new RegExp("\\.pogo$"), "") + ".js";
