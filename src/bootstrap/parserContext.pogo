@@ -10,6 +10,14 @@ exports: create parser context =
             :lexer:tokens = tokens
             tokens:shift?
 
+        :set indentation @text =
+            console:log 'setting indentation' @text
+            :indent stack:set indentation @text
+
+        :unset indentation! =
+            console:log 'unsetting indentation'
+            :indent stack:unset indentation!
+
         :indentation @text =
             tokens = :indent stack:tokens for new line @text
             :tokens @tokens

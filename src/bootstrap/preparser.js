@@ -70,7 +70,7 @@
                 var self, unindentCount;
                 self = this;
                 unindentCount = 0;
-                while (peek(indents) != i) {
+                while (peek(indents) > i) {
                     unindentCount = unindentCount + 1;
                     indents.pop();
                 }

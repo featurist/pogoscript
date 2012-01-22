@@ -16,8 +16,17 @@
                 } else {
                     token = self.nextLexer.lex();
                     self.yytext = self.nextLexer.yytext;
+                    self.yylloc = self.nextLexer.yylloc;
+                    self.yyleng = self.nextLexer.yyleng;
+                    self.yylineno = self.nextLexer.yylineno;
+                    self.match = self.nextLexer.match;
                     return token;
                 }
+            };
+            self.showPosition = function() {
+                var self;
+                self = this;
+                return self.nextLexer.showPosition();
             };
             return self.setInput = function(input) {
                 var self;

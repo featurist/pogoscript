@@ -12,6 +12,18 @@
             self = this;
             self.indents = [ 0 ];
             self.indentationRegex = new RegExp("\\n( *)$");
+            self.multiNewLineRegex = new RegExp("\\n *\\n");
+            self.newLineRegex = new RegExp("\\n");
+            self.isMultiNewLine = function(text) {
+                var self;
+                self = this;
+                return self.multiNewLineRegex.test(text);
+            };
+            self.hasNewLine = function(text) {
+                var self;
+                self = this;
+                return self.newLineRegex.test(text);
+            };
             self.indentation = function(newLine) {
                 var self;
                 self = this;
@@ -21,6 +33,23 @@
                 var self;
                 self = this;
                 return self.indents[0];
+            };
+            self.setIndentation = function(text) {
+                var self;
+                self = this;
+                if (self.hasNewLine(text)) {
+                    console.log("setting");
+                    self.indents.unshift(self.indentation(text));
+                    return console.log(self.indents);
+                }
+            };
+            self.unsetIndentation = function() {
+                var self;
+                self = this;
+                console.log("unsetting");
+                console.log(self.indents);
+                self.indents.shift();
+                return console.log(self.indents);
             };
             self.tokensForEof = function() {
                 var self, tokens, indents;
@@ -50,6 +79,9 @@
                     while (self.indents[0] > indentation) {
                         tokens.push("}");
                         self.indents.shift();
+                    }
+                    if (self.isMultiNewLine(text)) {
+                        tokens.push(".");
                     }
                     if (self.indents[0] < indentation) {
                         tokens.push("@{");

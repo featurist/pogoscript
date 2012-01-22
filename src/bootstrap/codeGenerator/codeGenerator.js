@@ -44,10 +44,6 @@ exports.lexOperator = function (op) {
   }
 };
 
-exports.normaliseOperator = function (op) {
-  return op.replace(/\\\\/g, '\\');
-};
-
 exports.loc = function (term, location) {
   var loc = {
     firstLine: location.first_line,

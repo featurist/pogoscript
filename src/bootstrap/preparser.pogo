@@ -60,7 +60,7 @@ exports: new indent stack = new indent stack? =
         unindent count = unindent count + 1
         indents: pop!
 
-      unindent count
+      {unindents (unindent count)}
 
 exports: new file parser? =
   ?source
@@ -108,18 +108,18 @@ exports: new file parser? =
         indent stack: indent to (line: indentation)
 
       if (line: is unindent)
-        number of unwind brackets = indent stack: count unindents while unwinding to (line: indentation)
+        unwind = indent stack: count unindents while unwinding to (line: indentation)
 
         if (line: starts with bracket)
           number of unwind brackets = number of unwind brackets - 1
 
-        last line ending = concat '\}' (number of unwind brackets) times
+        last line ending = concat '\}' (unwind: unindents) times
 
         write (last line) appending ((last line ending) plus '\.' if (last line: is empty))
 
       last line = line
 
-    number of unwind brackets = indent stack: count unindents while unwinding to ''
-    write (last line) appending (concat '\}' (number of unwind brackets) times)
+    unwind = indent stack: count unindents while unwinding to ''
+    write (last line) appending (concat '\}' (unwind: unindents) times)
 
     stream: to string?

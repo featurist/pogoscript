@@ -6,12 +6,27 @@ exports: create indent stack = create indent stack! =
     object =>
         :indents = [0]
         :indentation regex = new (RegExp '\n( *)$')
+        :multi new line regex = new (RegExp '\n *\n')
+        :new line regex = new (RegExp '\n')
+        
+        :is @text multi new line =
+            :multi new line regex: test @text
+        
+        : @text has new line? =
+            :new line regex: test @text
         
         :indentation (new line) =
             :indentation regex: exec (new line): 1: length
         
         :current indentation? =
             :indents: 0
+        
+        :set indentation @text =
+            if (: @text has new line?)
+                :indents:unshift (:indentation @text)
+        
+        :unset indentation! =
+            :indents:shift!
         
         :tokens for eof? =
             tokens = []
@@ -41,6 +56,9 @@ exports: create indent stack = create indent stack! =
                 while @{:indents: 0 > indentation}
                     tokens: push '}'
                     :indents: shift!
+                
+                if (:is @text multi new line)
+                    tokens: push '.'
                 
                 if (:indents: 0 < indentation)
                     tokens: push '@{'

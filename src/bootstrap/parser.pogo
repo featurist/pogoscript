@@ -12,7 +12,13 @@ grammar = {
 
         rules [
             ['\s*$'. 'return yy.eof();']
-            ['\n *'. 'return yy.indentation(yytext);']
+            ['\s*#?\(\s*'. 'yy.setIndentation(yytext); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.openBracket()} return yytext;']
+            ['\s*\)'. 'yy.unsetIndentation(); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.closeBracket(); if (yy.terms.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.terms.interpolation.stopInterpolation()}} return '')'';']
+            ['\s*{\s*'. 'yy.setIndentation(yytext); return ''{'';']
+            ['\s*}\s*'. 'yy.unsetIndentation(); return ''}'';']
+            ['\s*\[\s*'. 'yy.setIndentation(yytext); return ''['';']
+            ['\s*\]\s*'. 'yy.unsetIndentation(); return '']'';']
+            ['(\n *)*\n *'. 'return yy.indentation(yytext);']
             [' +'. '/* ignore whitespace */']
             ['[0-9]+\.[0-9]+'. 'return ''float'';']
             ['[0-9]+'. 'return ''integer'';']
@@ -20,28 +26,20 @@ grammar = {
             ['@:' + identifier pattern. 'return ''self_argument'';']
             ['[?#]' + identifier pattern. 'return ''parameter'';']
             [identifier pattern. 'return ''identifier'';']
-            ['#?\('. 'if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.openBracket()} return yytext;']
-            ['\)'. 'if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.closeBracket(); if (yy.terms.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.terms.interpolation.stopInterpolation()}} return '')'';']
-            ['{'. 'return ''{'';']
-            ['}'. 'return ''}'';']
-            ['\['. 'return ''['';']
-            ['\]'. 'return '']'';']
             ['\.\.\.'. 'return ''...''']
-            ['([:=,?!.@`~#$%^&*+<>/?|-]|\\\\)+'. 'return yy.terms.lexOperator(yytext);']
+            ['([:=,?!.@`~#$%^&*+<>/?\\|-])+'. 'return yy.terms.lexOperator(yytext);']
             ['$'. 'return ''eof'';']
             ['''([^'']*'''')*[^'']*'''. 'return ''string'';']
             ['"'. 'this.begin(''interpolated_string''); return ''start_interpolated_string'';']
-            [['interpolated_string']. '\\\\@'. 'return ''escaped_interpolated_string_terminal_start'';']
+            
+            [['interpolated_string']. '\\@'. 'return ''escaped_interpolated_string_terminal_start'';']
             [['interpolated_string']. '@'. 'this.begin(''interpolated_string_terminal''); return ''interpolated_string_terminal_start'';']
             [['interpolated_string_terminal']. identifier pattern. 'this.popState(); return ''identifier'';']
             [['interpolated_string_terminal']. '\('. 'yy.terms.interpolation.startInterpolation(); this.begin(''INITIAL''); return ''('';']
             [['interpolated_string']. '"'. 'this.popState(); return ''end_interpolated_string'';']
-            [['interpolated_string']. '\\[.]'. '/* ignore */']
-            [['interpolated_string']. '\\@[{]'. 'yy.terms.stringBrackets++']
-            [['interpolated_string']. '\\[}]'. 'yy.terms.stringBrackets--;']
-            [['interpolated_string']. '\\\\\\\\'. 'return ''escaped_escape_interpolated_string_body'';']
-            [['interpolated_string']. '\\\\.'. 'return ''escaped_interpolated_string_body'';']
+            [['interpolated_string']. '\\.'. 'return ''escape_sequence'';']
             [['interpolated_string']. '[^"@\\]*'. 'return ''interpolated_string_body'';']
+            
             ['.'. 'return ''non_token'';']
         ]
     }
@@ -149,7 +147,7 @@ grammar = {
             ['@{'. '$$ = ''@{''']
         ]
         operator [
-            ['raw_operator'. '$$ = yy.terms.normaliseOperator(yytext);']
+            ['raw_operator'. '$$ = $1;']
         ]
         unary_operator [
             ['operator'. '$$ = $1;']
@@ -171,8 +169,7 @@ grammar = {
             ['interpolated_string_terminal_start interpolated_terminal'. '$$ = $2;']
             ['interpolated_string_body'. '$$ = yy.terms.string($1);']
             ['escaped_interpolated_string_terminal_start'. '$$ = yy.terms.string("@");']
-            ['escaped_interpolated_string_body'. '$$ = yy.terms.string(yy.terms.normaliseInterpolatedString($1.substring(1)));']
-            ['escaped_escape_interpolated_string_body'. '$$ = yy.terms.string($1.substring(3));']
+            ['escape_sequence'. '$$ = yy.terms.string(yy.terms.normaliseInterpolatedString($1));']
         ]
     }
 }
