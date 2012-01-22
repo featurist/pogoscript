@@ -1,5 +1,5 @@
 (function() {
-    var self, jisonParser, terms, ms, createParserContext, createDynamicLexer, grammar, createParser;
+    var self, jisonParser, terms, ms, createParserContext, createDynamicLexer, grammar, parser, jisonLexer, createParser;
     self = this;
     jisonParser = require("jison").Parser;
     terms = require("./codeGenerator/codeGenerator");
@@ -7,15 +7,14 @@
     createParserContext = require("./parserContext").createParserContext;
     createDynamicLexer = require("./dynamicLexer").createDynamicLexer;
     grammar = require("./grammar").grammar;
-    createParser = function(terms, grammar) {
-        var parser, dynamicLexer, yy, jisonLexer;
-        console.log("creating parser");
-        parser = new jisonParser(grammar);
+    parser = new jisonParser(grammar);
+    jisonLexer = parser.lexer;
+    createParser = function(terms) {
+        var dynamicLexer, yy;
         dynamicLexer = createDynamicLexer();
         yy = createParserContext({
             terms: terms
         });
-        jisonLexer = parser.lexer;
         dynamicLexer.nextLexer = jisonLexer;
         yy.lexer = dynamicLexer;
         jisonLexer.yy = yy;
@@ -24,9 +23,9 @@
         return parser;
     };
     exports.parse = function(source) {
-        var self, parser;
+        var self;
         self = this;
-        parser = createParser(terms, grammar);
+        parser = createParser(terms);
         return parser.parse(source);
     };
 })();
