@@ -267,14 +267,6 @@ expressionTerm('interpolatedString', function (value, columnStart) {
 var normaliseString = exports.normaliseString = function(s) {
   s = s.substring(1, s.length - 1);
   
-  s = s.replace(/\\+[.{}]?/g, function (escapeSequence) {
-    if (escapeSequence[escapeSequence.length - 1] != '\\' && escapeSequence.length == 2) {
-      return '\n';
-    } else {
-      return escapeSequence.replace(/\\\\/g, '\\');
-    }
-  });
-  
   return s.replace(/''/g, "'");
 };
 
