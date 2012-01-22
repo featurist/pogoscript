@@ -104,13 +104,13 @@ The `not` keyword can be used to make an option `false`:
 
 Closures are passed to functions by declaring the closure parameters inline with the function call, like this:
 
-    for each ?item in @list { print @item }
+    for each #item in @list @{ print @item }
 
-The bit in the curly braces contains the closure. The parameter of the closure is the `?item`. The function name explains what `item` is, and how the closure is used with `item`.
+The bit in the curly braces `@{ ... }` contains the closure. The parameter of the closure is the `#item`. The function name explains what `item` is, and how the closure is used with `item`.
 
 The curly braces can be replaced by an indented block underneath the function, like so:
 
-    for each ?item in @list
+    for each #item in @list
         print @item
 
 If a block is followed by another line, that line is part of the same function call. To see this in action, consider the familiar `do` `while` statement:
@@ -120,11 +120,11 @@ If a block is followed by another line, that line is part of the same function c
     do
         print @item
         item = item + 1
-    while {item < 10}
+    while @{item < 10}
 
 This is interpreted as one function call:
 
-    do {print @item. item = item + 1} while {item < 10}
+    do @{print @item. item = item + 1} while @{item < 10}
 
 To write two statements, put an empty line below the block. For example, this `do` `while` isn't really a `do` `while`:
 
@@ -132,12 +132,12 @@ To write two statements, put an empty line below the block. For example, this `d
         print @item
         item = item + 1
     
-    while {item < 10}
+    while @{item < 10}
 
 This is interpreted as two function calls, one for the `do` and the other for the `while`:
 
-    do {print @item. item = item + 1}
-    while {item < 10}
+    do @{print @item. item = item + 1}
+    while @{item < 10}
 
 This syntax allows us to write control structures with regular functions and blocks that look indistinguishable from the built-in control structures. These functions can be macros too, allowing us to rewrite expressions at compile time. See below for more information on macros.
 
@@ -166,8 +166,8 @@ Normally however, asynchronous calls are made in sequence, so the following stat
 
 However, if you want to call asynchronous functions in parallel, use a higher level function to do it. Here we use one called `for each in` to make several DNS lookups in parallel.
 
-    print dns records for ?domains =
-        ~ for each ?domain in @domains, parallel
+    print dns records for #domains =
+        ~ for each #domain in @domains, parallel
             ip = ~ dns: lookup "A" record for @domain
             console: log @ip
     
@@ -176,30 +176,30 @@ However, if you want to call asynchronous functions in parallel, use a higher le
 
 Or one that maps domains into ip addresses:
 
-    find dns records for ?domains =
-        ~ map each ?domain in @domains into, parallel
+    find dns records for #domains =
+        ~ map each #domain in @domains into, parallel
             ~ dns: lookup "A" record for @domain
 
     ip addresses = ~ find dns records for @domains
     
-    for each ?(ip address) in (ip addresses)
+    for each #(ip address) in (ip addresses)
         console: log (ip address)
     
     console: log "done"
 
 These are just regular functions, but they are defined with an additional argument for the callback. `for each in` would be defined as the following (using the fabulous [underscore.js](http://documentcloud.github.com/underscore/) library):
 
-    for each in ?list ?process ?callback =
+    for each in #list #process #callback =
         oustanding = 0
         nothing failed yet = true
         
         failure =
             nothing failed yet = false
         
-        _: each @list ?item
+        _: each @list #item
             if (nothing failed yet)
                 oustanding += 1
-                process @item ?error ?result
+                process @item #error #result
                     outstanding -= 1
                 
                     if error
@@ -232,41 +232,41 @@ If the receiver is the result of an expression, it can all go before the colon:
 The colon makes for a concise way to access module items:
 
     http = require 'http'
-    server = http: create server ?request ?response
+    server = http: create server #request #response
         response: write head 200, "Content-Type" "text/plain"
         response: end "Hello World\n"
 
 The colon can be used to express chains of method calls:
 
-    list: map ?i into {i + 1}: include ?i where {i < 5}: each ?i do {console: log @i}
+    list: map #i into @{i + 1}: include #i where @{i < 5}: each #i do @{console: log @i}
 
 And
 
-    list: map ?i into {
+    list: map #i into @{
         i + 1
-    }: include ?i where {
+    }: include #i where @{
         i < 5
-    }: each ?i do {
+    }: each #i do @{
         console: log @i
     }
 
 And, even:
 
     list:
-        map ?i into
+        map #i into
             i + 1
-        include ?i where
+        include #i where
             i < 5
-        each ?i do
+        each #i do
             console: log @i
     
 Are the same as:
 
-    mapped = list: map ?i into
+    mapped = list: map #i into
         i + 1
-    filtered = mapped: include ?i where
+    filtered = mapped: include #i where
         i < 5
-    filtered: each ?i do
+    filtered: each #i do
         console: log @i
 
 For no argument function or method calls, the exclamation mark (`!`) doubles as a colon:
@@ -290,12 +290,12 @@ This is semantically equivalent to:
 
 To declare a function, use the `=` operator. Prefix arguments with the question mark (`?`):
 
-    hide element ?element =
+    hide element #element =
         set css for @element "display" = "none"
 
 If the function body is small, you can put it on the same line:
 
-    hide element ?element = set css for @element "display" = "none"
+    hide element #element = set css for @element "display" = "none"
 
 If the function doesn't take any arguments, the function body _must_ be on an indented line, otherwise it becomes a variable.
 
@@ -309,25 +309,25 @@ The difference between variables and functions that don't take arguments is subt
 
     this is a variable = "variable"
     
-    this is a function =
+    this is a function! =
         "function"
         
-    this is also a function = {"function"}
+    this is also a function! = @{"function"}
 
 To express a lambda without declaring it, specify its parameters with the question mark (`?`) and follow them with a block:
 
-    ?element {set css for @element "display" = "none"}
+    #element @{set css for @element "display" = "none"}
 
 In fact, there are several ways to define a function, all these are identical:
 
-    succ ?n = n + 1
+    succ #n = n + 1
     
-    succ ?n =
+    succ #n =
         n + 1
     
-    succ = ?n {n + 1}
+    succ = #n @{n + 1}
     
-    succ = ?n
+    succ = #n
         n + 1
     
     succ = ? + 1
@@ -336,7 +336,7 @@ In fact, there are several ways to define a function, all these are identical:
 
 To declare options for a function, put them after commas:
 
-    while connected to mysql ?do, readonly false, user "root", port 3306, address "127.0.0.1" =
+    while connected to mysql #do, readonly false, user "root", port 3306, address "127.0.0.1" =
         console: log "connecting to @("readonly" if readonly) MySQL connection at @address:@port for @user"
         ...
 
@@ -352,7 +352,7 @@ Or, if the options list is getting long:
 
 All options can also be taken in one variable and passed to another function:
 
-    with readonly mysql ?do, ?options =
+    with readonly mysql #do, #options =
         while connected to mysql @do, @options, readonly
 
 If you specify an options variable and options too, then the declared options _will not_ be in the options object.
@@ -369,11 +369,11 @@ The first argument to the callback is the error. If this is non-null then an err
 
 Lets define a function that waits for a condition to arise. The condition is a function that returns either true or false, if it returns true, the wait ends. If it returns false, it uses `setTimeout` to delay until the next check:
 
-    wait for condition ?condition ?callback, check every (50 milliseconds) =
+    wait for condition #condition #callback, check every (50 milliseconds) =
         if (condition!)
             callback!
         else
-            set timeout {
+            set timeout @{
                 wait for condition @condition @callback, check every = check every
             } (check every)
 
@@ -381,7 +381,7 @@ And to use it:
 
     number of requests = 0
 
-    server = http: create server ?request ?response
+    server = http: create server #request #response
         number of requests += 1
         response: end!
         
@@ -397,11 +397,11 @@ And to use it:
 
 To unsplat arguments, that is, consume multiple arguments as a single list, use the ellipses immeidately after the parameter to take the list (`...`):
 
-    print ?first ?second ?rest ... =
+    print #first #second #rest ... =
         console: log "first" @first
         console: log "second" @second
         
-        for each ?arg in @rest do
+        for each #arg in @rest do
             console: log "arg" @arg
 
 ## Currying
@@ -452,14 +452,14 @@ Calling the function with an asynchronous callback:
 
 Call the function while passing a block that takes 2 arguments:
 
-    sort @items comparing each ?left with ?right
+    sort @items comparing each #left with #right
         @left compared to @right
 
 Again, the position of the parameters doesn't matter. What matters is the order of the parameters before the block. If there are more parameters after the block, they would be passed into the next block.
 
 A block that takes arguments can be expressed in a similar way, by just omitting the function name:
 
-    comparer = ?left ?right {@a compared to @b}
+    comparer = #left #right @{@a compared to @b}
     
     sort @items comparing each with @comparer
 
@@ -474,7 +474,7 @@ Exception handling is pretty straightforward, no surprises:
 
     try
         ...
-    catch ?exception
+    catch #exception
         ...
     finally
         ...
@@ -483,7 +483,7 @@ Except, that exception handling crosses into asynchronous callbacks too:
 
     try
         contents = ~ @fs read file "example.txt"
-    catch ?e
+    catch #e
         console: log @e
     finally
         console: log "finished"
@@ -536,7 +536,7 @@ Or one with optional bark sound override:
 
 Public definitions are accessible from outside the object, these are declared on the `this` object in JavaScript. But public variables are also accessible to functions defined inside the object, and continue to be, even if those functions are called using other receivers.
 
-    create clickable element ?n = object
+    create clickable element #n = object
         public name = n
         
         element = $ ('#' + name)
@@ -616,10 +616,10 @@ We can also make macros for method calls, for example with this macro `do`, whic
 
 This is defined like this:
 
-    macro (object: do ?calls) =
-        method calls = map each ?call in @calls into
+    macro (object: do #calls) =
+        method calls = map each #call in @calls into
             assuming @call
-                is function call with name ?name and arguments ?arguments
+                is function call with name #name and arguments #arguments
                     method call on object @object with name @name and arguments @arguments
 
         statements (method calls)
@@ -632,7 +632,7 @@ And would result in the following code:
 
 We can also make macros for definitions, ie, the left hand side of the `=`.
 
-    macro (export ?id = ?expr) =
+    macro (export #id = #expr) =
         assuming @id
             is variable
                 assignment with target (field reference of (self variable!) with index (id.as string!)) and source @expr
@@ -692,22 +692,22 @@ Each of the cases are expressions, in the above example the expression involves 
 
 So the `is` function could be defined as:
 
-    is ?value ?action =
-        ?condition
+    is #value #action =
+        #condition
             if (@condition == @value)
                 action
 
 You could easily write other case expressions to evaluate more complex rules such as pattern matching:
 
-    is string starting with ?s ?action =
-        ?condition
+    is string starting with #s #action =
+        #condition
             if (((typeof @condition) == 'string') and ((condition:substring (s:length)) == @s))
                 action
 
 Or regular expressions:
 
-    matches ?re ?action =
-        ?condition
+    matches #re #action =
+        #condition
             if (re:test @condition)
                 action
 
@@ -730,16 +730,16 @@ Indexing lists is done with colon (`:`), list on the left, index on the right:
 
 # Hashes
 
-Hashes use are written with `#{...}`:
+Hashes use are written with `{...}`:
 
-    #{"Set-Cookie" @cookie, Location @redirect}
-    empty hash = #{}
+    {"Set-Cookie" @cookie, Location @redirect}
+    empty hash = {}
     
 The hash entries are separated by commas (`,`) or dots (`.`).
 
 The fields follow the same rules as function call options. If there's an argument, it is taken as the value of the field. If there isn't an argument, the field is taken to be `true`. If the field starts with `not` then it is taken to be `false`. If there are two arguments and no name, then the first argument is taken as the field and the second argument the value:
 
-    headers = #{"Content-Type" "text/plain"}
+    headers = {"Content-Type" "text/plain"}
 
 They can also be written on an indented line:
 
@@ -749,7 +749,7 @@ They can also be written on an indented line:
 
 Which is the same as:
 
-    #{"Set-Cookie" @cookie. Location @redirect}
+    {"Set-Cookie" @cookie. Location @redirect}
 
 Referencing a hash follows the same syntax as referencing a list, only it can use normal names as well as expressions:
 
@@ -777,7 +777,7 @@ But this demonstrates a feature of the parser: if a line immediately follows a b
     try
         statement 1
         statement 2
-    catch ?error
+    catch #error
         print "error occurred: @error"
     finally
         print "finished, for good or bad"
@@ -857,7 +857,7 @@ becomes
 
 If there are parameters in the call, they are added to the closest block to the right, so:
 
-    map each ?item in @list to
+    map each #item in @list to
         item + 10
 
 becomes
@@ -911,7 +911,7 @@ There are plenty of async libraries to do this kind of thing too.
 Exception handling, and the finally clause make this more complex still:
 
     try
-        file hashes = filenames: each ?filename do
+        file hashes = filenames: each #filename do
             console: log (~ sha1 of file @filename)
         console: log "finished"
     catch ex
