@@ -1260,6 +1260,8 @@ var ifCases = expressionTerm('ifCases', function (cases, _else) {
   
   this.cases = cases;
   this._else = _else;
+  
+  this.subterms('cases', '_else');
 
   this.generateJavaScriptStatement = function (buffer, scope, generateReturnStatements) {
     writeToBufferWithDelimiter(this.cases, 'else ', buffer, function (case_) {
