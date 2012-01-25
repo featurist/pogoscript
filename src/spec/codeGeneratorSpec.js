@@ -7,10 +7,14 @@ require('cupoftea');
 var shouldContainFields = require('./containsFields.js').containsFields;
 
 spec('code generator', function () {
-  var generatesExpression = function (term, expectedGeneratedCode) {
+  var generatesExpression = function (term, expectedGeneratedCode, print) {
     var stream = new MemoryStream();
     term.generateJavaScript(stream, new cg.Scope());
-    assert.equal(stream.toString(), expectedGeneratedCode);
+    var code = stream.toString();
+    if (print) {
+      console.log(code);
+    }
+    assert.equal(code, expectedGeneratedCode);
   };
   
   var generatesReturnExpression = function(term, expectedGeneratedCode) {
@@ -277,6 +281,23 @@ spec('code generator', function () {
       ];
       
       generatesExpression(b, "function(x,y,gen1_options){var port,start;port=(gen1_options&&gen1_options.port!=null)?gen1_options.port:80;start=(gen1_options&&gen1_options.start!=null)?gen1_options.start:undefined;y(x);return x;}");
+    });
+    
+    spec('with splat parameters', function () {
+      var b = cg.block(
+        [
+          cg.parameter(cg.variable(['x'])),
+          cg.parameter(cg.variable(['y'])),
+          cg.splat(),
+          cg.parameter(cg.variable(['z']))
+        ],
+        cg.statements([
+          cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]),
+          cg.variable(['z'])
+        ])
+      );
+
+      generatesExpression(b, "function(x){var y,z;y=Array.prototype.slice.call(arguments, 1, arguments.length - 1);z=arguments[arguments.length - 1];y(x);return z;}");
     });
   });
   
@@ -704,5 +725,95 @@ spec('code generator', function () {
     });
     
     shouldContainFields(collapsedList, [1, '~ab', 3, '~45']);
+  });
+  
+  spec('parseSplatParameters', function () {
+    spec('no splat', function () {
+      var splat = cg.parseSplatParameters([cg.parameter(cg.variable(['a']))]);
+      shouldContainFields(splat, {
+        firstParameters: [{isParameter: true, expression: {variable: ['a']}}],
+        splatParameter: undefined,
+        lastParameters: []
+      });
+    });
+    
+    spec('only splat', function () {
+      var splat = cg.parseSplatParameters([
+        cg.parameter(cg.variable(['a'])),
+        cg.splat()
+      ]);
+      
+      shouldContainFields(splat, {
+        firstParameters: [],
+        splatParameter: {isParameter: true, expression: {variable: ['a']}},
+        lastParameters: []
+      });
+    });
+    
+    spec('splat start', function () {
+      var splat = cg.parseSplatParameters([
+        cg.parameter(cg.variable(['a'])),
+        cg.splat(),
+        cg.parameter(cg.variable(['b']))
+      ]);
+      
+      shouldContainFields(splat, {
+        firstParameters: [],
+        splatParameter: {isParameter: true, expression: {variable: ['a']}},
+        lastParameters: [{isParameter: true, expression: {variable: ['b']}}]
+      });
+    });
+    
+    spec('splat end', function () {
+      var splat = cg.parseSplatParameters([
+        cg.parameter(cg.variable(['a'])),
+        cg.parameter(cg.variable(['b'])),
+        cg.splat()
+      ]);
+      
+      shouldContainFields(splat, {
+        firstParameters: [{isParameter: true, expression: {variable: ['a']}}],
+        splatParameter: {isParameter: true, expression: {variable: ['b']}},
+        lastParameters: []
+      });
+    });
+    
+    spec('splat middle', function () {
+      var splat = cg.parseSplatParameters([
+        cg.parameter(cg.variable(['a'])),
+        cg.parameter(cg.variable(['b'])),
+        cg.splat(),
+        cg.parameter(cg.variable(['c']))
+      ]);
+      
+      shouldContainFields(splat, {
+        firstParameters: [{isParameter: true, expression: {variable: ['a']}}],
+        splatParameter: {isParameter: true, expression: {variable: ['b']}},
+        lastParameters: [{isParameter: true, expression: {variable: ['c']}}]
+      });
+    });
+    
+    spec('two splats', function () {
+      var secondSplat = cg.splat();
+      secondSplat.secondSplat = true;
+      
+      var splat = cg.parseSplatParameters([
+        cg.parameter(cg.variable(['a'])),
+        cg.parameter(cg.variable(['b'])),
+        cg.splat(),
+        cg.parameter(cg.variable(['c'])),
+        secondSplat,
+        cg.parameter(cg.variable(['d']))
+      ]);
+      
+      shouldContainFields(splat, {
+        firstParameters: [{isParameter: true, expression: {variable: ['a']}}],
+        splatParameter: {isParameter: true, expression: {variable: ['b']}},
+        lastParameters: [
+          {isParameter: true, expression: {variable: ['c']}},
+          {isParameter: true, expression: {variable: ['d']}}
+        ]
+      });
+    });
   });
 });

@@ -35,12 +35,14 @@ js from pogo file @filename =
   contents = fs : read file sync @filename 'utf-8'
   term = parse @contents
   
+  code = generate code @term
+
   if (errors : has errors?)
     errors : print errors (source location printer, filename @filename, source @contents)
     process : exit 1
   else
-    generate code @term
-
+    code
+    
 source location printer, filename, source =
     object =>
         : lines in range @range =

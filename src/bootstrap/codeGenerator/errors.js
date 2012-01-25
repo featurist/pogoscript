@@ -28,7 +28,6 @@ module.exports = new function () {
       this.message = message;
 
       this.generateJavaScript = function(buffer, scope) {
-        throw this;
       };
 
       this.printError = function(sourceFile) {

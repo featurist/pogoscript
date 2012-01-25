@@ -42,9 +42,10 @@
         return module._compile(js, filename);
     };
     jsFromPogoFile = function(filename) {
-        var contents, term;
+        var contents, term, code;
         contents = fs.readFileSync(filename, "utf-8");
         term = parse(contents);
+        code = generateCode(term);
         if (errors.hasErrors()) {
             errors.printErrors(sourceLocationPrinter({
                 filename: filename,
@@ -52,7 +53,7 @@
             }));
             return process.exit(1);
         } else {
-            return generateCode(term);
+            return code;
         }
     };
     sourceLocationPrinter = function(gen2_options) {

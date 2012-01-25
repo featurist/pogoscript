@@ -364,6 +364,105 @@ var operatorRenderedInJavaScript = function (operator) {
   return javaScriptName;
 };
 
+var javascript = function (text) {
+  return term(function () {
+    this.generateJavaScript = function (buffer, scope) {
+      buffer.write(text);
+    };
+  });
+};
+
+var splatParameters = function (next) {
+  return new function () {
+    this.parsedSplatParameters = parseSplatParameters(next.parameters());
+
+    this.parameters = function () {
+      return this.parsedSplatParameters.firstParameters;
+    };
+  
+    this.statements = function () {
+      var splat = this.parsedSplatParameters;
+      
+      if (splat.splatParameter) {
+        var lastIndex = 'arguments.length';
+      
+        if (splat.lastParameters.length > 0) {
+          lastIndex += ' - ' + splat.lastParameters.length;
+        }
+      
+        var splatParameter =
+          definition(
+            splat.splatParameter.expression,
+            javascript('Array.prototype.slice.call(arguments, ' + splat.firstParameters.length + ', ' + lastIndex + ')')
+          );
+      
+        var lastParameterStatements = [splatParameter];
+        for (var n = 0; n < splat.lastParameters.length; n++) {
+          var param = splat.lastParameters[n];
+          lastParameterStatements.push(
+            definition(
+              param.expression,
+              javascript('arguments[arguments.length - ' + (splat.lastParameters.length - n) + ']')
+            )
+          );
+        }
+
+        return lastParameterStatements.concat(next.statements());
+      } else {
+        return next.statements();
+      }
+    };
+    
+    this.hasSplat = this.parsedSplatParameters.splatParameter;
+  };
+};
+
+var parseSplatParameters = exports.parseSplatParameters = function (parameters) {
+  var firstParameters = take(parameters, function (param) {
+    return !param.isSplat;
+  });
+  
+  var maybeSplat = parameters[firstParameters.length];
+  var splatParam, lastParameters;
+  
+  if (maybeSplat && maybeSplat.isSplat) {
+    splatParam = firstParameters.pop();
+    lastParameters = parameters.slice(firstParameters.length + 2);
+    
+    lastParameters = _.filter(lastParameters, function (param) {
+      if (param.isSplat) {
+        errors.addTermWithMessage(param, 'cannot have more than one splat parameter');
+        return false;
+      } else {
+        return true;
+      }
+    });
+  } else {
+    lastParameters = [];
+  }
+  
+  return {
+    firstParameters: firstParameters,
+    splatParameter: splatParam,
+    lastParameters: lastParameters
+  };
+};
+
+var take = function (list, canTake) {
+  var takenList = [];
+  
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i];
+    if (canTake(item)) {
+      takenList.push(item);
+    } else {
+      return takenList;
+    }
+  }
+  
+  return takenList;
+};
+
 var splattedArguments = function (args, optionalArgs) {
   var splatArgs = [];
   var previousArgs = [];
@@ -464,6 +563,60 @@ var optional = expressionTerm('optional', function (options, name, defaultValue)
   };
 });
 
+var selfParameter = function (redefinesSelf, next) {
+  if (redefinesSelf) {
+    return {
+      parameters: function () {
+        return next.parameters();
+      },
+    
+      statements: function () {
+        return [definition(selfExpression(), variable(['this']))].concat(next.statements());
+      }
+    };
+  } else {
+    return next;
+  }
+};
+
+var blockParameters = function (block) {
+  return {
+    parameters: function () {
+      return block.parameters;
+    },
+    
+    statements: function () {
+      return block.body.statements;
+    }
+  }
+};
+
+var optionalParameters = function (optionalParameters, next) {
+  if (optionalParameters && optionalParameters.length > 0) {
+    return {
+      options: generatedVariable(['options']),
+      
+      parameters: function () {
+        return next.parameters().concat([parameter(this.options)]);
+      },
+    
+      statements: function () {
+        var self = this;
+
+        var optionalStatements = _.map(optionalParameters, function (parm) {
+          return definition(variable(parm.field), optional(self.options, parm.field, parm.value));
+        });
+        
+        return optionalStatements.concat(next.statements());
+      },
+      
+      hasOptionals: true
+    };
+  } else {
+    return next;
+  }
+};
+
 var block = expressionTerm('block', function (parameters, body, options) {
   this.body = body;
   this.isBlock = true;
@@ -471,53 +624,6 @@ var block = expressionTerm('block', function (parameters, body, options) {
   this.parameters = parameters;
   this.optionalParameters = null;
   this.redefinesSelf = options && options.redefinesSelf != null? options.redefinesSelf: false;
-  
-  this.hasOptionalParmeters = function () {
-    return this.optionalParameters && this.optionalParameters.length > 0;
-  };
-  
-  this.statementsForOptionalParameters = function () {
-    if (this.hasOptionalParmeters()) {
-      var options = this.optionParameter;
-
-      return _.map(this.optionalParameters, function (parm) {
-        return definition(variable(parm.field), optional(options, parm.field, parm.value));
-      });
-    } else {
-      return [];
-    }
-  };
-  
-  this.statementForSelf = function () {
-    if (this.redefinesSelf) {
-      return [definition(selfExpression(), variable(['this']))];
-    } else {
-      return [];
-    }
-  };
-  
-  this.allStatements = function () {
-    return this.statementForSelf().concat(
-      this.statementsForOptionalParameters().concat(
-        this.body.statements
-      )
-    );
-  };
-  
-  this.completeBody = function () {
-    return statements(this.allStatements());
-  };
-
-  this.allParameters = function () {
-    var parms = this.parameters.slice();
-    
-    if (this.hasOptionalParmeters()) {
-      this.optionParameter = generatedVariable(['options']);
-      parms.push(this.optionParameter);
-    }
-
-    return parms;
-  };
   
   this.blockify = function (parameters, optionalParameters) {
     this.parameters = parameters;
@@ -532,12 +638,45 @@ var block = expressionTerm('block', function (parameters, body, options) {
       return this;
     }
   };
+  
+  this.parameterTransforms = function () {
+    if (this._parameterTransforms) {
+      return this._parameterTransforms;
+    }
+    
+    var optionals = optionalParameters(
+      this.optionalParameters,
+      selfParameter(
+        this.redefinesSelf,
+        blockParameters(this)
+      )
+    );
+    
+    var splat = splatParameters(
+      optionals
+    );
+    
+    if (optionals.hasOptionals && splat.hasSplat) {
+      errors.addTermsWithMessage(this.optionalParameters, 'cannot have splat parameters with optional parameters');
+    }
+    
+    return this._parameterTransforms = splat;
+  };
+  
+  
+  this.transformedStatements = function () {
+    return statements(this.parameterTransforms().statements());
+  };
+  
+  this.transformedParameters = function () {
+    return this.parameterTransforms().parameters();
+  };
 
   this.generateJavaScript = function (buffer, scope) {
     buffer.write('function(');
-    writeToBufferWithDelimiter(this.allParameters(), ',', buffer, scope);
+    writeToBufferWithDelimiter(this.transformedParameters(), ',', buffer, scope);
     buffer.write('){');
-    var body = this.completeBody();
+    var body = this.transformedStatements();
     if (this.returnLastStatement) {
       body.generateJavaScriptReturn(buffer, scope.subScope());
     } else {
@@ -754,6 +893,8 @@ var extractName = function (terminals) {
 };
 
 var definition = expressionTerm('definition', function (target, source) {
+  if (!target) throw Error();
+  
   this.target = target;
   this.source = source;
   this.isDefinition = true;
@@ -1213,6 +1354,8 @@ var hashEntry = expressionTerm('hashEntry', function(field, value) {
   this.isHashEntry = true;
   this.field = field;
   this.value = value;
+  
+  this.subterms('value');
 
   this.legalFieldName = function () {
     var f = concatName(this.field);
@@ -1358,7 +1501,11 @@ var generatedVariable = expressionTerm('generatedVariable', function(name) {
   this.generateJavaScript = function(buffer, scope) {
     buffer.write(this.generatedName(scope));
   };
+  
+  this.generateJavaScriptParameter = this.generateJavaScript;
+  
   this.generateJavaScriptTarget = this.generateJavaScript;
+  
   this.definitionName = function(scope) {
     var n = this.generatedName(scope);
     if (!scope.isDefined(concatName([n]))) {
@@ -1608,6 +1755,10 @@ var interpolation = exports.interpolation = new function () {
 exports.splat = function () {
   return term(function () {
     this.isSplat = true;
+    
+    this.parameter = function () {
+      return this;
+    };
   });
 };
 
