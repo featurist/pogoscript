@@ -680,7 +680,7 @@ var block = expressionTerm('block', function (parameters, body, options) {
     if (this.returnLastStatement) {
       body.generateJavaScriptReturn(buffer, scope.subScope());
     } else {
-      body.generateJavaScript(buffer, scope.subScope());
+      body.generateJavaScriptStatements(buffer, scope.subScope());
     }
     buffer.write('}');
   };
@@ -784,60 +784,70 @@ var hasScope = function (s) {
 };
 
 var Statements = function (statements) {
-  this.statements = statements;
+  return term(function () {
+    this.statements = statements;
   
-  this.generateStatements = function (statements, buffer, scope) {
-    hasScope(scope);
+    this.generateStatements = function (statements, buffer, scope) {
+      hasScope(scope);
     
-    var namesDefined = _(this.statements).chain().reduce(function (list, statement) {
-      var defs = statement.definitions(scope);
-      return list.concat(defs);
-    }, []).map(function (name) {
-      return concatName(name);
-    }).uniq().value();
+      var namesDefined = _(this.statements).chain().reduce(function (list, statement) {
+        var defs = statement.definitions(scope);
+        return list.concat(defs);
+      }, []).map(function (name) {
+        return concatName(name);
+      }).uniq().value();
     
-    if (namesDefined.length > 0) {
-      _(namesDefined).each(function (name) {
-        scope.define(name);
-      });
+      if (namesDefined.length > 0) {
+        _(namesDefined).each(function (name) {
+          scope.define(name);
+        });
       
-      buffer.write ('var ');
-      writeToBufferWithDelimiter(namesDefined, ',', buffer, function (item) {
-        buffer.write(item);
-      });
-      buffer.write(';');
-    }
+        buffer.write ('var ');
+        writeToBufferWithDelimiter(namesDefined, ',', buffer, function (item) {
+          buffer.write(item);
+        });
+        buffer.write(';');
+      }
     
-    _(statements).each(function (statement) {
-      statement.generateJavaScriptStatement(buffer, scope);
-    });
-  };
+      _(statements).each(function (statement) {
+        statement.generateJavaScriptStatement(buffer, scope);
+      });
+    };
   
-  this.generateJavaScript = function (buffer, scope) {
-    this.generateStatements(this.statements, buffer, scope);
-  };
+    this.generateJavaScriptStatements = function (buffer, scope) {
+      this.generateStatements(this.statements, buffer, scope);
+    };
   
-  this.blockify = function (parameters, optionalParameters) {
-    var b = block(parameters, this);
-    b.optionalParameters = optionalParameters;
-    return b;
-  };
+    this.blockify = function (parameters, optionalParameters) {
+      var b = block(parameters, this);
+      b.optionalParameters = optionalParameters;
+      return b;
+    };
+    
+    this.scopify = function () {
+      return this.blockify([]).scopify();
+    };
+    
+    this.generateJavaScript = function (buffer, scope) {
+      this.scopify().generateJavaScript(buffer, scope);
+    };
   
-  this.generateJavaScriptReturn = function (buffer, scope) {
-    if (this.statements.length > 0) {
-      this.generateStatements(this.statements.slice(0, this.statements.length - 1), buffer, scope);
-      this.statements[this.statements.length - 1].generateJavaScriptReturn(buffer, scope);
-    }
-  };
+    this.generateJavaScriptReturn = function (buffer, scope) {
+      if (this.statements.length > 0) {
+        this.generateStatements(this.statements.slice(0, this.statements.length - 1), buffer, scope);
+        this.statements[this.statements.length - 1].generateJavaScriptReturn(buffer, scope);
+      }
+    };
   
-  this.definitions = function(scope) {
-    return _(statements).reduce(function (list, statement) {
-      var defs = statement.definitions(scope);
-      return list.concat(defs);
-    }, []);
-  };
+    this.definitions = function(scope) {
+      return _(statements).reduce(function (list, statement) {
+        var defs = statement.definitions(scope);
+        return list.concat(defs);
+      }, []);
+    };
   
-  this.generateJavaScriptStatement = this.generateJavaScript;
+    this.generateJavaScriptStatement = this.generateJavaScriptStatements;
+  });
 };
 
 var module = expressionTerm('module', function (statements) {
