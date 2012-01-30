@@ -9,7 +9,7 @@
     grammar = require("./grammar").grammar;
     parser = new jisonParser(grammar);
     jisonLexer = parser.lexer;
-    createParser = function(terms) {
+    createParser = function() {
         var dynamicLexer, yy;
         dynamicLexer = createDynamicLexer();
         yy = createParserContext({
@@ -25,7 +25,14 @@
     exports.parse = function(source) {
         var self;
         self = this;
-        parser = createParser(terms);
+        parser = createParser();
         return parser.parse(source);
+    };
+    exports.writeParserToFile = function(f) {
+        var self, parserSource, fs;
+        self = this;
+        parserSource = createParser().generate();
+        fs = require("fs");
+        return fs.writeFileSync("jisonParser.js", parserSource, "utf-8");
     };
 })();

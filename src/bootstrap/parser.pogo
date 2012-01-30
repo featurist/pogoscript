@@ -8,7 +8,7 @@ grammar = require './grammar.pogo': grammar
 parser = new (jison parser @grammar)
 jison lexer = parser:lexer
 
-create parser @terms =
+create parser! =
     dynamic lexer = create dynamic lexer?
     yy = create parser context, terms @terms
 
@@ -21,5 +21,10 @@ create parser @terms =
     parser
 
 exports: parse @source =
-    parser = create parser @terms
+    parser = create parser!
     parser: parse @source
+
+exports: write parser to file @f =
+    parser source = create parser? : generate?
+    fs = require 'fs'
+    fs: write file sync 'jisonParser.js' (parser source) 'utf-8'
