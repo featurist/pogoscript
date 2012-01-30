@@ -29,6 +29,18 @@ spec('code generator', function () {
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
+  var generatesStatements = function(term, expectedGeneratedCode) {
+    var stream = new MemoryStream();
+    term.generateJavaScriptStatements(stream, new cg.Scope());
+    assert.equal(stream.toString(), expectedGeneratedCode);
+  };
+  
+  var generatesStatementsReturn = function(term, expectedGeneratedCode) {
+    var stream = new MemoryStream();
+    term.generateJavaScriptStatementsReturn(stream, new cg.Scope());
+    assert.equal(stream.toString(), expectedGeneratedCode);
+  };
+  
   spec('concatName', function () {
     spec('one identifier', function () {
       assert.equal(cg.concatName(['one']), 'one');
@@ -305,31 +317,31 @@ spec('code generator', function () {
     spec('with no statements', function () {
       var st = cg.statements([]);
       
-      generatesExpression(st, '');
+      generatesStatements(st, '');
     });
     
     spec('with two statements', function () {
       var st = cg.statements([cg.variable(['one']), cg.functionCall(cg.variable(['two']), [])]);
       
-      generatesExpression(st, 'one;two();');
+      generatesStatements(st, 'one;two();');
     });
     
     spec('with two statements and a definition', function () {
       var st = cg.statements([cg.definition(cg.variable(['one']), cg.integer(9)), cg.functionCall(cg.variable(['two']), [])]);
       
-      generatesExpression(st, 'var one;one=9;two();');
+      generatesStatements(st, 'var one;one=9;two();');
     });
     
     spec('returning a definition', function () {
       var st = cg.statements([cg.definition(cg.variable(['one']), cg.integer(9))]);
       
-      generatesReturnExpression(st, 'var one;return one=9;');
+      generatesStatementsReturn(st, 'var one;return one=9;');
     });
     
     spec('chained definitions', function () {
       var st = cg.statements([cg.definition(cg.variable(['one']), cg.definition(cg.variable(['two']), cg.integer(9)))]);
       
-      generatesReturnExpression(st, 'var one,two;return one=two=9;');
+      generatesStatementsReturn(st, 'var one,two;return one=two=9;');
     });
     
     spec('with two definitions of the same variable', function () {
@@ -339,7 +351,7 @@ spec('code generator', function () {
         cg.functionCall(cg.variable(['f']), [cg.variable(['x'])])
       ]);
       
-      generatesExpression(st, 'var x;x=1;x=2;f(x);');
+      generatesStatements(st, 'var x;x=1;x=2;f(x);');
     });
   });
   
@@ -372,7 +384,7 @@ spec('code generator', function () {
   spec('for each', function() {
     var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.variable(['item'])]))]);
     
-    generatesExpression(f, 'var gen1_items,gen2_i,item;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){item=gen1_items[gen2_i];item;}');
+    generatesStatements(f, 'var gen1_items,gen2_i,item;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){item=gen1_items[gen2_i];item;}');
   });
   
   spec('for', function() {
@@ -389,7 +401,7 @@ spec('code generator', function () {
   spec('while', function() {
     var w = cg.whileStatement(cg.variable(['c']), cg.statements([cg.variable(['s'])]));
     
-    generatesReturnExpression(w, 'while(c){s;}');
+    generatesStatement(w, 'while(c){s;}');
   });
   
   spec('method call', function () {
@@ -409,31 +421,43 @@ spec('code generator', function () {
       spec('just splat', function () {
         var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()]);
       
-        generatesExpression(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,b);');
+        generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,b);');
+      });
+      
+      spec('splat call as expression', function () {
+        var f = cg.statements([cg.functionCall(cg.variable(['f']), [cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()])])]);
+      
+        generatesStatements(f, 'var gen1_o;gen1_o=o;f(gen1_o.m.apply(gen1_o,b));');
+      });
+      
+      spec('splat call as expression for return', function () {
+        var f = cg.statements([cg.functionCall(cg.variable(['f']), [cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()])])]);
+      
+        generatesStatementsReturn(f, 'var gen1_o;gen1_o=o;return f(gen1_o.m.apply(gen1_o,b));');
       });
       
       spec('args before', function () {
         var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.variable(['b']), cg.splat()]);
       
-        generatesExpression(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,[a].concat(b));');
+        generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,[a].concat(b));');
       });
       
       spec('args after', function () {
         var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.splat(), cg.variable(['b'])]);
       
-        generatesExpression(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,a.concat([b]));');
+        generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,a.concat([b]));');
       });
       
       spec('two splats', function () {
         var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.variable(['b']), cg.splat(), cg.variable(['c']), cg.variable(['d']), cg.splat(), cg.variable(['e'])]);
       
-        generatesExpression(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,[a].concat(b).concat([c]).concat(d).concat([e]));');
+        generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,[a].concat(b).concat([c]).concat(d).concat([e]));');
       });
 
       spec('splat with optional args', function () {
         var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()], [cg.hashEntry(['port'], cg.variable(['p']))]);
       
-        generatesExpression(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,b.concat([{port:p}]));');
+        generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,b.concat([{port:p}]));');
       });
     });
   });
@@ -505,7 +529,7 @@ spec('code generator', function () {
         action: cg.statements([cg.variable(['stuff'])])
       }])]);
     
-      generatesExpression(m, 'if(obj){stuff;}');
+      generatesStatements(m, 'if(obj){stuff;}');
     });
   
     spec('if else if else statement', function () {
@@ -520,7 +544,7 @@ spec('code generator', function () {
         cg.statements([cg.variable(['other', 'stuff'])])
       )]);
     
-      generatesExpression(m, 'if(xOk){x;}else if(yOk){y;}else{otherStuff;}');
+      generatesStatements(m, 'if(xOk){x;}else if(yOk){y;}else{otherStuff;}');
     });
   
     spec('if expression', function () {
@@ -537,7 +561,7 @@ spec('code generator', function () {
         cg.statements([cg.variable(['other', 'stuff'])])
       )]);
     
-      generatesExpression(m, 'if(obj){stuff;}else{otherStuff;}');
+      generatesStatements(m, 'if(obj){stuff;}else{otherStuff;}');
     });
   
     spec('if else expression', function () {
@@ -586,22 +610,6 @@ spec('code generator', function () {
     });
   });
   
-  spec('walkTerm', function () {
-    var object = cg.variable(['console']);
-    var argument = cg.variable(['stuff']);
-    var m = cg.methodCall(object, ['log'], [argument]);
-    
-    var walkedTerms = [];
-    
-    m.walk(function (subterm) {
-      walkedTerms.push(subterm);
-    });
-    
-    assert.ok(_(walkedTerms).contains(object));
-    assert.ok(_(walkedTerms).contains(argument));
-    assert.ok(_(walkedTerms).contains(m));
-  });
-  
   spec('scope', function () {
     spec('variable defined in outer scope, assigned to in inner scope', function () {
       var s = cg.statements([
@@ -612,7 +620,7 @@ spec('code generator', function () {
         ]))])
       ]);
       
-      generatesExpression(s, 'var x;x=1;f(function(){x=2;return x;});');
+      generatesStatements(s, 'var x;x=1;f(function(){x=2;return x;});');
     });
   });
   

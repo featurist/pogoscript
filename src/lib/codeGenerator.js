@@ -88,9 +88,16 @@ var ExpressionPrototype = new function () {
   
   this.allSubterms = function () {
     var term = this;
-    return _.flatten(_.map(this._subtermNames, function (name) {
+    return _.compact(_.flatten(_.map(this._subtermNames, function (name) {
       return term[name];
-    }));
+    })));
+  };
+  
+  this.walkEachSubterm = function (walker) {
+    _.each(this.allSubterms(), function (subterm) {
+      walker(subterm);
+      subterm.walkEachSubterm(walker);
+    });
   };
   
   this.location = function () {
@@ -308,8 +315,6 @@ var variable = expressionTerm('variable', function (name, options) {
   this.parameter = function () {
     return parameter(this);
   };
-  
-  addWalker(this);
 });
 
 var selfExpression = exports.selfExpression = function () {
@@ -495,8 +500,8 @@ var splattedArguments = function (args, optionalArgs) {
   }
   
   if (foundSplat) {
-    return {
-      generateJavaScript: function (buffer, scope) {
+    return term(function () {
+      this.generateJavaScript = function (buffer, scope) {
         for (var i in splatArgs) {
           var splattedArgument = splatArgs[i];
 
@@ -509,7 +514,7 @@ var splattedArguments = function (args, optionalArgs) {
           }
         }
       }
-    };
+    });
   }
 };
 
@@ -520,6 +525,8 @@ var functionCall = expressionTerm('functionCall', function (fun, args, optionalA
   this.arguments = args;
   this.optionalArguments = optionalArgs;
   this.splattedArguments = splattedArguments(args, optionalArgs);
+  
+  this.subterms('function', 'arguments', 'optionalArguments');
 
   this.generateJavaScript = function (buffer, scope) {
     fun.generateJavaScript(buffer, scope);
@@ -678,9 +685,9 @@ var block = expressionTerm('block', function (parameters, body, options) {
     buffer.write('){');
     var body = this.transformedStatements();
     if (this.returnLastStatement) {
-      body.generateJavaScriptReturn(buffer, scope.subScope());
+      body.generateJavaScriptStatementsReturn(buffer, scope.subScope());
     } else {
-      body.generateJavaScript(buffer, scope.subScope());
+      body.generateJavaScriptStatements(buffer, scope.subScope());
     }
     buffer.write('}');
   };
@@ -736,6 +743,8 @@ var methodCall = exports.methodCall = function (object, name, args, optionalArgs
       this.name = name;
       this.arguments = args;
       this.optionalArguments = optionalArgs;
+      
+      this.subterms('object', 'arguments', 'optionalArguments');
 
       this.generateJavaScript = function (buffer, scope) {
         this.object.generateJavaScript(buffer, scope);
@@ -784,60 +793,93 @@ var hasScope = function (s) {
 };
 
 var Statements = function (statements) {
-  this.statements = statements;
-  
-  this.generateStatements = function (statements, buffer, scope) {
-    hasScope(scope);
+  return term(function () {
+    this.statements = statements;
     
-    var namesDefined = _(this.statements).chain().reduce(function (list, statement) {
-      var defs = statement.definitions(scope);
-      return list.concat(defs);
-    }, []).map(function (name) {
-      return concatName(name);
-    }).uniq().value();
-    
-    if (namesDefined.length > 0) {
-      _(namesDefined).each(function (name) {
-        scope.define(name);
-      });
+    this.subterms('statements');
+
+    this.generateStatements = function (statements, buffer, scope) {
+      var self = this;
       
-      buffer.write ('var ');
-      writeToBufferWithDelimiter(namesDefined, ',', buffer, function (item) {
-        buffer.write(item);
+      hasScope(scope);
+
+      var namesDefined = _(this.statements).chain().reduce(function (list, statement) {
+        var defs = statement.definitions(scope);
+        return list.concat(defs);
+      }, []).map(function (name) {
+        return concatName(name);
+      }).uniq().value();
+
+      if (namesDefined.length > 0) {
+        _(namesDefined).each(function (name) {
+          scope.define(name);
+        });
+
+        buffer.write ('var ');
+        writeToBufferWithDelimiter(namesDefined, ',', buffer, function (item) {
+          buffer.write(item);
+        });
+        buffer.write(';');
+      }
+
+      _(statements).each(function (statement) {
+        self.writeSubStatements(statement, buffer, scope);
+        statement.generateJavaScriptStatement(buffer, scope);
       });
-      buffer.write(';');
-    }
+    };
     
-    _(statements).each(function (statement) {
-      statement.generateJavaScriptStatement(buffer, scope);
-    });
-  };
-  
-  this.generateJavaScript = function (buffer, scope) {
-    this.generateStatements(this.statements, buffer, scope);
-  };
-  
-  this.blockify = function (parameters, optionalParameters) {
-    var b = block(parameters, this);
-    b.optionalParameters = optionalParameters;
-    return b;
-  };
-  
-  this.generateJavaScriptReturn = function (buffer, scope) {
-    if (this.statements.length > 0) {
-      this.generateStatements(this.statements.slice(0, this.statements.length - 1), buffer, scope);
-      this.statements[this.statements.length - 1].generateJavaScriptReturn(buffer, scope);
-    }
-  };
-  
-  this.definitions = function(scope) {
-    return _(statements).reduce(function (list, statement) {
-      var defs = statement.definitions(scope);
-      return list.concat(defs);
-    }, []);
-  };
-  
-  this.generateJavaScriptStatement = this.generateJavaScript;
+    this.writeSubStatements = function (subterm, buffer, scope) {
+      if (subterm.statements && subterm.statements.length > 0) {
+        subterm.generateStatements(subterm.statements.slice(0, subterm.statements.length - 1), buffer, scope);
+      }
+    };
+    
+    this.writeSubStatementsForAllSubTerms = function (statement, buffer, scope) {
+      statement.walkEachSubterm(function (subterm) {
+        this.writeSubStatements(subterm, buffer, scope);
+      });
+    };
+
+    this.generateJavaScriptStatements = function (buffer, scope) {
+      this.generateStatements(this.statements, buffer, scope);
+    };
+
+    this.blockify = function (parameters, optionalParameters) {
+      var b = block(parameters, this);
+      b.optionalParameters = optionalParameters;
+      return b;
+    };
+
+    this.generateJavaScriptStatementsReturn = function (buffer, scope) {
+      if (this.statements.length > 0) {
+        this.generateStatements(this.statements.slice(0, this.statements.length - 1), buffer, scope);
+        var returnStatement = this.statements[this.statements.length - 1];
+        this.writeSubStatements(returnStatement, buffer, scope);
+        returnStatement.generateJavaScriptReturn(buffer, scope);
+      }
+    };
+
+    this.generateJavaScript = function (buffer, scope) {
+      if (this.statements.length > 0) {
+        this.statements[this.statements.length - 1].generateJavaScript(buffer, scope);
+      }
+    };
+
+    this.generateJavaScriptReturn = function (buffer, scope) {
+      if (this.statements.length > 0) {
+        this.statements[this.statements.length - 1].generateJavaScriptReturn(buffer, scope);
+      }
+    };
+
+    this.definitions = function(scope) {
+      return _(statements).reduce(function (list, statement) {
+        var defs = statement.definitions(scope);
+        return list.concat(defs);
+      }, []);
+    };
+
+    this.generateJavaScriptStatement = this.generateJavaScriptStatements;
+  });
 };
 
 var module = expressionTerm('module', function (statements) {
@@ -1387,8 +1429,17 @@ var ifCases = expressionTerm('ifCases', function (cases, _else) {
   
   this.cases = cases;
   this._else = _else;
-  
-  this.subterms('cases', '_else');
+
+  this.allSubterms = function () {
+    var subterms = _.flatten(_.map(this.cases, function (c) {
+      return [c.condition, c.action];
+    }));
+    
+    if (this._else) {
+      subterms.push(this._else);
+    }
+    return subterms;
+  };
 
   this.generateJavaScriptStatement = function (buffer, scope, generateReturnStatements) {
     writeToBufferWithDelimiter(this.cases, 'else ', buffer, function (case_) {
@@ -1396,9 +1447,9 @@ var ifCases = expressionTerm('ifCases', function (cases, _else) {
       case_.condition.generateJavaScript(buffer, scope);
       buffer.write('){');
       if (generateReturnStatements) {
-        case_.action.generateJavaScriptReturn(buffer, scope);
+        case_.action.generateJavaScriptStatementsReturn(buffer, scope);
       } else {
-        case_.action.generateJavaScript(buffer, scope);
+        case_.action.generateJavaScriptStatements(buffer, scope);
       }
       buffer.write('}');
     });
@@ -1406,9 +1457,9 @@ var ifCases = expressionTerm('ifCases', function (cases, _else) {
     if (this._else) {
       buffer.write('else{');
       if (generateReturnStatements) {
-        this._else.generateJavaScriptReturn(buffer, scope);
+        this._else.generateJavaScriptStatementsReturn(buffer, scope);
       } else {
-        this._else.generateJavaScript(buffer, scope);
+        this._else.generateJavaScriptStatements(buffer, scope);
       }
       buffer.write('}');
     }
@@ -1569,7 +1620,7 @@ var forStatement = expressionTerm('forStatement', function(init, test, incr, stm
     buffer.write(';');
     this.increment.generateJavaScript(buffer, scope);
     buffer.write('){');
-    this.statements.generateJavaScript(buffer, scope);
+    this.statements.generateJavaScriptStatements(buffer, scope);
     buffer.write('}');
   };
   this.generateJavaScriptStatement = this.generateJavaScript;
@@ -1603,7 +1654,7 @@ var whileStatement = expressionTerm('whileStatement', function(test, statements)
     buffer.write('while(');
     this.test.generateJavaScript(buffer, scope);
     buffer.write('){');
-    this.statements.generateJavaScript(buffer, scope);
+    this.statements.generateJavaScriptStatements(buffer, scope);
     buffer.write('}');
   };
   
