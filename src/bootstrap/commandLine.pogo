@@ -5,44 +5,44 @@ uglify = require 'uglify-js'
 errors = require './codeGenerator/errors'
 
 generate code @term =
-  memory stream = new (ms : MemoryStream)
-  term : generate java script (memory stream)
-  memory stream : to string?
+    memory stream = new (ms : MemoryStream)
+    term : generate java script (memory stream)
+    memory stream : to string?
 
 beautify @code =
-  ast = uglify : parser : parse @code
-  uglify : uglify : gen_code @ast, beautify
+    ast = uglify : parser : parse @code
+    uglify : uglify : gen_code @ast, beautify
 
 exports : compile file @filename, ugly =
-  js = js from pogo file @filename
-  if (not @ugly)
-    js = beautify @js
-    
-  js filename = js filename from pogo filename @filename
-  fs : write file sync (js filename) @js
+    js = js from pogo file @filename
+    if (not @ugly)
+        js = beautify @js
+        
+    js filename = js filename from pogo filename @filename
+    fs : write file sync (js filename) @js
 
 js filename from pogo filename @pogo =
-  pogo : replace (new (RegExp "\\.pogo$")) '' + '.js'
+    pogo : replace (new (RegExp "\\.pogo$")) '' + '.js'
 
 exports : run file @filename =
-  js = js from pogo file @filename
-  
-  module : filename = fs : realpath sync @filename
-  process : argv : 1 = module : filename
-  module : _compile @js @filename
+    js = js from pogo file @filename
+    
+    module : filename = fs : realpath sync @filename
+    process : argv : 1 = module : filename
+    module : _compile @js @filename
 
 js from pogo file @filename =
-  contents = fs : read file sync @filename 'utf-8'
-  term = parse @contents
-  
-  code = generate code @term
-
-  if (errors : has errors?)
-    errors : print errors (source location printer, filename @filename, source @contents)
-    process : exit 1
-  else
-    code
+    contents = fs : read file sync @filename 'utf-8'
+    term = parse @contents
     
+    code = generate code @term
+
+    if (errors : has errors?)
+        errors : print errors (source location printer, filename @filename, source @contents)
+        process : exit 1
+    else
+        code
+        
 source location printer, filename, source =
     object =>
         : lines in range @range =
@@ -67,10 +67,10 @@ source location printer, filename, source =
         : @s times @n =
             strings = []
             for @{i = 0} @{i < n} @{i = i + 1}
-              strings : push @s
+                strings : push @s
 
             strings : join ''
 
 require : extensions : '.pogo' @module @filename =
-  content = js from pogo file @filename
-  module : _compile @content @filename
+    content = js from pogo file @filename
+    module : _compile @content @filename
