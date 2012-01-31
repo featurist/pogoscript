@@ -823,7 +823,7 @@ var Statements = function (statements) {
       }
 
       _(statements).each(function (statement) {
-        self.writeSubStatements(statement, buffer, scope);
+        self.writeSubStatementsForAllSubTerms(statement, buffer, scope);
         statement.generateJavaScriptStatement(buffer, scope);
       });
     };
@@ -835,8 +835,10 @@ var Statements = function (statements) {
     };
     
     this.writeSubStatementsForAllSubTerms = function (statement, buffer, scope) {
+      var self = this;
+      this.writeSubStatements(statement, buffer, scope);
       statement.walkEachSubterm(function (subterm) {
-        this.writeSubStatements(subterm, buffer, scope);
+        self.writeSubStatements(subterm, buffer, scope);
       });
     };
 
@@ -854,7 +856,7 @@ var Statements = function (statements) {
       if (this.statements.length > 0) {
         this.generateStatements(this.statements.slice(0, this.statements.length - 1), buffer, scope);
         var returnStatement = this.statements[this.statements.length - 1];
-        this.writeSubStatements(returnStatement, buffer, scope);
+        this.writeSubStatementsForAllSubTerms(returnStatement, buffer, scope);
         returnStatement.generateJavaScriptReturn(buffer, scope);
       }
     };
