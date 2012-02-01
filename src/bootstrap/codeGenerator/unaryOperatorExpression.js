@@ -4,10 +4,10 @@
     cg = require("../../lib/codeGenerator");
     macros = require("./macros");
     exports.newUnaryOperatorExpression = function(gen1_options) {
-        var self, operator, expression;
-        self = this;
+        var operator, expression, self;
         operator = gen1_options && gen1_options.operator != null ? gen1_options.operator : undefined;
         expression = gen1_options && gen1_options.expression != null ? gen1_options.expression : undefined;
+        self = this;
         return cg.term(function() {
             var self;
             self = this;
