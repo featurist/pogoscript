@@ -3,10 +3,7 @@ pogo : commandLine.js codeGenerator/unaryOperatorExpression.js
 commandLine.js : commandLine.pogo
 	pogo -c commandLine.pogo
 
-commandLine.pogo : preparser.js parser.js
-
-preparser.js : preparser.pogo runtime.js
-	pogo -c preparser.pogo
+commandLine.pogo : parser.js
 
 parser.js : parser.pogo
 	pogo -c parser.pogo
@@ -16,3 +13,6 @@ runtime.js : runtime.pogo
 
 codeGenerator/unaryOperatorExpression.js : codeGenerator/unaryOperatorExpression.pogo
 	pogo -c codeGenerator/unaryOperatorExpression.pogo
+
+clean :
+	rm parser.js runtime.js codeGenerator/unaryOperatorExpression.js commandLine.js
