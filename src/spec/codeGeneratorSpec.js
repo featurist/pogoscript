@@ -419,7 +419,7 @@ spec('code generator', function () {
 
     spec('splats', function () {
       spec('just splat', function () {
-        var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()]);
+        var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()])]);
       
         generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,b);');
       });
@@ -437,25 +437,25 @@ spec('code generator', function () {
       });
       
       spec('args before', function () {
-        var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.variable(['b']), cg.splat()]);
+        var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.variable(['b']), cg.splat()])]);
       
         generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,[a].concat(b));');
       });
       
       spec('args after', function () {
-        var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.splat(), cg.variable(['b'])]);
+        var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.splat(), cg.variable(['b'])])]);
       
         generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,a.concat([b]));');
       });
       
       spec('two splats', function () {
-        var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.variable(['b']), cg.splat(), cg.variable(['c']), cg.variable(['d']), cg.splat(), cg.variable(['e'])]);
+        var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.variable(['b']), cg.splat(), cg.variable(['c']), cg.variable(['d']), cg.splat(), cg.variable(['e'])])]);
       
         generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,[a].concat(b).concat([c]).concat(d).concat([e]));');
       });
 
       spec('splat with optional args', function () {
-        var f = cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()], [cg.hashEntry(['port'], cg.variable(['p']))]);
+        var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()], [cg.hashEntry(['port'], cg.variable(['p']))])]);
       
         generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,b.concat([{port:p}]));');
       });

@@ -728,14 +728,14 @@ var methodCall = exports.methodCall = function (object, name, args, optionalArgs
   
   if (splattedArgs) {
     var objectVar = generatedVariable(['o']);
-    return statements([
+    return expressionStatements(statements([
       definition(objectVar, object),
       methodCall(
         fieldReference(objectVar, name),
         ['apply'],
         [objectVar, splattedArgs]
       )
-    ]);
+    ]));
   } else {
     return term(function () {
       this.isMethodCall = true;
@@ -792,6 +792,24 @@ var hasScope = function (s) {
   }
 };
 
+var expressionStatements = function (statements) {
+  return term(function () {
+    this.expressionStatements = statements;
+    
+    this.generateJavaScript = function (buffer, scope) {
+      this.expressionStatements.generateJavaScript(buffer, scope);
+    };
+    
+    this.generateJavaScriptStatement = function (buffer, scope) {
+      this.expressionStatements.generateJavaScriptStatement(buffer, scope);
+    };
+    
+    this.generateJavaScriptReturn = function (buffer, scope) {
+      this.expressionStatements.generateJavaScriptReturn(buffer, scope);
+    };
+  });
+};
+
 var Statements = function (statements) {
   return term(function () {
     this.statements = statements;
@@ -829,8 +847,11 @@ var Statements = function (statements) {
     };
     
     this.writeSubStatements = function (subterm, buffer, scope) {
-      if (subterm.statements && subterm.statements.length > 0) {
-        subterm.generateStatements(subterm.statements.slice(0, subterm.statements.length - 1), buffer, scope);
+      if (subterm.expressionStatements) {
+        var statements = subterm.expressionStatements;
+        if (statements.statements.length > 0) {
+          statements.generateStatements(statements.statements.slice(0, statements.statements.length - 1), buffer, scope);
+        }
       }
     };
     
@@ -867,6 +888,12 @@ var Statements = function (statements) {
       }
     };
 
+    this.generateJavaScriptStatement = function (buffer, scope) {
+      if (this.statements.length > 0) {
+        this.statements[this.statements.length - 1].generateJavaScriptStatement(buffer, scope);
+      }
+    };
+
     this.generateJavaScriptReturn = function (buffer, scope) {
       if (this.statements.length > 0) {
         this.statements[this.statements.length - 1].generateJavaScriptReturn(buffer, scope);
@@ -879,8 +906,6 @@ var Statements = function (statements) {
         return list.concat(defs);
       }, []);
     };
-
-    this.generateJavaScriptStatement = this.generateJavaScriptStatements;
   });
 };
 
@@ -1586,10 +1611,10 @@ var forEach = expressionTerm('forEach', function(collection, itemVariable, stmts
   var test = operator('<', [indexVar, fieldReference(itemsVar, ['length'])]);
   var incr = postIncrement(indexVar);
   
-  return statements([
+  return expressionStatements(statements([
     definition(itemsVar, collection),
     forStatement(init, test, incr, statementsWithItemAssignment)
-  ]);
+  ]));
 });
 
 var createForEach = function (basicExpression) {
