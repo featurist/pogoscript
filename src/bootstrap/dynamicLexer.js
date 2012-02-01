@@ -1,11 +1,14 @@
 (function() {
     var self, createDynamicLexer;
     self = this;
-    exports.createDynamicLexer = createDynamicLexer = function() {
+    exports.createDynamicLexer = createDynamicLexer = function(gen1_options) {
+        var nextLexer;
+        nextLexer = gen1_options && gen1_options.nextLexer != null ? gen1_options.nextLexer : undefined;
         return object(function() {
             var self;
             self = this;
             self.tokens = [];
+            self.nextLexer = nextLexer;
             self.lex = function() {
                 var self, token;
                 self = this;
