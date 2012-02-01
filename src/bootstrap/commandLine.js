@@ -70,12 +70,11 @@
                 return lines.slice(range.from - 1, range.to);
             };
             self.printLinesInRange = function(gen3_options) {
-                var prefix, from, to, self;
+                var prefix, from, to, self, gen4_items, gen5_i, line;
                 prefix = gen3_options && gen3_options.prefix != null ? gen3_options.prefix : "";
                 from = gen3_options && gen3_options.from != null ? gen3_options.from : undefined;
                 to = gen3_options && gen3_options.to != null ? gen3_options.to : undefined;
                 self = this;
-                var gen4_items, gen5_i, line;
                 gen4_items = self.linesInRange({
                     from: from,
                     to: to

@@ -1,6 +1,7 @@
 var _ = require('underscore');
 var util = require('util');
 var errors = require('../bootstrap/codeGenerator/errors');
+require('../bootstrap/runtime');
 
 var parseError = exports.parseError = function (term, message, expected) {
   expected = expected || [];
@@ -793,6 +794,11 @@ var hasScope = function (s) {
 };
 
 var expressionStatements = function (statements) {
+  return objectExtending(statements, function () {
+    this.isExpressionStatements = true;
+  });
+  
+  /*
   return term(function () {
     this.expressionStatements = statements;
     
@@ -808,6 +814,7 @@ var expressionStatements = function (statements) {
       this.expressionStatements.generateJavaScriptReturn(buffer, scope);
     };
   });
+  */
 };
 
 var Statements = function (statements) {
@@ -847,8 +854,8 @@ var Statements = function (statements) {
     };
     
     this.writeSubStatements = function (subterm, buffer, scope) {
-      if (subterm.expressionStatements) {
-        var statements = subterm.expressionStatements;
+      if (subterm.isExpressionStatements) {
+        var statements = subterm;
         if (statements.statements.length > 0) {
           statements.generateStatements(statements.statements.slice(0, statements.statements.length - 1), buffer, scope);
         }
