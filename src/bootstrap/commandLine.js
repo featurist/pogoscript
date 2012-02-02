@@ -1,9 +1,10 @@
 (function() {
-    var self, fs, ms, parse, uglify, errors, generateCode, beautify, jsFilenameFromPogoFilename, jsFromPogoFile, sourceLocationPrinter;
+    var self, fs, ms, parser, parse, uglify, errors, generateCode, beautify, jsFilenameFromPogoFilename, jsFromPogoFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     ms = require("../lib/memorystream");
-    parse = require("./parser").parse;
+    parser = require("./parser");
+    parse = parser.parse;
     uglify = require("uglify-js");
     errors = require("./codeGenerator/errors");
     generateCode = function(term) {
@@ -29,6 +30,17 @@
         }
         jsFilename = jsFilenameFromPogoFilename(filename);
         return fs.writeFileSync(jsFilename, js);
+    };
+    exports.lexFile = function(filename) {
+        var self, source, tokens, gen2_items, gen3_i, token;
+        self = this;
+        source = fs.readFileSync(filename, "utf-8");
+        tokens = parser.lex(source);
+        gen2_items = tokens;
+        for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
+            token = gen2_items[gen3_i];
+            console.log("<" + token + ">");
+        }
     };
     jsFilenameFromPogoFilename = function(pogo) {
         return pogo.replace(new RegExp("\\.pogo$"), "") + ".js";
@@ -56,10 +68,10 @@
             return code;
         }
     };
-    sourceLocationPrinter = function(gen2_options) {
+    sourceLocationPrinter = function(gen4_options) {
         var filename, source;
-        filename = gen2_options && gen2_options.filename != null ? gen2_options.filename : undefined;
-        source = gen2_options && gen2_options.source != null ? gen2_options.source : undefined;
+        filename = gen4_options && gen4_options.filename != null ? gen4_options.filename : undefined;
+        source = gen4_options && gen4_options.source != null ? gen4_options.source : undefined;
         return object(function() {
             var self;
             self = this;
@@ -69,18 +81,18 @@
                 lines = source.split(new RegExp("\n"));
                 return lines.slice(range.from - 1, range.to);
             };
-            self.printLinesInRange = function(gen3_options) {
-                var prefix, from, to, self, gen4_items, gen5_i, line;
-                prefix = gen3_options && gen3_options.prefix != null ? gen3_options.prefix : "";
-                from = gen3_options && gen3_options.from != null ? gen3_options.from : undefined;
-                to = gen3_options && gen3_options.to != null ? gen3_options.to : undefined;
+            self.printLinesInRange = function(gen5_options) {
+                var prefix, from, to, self, gen6_items, gen7_i, line;
+                prefix = gen5_options && gen5_options.prefix != null ? gen5_options.prefix : "";
+                from = gen5_options && gen5_options.from != null ? gen5_options.from : undefined;
+                to = gen5_options && gen5_options.to != null ? gen5_options.to : undefined;
                 self = this;
-                gen4_items = self.linesInRange({
+                gen6_items = self.linesInRange({
                     from: from,
                     to: to
                 });
-                for (gen5_i = 0; gen5_i < gen4_items.length; gen5_i++) {
-                    line = gen4_items[gen5_i];
+                for (gen7_i = 0; gen7_i < gen6_items.length; gen7_i++) {
+                    line = gen6_items[gen7_i];
                     process.stderr.write(prefix + line + "\n");
                 }
             };

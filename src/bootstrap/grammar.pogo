@@ -30,7 +30,7 @@ exports: grammar = {
             [['interpolated_string']. '\\@'. 'return ''escaped_interpolated_string_terminal_start'';']
             [['interpolated_string']. '@'. 'this.begin(''interpolated_string_terminal''); return ''interpolated_string_terminal_start'';']
             [['interpolated_string_terminal']. identifier pattern. 'this.popState(); return ''identifier'';']
-            [['interpolated_string_terminal']. '\('. 'yy.terms.interpolation.startInterpolation(); this.begin(''INITIAL''); return ''('';']
+            [['interpolated_string_terminal']. '\('. 'yy.setIndentation(yytext); yy.terms.interpolation.startInterpolation(); this.begin(''INITIAL''); return ''('';']
             [['interpolated_string']. '"'. 'this.popState(); return ''end_interpolated_string'';']
             [['interpolated_string']. '\\.'. 'return ''escape_sequence'';']
             [['interpolated_string']. '[^"@\\]*'. 'return ''interpolated_string_body'';']

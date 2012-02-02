@@ -3,11 +3,16 @@
 var argv = require('optimist')
     .boolean('c').alias('c', 'compile')
     .boolean('u').alias('u', 'ugly')
+    .boolean('l').alias('l', 'lex')
     .argv;
     
 var commandLine = require('./commandLine');
 
-if (argv.compile) {
+if (argv.lex) {
+  for (var i in argv._) {
+    commandLine.lexFile(argv._[i]);
+  }
+} else if (argv.compile) {
   for (var i in argv._) {
     commandLine.compileFile(argv._[i], {ugly: argv.ugly});
   }

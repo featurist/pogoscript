@@ -27,3 +27,18 @@ exports: write parser to file @f =
     parser source = create parser? : generate?
     fs = require 'fs'
     fs: write file sync 'jisonParser.js' (parser source) 'utf-8'
+
+exports: lex @source =
+    tokens = []
+    token = undefined
+    lexer = create dynamic lexer, next lexer (jison lexer), source @source
+    parser context = create parser context, terms @terms
+    parser context: lexer = lexer
+    jison lexer: yy = parser context
+    
+    token = lexer: lex!
+    while @{token != 1}
+        tokens: push ([lexer: yytext. parser: terminals_: @token. token])
+        token = lexer: lex!
+
+    tokens

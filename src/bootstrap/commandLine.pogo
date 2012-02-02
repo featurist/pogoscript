@@ -1,6 +1,7 @@
 fs = require 'fs'
 ms = require '../lib/memorystream'
-parse = require './parser': parse
+parser = require './parser'
+parse = parser: parse
 uglify = require 'uglify-js'
 errors = require './codeGenerator/errors'
 
@@ -20,6 +21,13 @@ exports : compile file @filename, ugly =
         
     js filename = js filename from pogo filename @filename
     fs : write file sync (js filename) @js
+
+exports : lex file @filename =
+    source = fs : read file sync @filename 'utf-8'
+    tokens = parser: lex @source
+    
+    for each #token in @tokens
+        console: log "<@token>"
 
 js filename from pogo filename @pogo =
     pogo : replace (new (RegExp "\\.pogo$")) '' + '.js'

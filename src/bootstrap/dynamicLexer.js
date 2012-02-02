@@ -2,8 +2,9 @@
     var self, createDynamicLexer;
     self = this;
     exports.createDynamicLexer = createDynamicLexer = function(gen1_options) {
-        var nextLexer;
+        var nextLexer, source;
         nextLexer = gen1_options && gen1_options.nextLexer != null ? gen1_options.nextLexer : undefined;
+        source = gen1_options && gen1_options.source != null ? gen1_options.source : undefined;
         return object(function() {
             var self;
             self = this;
@@ -31,11 +32,14 @@
                 self = this;
                 return self.nextLexer.showPosition();
             };
-            return self.setInput = function(input) {
+            self.setInput = function(input) {
                 var self;
                 self = this;
                 return self.nextLexer.setInput(input);
             };
+            if (source) {
+                return self.setInput(source);
+            }
         });
     };
 })();

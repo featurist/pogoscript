@@ -1,7 +1,8 @@
 require 'cupoftea'
 require './assertions.pogo'
 
-parse = require './parser.pogo': parse
+parser = require './parser.pogo'
+parse = parser: parse
 
 assume @term is module with statements @action =
     if (term: is module)
@@ -135,6 +136,29 @@ spec 'parser'
                         }
                         {string ' meters in length'}
                     ]
+                }
+                
+            spec 'in block'
+                (expression "abc =\n    \"\@(stuff)\"") should contain fields {
+                    is definition
+                    target {
+                        is variable
+                        variable ['abc']
+                    }
+                    source {
+                        is function call
+                        function {
+                            is block
+                            body {
+                                statements [{
+                                    is interpolated string
+                                    components [
+                                        {variable ['stuff']}
+                                    ]
+                                }]
+                            }
+                        }
+                    }
                 }
 
             spec 'with inner interpolation'
@@ -634,3 +658,11 @@ spec 'parser'
                     arguments [{variable ['a']}]
                 }
             }
+
+    spec 'lexer'
+        tokens = parser: lex 'a b'
+        @tokens should contain fields [
+            ['a'. 'identifier'. 43]
+            ['b'. 'identifier'. 43]
+            [''. undefined. 'eof']
+        ]

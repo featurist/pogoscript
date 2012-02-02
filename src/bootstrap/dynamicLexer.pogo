@@ -1,4 +1,4 @@
-exports: create dynamic lexer = create dynamic lexer, next lexer = object =>
+exports: create dynamic lexer = create dynamic lexer, next lexer, source = object =>
     :tokens = []
     :next lexer = next lexer
     
@@ -24,3 +24,6 @@ exports: create dynamic lexer = create dynamic lexer, next lexer = object =>
     
     :set input @input =
         :next lexer: set input @input
+    
+    if @source
+        :set input @source
