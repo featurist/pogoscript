@@ -8,7 +8,7 @@ PogoScript is a language optimised for readability. It's also a language that co
 
 ## Ok, what does it look like?
 
-    library = object
+    library = object =>
         :books = []
 
         :add book @book =
@@ -28,7 +28,7 @@ PogoScript is a language optimised for readability. It's also a language that co
 
 The idea is to trick you into thinking you're not reading code. Spaces are allowed in identifiers - no more word conjugation hacks like camel case, hyphens or underscores. Arguments (and indeed block parameters) can be placed anywhere in a function call. Careful placement of an argument can give it a _lot_ of meaning:
 
-    select from @list if (is selected) =
+    select ?item from @list if (?item is selected) =
         included items = []
 
         for each ?item in @list
@@ -42,6 +42,26 @@ The idea is to trick you into thinking you're not reading code. Spaces are allow
             book: number of pages > minimum
 
     long books = library: select books with more than 52 pages
+
+99 Bottles
+
+    lyric for @n bottles = 
+        "@(@n bottles) of beer on the wall, @(@n bottles) of beer.
+        Take one down and pass it around, @((n - 1) bottles) of beer on the wall."
+    
+    @n bottles = when @n
+        is < 0
+            (n + 100) bottles
+        is 0
+            "no more bottles"
+        is 1
+            "1 bottle"
+        otherwise
+            "@n bottles"
+
+    for each ?n in (99..0)
+        console: log (lyric for @n bottles)
+        
 
 ## Is that all?
 

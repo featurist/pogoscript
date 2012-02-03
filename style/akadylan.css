@@ -1,0 +1,6 @@
+@font-face {
+  font-family: 'akaDylan Plain';
+  font-style: normal;
+  font-weight: 400;
+  src: local('akaDylan'), local('akaDylan Plain'), url('/fonts/akaDylan Plain.ttf') format('truetype');
+}

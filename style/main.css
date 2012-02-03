@@ -9,6 +9,9 @@
  *
  */
 
+@import url(http://fonts.googleapis.com/css?family=Flamenco);
+@import url(akadylan.css);
+
 body {
   margin: 0pt;
   background-color: #8AAB8A;
@@ -42,6 +45,7 @@ h1.pogo {
   margin-left: auto;
   margin-bottom: 0.4em;
   float:none;
+  font-family: 'akaDylan Plain', cursive;
 }
 .content {
   width: 600px;
