@@ -4,64 +4,43 @@ layout: main
 
 ## What is it?
 
-PogoScript is a language optimised for readability. It's also a language that compiles to JavaScript, so it shares all the dynamic loveliness of JavaScript.
+Pogoscript is a programming language that emphasises readability, is friendly to domain specific languages and compiles to regular Javascript.
 
 ## Ok, what does it look like?
 
-    library = object =>
-        :books = []
+    sing @n bottles of beer on the wall =
+        if (n > 0)
+            console: log (@n bottles of beer on the wall)
+            sing (n - 1) bottles of beer on the wall
 
-        :add book @book =
-            :books: push @book
+    @n bottles of beer on the wall =
+        "@(@n bottles) of beer on the wall, @(@n bottles) of beer on the wall
+         take one down, pass it around, @((n - 1) bottles) of beer on the wall."
 
-    new book with title @title, number of pages = object
-        :title = title
-        :number of pages = number of pages
-
-    library: add book with title @title, details ... =
-        add book (new book with title @title, details ...)
-
-    library: add book with title "Wuthering Heights",
-        number of pages 260
-    library: add book with title "Heart of Darkness",
-        number of pages 96
-
-The idea is to trick you into thinking you're not reading code. Spaces are allowed in identifiers - no more word conjugation hacks like camel case, hyphens or underscores. Arguments (and indeed block parameters) can be placed anywhere in a function call. Careful placement of an argument can give it a _lot_ of meaning:
-
-    select ?item from @list if (?item is selected) =
-        included items = []
-
-        for each ?item in @list
-            if (@item is selected)
-                included items: push @item
-
-        included items
-
-    library: select books with more than @minimum pages =
-        select ?book from @books if
-            book: number of pages > minimum
-
-    long books = library: select books with more than 52 pages
-
-99 Bottles
-
-    lyric for @n bottles = 
-        "@(@n bottles) of beer on the wall, @(@n bottles) of beer.
-        Take one down and pass it around, @((n - 1) bottles) of beer on the wall."
-    
-    @n bottles = when @n
-        is < 0
-            (n + 100) bottles
-        is 0
-            "no more bottles"
-        is 1
+    @n bottles =
+        if (n == 0)
+            "no bottles"
+        else if (n == 1)
             "1 bottle"
-        otherwise
+        else
             "@n bottles"
 
-    for each ?n in (99..0)
-        console: log (lyric for @n bottles)
-        
+    sing 99 bottles of beer on the wall
+
+Great if you write programs that generate beer song lyrics, but you'll be surprised to learn that it's useful for other kinds of software too.
+
+## In Broad Strokes
+
+As you can see, arguments can be placed before, after or even _in_ the name of the function or method. This gives the argument a valuable context to express its meaning. The same is also true for parameters. Lambdas, or blocks, or functions, are indented sections of code.
+
+Consider the following fragment:
+
+    for each #author in @authors
+        console: log @author
+
+We're looking at a function called `for each in`. It takes two arguments: a list (of authors in this case) and a function that takes one argument (`author`, shown prefixed with `#`). The body of the function is indented, printing out the author. You may have noticed that this is not a built-in statement, it's just a function - the likes of which you're easily able to make yourself.
+
+The idea is that programmers write code for themselves and others to read. Machine code is for computers.
 
 ## Is that all?
 

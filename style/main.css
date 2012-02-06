@@ -67,6 +67,8 @@ pre {
   border-radius: 5pt;
   line-height: 1.8em;
   overflow-x: scroll;
+  left: -100px;
+  width: 800px;
 }
 .anatomy pre {
     line-height: 3em;
@@ -75,8 +77,11 @@ pre {
 p code {
     background-color: #7A9B7A;
 }
+.content p {
+  text-align: justify;
+}
 pre code {
-   font-family: sans-serif;
+   font-family: 'Monaco';
 }
 .keyword {
   font-weight: 700;
