@@ -44,6 +44,6 @@ The idea is that programmers write code for themselves and others to read. Machi
 
 ## Is that all?
 
-This is a pretty gentle introduction to the motivating philosophy of PogoScript. There's loads more to explore, including a sane syntax for asynchronous function calls (especially useful in [Node](http://nodejs.org/) apps), a hygenic macro system and loads of other useful tidbits. [Stay tuned](https://github.com/refractalize/pogoscript).
+This is a pretty gentle introduction to the motivating philosophy of PogoScript. There's loads more to explore, including a sane syntax for asynchronous function calls (especially useful in [Node](http://nodejs.org/) apps), a hygenic macro system and loads of other useful tidbits. [Stay tuned](https://github.com/featurist/pogoscriptd).
 
 
