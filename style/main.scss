@@ -8,53 +8,55 @@
  * #FF2C74 - pink
  *
  */
+
 @import url(http://fonts.googleapis.com/css?family=Flamenco);
 @import url(akadylan.css);
+
 body {
   margin: 0pt;
   background-color: #8AAB8A;
   color: #3D211D;
-  font-family: sans-serif; }
-
+  font-family: sans-serif;
+}
 .pogo-word {
   background-color: #A12320;
   color: #798256;
   padding: 0pt 0pt 10pt 10pt;
   -webkit-border-radius: 10px;
   -moz-border-radius: 10px;
-  border-radius: 10px; }
-
+  border-radius: 10px;
+}
 header {
   background-color: #798256;
   text-align: center;
-  padding: 0.5em; }
-
+  padding: 0.5em;
+}
 a:link {
-  color: #8AAB8A;
-  background-color: #3D211D; }
-
+    color: #8AAB8A;
+    background-color: #3D211D;
+}
 a:visited {
-  color: #8AAB8A;
-  background-color: #798256; }
-
+    color: #8AAB8A;
+    background-color: #798256;
+}
 h1.pogo {
   font-size: 6em;
   font-family: sans-serif;
   margin-left: auto;
   margin-bottom: 0.4em;
-  float: none;
-  font-family: 'akaDylan Plain', cursive; }
-
+  float:none;
+  font-family: 'akaDylan Plain', cursive;
+}
 .content {
   width: 600px;
-  margin: auto; }
-
+  margin: auto;
+}
 h1, h2, h3, h4 {
-  background-color: #798256;
-  color: #3D211D;
-  margin-left: -25px;
-  display: inline-block; }
-
+    background-color: #798256;
+    color: #3D211D;
+    margin-left: -25px;
+    display:inline-block;
+}
 pre {
   box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3);
   padding: 1em;
@@ -66,56 +68,57 @@ pre {
   line-height: 1.8em;
   overflow-x: scroll;
   left: -100px;
-  width: 800px; }
-
+  width: 800px;
+}
 .anatomy pre {
-  line-height: 3em;
-  padding: 3em; }
-
+    line-height: 3em;
+    padding: 3em;
+}
 p code {
-  background-color: #7A9B7A; }
-
+    background-color: #7A9B7A;
+}
 .content p {
-  text-align: justify; }
-
+  text-align: justify;
+}
 pre code {
-  font-family: 'Monaco'; }
-
+   font-family: 'Monaco';
+}
 .keyword {
-  font-weight: 700; }
-
+  font-weight: 700;
+}
 .argument {
-  color: #22bb22; }
-
+    color: #22bb22;
+}
 .operator {
-  color: #ffaa33; }
-
+    color: #ffaa33;
+}
 .parameter {
-  color: #8888ff; }
-
+    color: #8888ff;
+}
 pre:hover .term.blue {
-  background-color: rgba(0, 0, 255, 0.2); }
-
+    background-color: rgba(0, 0, 255, 0.2);
+}
 pre:hover .term.red {
-  background-color: rgba(255, 0, 0, 0.2); }
-
+    background-color: rgba(255, 0, 0, 0.2);
+}
 pre:hover .term.yellow {
-  background-color: rgba(0, 255, 255, 0.2); }
-
+    background-color: rgba(0, 255, 255, 0.2);
+}
 pre:hover .term-description {
-  display: inline; }
-
+    display: inline;
+}
 .term-description {
-  display: none;
-  position: absolute;
-  bottom: 40px;
-  left: 0px;
-  right: 0px;
-  color: yellow;
-  line-height: 1em;
-  white-space: normal;
-  text-align: center; }
-
+    display: none;
+    position: absolute;
+    bottom: 40px;
+    left: 0px;
+    right: 0px;
+    color: yellow;
+    line-height: 1em;
+    white-space: normal;
+    text-align: center;
+}
 .term {
-  position: relative;
-  padding: 4px 0px; }
+    position: relative;
+    padding: 4px 0px;
+}
