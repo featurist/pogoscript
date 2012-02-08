@@ -12,7 +12,7 @@ body {
 }
 header {
   background-color: #8800cc;
-  color: #3d211d;
+  color: #ff9900;
   text-align: center;
   padding: 0.5em;
 }
@@ -40,13 +40,13 @@ header .js {
   right: -0.8em;
 }
 a:visited, a:link {
-  color: #ffffff;
+  color: #ff9900;
   background-color: #3d211d;
 }
 .content {
   width: 600px;
   margin: auto;
-  background-color: #ffffff;
+  background-color: #ff9900;
   padding: 10pt;
   border-radius: 5pt 5pt 0 0;
 }
@@ -54,7 +54,7 @@ h1,
 h2,
 h3,
 h4 {
-  background-color: #ffffff;
+  background-color: #ff9900;
   margin-left: -35pt;
   display: inline-block;
   border-radius: 5pt;
