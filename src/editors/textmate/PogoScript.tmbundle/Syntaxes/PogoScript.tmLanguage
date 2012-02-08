@@ -63,6 +63,23 @@
 		</dict>
 		<dict>
 			<key>begin</key>
+			<string>`</string>
+			<key>end</key>
+			<string>`</string>
+			<key>name</key>
+			<string>string.regexp.pogoscript</string>
+			<key>patterns</key>
+			<array>
+				<dict>
+					<key>match</key>
+					<string>\\.</string>
+					<key>name</key>
+					<string>constant.character.escape.pogoscript</string>
+				</dict>
+			</array>
+		</dict>
+		<dict>
+			<key>begin</key>
 			<string>"</string>
 			<key>end</key>
 			<string>"</string>
