@@ -191,7 +191,7 @@ spec 'parser'
                 }
             
             spec 'two items'
-                (expression '[1. 2]') should contain fields {
+                (expression '[1, 2]') should contain fields {
                     is list
                     items [
                         {integer 1}
@@ -662,7 +662,7 @@ spec 'parser'
     spec 'lexer'
         tokens = parser: lex 'a b'
         @tokens should contain fields [
-            ['a'. 'identifier'. 43]
-            ['b'. 'identifier'. 43]
+            ['a'. 'identifier'. 51]
+            ['b'. 'identifier'. 51]
             [''. undefined. 'eof']
         ]

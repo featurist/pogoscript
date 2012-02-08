@@ -5,8 +5,11 @@ commandLine.js : commandLine.pogo
 
 commandLine.pogo : parser.js
 
-parser.js : parser.pogo
+parser.js : parser.pogo grammar.js
 	pogo -c parser.pogo
+
+grammar.js : grammar.pogo
+	pogo -c grammar.pogo
 
 runtime.js : runtime.pogo
 	pogo -c runtime.pogo
