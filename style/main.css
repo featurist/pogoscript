@@ -6,16 +6,19 @@
  */
 body {
   margin: 0pt;
-  background-color: #ffff41;
+  background-color: #8800cc;
   color: #3d211d;
   font-family: sans-serif;
 }
 header {
-  position: relative;
   background-color: #8800cc;
-  color: #ff9900;
+  color: #3d211d;
   text-align: center;
   padding: 0.5em;
+}
+header .tagline {
+  margin-top: 0;
+  font-size: 1.4em;
 }
 header h1 {
   background-color: inherit;
@@ -26,25 +29,38 @@ header h1 {
   float: none;
   font-family: 'akaDylan Plain', cursive;
 }
+header .pogo {
+  position: relative;
+}
+header .js {
+  font-size: 0.35em;
+  font-family: 'akaDylan Plain', cursive;
+  position: absolute;
+  bottom: -0.2em;
+  right: -0.8em;
+}
 a:visited, a:link {
-  color: #ffff41;
+  color: #ffffff;
   background-color: #3d211d;
 }
 .content {
   width: 600px;
   margin: auto;
+  background-color: #ffffff;
+  padding: 10pt;
+  border-radius: 5pt 5pt 0 0;
 }
 h1,
 h2,
 h3,
 h4 {
-  background-color: #ff9900;
-  color: #3d211d;
-  margin-left: -25px;
+  background-color: #ffffff;
+  margin-left: -35pt;
   display: inline-block;
+  border-radius: 5pt;
+  padding: 5pt;
 }
 pre {
-  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3);
   padding: 1em;
   width: auto;
   background-color: #3d211d;
@@ -61,10 +77,12 @@ pre {
   padding: 3em;
 }
 p code {
-  background-color: #f3f300;
+  background-color: rgba(0, 0, 0, 0.1);
 }
 .content p {
   text-align: justify;
+  font-family: serif;
+  font-size: large;
 }
 pre code {
   font-family: 'Monaco';

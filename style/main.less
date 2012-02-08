@@ -2,16 +2,16 @@
  * THEME http://kuler.adobe.com/#themeID/1652699
  */
  
-@light: #FFFF41;
-@base: #FF9900;
-@header_base: #FF0000;
-@dark: #3D211D;
-@pogo_word: @base;
-@header: @base;
-@pogo_highlight: #8800CC;
-@header_background: #8800CC;
-@pink: #FF2C74;
-@code_background: darken(@light, 15%);
+@page_background: #8800CC;
+@content_background: #FFF;
+@content_foreground: #3D211D;
+
+@header_foreground: #3D211D;
+@header_background: @page_background;
+
+@code_foreground: #FF2C74;
+@code_background: rgba(0, 0, 0, 0.1);
+@code_block_background: #3D211D;
 @argument: #22bb22;
 @operator: #ffaa33;
 @parameter: #8888ff;
@@ -21,16 +21,19 @@
 
 body {
   margin: 0pt;
-  background-color: @light;
-  color: @dark;
+  background-color: @page_background;
+  color: @content_foreground;
   font-family: sans-serif;
 }
 header {
-  position: relative;
   background-color: @header_background;
-  color: @header;
+  color: @header_foreground;
   text-align: center;
   padding: 0.5em;
+}
+header .tagline {
+  margin-top: 0;
+  font-size: 1.4em;
 }
 header h1 {
   background-color: inherit;
@@ -41,26 +44,39 @@ header h1 {
   float:none;
   font-family: 'akaDylan Plain', cursive;
 }
+header .pogo {
+  position: relative;
+}
+header .js {
+  font-size: 0.35em;
+  font-family: 'akaDylan Plain', cursive;
+  position: absolute;
+  bottom: -0.2em;
+  right: -0.8em;
+}
 a:visited, a:link {
-    color: @light;
-    background-color: @dark;
+    color: @content_background;
+    background-color: @content_foreground;
 }
 .content {
   width: 600px;
   margin: auto;
+  background-color: @content_background;
+  padding: 10pt;
+  border-radius: 5pt 5pt 0 0;
 }
 h1, h2, h3, h4 {
-    background-color: @base;
-    color: @dark;
-    margin-left: -25px;
-    display:inline-block;
+  background-color: @content_background;
+  margin-left: -35pt;
+  display:inline-block;
+  border-radius: 5pt;
+  padding: 5pt;
 }
 pre {
-  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3);
   padding: 1em;
   width: auto;
-  background-color: @dark;
-  color: @pink;
+  background-color: @code_block_background;
+  color: @code_foreground;
   position: relative;
   border-radius: 5pt;
   line-height: 1.8em;
@@ -77,6 +93,8 @@ p code {
 }
 .content p {
   text-align: justify;
+  font-family: serif;
+  font-size: large;
 }
 pre code {
    font-family: 'Monaco';
