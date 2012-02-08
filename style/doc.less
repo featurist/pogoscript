@@ -1,0 +1,79 @@
+@import "colours.less";
+@import url(akadylan.css);
+
+body {
+  margin-top: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+header {
+  background-color: @page_background;
+  width: auto;
+  color: @content_background;
+  padding: 15pt;
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+
+  h1 {
+    margin-left: 40px;
+    .pogo {
+      font-family: 'akaDylan Open', cursive;
+    }
+  }
+
+  .tagline {
+    display: none;
+  }
+}
+
+.content {
+  width: 600px;
+  margin: auto;
+  padding: 10pt;
+  border-radius: 5pt 5pt 0 0;
+  margin-top: -10pt;
+  padding-top: 0;
+
+  h1:first-child {
+    margin-top: 0;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: sans-serif;
+    background-color: @page_background;
+    color: @content_background;
+    margin-left: -35px;
+    display:inline-block;
+    border-radius: 5pt;
+    padding: 5pt;
+  }
+
+  pre {
+    padding: 0.7em;
+    border-radius: 5pt;
+    background-color: rgba(0, 0, 0, 0.1);
+    overflow-x: scroll;
+
+    position: relative;
+    left: -100px;
+    width: 800px;
+  }
+
+  @code_darkening: 11%;
+
+  p code {
+    background-color: @code_background;
+  }
+
+  .argument {
+      color: darken(@argument, @code_darkening);
+  }
+  .operator {
+      color: darken(@operator, @code_darkening);
+  }
+  .parameter {
+      color: darken(@parameter, @code_darkening);
+  }
+}

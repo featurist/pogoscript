@@ -1,0 +1,68 @@
+@import url(akadylan.css);
+body {
+  margin-top: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+header {
+  background-color: #8800cc;
+  width: auto;
+  color: #ff9900;
+  padding: 15pt;
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+header h1 {
+  margin-left: 40px;
+}
+header h1 .pogo {
+  font-family: 'akaDylan Open', cursive;
+}
+header .tagline {
+  display: none;
+}
+.content {
+  width: 600px;
+  margin: auto;
+  padding: 10pt;
+  border-radius: 5pt 5pt 0 0;
+  margin-top: -10pt;
+  padding-top: 0;
+}
+.content h1:first-child {
+  margin-top: 0;
+}
+.content h1,
+.content h2,
+.content h3,
+.content h4 {
+  font-family: sans-serif;
+  background-color: #8800cc;
+  color: #ff9900;
+  margin-left: -35px;
+  display: inline-block;
+  border-radius: 5pt;
+  padding: 5pt;
+}
+.content pre {
+  padding: 0.7em;
+  border-radius: 5pt;
+  background-color: rgba(0, 0, 0, 0.1);
+  overflow-x: scroll;
+  position: relative;
+  left: -100px;
+  width: 800px;
+}
+.content p code {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.content .argument {
+  color: #198c19;
+}
+.content .operator {
+  color: #fa9200;
+}
+.content .parameter {
+  color: #5050ff;
+}

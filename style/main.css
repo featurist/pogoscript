@@ -27,14 +27,13 @@ header h1 {
   margin-left: auto;
   margin-bottom: 0.4em;
   float: none;
-  font-family: 'akaDylan Plain', cursive;
+  font-family: 'akaDylan Open', cursive;
 }
 header .pogo {
   position: relative;
 }
 header .js {
   font-size: 0.35em;
-  font-family: 'akaDylan Plain', cursive;
   position: absolute;
   bottom: -0.2em;
   right: -0.8em;

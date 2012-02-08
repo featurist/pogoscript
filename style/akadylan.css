@@ -4,3 +4,10 @@
   font-weight: 400;
   src: local('akaDylan'), local('akaDylan Plain'), url('/fonts/akaDylan Plain.ttf') format('truetype');
 }
+
+@font-face {
+  font-family: 'akaDylan Open';
+  font-style: normal;
+  font-weight: 400;
+  src: local('akaDylan'), local('akaDylan Open'), url('/fonts/akaDylan Open.ttf') format('truetype');
+}
