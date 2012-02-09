@@ -6,13 +6,13 @@
  */
 body {
   margin: 0pt;
-  background-color: #8800cc;
+  background-color: #49006e;
   color: #3d211d;
   font-family: sans-serif;
 }
 header {
-  background-color: #8800cc;
-  color: #ff9900;
+  background-color: #49006e;
+  color: #47c400;
   text-align: center;
   padding: 0.5em;
 }
@@ -39,13 +39,13 @@ header .js {
   right: -0.8em;
 }
 a:visited, a:link {
-  color: #ff9900;
+  color: #ffffff;
   background-color: #3d211d;
 }
 .content {
   width: 600px;
   margin: auto;
-  background-color: #ff9900;
+  background-color: #ffffff;
   padding: 10pt;
   border-radius: 5pt 5pt 0 0;
 }
@@ -53,7 +53,8 @@ h1,
 h2,
 h3,
 h4 {
-  background-color: #ff9900;
+  background-color: #49006e;
+  color: #47c400;
   margin-left: -35pt;
   display: inline-block;
   border-radius: 5pt;

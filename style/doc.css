@@ -5,9 +5,9 @@ body {
   margin-right: 0;
 }
 header {
-  background-color: #8800cc;
+  background-color: #49006e;
   width: auto;
-  color: #ff9900;
+  color: #ffffff;
   padding: 15pt;
   margin: 0;
   padding-left: 0;
@@ -38,8 +38,8 @@ header .tagline {
 .content h3,
 .content h4 {
   font-family: sans-serif;
-  background-color: #8800cc;
-  color: #ff9900;
+  background-color: #49006e;
+  color: #ffffff;
   margin-left: -35px;
   display: inline-block;
   border-radius: 5pt;
