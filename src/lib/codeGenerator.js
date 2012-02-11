@@ -276,6 +276,15 @@ var normaliseRegExp = exports.normaliseRegExp = function(s) {
   return s.replace(/\\`/g, "`");
 };
 
+var parseRegExp = exports.parseRegExp = function (s) {
+  var match = /^`((\n|.)*)`([^`]*)$/.exec(s);
+  
+  return {
+    pattern: match[1].replace(/\\`/g, '`').replace(/\n/, '\\n'),
+    options: match[3]
+  };
+};
+
 var normaliseInterpolatedString = exports.normaliseInterpolatedString = function (s) {
   for (var i = 0; i < actualCharacters.length; i++) {
     var mapping = actualCharacters[i];
@@ -293,10 +302,11 @@ var string = expressionTerm('string', function(value) {
   };
 });
 
-var regExp = exports.regExp = function (pattern) {
+var regExp = exports.regExp = function (patternOptions) {
   return term(function () {
     this.isRegExp = true;
-    this.pattern = pattern;
+    this.pattern = patternOptions.pattern;
+    this.options = patternOptions.options;
   });
 };
 

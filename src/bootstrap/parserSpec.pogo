@@ -666,6 +666,13 @@ spec 'parser'
                 pattern 'abc'
             }
 
+        spec 'with options'
+            (expression '`abc`img') should contain fields {
+                is reg exp
+                pattern 'abc'
+                options 'img'
+            }
+
         spec 'with escaped back ticks'
             (expression '`abc\`def\`ghi`') should contain fields {
                 is reg exp
@@ -681,7 +688,7 @@ spec 'parser'
                 }
                 source {
                     is reg exp
-                    pattern "abc\ndef"
+                    pattern "abc\\ndef"
                 }
             }
 

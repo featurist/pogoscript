@@ -16,6 +16,7 @@ exports.string = cg.string;
 exports.interpolatedString = cg.interpolatedString;
 exports.normaliseRegExp = cg.normaliseRegExp;
 exports.regExp = cg.regExp;
+exports.parseRegExp = cg.parseRegExp;
 exports.module = cg.module;
 exports.interpolation = cg.interpolation;
 exports.list = cg.list;

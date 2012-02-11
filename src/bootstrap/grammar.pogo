@@ -25,7 +25,7 @@ exports: grammar = {
             ['([:=,?!.@~#$%^&*+<>/?\\|-])+'. 'return yy.terms.lexOperator(yytext);']
             ['$'. 'return ''eof'';']
             ['''([^'']*'''')*[^'']*'''. 'return ''string'';']
-            ['`([^\\]*\\`)*[^`]*`'. 'return ''reg_exp'';']
+            ['`([^\\]*\\`)*[^`]*`(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|)'. 'return ''reg_exp'';']
             ['"'. 'this.begin(''interpolated_string''); return ''start_interpolated_string'';']
             
             [['interpolated_string']. '\\@'. 'return ''escaped_interpolated_string_terminal_start'';']
@@ -166,7 +166,7 @@ exports: grammar = {
             ['self_argument'. '$$ = yy.terms.loc(yy.terms.fieldReference(yy.terms.variable([''self'']), [yytext.substring(2)]), @$);']
             ['parameter'. '$$ = yy.terms.loc(yy.terms.parameter(yy.terms.variable([yytext.substring(1)])), @$);']
             ['string'. '$$ = yy.terms.loc(yy.terms.string(yy.terms.unindent(@$.first_column + 1, yy.terms.normaliseString(yytext))), @$);']
-            ['reg_exp'. '$$ = yy.terms.loc(yy.terms.regExp(yy.terms.unindent(@$.first_column + 1, yy.terms.normaliseRegExp(yytext))), @$);']
+            ['reg_exp'. '$$ = yy.terms.loc(yy.terms.regExp(yy.terms.parseRegExp(yy.terms.unindent(@$.first_column + 1, yytext))), @$);']
             ['interpolated_string'. '$$ = yy.terms.loc($1, @$);']
             ['...'. '$$ = yy.terms.loc(yy.terms.splat(), @$);']
         ]
