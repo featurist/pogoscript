@@ -171,6 +171,26 @@ spec('code generator', function () {
       });
     });
   });
+  
+  spec('regexps', function () {
+    spec('simple', function () {
+      var r = cg.regExp({pattern: 'abc'});
+    
+      generatesExpression(r, "/abc/");
+    });
+    
+    spec('with options', function () {
+      var r = cg.regExp({pattern: 'abc', options: 'gim'});
+    
+      generatesExpression(r, "/abc/gim");
+    });
+    
+    spec('containing /', function () {
+      var r = cg.regExp({pattern: 'https://', options: 'gim'});
+    
+      generatesExpression(r, "/https:\\/\\//gim");
+    });
+  });
 
   spec('interpolated strings', function () {
     spec('one string', function () {

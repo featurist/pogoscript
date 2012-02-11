@@ -307,6 +307,10 @@ var regExp = exports.regExp = function (patternOptions) {
     this.isRegExp = true;
     this.pattern = patternOptions.pattern;
     this.options = patternOptions.options;
+    
+    this.generateJavaScript = function (buffer, scope) {
+      buffer.write('/' + this.pattern.replace(/\//g, '\\/') + (this.options? '/' + this.options: '/'));
+    };
   });
 };
 
