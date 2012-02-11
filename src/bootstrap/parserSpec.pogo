@@ -658,6 +658,32 @@ spec 'parser'
                     arguments [{variable ['a']}]
                 }
             }
+    
+    spec 'regexps'
+        spec 'simple'
+            (expression '`abc`') should contain fields {
+                is reg exp
+                pattern 'abc'
+            }
+
+        spec 'with escaped back ticks'
+            (expression '`abc\`def\`ghi`') should contain fields {
+                is reg exp
+                pattern 'abc`def`ghi'
+            }
+
+        spec 'with newline'
+            (expression "a = `abc\n     def`") should contain fields {
+                is definition
+                target {
+                    is variable
+                    variable ['a']
+                }
+                source {
+                    is reg exp
+                    pattern "abc\ndef"
+                }
+            }
 
     spec 'lexer'
         tokens = parser: lex 'a b'

@@ -270,6 +270,12 @@ var normaliseString = exports.normaliseString = function(s) {
   return s.replace(/''/g, "'");
 };
 
+var normaliseRegExp = exports.normaliseRegExp = function(s) {
+  s = s.substring(1, s.length - 1);
+  
+  return s.replace(/\\`/g, "`");
+};
+
 var normaliseInterpolatedString = exports.normaliseInterpolatedString = function (s) {
   for (var i = 0; i < actualCharacters.length; i++) {
     var mapping = actualCharacters[i];
@@ -286,6 +292,13 @@ var string = expressionTerm('string', function(value) {
     buffer.write(formatJavaScriptString(this.string));
   };
 });
+
+var regExp = exports.regExp = function (pattern) {
+  return term(function () {
+    this.isRegExp = true;
+    this.pattern = pattern;
+  });
+};
 
 expressionTerm('float', function (value) {
   this.float = value;
