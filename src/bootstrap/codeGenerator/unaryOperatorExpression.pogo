@@ -1,5 +1,6 @@
 cg = require '../../lib/codeGenerator'
 macros = require './macros'
+errors = require './errors'
 
 exports: new unary operator expression, operator, expression =
     cg: term =>
@@ -13,5 +14,8 @@ exports: new unary operator expression, operator, expression =
                 found macro [:operator] [:expr]
             else
                 cg: method call (:expr) [:operator] []
+        
+        :hash entry? =
+            errors: add term @self with message 'cannot be a hash entry'
         
         :subterms 'operator' 'expr'

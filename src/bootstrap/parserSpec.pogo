@@ -233,7 +233,7 @@ spec 'parser'
                 }
                     
             spec 'hash with two entries on different lines'
-                (expression '{port 1234. ip address ''1.1.1.1''}') should contain fields {
+                (expression "{port = 1234\nip address = '1.1.1.1'}") should contain fields {
                     is hash
                     entries [
                         {
@@ -244,6 +244,17 @@ spec 'parser'
                             field ['ip'. 'address']
                             value {string '1.1.1.1'}
                         }
+                    ]
+                }
+                    
+            spec 'hash with string with assignment'
+                (expression "{'port' = 1234}") should contain fields {
+                    is hash
+                    entries [
+                        {
+                            field ['port']
+                            value {integer 1234}
+                        }   
                     ]
                 }
                     

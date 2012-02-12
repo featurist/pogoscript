@@ -54,6 +54,24 @@ spec 'operator expression'
             operator '+'
             arguments [{variable ['a']}. {variable ['b']}]
         }
+        
+    spec 'hash entry'
+        spec 'a'
+            e = expression [id 'a']
+        
+            (e: hash entry?) should contain fields {
+                is hash entry
+                field ['a']
+                value @undefined
+            }
+
+        spec 'a */ b'
+            e = expression [id 'a']
+            e: add operator '*/' expression (complex expression [id 'b'])
+        
+            (e: hash entry?) should contain fields {
+                is semantic failure
+            }
 
     spec 'definition'
         spec 'a = b'

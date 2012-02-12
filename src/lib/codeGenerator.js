@@ -39,6 +39,10 @@ var ExpressionPrototype = new function () {
       console.log(this.inspectTerm());
     }
   };
+  
+  this.hashEntryField = function () {
+    errors.addTermWithMessage(this, 'cannot be used as a field name');
+  };
 
   this.blockify = function (parameters, optionalParameters) {
     var b = block(parameters, statements([this]));
@@ -118,27 +122,6 @@ var term = exports.term = function (members) {
   };
   constructor.prototype = ExpressionPrototype;
   return new constructor();
-};
-
-var addWalker = function () {
-  var self = arguments[0];
-  var subtermNames = Array.prototype.splice.call(arguments, 1, arguments.length - 1);
-  
-  self.walk = function (visitor) {
-    visitor(this);
-    
-    for (var n in subtermNames) {
-      var subterm = this[subtermNames[n]];
-      
-      if (_.isArray(subterm)) {
-        for (var i in subterm) {
-          subterm[i].walk(visitor);
-        }
-      } else {
-        subterm.walk(visitor);
-      }
-    }
-  };
 };
 
 var expressionTerm = function (name, constructor) {
@@ -331,6 +314,10 @@ var variable = expressionTerm('variable', function (name, options) {
   };
   
   this.generateJavaScriptTarget = this.generateJavaScript;
+  
+  this.hashEntryField = function () {
+    return this.variable;
+  };
   
   this.generateJavaScriptParameter = this.generateJavaScript;
   
@@ -782,8 +769,6 @@ var methodCall = exports.methodCall = function (object, name, args, optionalArgs
         writeToBufferWithDelimiter(argsAndOptionalArgs(this.arguments, this.optionalArguments), ',', buffer, scope);
         buffer.write(')');
       };
-
-      addWalker(this, 'object', 'arguments');
     });
   }
 };
@@ -998,12 +983,18 @@ var extractName = function (terminals) {
 var definition = expressionTerm('definition', function (target, source) {
   if (!target) throw Error();
   
+  this.isDefinition = true;
   this.target = target;
   this.source = source;
-  this.isDefinition = true;
+
+  this.subterms('target', 'source');
 
   this.expression = function () {
     return this;
+  };
+  
+  this.hashEntry = function () {
+    return hashEntry(this.target.hashEntryField(), this.source);
   };
 
   this.generateJavaScript = function (buffer, scope) {
@@ -1022,8 +1013,6 @@ var definition = expressionTerm('definition', function (target, source) {
     defs = defs.concat(s);
     return defs;
   };
-  
-  addWalker(this, 'target', 'source');
 });
   
 var makeSourceWithParameters = function(source, params, optionalParams) {
@@ -1468,7 +1457,7 @@ var hashEntry = expressionTerm('hashEntry', function(field, value) {
       return formatJavaScriptString(f);
     }
   }
-  
+
   this.valueOrTrue = function () {
     if (this.value === undefined) {
       return boolean(true);

@@ -167,6 +167,22 @@ spec 'complex expression'
         name ['field']
       }
 
+  spec 'hash entry'
+    hash entry @expression should contain fields @fields =
+      (cg: complex expression @expression: hash entry?) should contain fields @fields
+    
+    spec 'if contains one component that is the hash entry'
+      hash entry [[id 'field']] should contain fields {
+        is hash entry
+        field ['field']
+        value @undefined
+      }
+    
+    spec 'if contains more than component then semantic error'
+      hash entry [[id 'field']. [id 'secondField']] should contain fields {
+        is semantic failure
+      }
+
   spec 'object operation -> definition'
     definition @object @operation @source should contain fields @fields =
       (cg: complex expression @operation: object operation @object: definition @source) should contain fields @fields

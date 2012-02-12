@@ -21,3 +21,10 @@ spec 'unary operator expression'
             operator '!'
             arguments [{variable ['a']}]
         }
+
+    spec 'as hash entry will be semantic failure'
+        op expr = cg: new unary operator expression, operator '%', expression {variable ['a']}
+        
+        (op expr: hash entry?) should contain fields {
+          is semantic failure
+        }

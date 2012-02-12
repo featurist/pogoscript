@@ -30,6 +30,10 @@ module.exports = function (complexExpression) {
       }
     };
     
+    this.hashEntry = function () {
+      return this.arguments[0].hashEntry();
+    };
+    
     this.definition = function (source) {
       if (this.arguments.length > 1) {
         var object = this.arguments[0].expression();
@@ -39,10 +43,6 @@ module.exports = function (complexExpression) {
         
         return cg.definition(cg.fieldReference(object, this.name), source.blockify(parms));
       } else {
-				if (!this.arguments[0].definition) {
-					// console.log('argument', this.arguments[0]);
-					console.log('argument', require('util').inspect(this.arguments[0], true, 10));
-				}
         return this.arguments[0].definition(source);
       }
     }

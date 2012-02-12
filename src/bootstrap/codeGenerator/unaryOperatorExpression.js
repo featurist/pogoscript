@@ -1,8 +1,9 @@
 (function() {
-    var self, cg, macros;
+    var self, cg, macros, errors;
     self = this;
     cg = require("../../lib/codeGenerator");
     macros = require("./macros");
+    errors = require("./errors");
     exports.newUnaryOperatorExpression = function(gen1_options) {
         var operator, expression, self;
         operator = gen1_options && gen1_options.operator != null ? gen1_options.operator : undefined;
@@ -22,6 +23,11 @@
                 } else {
                     return cg.methodCall(self.expr, [ self.operator ], []);
                 }
+            };
+            self.hashEntry = function() {
+                var self;
+                self = this;
+                return errors.addTermWithMessage(self, "cannot be a hash entry");
             };
             return self.subterms("operator", "expr");
         });

@@ -15,7 +15,7 @@
         bnf: {
             module: [ [ "statements eof", "return yy.terms.module($1);" ] ],
             statements: [ [ "statements_list", "$$ = yy.terms.statements($1);" ] ],
-            hash_entries: [ [ "hash_entries comma_dot basic_expression", "$1.push($3.hashEntry()); $$ = $1;" ], [ "basic_expression", "$$ = [$1.hashEntry()];" ], [ "", "$$ = [];" ] ],
+            hash_entries: [ [ "hash_entries comma_dot list_expression", "$1.push($3.hashEntry()); $$ = $1;" ], [ "list_expression", "$$ = [$1.hashEntry()];" ], [ "", "$$ = [];" ] ],
             comma_dot: [ [ ".", "$$ = $1;" ], [ ",", "$$ = $1;" ] ],
             statements_list: [ [ "statements_list . statement", "$1.push($3); $$ = $1;" ], [ "statement", "$$ = [$1];" ], [ "", "$$ = [];" ] ],
             list_statements_list: [ [ "list_statements_list comma_dot list_statement", "$1.push($3); $$ = $1;" ], [ "list_statement", "$$ = [$1];" ], [ "", "$$ = [];" ] ],

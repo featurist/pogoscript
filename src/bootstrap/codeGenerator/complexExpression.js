@@ -137,6 +137,13 @@ module.exports = function (listOfTerminals) {
       }
     };
     
+    this.hashEntry = function () {
+      if (this.hasTail()) {
+        return errors.addTermsWithMessage(this.tail(), 'cannot be used in hash entry');
+      }
+      return this.head().hashEntry();
+    };
+    
     this.objectOperationDefinition = function (object, source) {
       if (this.head().hasName()) {
         if (this.hasParameters()) {

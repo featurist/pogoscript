@@ -382,6 +382,12 @@ spec('code generator', function () {
       generatesExpression(d, 'one=9');
     });
     
+    spec('as hash entry', function () {
+      var d = cg.hash([cg.definition(cg.variable(['one']), cg.integer(9)).hashEntry()]);
+      
+      generatesExpression(d, '{one:9}');
+    });
+    
     spec('of field', function () {
       var d = cg.definition(cg.fieldReference(cg.variable(['object']), ['field']), cg.integer(9));
       
