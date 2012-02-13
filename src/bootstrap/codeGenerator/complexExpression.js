@@ -188,6 +188,13 @@ module.exports = function (listOfTerminals) {
         } else {
           return cg.definition(cg.variable(this.head().name()), source.scopify());
         }
+      } else {
+        var head = this.head();
+        return {
+          hashEntry: function () {
+            return cg.hashEntry(head.hashKey(), source);
+          }
+        };
       }
     };
   });

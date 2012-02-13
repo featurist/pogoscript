@@ -254,7 +254,7 @@ spec 'parser'
                         {
                             field ['port']
                             value {integer 1234}
-                        }   
+                        }
                     ]
                 }
                     

@@ -118,5 +118,14 @@ module.exports = function (terminals) {
         return lastArgument;
       }
     };
+    
+    this.hashKey = function () {
+      var args = this.arguments();
+      if (args.length == 1 && args[0].isString) {
+        return [args[0].string];
+      } else {
+        return errors.addTermWithMessage(this, 'cannot be a hash key');
+      }
+    }
   });
 };

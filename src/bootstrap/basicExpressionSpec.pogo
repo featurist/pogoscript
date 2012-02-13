@@ -172,3 +172,9 @@ spec 'basic expression'
 
     spec 'without hash'
       assert: (cg: basic expression [id 'port']: hash entry block?) equal @undefined
+
+  spec 'hash key'
+    spec 'if string then should return array containing string'
+      key = cg: basic expression [string 'port']: hash key?
+      
+      @key should contain fields ['port']

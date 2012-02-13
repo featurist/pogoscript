@@ -13,6 +13,8 @@ parameter @name = cg: parameter [name]
 
 block = cg: block [] (cg: statements [variable 'x'])
 
+string @value = cg: string @value
+
 no arg punctuation = cg: no arg suffix?
 
 expression @e should contain fields @f =
@@ -181,6 +183,16 @@ spec 'complex expression'
     spec 'if contains more than component then semantic error'
       hash entry [[id 'field']. [id 'secondField']] should contain fields {
         is semantic failure
+      }
+
+  spec 'definition -> hash entry'
+    spec 'string key'
+      hash entry = cg: complex expression [[string 'port']]: definition (cg: variable ['a']): hash entry?
+      
+      @hashEntry should contain fields {
+        is hash entry
+        field ['port']
+        value {variable ['a']}
       }
 
   spec 'object operation -> definition'
