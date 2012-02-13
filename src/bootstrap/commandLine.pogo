@@ -30,7 +30,7 @@ exports : lex file @filename =
         console: log "<@token>"
 
 js filename from pogo filename @pogo =
-    pogo : replace (new (RegExp "\\.pogo$")) '' + '.js'
+    pogo : replace `\\.pogo$` '' + '.js'
 
 exports : run file @filename =
     js = js from pogo file @filename
@@ -54,7 +54,7 @@ js from pogo file @filename =
 source location printer, filename, source =
     object =>
         : lines in range @range =
-            lines = source : split (new (RegExp "\n"))
+            lines = source : split `\n`
             lines : slice (range : from - 1) (range : to)
 
         : print lines in range, prefix '', from, to =

@@ -43,7 +43,7 @@
         }
     };
     jsFilenameFromPogoFilename = function(pogo) {
-        return pogo.replace(new RegExp("\\.pogo$"), "") + ".js";
+        return pogo.replace(/\\.pogo$/, "") + ".js";
     };
     exports.runFile = function(filename) {
         var self, js;
@@ -78,7 +78,7 @@
             self.linesInRange = function(range) {
                 var self, lines;
                 self = this;
-                lines = source.split(new RegExp("\n"));
+                lines = source.split(/\n/);
                 return lines.slice(range.from - 1, range.to);
             };
             self.printLinesInRange = function(gen5_options) {
