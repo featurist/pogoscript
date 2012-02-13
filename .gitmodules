@@ -1,3 +1,0 @@
-[submodule "stable"]
-	path = stable
-	url = git@github.com:featurist/pogoscript.git
