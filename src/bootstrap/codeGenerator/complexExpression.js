@@ -91,14 +91,16 @@ module.exports = function (listOfTerminals) {
     };
     
     this.expression = function () {
-      if (this.head().hasName()) {
+      var head = this.head();
+
+      if (head.hasName()) {
         if (this.hasArguments()) {
-          return macros.invocation(this.head().name(), this.arguments(), this.optionalArguments());
+          return macros.invocation(head.name(), this.arguments(), this.optionalArguments());
         } else {
-          return cg.variable(this.head().name());
+          return head.derivedTerm(cg.variable(head.name()));
         }
       } else {
-        if (!this.hasTail() && this.arguments().length == 1 && !this.head().containsCallPunctuation()) {
+        if (!this.hasTail() && this.arguments().length == 1 && !head.containsCallPunctuation()) {
           return this.arguments()[0];
         } else {
           return cg.functionCall(this.arguments()[0], this.arguments().slice(1));

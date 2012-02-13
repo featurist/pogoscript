@@ -55,7 +55,7 @@ exports.loc = function (term, location) {
     firstColumn: location.first_column,
     lastColumn: location.last_column
   };
-  
+
   term.location = function () {
     return loc;
   };

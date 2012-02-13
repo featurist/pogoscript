@@ -18,4 +18,4 @@ exports: new unary operator expression, operator, expression =
         :hash entry? =
             errors: add term @self with message 'cannot be a hash entry'
         
-        :subterms 'operator' 'expr'
+        :subterms 'expr'

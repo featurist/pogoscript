@@ -114,6 +114,25 @@ var ExpressionPrototype = new function () {
       }))
     ));
   };
+
+  this.derivedTerm = function (term) {
+      return loc(term, this.location());
+  };
+};
+
+var loc = exports.loc = function (term, location) {
+  var loc = {
+    firstLine: location.firstLine,
+    lastLine: location.lastLine,
+    firstColumn: location.firstColumn,
+    lastColumn: location.lastColumn
+  };
+
+  term.location = function () {
+    return loc;
+  };
+  
+  return term;
 };
 
 var term = exports.term = function (members) {

@@ -29,7 +29,7 @@
                 self = this;
                 return errors.addTermWithMessage(self, "cannot be a hash entry");
             };
-            return self.subterms("operator", "expr");
+            return self.subterms("expr");
         });
     };
 })();
