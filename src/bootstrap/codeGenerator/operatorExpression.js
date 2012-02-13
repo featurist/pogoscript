@@ -1,11 +1,14 @@
 var cg = require('../../lib/codeGenerator');
 var _ = require('underscore');
 var macros = require('./macros');
+var errors = require('./errors');
 
 module.exports = function (complexExpression) {
-  return new function () {
+  return cg.term(function () {
     this.arguments = [complexExpression];
     this.name = [];
+
+    this.subterms('arguments');
     
     this.addOperatorExpression = function (operator, expression) {
       this.name.push(operator);
@@ -31,7 +34,11 @@ module.exports = function (complexExpression) {
     };
     
     this.hashEntry = function () {
-      return this.arguments[0].hashEntry();
+      if (this.arguments.length == 1) {
+        return this.arguments[0].hashEntry();
+      } else {
+        return errors.addTermWithMessage(this, 'cannot be used as a hash entry');
+      }
     };
     
     this.definition = function (source) {
@@ -46,5 +53,5 @@ module.exports = function (complexExpression) {
         return this.arguments[0].definition(source);
       }
     }
-  };
+  });
 };

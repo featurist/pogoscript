@@ -77,7 +77,7 @@ spec 'operator expression'
         spec 'a = b'
             e = expression [id 'a']
             
-            (e: definition (variable 'b')) should contain fields {
+            (e: definition (variable 'b'): expression?) should contain fields {
                 is definition
                 target {variable ['a']}
                 source {variable ['b']}

@@ -30,6 +30,9 @@ module.exports = new function () {
       this.generateJavaScript = function(buffer, scope) {
       };
 
+      this.generateJavaScriptHashEntry = function (buffer, scope) {
+      };
+
       this.printError = function(sourceFile) {
         sourceFile.printLocation(this.terms[0].location());
         process.stdout.write(this.message + '\n');
