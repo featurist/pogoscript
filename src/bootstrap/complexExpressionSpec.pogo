@@ -194,10 +194,19 @@ spec 'complex expression'
         field ['port']
         value {variable ['a']}
       }
+      
+    spec 'identifier key'
+      hash entry = cg: complex expression [[id 'port']]: definition (cg: variable ['a']): hash entry?
+      
+      @hashEntry should contain fields {
+        is hash entry
+        field ['port']
+        value {variable ['a']}
+      }
 
   spec 'object operation -> definition'
     definition @object @operation @source should contain fields @fields =
-      (cg: complex expression @operation: object operation @object: definition @source) should contain fields @fields
+      (cg: complex expression @operation: object operation @object: definition @source: expression?) should contain fields @fields
     
     spec 'method definition'
       definition (variable 'object') [[id 'method'. variable 'x']] @block should contain fields {
@@ -314,7 +323,7 @@ spec 'complex expression'
 
   spec 'definition'
     definition @target @source should contain fields @fields =
-      (cg: complex expression @target: definition @source) should contain fields @fields
+      (cg: complex expression @target: definition @source: expression?) should contain fields @fields
     
     spec 'function definition'
       definition [[id 'function'. variable 'x']] @block should contain fields {

@@ -178,3 +178,8 @@ spec 'basic expression'
       key = cg: basic expression [string 'port']: hash key?
       
       @key should contain fields ['port']
+      
+    spec 'if variable then should return array containing string'
+      key = cg: basic expression [id 'port']: hash key?
+      
+      @key should contain fields ['port']

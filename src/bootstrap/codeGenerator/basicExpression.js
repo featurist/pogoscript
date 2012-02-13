@@ -123,6 +123,8 @@ module.exports = function (terminals) {
       var args = this.arguments();
       if (args.length == 1 && args[0].isString) {
         return [args[0].string];
+      } else if (!this.hasParameters() && !this.hasArguments() && this.hasName()) {
+        return this.name();
       } else {
         return errors.addTermWithMessage(this, 'cannot be a hash key');
       }

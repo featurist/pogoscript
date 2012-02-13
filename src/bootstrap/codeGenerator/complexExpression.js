@@ -4,6 +4,17 @@ var cg = require('../../lib/codeGenerator');
 var errors = require('./errors');
 var macros = require('./macros');
 
+var keyValue = function (key, value) {
+  return {
+    expression: function () {
+      
+    },
+    hashEntry: function () {
+      
+    }
+  };
+};
+
 module.exports = function (listOfTerminals) {
   return cg.term(function () {
     this.isComplexExpression = true;
@@ -145,23 +156,29 @@ module.exports = function (listOfTerminals) {
     };
     
     this.objectOperationDefinition = function (object, source) {
-      if (this.head().hasName()) {
-        if (this.hasParameters()) {
-          var block = source.blockify(this.parameters(), this.optionalParameters());
-          block.redefinesSelf = true;
-          return cg.definition(cg.fieldReference(object, this.head().name()), block);
-        } else {
-          return cg.definition(cg.fieldReference(object, this.head().name()), source.scopify());
+      var self = this;
+      
+      return {
+        expression: function () {
+          if (self.head().hasName()) {
+            if (self.hasParameters()) {
+              var block = source.blockify(self.parameters(), self.optionalParameters());
+              block.redefinesSelf = true;
+              return cg.definition(cg.fieldReference(object, self.head().name()), block);
+            } else {
+              return cg.definition(cg.fieldReference(object, self.head().name()), source.scopify());
+            }
+          } else {
+            if (!self.hasTail() && self.arguments().length == 1 && !self.head().containsCallPunctuation()) {
+              return cg.definition(cg.indexer(object, self.arguments()[0]), source.scopify());
+            } else {
+              var block = source.blockify(self.parameters({skipFirstParameter: true}), self.optionalParameters());
+              block.redefinesSelf = true;
+              return cg.definition(cg.indexer(object, self.arguments()[0]), block);
+    				}
+          }
         }
-      } else {
-        if (!this.hasTail() && this.arguments().length == 1 && !this.head().containsCallPunctuation()) {
-          return cg.definition(cg.indexer(object, this.arguments()[0]), source.scopify());
-        } else {
-          var block = source.blockify(this.parameters({skipFirstParameter: true}), this.optionalParameters());
-          block.redefinesSelf = true;
-          return cg.definition(cg.indexer(object, this.arguments()[0]), block);
-				}
-      }
+      };
     };
     
     this.objectOperation = function (object) {
@@ -182,16 +199,29 @@ module.exports = function (listOfTerminals) {
     };
     
     this.definition = function (source) {
-      if (this.head().hasName()) {
-        if (this.hasParameters()) {
-          return cg.definition(cg.variable(this.head().name()), source.blockify(this.parameters(), this.optionalParameters()));
+      var self = this;
+      
+      if (self.head().hasName()) {
+        if (self.hasParameters()) {
+          return {
+            expression: function () {
+              return cg.definition(cg.variable(self.head().name()), source.blockify(self.parameters(), self.optionalParameters()));
+            }
+          };
         } else {
-          return cg.definition(cg.variable(this.head().name()), source.scopify());
+          return {
+            expression: function () {
+              return cg.definition(cg.variable(self.head().name()), source.scopify());
+            },
+            hashEntry: function () {
+              return cg.hashEntry(self.head().hashKey(), source);
+            }
+          };
         }
       } else {
-        var head = this.head();
         return {
           hashEntry: function () {
+            var head = self.head();
             return cg.hashEntry(head.hashKey(), source);
           }
         };
