@@ -200,6 +200,10 @@ var unindent = exports.unindent = function (columns, text) {
 };
 
 expressionTerm('interpolatedString', function (components, columnStart) {
+  if (components.length == 1) {
+    return components[0];
+  }
+  
   this.isInterpolatedString = true;
   this.components = (function () {
     var removeIndentation = unindenter(columnStart + 1);

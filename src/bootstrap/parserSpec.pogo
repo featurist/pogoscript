@@ -68,10 +68,8 @@ spec 'parser'
         spec 'interpolated strings'
             spec 'simple'
                 (expression '"a string"') should contain fields {
-                    is interpolated string
-                    components [
-                        {string 'a string'}
-                    ]
+                    is string
+                    string 'a string'
                 }
 
             spec 'with newline'
@@ -151,10 +149,8 @@ spec 'parser'
                             is block
                             body {
                                 statements [{
-                                    is interpolated string
-                                    components [
-                                        {variable ['stuff']}
-                                    ]
+                                    is variable
+                                    variable ['stuff']
                                 }]
                             }
                         }
