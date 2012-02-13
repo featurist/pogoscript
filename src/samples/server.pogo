@@ -12,10 +12,12 @@ after @time @block =
 server = http : create server #req #res
     res : write "stuff\n"
     
-    after (0.2 minutes)
-        res : write "stuff\n"
+    after (0.05 minutes)
+        res : write "stuff after 0.05 minutes\n"
 
         after (0.5 seconds)
-            res : end "hello world\n"
+            res : end "stuff after 0.5 seconds\n"
 
-server : listen 8000
+port = 8000
+server : listen @port
+console: log "run > curl localhost:@port"
