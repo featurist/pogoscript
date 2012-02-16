@@ -433,7 +433,7 @@ spec 'parser'
                 name ['method']
                 arguments [{variable ['argument']}]
                 optional arguments [
-                    {field ['view'], value {variable ['view']}}
+                    {field ['view']. value {variable ['view']}}
                 ]
             }
         
@@ -488,7 +488,7 @@ spec 'parser'
         spec 'block with parameter'
             (expression "#x\n  x.y") should contain fields {
                 is block
-                parameters [{is parameter, expression {variable ['x']}}]
+                parameters [{is parameter. expression {variable ['x']}}]
                 redefines self @false
                 body {
                     statements [
@@ -501,7 +501,7 @@ spec 'parser'
         spec 'block with parameter, redefining self'
             (expression '#x => @{x.y}') should contain fields {
                 is block
-                parameters [{is parameter, expression {variable ['x']}}]
+                parameters [{is parameter. expression {variable ['x']}}]
                 redefines self @true
                 body {
                     statements [
@@ -583,7 +583,7 @@ spec 'parser'
                     is definition
                     target {variable ['func']}
                     source {
-                        parameters [{is parameter, expression {variable ['x']}}]
+                        parameters [{is parameter. expression {variable ['x']}}]
                         body {statements [{variable ['x']}]}
                     }
                 }
@@ -593,8 +593,8 @@ spec 'parser'
                     is definition
                     target {variable ['func']}
                     source {
-                        parameters [{is parameter, expression {variable ['x']}}]
-                        optional parameters [{field ['port'], value {integer 80}}]
+                        parameters [{is parameter. expression {variable ['x']}}]
+                        optional parameters [{field ['port']. value {integer 80}}]
                         body {statements [{variable ['x']}]}
                     }
                 }

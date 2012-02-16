@@ -2,7 +2,7 @@ identifier pattern = '[a-zA-Z_$][a-zA-Z_$0-9]*'
 
 exports: grammar = {
     lex {
-        start conditions {interpolated_string, interpolated_string_terminal}
+        start conditions {interpolated_string. interpolated_string_terminal}
 
         rules [
             ['\s*$'. 'return yy.eof();']
