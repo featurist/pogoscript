@@ -36,7 +36,9 @@ exports : run file @filename =
     js = js from pogo file @filename
     
     module : filename = fs : realpath sync @filename
-    process : argv : 1 = module : filename
+    process : argv : shift!
+    process : argv : 0 = 'pogo'
+    
     module : _compile @js @filename
 
 js from pogo file @filename =

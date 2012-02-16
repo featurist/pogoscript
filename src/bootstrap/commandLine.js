@@ -50,7 +50,8 @@
         self = this;
         js = jsFromPogoFile(filename);
         module.filename = fs.realpathSync(filename);
-        process.argv[1] = module.filename;
+        process.argv.shift();
+        process.argv[0] = "pogo";
         return module._compile(js, filename);
     };
     jsFromPogoFile = function(filename) {
