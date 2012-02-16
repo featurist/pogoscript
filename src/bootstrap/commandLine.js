@@ -43,7 +43,7 @@
         }
     };
     jsFilenameFromPogoFilename = function(pogo) {
-        return pogo.replace(/\\.pogo$/, "") + ".js";
+        return pogo.replace(/\.pogo$/, "") + ".js";
     };
     exports.runFile = function(filename) {
         var self, js;

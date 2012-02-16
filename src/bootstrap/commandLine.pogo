@@ -30,7 +30,7 @@ exports : lex file @filename =
         console: log "<@token>"
 
 js filename from pogo filename @pogo =
-    pogo : replace `\\.pogo$` '' + '.js'
+    pogo : replace `\.pogo$` '' + '.js'
 
 exports : run file @filename =
     js = js from pogo file @filename
