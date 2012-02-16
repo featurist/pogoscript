@@ -303,13 +303,13 @@ spec 'parser'
 
     spec 'function calls'
         spec 'function call'
-            (expression 'touch @file') should contain fields {
+            (expression 'touch @ file') should contain fields {
                 function {variable ['touch']}
                 arguments [{variable ['file']}]
             }
 
         spec 'function call with self argument'
-            (expression 'touch @:file') should contain fields {
+            (expression 'touch @: file') should contain fields {
                 function {variable ['touch']}
                 arguments [
                     {

@@ -39,12 +39,10 @@ exports.expression = function (e) {
 };
 
 exports.lexOperator = function (op) {
-  if (/^[!?:,.#=@]$/.test(op)) {
-    return op;
-  } else if (op == '=>') {
+  if (op == '=>') {
     return op;
   } else {
-    return 'raw_operator';
+    return 'operator';
   }
 };
 
