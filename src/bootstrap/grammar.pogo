@@ -55,8 +55,8 @@ exports: grammar = {
             ['statements_list'. '$$ = yy.terms.statements($1);']
         ]
         hash_entries [
-            ['hash_entries comma_dot list_expression'. '$1.push($3.hashEntry()); $$ = $1;']
-            ['list_expression'. '$$ = [$1.hashEntry()];']
+            ['hash_entries . expression'. '$1.push($3.hashEntry()); $$ = $1;']
+            ['expression'. '$$ = [$1.hashEntry()];']
             [''. '$$ = [];']
         ]
         comma_dot [
@@ -157,7 +157,7 @@ exports: grammar = {
             ['#( statement )'. '$$ = yy.terms.parameter($2);']
             ['block_start statements }'. '$$ = yy.terms.loc(yy.terms.block([], $2), @$);']
             ['=> block_start statements }'. '$$ = yy.terms.loc(yy.terms.block([], $3, {redefinesSelf: true}), @$);']
-            ['[ list_statements_list ]'. '$$ = yy.terms.loc(yy.terms.list($2), @$);']
+            ['[ statements_list ]'. '$$ = yy.terms.loc(yy.terms.list($2), @$);']
             ['{ hash_entries }'. '$$ = yy.terms.loc(yy.terms.hash($2), @$);']
             ['float'. '$$ = yy.terms.loc(yy.terms.float(parseFloat(yytext)), @$);']
             ['integer'. '$$ = yy.terms.loc(yy.terms.integer(parseInt(yytext)), @$);']

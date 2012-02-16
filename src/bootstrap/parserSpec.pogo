@@ -187,7 +187,7 @@ spec 'parser'
                 }
             
             spec 'two items'
-                (expression '[1, 2]') should contain fields {
+                (expression '[1. 2]') should contain fields {
                     is list
                     items [
                         {integer 1}
@@ -214,7 +214,7 @@ spec 'parser'
                 }
                     
             spec 'hash with two entries'
-                (expression '{port 1234, ip address ''1.1.1.1''}') should contain fields {
+                (expression '{port 1234. ip address ''1.1.1.1''}') should contain fields {
                     is hash
                     entries [
                         {
@@ -255,7 +255,7 @@ spec 'parser'
                 }
                     
             spec 'hash with true entry'
-                (expression '{port 1234, readonly}') should contain fields {
+                (expression '{port 1234. readonly}') should contain fields {
                     is hash
                     entries [
                         {
