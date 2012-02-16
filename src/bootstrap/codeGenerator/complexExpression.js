@@ -4,17 +4,6 @@ var cg = require('../../lib/codeGenerator');
 var errors = require('./errors');
 var macros = require('./macros');
 
-var keyValue = function (key, value) {
-  return {
-    expression: function () {
-      
-    },
-    hashEntry: function () {
-      
-    }
-  };
-};
-
 module.exports = function (listOfTerminals) {
   return cg.term(function () {
     this.isComplexExpression = true;
@@ -208,6 +197,12 @@ module.exports = function (listOfTerminals) {
           return {
             expression: function () {
               return cg.definition(cg.variable(self.head().name()), source.blockify(self.parameters(), self.optionalParameters()));
+            },
+            hashEntry: function () {
+              var block = source.blockify(self.parameters(), self.optionalParameters());
+              block.redefinesSelf = true;
+
+              return cg.hashEntry(self.head().name(), block);
             }
           };
         } else {

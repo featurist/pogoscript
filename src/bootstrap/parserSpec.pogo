@@ -254,6 +254,38 @@ spec 'parser'
                     ]
                 }
                     
+            spec 'should allow methods to be defined, redefining self'
+                (expression '{say hi to @name, greeting = print @name}') should contain fields {
+                    is hash
+                    entries [
+                        {
+                            field ['say'. 'hi'. 'to']
+                            value {
+                                is block
+                                redefines self
+
+                                body {
+                                    statements [{
+                                        is function call
+
+                                        function {variable ['print']}
+                                    }]
+                                }
+
+                                parameters [{
+                                    is parameter
+                                    expression {variable ['name']}
+                                }]
+
+                                optional parameters [{
+                                    is hash entry
+                                    field ['greeting']
+                                }]
+                            }
+                        }
+                    ]
+                }
+                    
             spec 'hash with true entry'
                 (expression '{port 1234. readonly}') should contain fields {
                     is hash

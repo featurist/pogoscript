@@ -5,7 +5,9 @@ require './assertions.pogo'
 int @n =
   cg: integer @n
 
-id @name = cg: identifier @name
+loc = {first line 1. last line 1. first column 7. last column 13}
+
+id @name = cg: loc (cg: identifier @name) @loc
 
 variable @name = cg: variable [name]
 
@@ -202,6 +204,30 @@ spec 'complex expression'
         is hash entry
         field ['port']
         value {variable ['a']}
+      }
+      
+    spec 'can define a method as a hash key'
+      hash entry = cg: complex expression [[id 'name'. variable 'name']]: definition (cg: variable ['name']): hash entry?
+      
+      @hashEntry should contain fields {
+        is hash entry
+        field ['name']
+        value {
+            is block
+
+            body {
+                statements [
+                    {variable ['name']}
+                ]
+            }
+
+            parameters [{
+                is parameter
+                expression {variable ['name']}
+            }]
+
+            redefines self
+        }
       }
 
   spec 'object operation -> definition'
