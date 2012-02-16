@@ -25,7 +25,7 @@ var matchMultiOperator = function (name) {
   };
 };
 
-_.each(['+', '*'], function(op) {
+_.each(['+', '*', '==='], function(op) {
   macros.addWildCardMacro([op], matchMultiOperator);
 });
 

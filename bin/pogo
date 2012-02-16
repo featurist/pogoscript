@@ -4,6 +4,7 @@ var argv = require('optimist')
     .boolean('c').alias('c', 'compile')
     .boolean('u').alias('u', 'ugly')
     .boolean('l').alias('l', 'lex')
+    .boolean('w').alias('w', 'watch')
     .argv;
     
 var commandLine = require('../src/bootstrap/commandLine');
@@ -14,7 +15,11 @@ if (argv.lex) {
   }
 } else if (argv.compile) {
   for (var i in argv._) {
-    commandLine.compileFile(argv._[i], {ugly: argv.ugly});
+    if (argv.watch) {
+      commandLine.watchFile(argv._[i], {ugly: argv.ugly});
+    } else {
+      commandLine.compileFile(argv._[i], {ugly: argv.ugly});
+    }
   }
 } else {
   commandLine.runFile(argv._[0]);

@@ -1,5 +1,5 @@
 (function() {
-    var self, fs, ms, parser, parse, uglify, errors, generateCode, beautify, jsFilenameFromPogoFilename, jsFromPogoFile, sourceLocationPrinter;
+    var self, fs, ms, parser, parse, uglify, errors, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, jsFromPogoFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     ms = require("../lib/memorystream");
@@ -20,7 +20,7 @@
             beautify: true
         });
     };
-    exports.compileFile = function(filename, gen1_options) {
+    compileFile = exports.compileFile = function(filename, gen1_options) {
         var ugly, self, js, jsFilename;
         ugly = gen1_options && gen1_options.ugly != null ? gen1_options.ugly : undefined;
         self = this;
@@ -30,6 +30,26 @@
         }
         jsFilename = jsFilenameFromPogoFilename(filename);
         return fs.writeFileSync(jsFilename, js);
+    };
+    whenChanges = function(filename, act) {
+        return fs.watchFile(filename, {
+            persistent: true,
+            interval: 500
+        }, function(prev, curr) {
+            if (curr.size === prev.size && curr.mtime.getTime() === prev.mtime.getTime()) {
+                return;
+            }
+            return act();
+        });
+    };
+    exports.watchFile = function(filename, options) {
+        var self;
+        self = this;
+        compileFile(filename, options);
+        return whenChanges(filename, function() {
+            console.log("compiling " + filename + " => " + jsFilenameFromPogoFilename(filename));
+            return compileFile(filename, options);
+        });
     };
     exports.lexFile = function(filename) {
         var self, source, tokens, gen2_items, gen3_i, token;

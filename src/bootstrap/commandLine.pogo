@@ -14,13 +14,27 @@ beautify @code =
     ast = uglify : parser : parse @code
     uglify : uglify : gen_code @ast, beautify
 
-exports : compile file @filename, ugly =
+compile file = exports : compile file @filename, ugly =
     js = js from pogo file @filename
     if (not @ugly)
         js = beautify @js
         
     js filename = js filename from pogo filename @filename
     fs : write file sync (js filename) @js
+
+when @filename changes @act =
+    fs : watch file @filename {persistent. interval 500} #prev #curr
+        if ((curr:size === prev:size) && (curr:mtime:get time? === prev:mtime:get time?))
+            return
+        
+        act!
+
+exports : watch file @filename @options =
+    compile file @filename @options
+
+    when @filename changes
+        console : log "compiling @filename => @(js filename from pogo filename @filename)"
+        compile file @filename @options
 
 exports : lex file @filename =
     source = fs : read file sync @filename 'utf-8'
