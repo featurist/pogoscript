@@ -17,10 +17,13 @@ assume @statements has just one statement @action =
         throw (new (Error ('expected statements to have just one statement, found ' + statements: statements: length)))
 
 expression @source =
+    assume (statements @source) has just one statement #statement
+        statement
+
+statements @source =
     term = parse @source
     assume @term is module with statements #statements
-        assume @statements has just one statement #s
-            s
+        statements
 
 spec 'parser'
     spec 'terminals'
@@ -730,6 +733,25 @@ spec 'parser'
                     pattern "abc\\ndef"
                 }
             }
+    
+    spec 'comments'
+        spec 'should allow one-line C++ style comments, as in: // this is a comment'
+            spec 'when between lines'
+                (statements "a // this is a comment\nb") should contain fields {
+                    is statements
+                    statements [
+                        {variable ['a']}
+                        {variable ['b']}
+                    ]
+                }
+
+            spec 'when at end of file'
+                (statements "a // this is a comment") should contain fields {
+                    is statements
+                    statements [
+                        {variable ['a']}
+                    ]
+                }
 
     spec 'lexer'
         tokens = parser: lex 'a b'

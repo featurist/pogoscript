@@ -1,28 +1,37 @@
 var util = require('util');
 var assert = require('assert');
+var _ = require('underscore');
 
 var inspect = function (o) {
   return util.inspect(o, false, 10, true);
 };
 
 var containsFields = exports.containsFields = function (actual, expected, key, originalActual) {
-  var inspectedOriginalActual = inspect(originalActual);
-  
-  if (typeof(expected) == 'object') {
-    assert.ok(typeof(actual) == 'object' && actual !== null, 'in ' + inspectedOriginalActual + ', expected ' + key + ' ' + inspect(actual) + ' to be an object');
-    
-    var parentKey;
+  var index = function (i) {
+    return key + '[' + i + ']';
+  };
+
+  var field = function (f) {
     if (key) {
-      parentKey = key + '.';
+      return key + '.' + f;
     } else {
-      parentKey = '';
+      return f;
     }
-    
+  };
+
+  if (_.isArray(expected)) {
     var originalActual = (originalActual || actual);
-    for (var key in expected) {
-      containsFields(actual[key], expected[key], parentKey + key, originalActual);
+    containsFields(expected.length, actual.length, field('length'), originalActual);
+    for (var n in expected) {
+      containsFields(actual[n], expected[n], index(n), originalActual);
+    }
+  } else if (_.isObject(expected)) {
+    var originalActual = (originalActual || actual);
+    for (var n in expected) {
+      containsFields(actual[n], expected[n], field(n), originalActual);
     }
   } else {
+    var inspectedOriginalActual = inspect(originalActual);
     var inspectedActual = inspect(actual);
     var inspectedExpected = inspect(expected);
     var msg = 'in ' + inspectedOriginalActual + ', ' + key + ' ' + inspectedActual + ' should be equal to ' + inspectedExpected;

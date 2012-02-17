@@ -854,6 +854,7 @@ var expressionStatements = function (statements) {
 
 var Statements = function (statements) {
   return term(function () {
+    this.isStatements = true;
     this.statements = statements;
     
     this.subterms('statements');
