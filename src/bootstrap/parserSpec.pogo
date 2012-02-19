@@ -745,9 +745,62 @@ spec 'parser'
                     ]
                 }
 
+            spec 'when before an indented block'
+                (statements "a // this is a comment\n  b") should contain fields {
+                    is statements
+                    statements [{
+                        is function call
+                        function {variable ['a']}
+                        arguments [{
+                            is block
+                            body {
+                                statements [
+                                    {variable ['b']}
+                                ]
+                            }
+                        }]
+                    }]
+                }
+
             spec 'when at end of file'
                 (statements "a // this is a comment") should contain fields {
                     is statements
+                    statements [
+                        {variable ['a']}
+                    ]
+                }
+
+        spec 'should allow multi-line C style comments, as in: /* this is a comment */'
+            spec 'when on one line'
+                (statements "a /* comment */ b") should contain fields {
+                    statements [
+                        {variable ['a'. 'b']}
+                    ]
+                }
+
+            spec 'when there are two'
+                (statements "a /* comment */ b /* another comment */ c") should contain fields {
+                    statements [
+                        {variable ['a'. 'b'. 'c']}
+                    ]
+                }
+
+            spec 'when it contains a * character'
+                (statements "a /* sh*t */ b") should contain fields {
+                    statements [
+                        {variable ['a'. 'b']}
+                    ]
+                }
+
+            spec 'when it covers two lines'
+                (statements "a /* line one\nline two */ b") should contain fields {
+                    statements [
+                        {variable ['a'. 'b']}
+                    ]
+                }
+
+            spec 'when it extends to the end of the file'
+                (statements "a /* comment to eof") should contain fields {
                     statements [
                         {variable ['a']}
                     ]

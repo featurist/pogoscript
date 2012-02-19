@@ -19,22 +19,28 @@ var containsFields = exports.containsFields = function (actual, expected, key, o
     }
   };
 
+  var originalActual = (originalActual || actual);
+  var message = function () {
+    var inspectedOriginalActual = inspect(originalActual);
+    var inspectedActual = inspect(actual);
+    var inspectedExpected = inspect(expected);
+    return 'in ' + inspectedOriginalActual + ', ' + key + ' ' + inspectedActual + ' should be equal to ' + inspectedExpected;
+  };
+
   if (_.isArray(expected)) {
-    var originalActual = (originalActual || actual);
+    assert.ok(actual, message());
+
     containsFields(expected.length, actual.length, field('length'), originalActual);
     for (var n in expected) {
       containsFields(actual[n], expected[n], index(n), originalActual);
     }
   } else if (_.isObject(expected)) {
-    var originalActual = (originalActual || actual);
+    assert.ok(actual, message());
+
     for (var n in expected) {
       containsFields(actual[n], expected[n], field(n), originalActual);
     }
   } else {
-    var inspectedOriginalActual = inspect(originalActual);
-    var inspectedActual = inspect(actual);
-    var inspectedExpected = inspect(expected);
-    var msg = 'in ' + inspectedOriginalActual + ', ' + key + ' ' + inspectedActual + ' should be equal to ' + inspectedExpected;
-    assert.deepEqual(expected, actual, msg);
+    assert.deepEqual(expected, actual, message());
   }
 };
