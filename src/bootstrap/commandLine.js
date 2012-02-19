@@ -43,12 +43,15 @@
         });
     };
     exports.watchFile = function(filename, options) {
-        var self;
+        var self, compile;
         self = this;
-        compileFile(filename, options);
+        compile = function() {
+            return compileFile(filename, options);
+        };
+        compile();
         return whenChanges(filename, function() {
             console.log("compiling " + filename + " => " + jsFilenameFromPogoFilename(filename));
-            return compileFile(filename, options);
+            return compile();
         });
     };
     exports.lexFile = function(filename) {

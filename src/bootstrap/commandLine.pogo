@@ -30,11 +30,14 @@ when @filename changes @act =
         act!
 
 exports : watch file @filename @options =
-    compile file @filename @options
+    compile! =
+        compile file @filename @options
+
+    compile!
 
     when @filename changes
         console : log "compiling @filename => @(js filename from pogo filename @filename)"
-        compile file @filename @options
+        compile!
 
 exports : lex file @filename =
     source = fs : read file sync @filename 'utf-8'
