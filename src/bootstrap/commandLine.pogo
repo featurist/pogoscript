@@ -31,12 +31,12 @@ when @filename changes @act =
 
 :watch file @filename @options =
     compile! =
+        console : log "compiling @filename => @(js filename from pogo filename @filename)"
         compile file @filename @options
 
     compile!
 
     when @filename changes
-        console : log "compiling @filename => @(js filename from pogo filename @filename)"
         compile!
 
 :lex file @filename =

@@ -45,11 +45,11 @@
         var self, compile;
         self = this;
         compile = function() {
+            console.log("compiling " + filename + " => " + jsFilenameFromPogoFilename(filename));
             return compileFile(filename, options);
         };
         compile();
         return whenChanges(filename, function() {
-            console.log("compiling " + filename + " => " + jsFilenameFromPogoFilename(filename));
             return compile();
         });
     };
