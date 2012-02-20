@@ -20,10 +20,9 @@
             beautify: true
         });
     };
-    compileFile = exports.compileFile = function(filename, gen1_options) {
-        var ugly, self, js, jsFilename;
+    self.compileFile = compileFile = function(filename, gen1_options) {
+        var ugly, js, jsFilename;
         ugly = gen1_options && gen1_options.ugly != null ? gen1_options.ugly : undefined;
-        self = this;
         js = jsFromPogoFile(filename);
         if (!ugly) {
             js = beautify(js);
@@ -42,7 +41,7 @@
             return act();
         });
     };
-    exports.watchFile = function(filename, options) {
+    self.watchFile = function(filename, options) {
         var self, compile;
         self = this;
         compile = function() {
@@ -54,7 +53,7 @@
             return compile();
         });
     };
-    exports.lexFile = function(filename) {
+    self.lexFile = function(filename) {
         var self, source, tokens, gen2_items, gen3_i, token;
         self = this;
         source = fs.readFileSync(filename, "utf-8");
@@ -68,7 +67,7 @@
     jsFilenameFromPogoFilename = function(pogo) {
         return pogo.replace(/\.pogo$/, "") + ".js";
     };
-    exports.runFile = function(filename) {
+    self.runFile = function(filename) {
         var self, js;
         self = this;
         js = jsFromPogoFile(filename);
@@ -158,4 +157,4 @@
         content = jsFromPogoFile(filename);
         return module._compile(content, filename);
     };
-})();
+}).call(this);

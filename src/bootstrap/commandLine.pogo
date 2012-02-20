@@ -14,7 +14,7 @@ beautify @code =
     ast = uglify : parser : parse @code
     uglify : uglify : gen_code @ast, beautify
 
-compile file = exports : compile file @filename, ugly =
+:compile file = compile file @filename, ugly =
     js = js from pogo file @filename
     if (not @ugly)
         js = beautify @js
@@ -29,7 +29,7 @@ when @filename changes @act =
         
         act!
 
-exports : watch file @filename @options =
+:watch file @filename @options =
     compile! =
         compile file @filename @options
 
@@ -39,7 +39,7 @@ exports : watch file @filename @options =
         console : log "compiling @filename => @(js filename from pogo filename @filename)"
         compile!
 
-exports : lex file @filename =
+:lex file @filename =
     source = fs : read file sync @filename 'utf-8'
     tokens = parser: lex @source
     
@@ -49,7 +49,7 @@ exports : lex file @filename =
 js filename from pogo filename @pogo =
     pogo : replace `\.pogo$` '' + '.js'
 
-exports : run file @filename =
+:run file @filename =
     js = js from pogo file @filename
     
     module : filename = fs : realpath sync @filename
