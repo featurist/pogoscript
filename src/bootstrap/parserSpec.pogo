@@ -42,6 +42,11 @@ spec 'parser'
                 (expression 'total weight') should contain fields {
                     variable ['total'. 'weight']
                 }
+
+            spec '$'
+                (expression '$') should contain fields {
+                    variable ['$']
+                }
         
         spec 'strings'
             spec 'simple string'
