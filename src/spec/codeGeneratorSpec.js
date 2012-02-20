@@ -660,7 +660,7 @@ spec('code generator', function () {
         ]))])
       ]));
       
-      generatesExpression(s, '(function(){var self,x;self=this;x=1;f(function(){x=2;return x;});})()');
+      generatesExpression(s, '(function(){var self,x;self=this;x=1;f(function(){x=2;return x;});}).call(this)');
     });
   });
   

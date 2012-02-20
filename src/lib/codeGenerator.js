@@ -958,7 +958,7 @@ var module = expressionTerm('module', function (statements) {
   
   this.generateJavaScript = function (buffer, scope) {
     var b = block([], this.statements, {returnLastStatement: false, redefinesSelf: true});
-    functionCall(subExpression(b), []).generateJavaScript(buffer, new Scope());
+    methodCall(subExpression(b), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
   };
 });
 
