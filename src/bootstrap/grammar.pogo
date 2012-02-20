@@ -19,7 +19,7 @@ exports: grammar = {
             ['/\*([^*](\*[^/]|))*(\*/|$)'. '/* ignore comment */']
             ['[0-9]+\.[0-9]+'. 'return ''float'';']
             ['[0-9]+'. 'return ''integer'';']
-            ['([:=,?!.@~#$%^&*+<>/?\\|-])+'. 'return yy.terms.lexOperator(yytext);']
+            ['([:=,?!.@~#%^&*+<>/?\\|-])+'. 'return yy.terms.lexOperator(yytext);']
             [identifier pattern. 'return ''identifier'';']
             ['$'. 'return ''eof'';']
             ['''([^'']*'''')*[^'']*'''. 'return ''string'';']
