@@ -1,0 +1,281 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="style/cheetsheet.css">
+        <title>PogoScript Cheetsheet</title>
+    </head>
+    <script type="text/javascript" src="/scripts/jquery.js"></script>
+    <script type="text/javascript" src="/scripts/highlighter.js"></script>
+    <body>
+        <header>
+          <p>The <a href="/"><span class="pogo">pogoscript<span class="js">js</span></span></a> cheat sheet</p>
+        </header>
+    
+        <div class=content>
+          
+          <div class=col>
+            <h1 id='variables'>Variables</h1>
+
+<p>Variables can contain spaces, numbers, <code>$</code> and <code>_</code>.</p>
+
+<h2 id='defining'>Defining</h2>
+
+<pre><code>small number = 8</code></pre>
+
+<p>Or, on a new line:</p>
+
+<pre><code>small number =
+    8</code></pre>
+
+<h2 id='identifier_conjugation'>Identifier Conjugation</h2>
+
+<p><code>small number</code> is the same as <code>smallNumber</code></p>
+
+<h1 id='calling_functions'>Calling Functions</h1>
+
+<pre><code>move file &quot;logbook.txt&quot; to dir &quot;~/docs&quot;</code></pre>
+
+<h2 id='variable_arguments'>Variable Arguments</h2>
+
+<pre><code>filename = &quot;logbook.txt&quot;
+docs dir = &quot;~/docs&quot;
+move file @filename to dir (docs dir)</code></pre>
+
+<h2 id='without_arguments'>Without arguments</h2>
+
+<pre><code>current time?</code></pre>
+
+<p>Or, with a <code>!</code></p>
+
+<pre><code>refresh account info!</code></pre>
+
+<h2 id='with_optional_arguments'>With Optional Arguments</h2>
+
+<pre><code>web server, port 80</code></pre>
+
+<h2 id='with_splat_arguments'>With Splat Arguments</h2>
+
+<pre><code>sum @numbers ...</code></pre>
+
+<h2 id='block_arguments'>Block Arguments</h2>
+
+<pre><code>set timeout
+    console: log &quot;hi!&quot;
+1000</code></pre>
+
+<p>Or all on one line:</p>
+
+<pre><code>set timeout @{console: log &quot;hi!&quot;} 1000</code></pre>
+
+<h2 id='block_parameters'>Block Parameters</h2>
+
+<pre><code>map each #name in @names into
+    &quot;&lt;div class=&#39;name&#39;&gt;@name&lt;/div&gt;&quot;</code></pre>
+
+  </div>
+  <div class=col>
+
+
+<h1 id='defining_functions'>Defining Functions</h1>
+
+<pre><code>move file @filename to dir (dir name) =
+    ...</code></pre>
+
+<h2 id='without_arguments'>Without Arguments</h2>
+
+<pre><code>current time? = new @Date</code></pre>
+
+<p>Or with a <code>!</code></p>
+
+<pre><code>refresh account info! = ...</code></pre>
+
+<h2 id='with_optional_parameters'>With Optional Parameters</h2>
+
+<pre><code>web server, port = ...</code></pre>
+
+<p>Or, with an default value</p>
+
+<pre><code>web server, port 80 = ...</code></pre>
+
+<h2 id='with_splat_parameters'>With Splat Parameters</h2>
+
+<pre><code>sum @numbers ... =
+    ...</code></pre>
+
+<h1 id='objects'>Objects</h1>
+
+<br><br>
+
+<h2 id='calling_methods'>Calling Methods</h2>
+
+<pre><code>date = new (Date 2011 4 5)
+month = date: get month?
+date: set minutes 5</code></pre>
+
+
+
+<h2 id='defining_methods_and_properties'>Defining Methods and Properties</h2>
+
+<pre><code>size = {}
+size: x = 10
+size: y = 20
+size: area? = self: x * self: y</code></pre>
+
+<p>Or as a hash:</p>
+
+<pre><code>size = {
+    x = 10
+    y = 20
+    area? = self: x * self: y
+}</code></pre>
+
+<h1 id='self'>Self</h1>
+
+<br><br>
+
+<h2 id='accessing_self'>Accessing Self</h2>
+
+<p><code>self</code> is akin to <code>this</code> in JavaScript</p>
+
+<pre><code>self: x</code></pre>
+
+<p>Or you can omit <code>self</code></p>
+
+<pre><code>:x</code></pre>
+
+</div>
+<div class=col>
+
+<h2 id='blocks_preserve_self'>Blocks Preserve Self</h2>
+
+<p>Self is always preserved in blocks:</p>
+
+<pre><code>person = {
+  name = 'Man Ray'
+  say hi later =
+    set timeout
+      console: log "my name is @(:name)"
+    1000
+}</code></pre>
+
+<h2 id='self_blocks_redefine_self'>Self Blocks Redefine Self</h2>
+
+<p>use <code>=></code> to allow self to be redefined by the caller of the block:</p>
+
+<pre><code>person, name = object =>
+    :name = name</code></pre>
+
+<h2 id='array_indexes'>Array Indexes</h2>
+
+<pre><code>fib = [0. 1. 1. 2. 3. 5]
+
+fib: 0
+fib: 5 = 5</code></pre>
+
+
+
+<h1 id='arrays'>Arrays</h1>
+
+<pre><code>colours = [&#39;red&#39;. &#39;blue&#39;. &#39;yellow&#39;]</code></pre>
+
+<h1 id='hashes'>Hashes</h1>
+
+<pre><code>colour scheme = {bg &#39;red&#39;. fg &#39;yellow&#39;}</code></pre>
+
+<p>Or</p>
+
+<pre><code>colour scheme = {
+    background = &#39;red&#39;
+    foreground = &#39;yellow&#39;
+}</code></pre>
+
+
+<h1>If</h1>
+
+<pre><code>if (wind speed > 20)
+    console: log "gone kitesurfing!"
+else
+    console: log "no wind, programming"</code></pre>
+
+<h1>While</h1>
+
+<pre><code>set timeout
+    finished = false
+3000
+  
+while (!finished)
+    console: log "still going"</code></pre>
+
+
+</div>
+<div class=col>
+
+
+<h1>For Each</h1>
+
+<pre><code>for each #mountain in @moutains
+    console: log @mountain</code></pre>
+
+<h1>For</h1>
+
+<pre><code>for (n = 0. n &lt; 10. n = n + 1)
+    console: log @n</code></pre>
+
+<h1 id='comments'>Comments</h1>
+
+<pre><code>// this is a comment
+
+/* this
+   is
+   a
+   comment */</code></pre>
+
+<h1 id='strings'>Strings</h1>
+
+<br><br>
+
+<h2 id='noninterpolating'>Non-interpolating</h2>
+
+<pre><code>&#39;Sophie&#39;&#39;s World&#39;</code></pre>
+
+<h2 id='interpolating'>Interpolating</h2>
+
+<pre><code>&quot;hi @name&quot;</code></pre>
+
+<p>Or</p>
+
+<pre><code>&quot;hi @(persons name)&quot;</code></pre>
+
+<h2 id='special_characters'>Special Characters</h2>
+
+<p>Only work in double-quoted strings:</p>
+
+<pre><code>&quot;tab: \t
+ linefeed: \n
+ carriage return: \r&quot;</code></pre>
+
+<h2 id='multiline'>Multi-line</h2>
+
+<p>Newlines are permitted, and indentation on subsequent lines is ignored:</p>
+
+<pre><code>some html = "line one
+             line two
+             line three"</code></pre>
+
+<p>Or with single quotes:</p>
+
+<pre><code>some html = 'line one
+             line two
+             line three'</code></pre>
+
+<h1 id='regexps'>Regexps</h1>
+
+<p>Regexps are between back-ticks (<code>`</code>), and accept the usual sufixes, <code>g</code>, <code>i</code> and <code>m</code>.</p>
+
+<pre><code>`.*\.jpg`i: test 'geographe.jpg'</code></pre>
+
+          </div>
+
+        </div>
+    </body>
+</html>

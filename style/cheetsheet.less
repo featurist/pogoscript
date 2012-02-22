@@ -1,10 +1,83 @@
+@import 'colours.less';
+@import url(akadylan.css);
+
+header {
+  color: @header_foreground;
+  margin: 10pt;
+  
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  p {
+    font-size: 2em;
+    font-family: sans-serif;
+  }
+  .pogo {
+    font-family: 'akaDylan Plain', cursive;
+    position: relative;
+  }
+  .js {
+    font-size: 0.35em;
+    position: absolute;
+    bottom: -0.2em;
+    right: -0.8em;
+  }
+}
+
+body {
+  background-color: @page_background;
+  font-family: sans-serif;
+}
+
 .content {
+  width: 20em * 4 + 9em;
 }
 
 p {
+  font-size: 8pt;
+  font-family: serif;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+h1 {
+  font-size: 12pt;
+  margin-left: -25px;
+}
+
+h2 {
   font-size: 10pt;
+  margin-left: -21px;
+}
+
+h1,h2 {
+  background-color: @page_background;
+  display: inline-block;
+  padding: 5px;
+  border-radius: 5pt;
+  color: @header_foreground;
+  margin-top: 3px;
+  margin-bottom: 3px;
 }
 
 pre {
   margin-left: 16px;
+  font-size: 8pt;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  background-color: fade(@page_background, 5%);
+}
+
+.col {
+  background-color: white;
+  display: inline-block;
+  vertical-align: top;
+  margin-left: 1em;
+  margin-right: 1em;
+  width: 18.5em;
+  border-radius: 10pt;
+  height: 54em;
+  padding: 10px 10px 0 10px;
 }
