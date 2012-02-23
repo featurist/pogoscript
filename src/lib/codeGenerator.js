@@ -1716,6 +1716,7 @@ var forStatement = expressionTerm('forStatement', function(init, test, incr, stm
 
 macros.addMacro(['for'], function(basicExpression) {
   var args = basicExpression.arguments();
+
   var init = args[0].body.statements[0];
   var test = args[1].body.statements[0];
   var incr = args[2].body.statements[0];
@@ -1749,13 +1750,21 @@ macros.addMacro(['while'], function(basicExpression) {
 });
 
 var subExpression = exports.subExpression = function (statements) {
-  if (statements.length > 1) {
-    return new functionCall(block([], new Statements(statements)), []);
-  } else if (statements.length == 1) {
-    return statements[0];
-  } else {
-    return errors.addTermWithMessage(this, 'must have at least one expression');
-  }
+  return term(function () {
+    this.isSubExpression = true;
+    this.statements = statements;
+    this.generateJavaScript = function (buffer, scope) {
+      if (statements.length > 1) {
+        functionCall(block([], new Statements(this.statements)), []).generateJavaScript(buffer, scope);
+      } else if (this.statements.length == 1) {
+        buffer.write('(');
+        this.statements[0].generateJavaScript(buffer, scope);
+        buffer.write(')');
+      } else {
+        errors.addTermWithMessage(this, 'must have at least one expression');
+      }
+    };
+  });
 };
 
 var operator = expressionTerm('operator', function (op, args) {

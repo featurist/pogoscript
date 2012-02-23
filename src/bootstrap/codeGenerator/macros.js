@@ -1,5 +1,6 @@
 var cg = require('../../lib/codeGenerator');
 var _ = require('underscore');
+var errors = require('./errors.js');
 
 var macros = new cg.MacroDirectory();
 
@@ -69,11 +70,23 @@ var createForEach = function (name, arguments) {
 macros.addMacro(['for', 'each', 'in'], createForEach);
 
 macros.addMacro(['for'], function(name, arguments) {
-  var init = arguments[0].body.statements[0];
-  var test = arguments[1].body.statements[0];
-  var incr = arguments[2].body.statements[0];
+  if (!arguments[0] || !arguments[0].isSubExpression)
+    return errors.addTermWithMessage('expected (init. test. incr)');
+
+  var init = arguments[0].statements[0];
+  var test = arguments[0].statements[1];
+  var incr = arguments[0].statements[2];
+
+  if (!init)
+    return errors.addTermWithMessage(arguments[0], 'expected init, as in (n = 0. ...)');
+
+  if (!test)
+    return errors.addTermWithMessage(arguments[0], 'expected test, as in (... . n < 10. ...)');
+
+  if (!incr)
+    return errors.addTermWithMessage(arguments[0], 'expected incr, as in (... . ... . n = n + 1)');
   
-  return cg.forStatement(init, test, incr, arguments[3].body);
+  return cg.forStatement(init, test, incr, arguments[1].body);
 });
 
 macros.addMacro(['while'], function(name, arguments) {

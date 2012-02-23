@@ -92,7 +92,7 @@ spec 'complex expression'
         is function call
         function {is variable. variable ['a'. 'variable']}
         arguments []
-        optional arguments [{field ['port'], value {integer 80}}]
+        optional arguments [{field ['port']. value {integer 80}}]
       }
 
     spec 'with block after optional arguments'
@@ -109,7 +109,7 @@ spec 'complex expression'
                 }
             }
         ]
-        optional arguments [{field ['port'], value {integer 80}}]
+        optional arguments [{field ['port']. value {integer 80}}]
       }
 
   spec 'object operation -> expression'
@@ -130,7 +130,7 @@ spec 'complex expression'
         object {variable ['a']}
         name ['method']
         arguments [{integer 10}]
-        optional arguments [{field ['port'], value {integer 80}}]
+        optional arguments [{field ['port']. value {integer 80}}]
       }
 
     spec 'index'
@@ -245,7 +245,7 @@ spec 'complex expression'
         
         source {
           is block
-          parameters [{is parameter, expression {variable ['x']}}]
+          parameters [{is parameter. expression {variable ['x']}}]
         }
       }
     
@@ -261,7 +261,7 @@ spec 'complex expression'
         source {
           is block
           redefines self
-          parameters [{is parameter, expression {variable ['x']}}]
+          parameters [{is parameter. expression {variable ['x']}}]
           body {statements [{variable ['y']}]}
         }
       }
@@ -361,7 +361,7 @@ spec 'complex expression'
         
         source {
           is block
-          parameters [{is parameter, expression {variable ['x']}}]
+          parameters [{is parameter. expression {variable ['x']}}]
           body {statements [{variable ['x']}]}
         }
       }
@@ -376,10 +376,10 @@ spec 'complex expression'
         
         source {
           is block
-          parameters [{is parameter, expression {variable ['x']}}]
+          parameters [{is parameter. expression {variable ['x']}}]
           optional parameters [
-            {field ['port'], value {integer 80}}
-            {field ['name'], value @undefined}
+            {field ['port']. value {integer 80}}
+            {field ['name']. value @undefined}
           ]
           body {statements [{variable ['y']}]}
         }
@@ -395,7 +395,7 @@ spec 'complex expression'
         
         source {
           is block
-          parameters [{is parameter, expression {variable ['x']}}]
+          parameters [{is parameter. expression {variable ['x']}}]
           body {statements [{variable ['y']}]}
         }
       }

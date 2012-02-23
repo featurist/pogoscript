@@ -11,8 +11,14 @@ complex expression @expression =
 variable @name =
     cg: variable [name]
 
-id @name =
-    cg: identifier @name
+loc = {
+    first line 1
+    last line 1
+    first column 3
+    last column 8
+}
+
+id @name = cg: loc (cg: identifier @name) @loc
 
 spec 'operator expression'
     spec 'a'
@@ -97,7 +103,7 @@ spec 'operator expression'
                     
                 source {
                     is block
-                    parameters [{is parameter, expression {variable ['b']}}]
+                    parameters [{is parameter. expression {variable ['b']}}]
                     body {statements [{variable ['c']}]}
                 }
             }

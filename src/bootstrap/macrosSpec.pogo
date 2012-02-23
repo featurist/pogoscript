@@ -68,54 +68,54 @@ spec 'macros'
                 ]
             }
 
-        spec 'for'
-            (expression 'for @{n = 0} @{n < 10} @{n = n + 1} @{a}') should contain fields {
-                is for
-                initialization {
-                    is definition
-                    source {integer 0}
-                    target {variable ['n']}
-                }
-                test {
+    spec 'for'
+        (expression 'for (n = 0. n < 10. n = n + 1) @{a}') should contain fields {
+            is for
+            initialization {
+                is definition
+                source {integer 0}
+                target {variable ['n']}
+            }
+            test {
+                is operator
+                operator '<'
+                arguments [
+                    {variable ['n']}
+                    {integer 10}
+                ]
+            }
+            increment {
+                is definition
+                target {variable ['n']}
+                source {
                     is operator
-                    operator '<'
+                    operator '+'
                     arguments [
                         {variable ['n']}
-                        {integer 10}
+                        {integer 1}
                     ]
                 }
-                increment {
-                    is definition
-                    target {variable ['n']}
-                    source {
-                        is operator
-                        operator '+'
-                        arguments [
-                            {variable ['n']}
-                            {integer 1}
-                        ]
-                    }
-                }
             }
+        }
 
-        spec 'operators'
-          spec 'a + b'
-            (expression 'a + b') should contain fields {
-              is operator
-              operator '+'
-              arguments [
-                {variable ['a']}
-                {variable ['b']}
-              ]
-            }
-              
-          spec 'a + b + c'
-            (expression 'a + b + c') should contain fields {
-              is operator
-              operator '+'
-              arguments [
-                {variable ['a']}
-                {variable ['b']}
-                {variable ['c']}
-              ]
-            }
+    spec 'operators'
+      spec 'a + b'
+        (expression 'a + b') should contain fields {
+          is operator
+          operator '+'
+          arguments [
+            {variable ['a']}
+            {variable ['b']}
+          ]
+        }
+          
+      spec 'a + b + c'
+        (expression 'a + b + c') should contain fields {
+          is operator
+          operator '+'
+          arguments [
+            {variable ['a']}
+            {variable ['b']}
+            {variable ['c']}
+          ]
+        }

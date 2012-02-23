@@ -117,7 +117,12 @@ spec 'parser'
                         {string 'a boat '}
                         {
                             function {variable ['lookup'. 'boat'. 'length'. 'from']}
-                            arguments [{variable ['boat'. 'database']}]
+                            arguments [{
+                                is sub expression
+                                statements [
+                                    {variable ['boat'. 'database']}
+                                ]
+                            }]
                         }
                         {string ' meters in length'}
                     ]
@@ -162,22 +167,20 @@ spec 'parser'
 
         spec 'sub expressions'
             spec 'single expression'
-                (expression '(x)') should contain fields {variable ['x']}
+                (expression '(x)') should contain fields {
+                    is sub expression
+                    statements [
+                        {variable ['x']}
+                    ]
+                }
 
             spec 'two expressions'
                 (expression '(x. y)') should contain fields {
-                    is function call
-                    function {
-                        is block
-                        parameters []
-                        body {
-                            statements [
-                                {variable ['x']}
-                                {variable ['y']}
-                            ]
-                        }
-                    }
-                    arguments []
+                    is sub expression
+                    statements [
+                        {variable ['x']}
+                        {variable ['y']}
+                    ]
                 }
         
         spec 'lists'
