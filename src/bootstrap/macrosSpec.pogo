@@ -98,6 +98,24 @@ spec 'macros'
             }
         }
 
+    spec 'while'
+        (expression 'while (n < 10) @{n}') should contain fields {
+            is while
+            test {
+                is operator
+                operator '<'
+                arguments [
+                    {variable ['n']}
+                    {integer 10}
+                ]
+            }
+            statements {
+                statements [
+                    {variable ['n']}
+                ]
+            }
+        }
+
     spec 'operators'
       spec 'a + b'
         (expression 'a + b') should contain fields {

@@ -90,7 +90,7 @@ macros.addMacro(['for'], function(name, arguments) {
 });
 
 macros.addMacro(['while'], function(name, arguments) {
-  var test = arguments[0].body.statements[0];
+  var test = arguments[0].statements[0];
   var statements = arguments[1].body;
   
   return cg.whileStatement(test, statements);
