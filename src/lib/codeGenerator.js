@@ -916,6 +916,10 @@ var Statements = function (statements) {
       return b;
     };
 
+    this.scopify = function () {
+      return functionCall(block([], this), []);
+    };
+
     this.generateJavaScriptStatementsReturn = function (buffer, scope) {
       if (this.statements.length > 0) {
         this.generateStatements(this.statements.slice(0, this.statements.length - 1), buffer, scope);
@@ -958,7 +962,7 @@ var module = expressionTerm('module', function (statements) {
   
   this.generateJavaScript = function (buffer, scope) {
     var b = block([], this.statements, {returnLastStatement: false, redefinesSelf: true});
-    methodCall(subExpression(b), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
+    methodCall(subExpression([b]), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
   };
 });
 
@@ -1540,7 +1544,7 @@ var ifCases = expressionTerm('ifCases', function (cases, _else) {
   };
 
   this.generateJavaScript = function (buffer, scope) {
-    functionCall(subExpression(block([], statements([this]))), []).generateJavaScript(buffer, scope);
+    functionCall(subExpression([block([], statements([this]))]), []).generateJavaScript(buffer, scope);
   };
 
   this.generateJavaScriptReturn = function (buffer, scope) {
@@ -1569,7 +1573,7 @@ var ifExpression = expressionTerm('ifExpression', function (condition, then, _el
   };
   
   this.generateJavaScript = function (buffer, scope) {
-    functionCall(subExpression(block([], statements([this]))), []).generateJavaScript(buffer, scope);
+    functionCall(subExpression([block([], statements([this]))]), []).generateJavaScript(buffer, scope);
   };
   
   this.generateJavaScriptReturn = function (buffer, scope) {
@@ -1744,15 +1748,15 @@ macros.addMacro(['while'], function(basicExpression) {
   return whileStatement(test, statements);
 });
 
-var subExpression = expressionTerm('subExpression', function (expr) {
-  this.expression = expr;
-  
-  this.generateJavaScript = function(buffer, scope) {
-    buffer.write('(');
-    this.expression.generateJavaScript(buffer, scope);
-    buffer.write(')');
-  };
-});
+var subExpression = exports.subExpression = function (statements) {
+  if (statements.length > 1) {
+    return new functionCall(block([], new Statements(statements)), []);
+  } else if (statements.length == 1) {
+    return statements[0];
+  } else {
+    return errors.addTermWithMessage(this, 'must have at least one expression');
+  }
+};
 
 var operator = expressionTerm('operator', function (op, args) {
   this.isOperator = true;

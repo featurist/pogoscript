@@ -20,6 +20,7 @@ exports.parseRegExp = cg.parseRegExp;
 exports.module = cg.module;
 exports.interpolation = cg.interpolation;
 exports.list = cg.list;
+exports.subExpression = cg.subExpression;
 exports.fieldReference = cg.fieldReference;
 exports.hash = cg.hash;
 exports.noArgSuffix = cg.noArgSuffix;

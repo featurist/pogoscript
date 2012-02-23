@@ -159,6 +159,26 @@ spec 'parser'
                         {string ' in length'}
                     ]
                 }
+
+        spec 'sub expressions'
+            spec 'single expression'
+                (expression '(x)') should contain fields {variable ['x']}
+
+            spec 'two expressions'
+                (expression '(x. y)') should contain fields {
+                    is function call
+                    function {
+                        is block
+                        parameters []
+                        body {
+                            statements [
+                                {variable ['x']}
+                                {variable ['y']}
+                            ]
+                        }
+                    }
+                    arguments []
+                }
         
         spec 'lists'
             spec 'empty'

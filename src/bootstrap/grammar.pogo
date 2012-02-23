@@ -151,7 +151,7 @@ exports: grammar = {
             ['terminal'. '$$ = [$1];']
         ]
         terminal [
-            ['( statement )'. '$$ = $2;']
+            ['( statements_list )'. '$$ = yy.terms.subExpression($2);']
             ['#( statement )'. '$$ = yy.terms.parameter($2);']
             ['block_start statements }'. '$$ = yy.terms.loc(yy.terms.block([], $2), @$);']
             ['=> block_start statements }'. '$$ = yy.terms.loc(yy.terms.block([], $3, {redefinesSelf: true}), @$);']

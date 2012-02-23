@@ -2,17 +2,23 @@ require 'cupoftea'
 cg = require './codeGenerator/codeGenerator'
 require './assertions.pogo'
 
-expression @e =
-    cg: complex expression [e]: expression?
+require './parserAssertions.pogo'
 
-id @name = cg: identifier @name
+loc = {
+    first line 1
+    last line 1
+    first column 3
+    last column 8
+}
+
+id @name = cg: loc (cg: identifier @name) @loc
 variable @name = cg: variable [name]
 block @name = cg: block [] (cg: statements [variable @name])
 
 spec 'macros'
     spec 'if'
         spec 'if'
-            (expression [id 'if'. variable 'true'. block 'a']) should contain fields {
+            (expression 'if @true @{a}') should contain fields {
                 is if expression
                 cases [{
                     condition {variable ['true']}
@@ -21,7 +27,7 @@ spec 'macros'
             }
         
         spec 'if else'
-            (expression [id 'if'. variable 'true'. block 'a'. id 'else'. block 'b']) should contain fields {
+            (expression 'if @true @{a} else @{b}') should contain fields {
                 is if expression
                 _else {statements [{variable ['b']}]}
                 cases [{
@@ -31,7 +37,7 @@ spec 'macros'
             }
         
         spec 'if else if'
-            (expression [id 'if'. variable 'true'. block 'a'. id 'else'. id 'if'. variable 'false'. block 'b']) should contain fields {
+            (expression 'if @true @{a} else if @false @{b}') should contain fields {
                 is if expression
                 _else @undefined
                 cases [
@@ -47,7 +53,7 @@ spec 'macros'
             }
                 
         spec 'if else if else'
-            (expression [id 'if'. variable 'true'. block 'a'. id 'else'. id 'if'. variable 'false'. block 'b'. id 'else'. block 'c']) should contain fields {
+            (expression 'if @true @{a} else if @false @{b} else @{c}') should contain fields {
                 is if expression
                 _else {statements [{variable ['c']}]}
                 cases [
@@ -62,12 +68,39 @@ spec 'macros'
                 ]
             }
 
+        spec 'for'
+            (expression 'for @{n = 0} @{n < 10} @{n = n + 1} @{a}') should contain fields {
+                is for
+                initialization {
+                    is definition
+                    source {integer 0}
+                    target {variable ['n']}
+                }
+                test {
+                    is operator
+                    operator '<'
+                    arguments [
+                        {variable ['n']}
+                        {integer 10}
+                    ]
+                }
+                increment {
+                    is definition
+                    target {variable ['n']}
+                    source {
+                        is operator
+                        operator '+'
+                        arguments [
+                            {variable ['n']}
+                            {integer 1}
+                        ]
+                    }
+                }
+            }
+
         spec 'operators'
           spec 'a + b'
-            op = cg: operator expression (cg: complex expression [[id 'a']])
-            op: add operator '+' expression (cg: complex expression [[id 'b']])
-            
-            (op: expression?) should contain fields {
+            (expression 'a + b') should contain fields {
               is operator
               operator '+'
               arguments [
@@ -77,11 +110,7 @@ spec 'macros'
             }
               
           spec 'a + b + c'
-            op = cg: operator expression (cg: complex expression [[id 'a']])
-            op: add operator '+' expression (cg: complex expression [[id 'b']])
-            op: add operator '+' expression (cg: complex expression [[id 'c']])
-            
-            (op: expression?) should contain fields {
+            (expression 'a + b + c') should contain fields {
               is operator
               operator '+'
               arguments [
