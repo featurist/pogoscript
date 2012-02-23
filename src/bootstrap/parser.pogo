@@ -30,15 +30,37 @@ exports: write parser to file @f =
 
 exports: lex @source =
     tokens = []
-    token = undefined
+    token index = undefined
     lexer = create dynamic lexer, next lexer (jison lexer), source @source
     parser context = create parser context, terms @terms
     parser context: lexer = lexer
     jison lexer: yy = parser context
     
-    token = lexer: lex!
-    while @{token != 1}
-        tokens: push ([lexer: yytext. parser: terminals_: @token. token])
-        token = lexer: lex!
+    token index = lexer: lex!
+    while @{token index != 1}
+        token =
+            if (typeof (token index) == 'number')
+                parser: terminals_: (token index)
+            else if (token index == '')
+                undefined
+            else
+                token index
+
+        text =
+            if (lexer: yytext == '')
+                undefined
+            else if (lexer: yytext == token)
+                undefined
+            else
+                lexer: yytext
+
+        lexer token =
+            if @text
+                [token. text]
+            else
+                [token]
+
+        tokens: push (lexer token)
+        token index = lexer: lex!
 
     tokens

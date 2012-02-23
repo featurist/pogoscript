@@ -61,7 +61,7 @@
         gen2_items = tokens;
         for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
             token = gen2_items[gen3_i];
-            console.log("<" + token + ">");
+            console.log("<" + token[0] + ">", token[1]);
         }
     };
     jsFilenameFromPogoFilename = function(pogo) {

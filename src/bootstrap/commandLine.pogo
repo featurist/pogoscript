@@ -42,9 +42,9 @@ when @filename changes @act =
 :lex file @filename =
     source = fs: read file sync @filename 'utf-8'
     tokens = parser: lex @source
-    
+
     for each #token in @tokens
-        console: log "<@token>"
+        console: log "<@(token: 0)>" (token: 1)
 
 js filename from pogo filename @pogo =
     pogo: replace `\.pogo$` '' + '.js'

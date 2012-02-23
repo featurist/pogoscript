@@ -2,28 +2,7 @@ require 'cupoftea'
 require './assertions.pogo'
 
 parser = require './parser.pogo'
-parse = parser: parse
-
-assume @term is module with statements @action =
-    if (term: is module)
-        action (term: statements)
-    else
-        throw (new (Error ('expected module, but found ' + term)))
-
-assume @statements has just one statement @action =
-    if (statements: statements: length == 1)
-        action (statements: statements: 0)
-    else
-        throw (new (Error ('expected statements to have just one statement, found ' + statements: statements: length)))
-
-expression @source =
-    assume (statements @source) has just one statement #statement
-        statement
-
-statements @source =
-    term = parse @source
-    assume @term is module with statements #statements
-        statements
+require './parserAssertions.pogo'
 
 spec 'parser'
     spec 'terminals'
@@ -43,7 +22,7 @@ spec 'parser'
                     variable ['total'. 'weight']
                 }
 
-            spec '$'
+            spec 'can use $ as a variable'
                 (expression '$') should contain fields {
                     variable ['$']
                 }
@@ -812,9 +791,10 @@ spec 'parser'
                 }
 
     spec 'lexer'
-        tokens = parser: lex 'a b'
+        tokens = parser: lex 'a @b'
         @tokens should contain fields [
-            ['a'. 'identifier'. 51]
-            ['b'. 'identifier'. 51]
-            [''. undefined. 'eof']
+            ['identifier'. 'a']
+            ['@']
+            ['identifier'. 'b']
+            ['eof']
         ]

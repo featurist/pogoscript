@@ -14,24 +14,20 @@ spec 'macros'
         spec 'if'
             (expression [id 'if'. variable 'true'. block 'a']) should contain fields {
                 is if expression
-                cases [
-                    {
-                        condition {variable ['true']}
-                        action {statements [{variable ['a']}]}
-                    }
-                ]
+                cases [{
+                    condition {variable ['true']}
+                    action {statements [{variable ['a']}]}
+                }]
             }
         
         spec 'if else'
             (expression [id 'if'. variable 'true'. block 'a'. id 'else'. block 'b']) should contain fields {
                 is if expression
                 _else {statements [{variable ['b']}]}
-                cases [
-                    {
-                        condition {variable ['true']}
-                        action {statements [{variable ['a']}]}
-                    }
-                ]
+                cases [{
+                    condition {variable ['true']}
+                    action {statements [{variable ['a']}]}
+                }]
             }
         
         spec 'if else if'
