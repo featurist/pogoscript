@@ -42,7 +42,7 @@ when @filename changes @act =
 :lex file @filename =
     source = fs: read file sync @filename 'utf-8'
     tokens = parser: lex @source
-    
+
     for each #token in @tokens
         console: log "<@token>"
 
