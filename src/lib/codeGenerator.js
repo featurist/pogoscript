@@ -1756,6 +1756,14 @@ var subExpression = exports.subExpression = function (statements) {
 
     this.subterms('statements');
 
+    this.parameter = function () {
+      if (this.statements.length == 1) {
+        return this.statements[0].parameter();
+      } else {
+        return errors.addTermWithMessage(this, 'this cannot be used as a parameter');
+      }
+    };
+
     this.generateJavaScript = function (buffer, scope) {
       if (statements.length > 1) {
         functionCall(block([], new Statements(this.statements)), []).generateJavaScript(buffer, scope);
