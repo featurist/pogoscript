@@ -31,7 +31,7 @@ exports: create indent stack = create indent stack! =
             tokens = []
             indents = :indents: length
 
-            while @{indents > 1}
+            while (indents > 1)
                 tokens: push '}'
                 indents = indents - 1
             
@@ -52,7 +52,7 @@ exports: create indent stack = create indent stack! =
             else
                 tokens = []
                 
-                while @{:indents: 0 > indentation}
+                while (:indents: 0 > indentation)
                     tokens: push '}'
                     :indents: shift!
                 

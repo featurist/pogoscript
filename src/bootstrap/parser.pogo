@@ -37,7 +37,7 @@ exports: lex @source =
     jison lexer: yy = parser context
     
     token index = lexer: lex!
-    while @{token index != 1}
+    while (token index != 1)
         token =
             if (typeof (token index) == 'number')
                 parser: terminals_: (token index)
