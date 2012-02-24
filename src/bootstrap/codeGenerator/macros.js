@@ -55,7 +55,15 @@ var matchIfMacro = function (name) {
 macros.addWildCardMacro(['if'], matchIfMacro);
 
 macros.addMacro(['new'], function(name, arguments) {
-  return cg.newOperator(arguments[0]);
+  var constructor;
+
+  if (arguments[0].isSubExpression) {
+    constructor = arguments[0].statements[0];
+  } else {
+    constructor = arguments[0];
+  }
+
+  return cg.newOperator(constructor);
 });
 
 var createForEach = function (name, arguments) {
@@ -90,7 +98,12 @@ macros.addMacro(['for'], function(name, arguments) {
 });
 
 macros.addMacro(['while'], function(name, arguments) {
-  var test = arguments[0].statements[0];
+  var test;
+  if (arguments[0].isSubExpression) {
+      test = arguments[0].statements[0];
+  } else {
+      test = arguments[0].body.statements[0];
+  }
   var statements = arguments[1].body;
   
   return cg.whileStatement(test, statements);

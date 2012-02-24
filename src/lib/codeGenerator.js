@@ -1753,6 +1753,9 @@ var subExpression = exports.subExpression = function (statements) {
   return term(function () {
     this.isSubExpression = true;
     this.statements = statements;
+
+    this.subterms('statements');
+
     this.generateJavaScript = function (buffer, scope) {
       if (statements.length > 1) {
         functionCall(block([], new Statements(this.statements)), []).generateJavaScript(buffer, scope);

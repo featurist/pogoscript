@@ -116,6 +116,33 @@ spec 'macros'
             }
         }
 
+    spec 'new'
+        spec 'constructor with arguments'
+            (expression 'new (Date 2011 2 21)') should contain fields {
+                is new operator
+                function call {
+                    is function call
+                    function {variable ['Date']}
+                    arguments [
+                        {integer 2011}
+                        {integer 2}
+                        {integer 21}
+                    ]
+                }
+            }
+
+        spec 'constructor without arguments'
+            (expression 'new (Date)') should contain fields {
+                is new operator
+                function call {variable ['Date']}
+            }
+
+        spec 'constructor without arguments, just variable'
+            (expression 'new @Date') should contain fields {
+                is new operator
+                function call {variable ['Date']}
+            }
+
     spec 'operators'
       spec 'a + b'
         (expression 'a + b') should contain fields {
