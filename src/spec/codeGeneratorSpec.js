@@ -596,6 +596,43 @@ spec('code generator', function () {
       generatesExpression(m, '(function(){if(obj){return stuff;}else{return otherStuff;}})()');
     });
   });
+
+  spec('try', function () {
+    spec('try catch', function () {
+      var t = cg.tryStatement(
+        cg.statements([cg.variable(['a'])]),
+        cg.block(
+          [cg.parameter(cg.variable(['ex']))],
+          cg.statements([cg.variable(['b'])])
+        )
+      );
+
+      generatesExpression(t, 'try{a;}catch(ex){b;}');
+    });
+
+    spec('try catch finally', function () {
+      var t = cg.tryStatement(
+        cg.statements([cg.variable(['a'])]),
+        cg.block(
+          [cg.parameter(cg.variable(['ex']))],
+          cg.statements([cg.variable(['b'])])
+        ),
+        cg.statements([cg.variable(['c'])])
+      );
+
+      generatesExpression(t, 'try{a;}catch(ex){b;}finally{c;}');
+    });
+
+    spec('try finally', function () {
+      var t = cg.tryStatement(
+        cg.statements([cg.variable(['a'])]),
+        undefined,
+        cg.statements([cg.variable(['b'])])
+      );
+
+      generatesExpression(t, 'try{a;}finally{b;}');
+    });
+  });
   
   spec('list', function() {
     spec('with one element', function() {

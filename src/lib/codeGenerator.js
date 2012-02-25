@@ -832,24 +832,6 @@ var expressionStatements = function (statements) {
   return objectExtending(statements, function () {
     this.isExpressionStatements = true;
   });
-  
-  /*
-  return term(function () {
-    this.expressionStatements = statements;
-    
-    this.generateJavaScript = function (buffer, scope) {
-      this.expressionStatements.generateJavaScript(buffer, scope);
-    };
-    
-    this.generateJavaScriptStatement = function (buffer, scope) {
-      this.expressionStatements.generateJavaScriptStatement(buffer, scope);
-    };
-    
-    this.generateJavaScriptReturn = function (buffer, scope) {
-      this.expressionStatements.generateJavaScriptReturn(buffer, scope);
-    };
-  });
-  */
 };
 
 var Statements = function (statements) {
@@ -1773,6 +1755,33 @@ var subExpression = exports.subExpression = function (statements) {
         buffer.write(')');
       } else {
         errors.addTermWithMessage(this, 'must have at least one expression');
+      }
+    };
+  });
+};
+
+var tryStatement = exports.tryStatement = function (body, catchBody, finallyBody) {
+  return term(function () {
+    this.isTryStatement = true;
+    this.body = body;
+    this.catchBody = catchBody;
+    this.finallyBody = finallyBody;
+
+    this.generateJavaScript = function (buffer, scope) {
+      buffer.write('try{');
+      this.body.generateJavaScriptStatements(buffer, scope);
+      buffer.write('}');
+      if (this.catchBody) {
+        buffer.write('catch(');
+        this.catchBody.parameters[0].generateJavaScript(buffer, scope);
+        buffer.write('){');
+        this.catchBody.body.generateJavaScriptStatements(buffer, scope);
+        buffer.write('}');
+      }
+      if (this.finallyBody) {
+        buffer.write('finally{');
+        this.finallyBody.generateJavaScriptStatements(buffer, scope);
+        buffer.write('}');
       }
     };
   });

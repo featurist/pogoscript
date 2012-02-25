@@ -137,4 +137,16 @@ macros.addMacro(['continue'], function(name, arguments) {
   return cg.continueStatement();
 });
 
+macros.addMacro(['try', 'catch'], function (name, arguments) {
+  return cg.tryStatement(arguments[0].body, arguments[1]);
+});
+
+macros.addMacro(['try', 'catch', 'finally'], function (name, arguments) {
+  return cg.tryStatement(arguments[0].body, arguments[1], arguments[2].body);
+});
+
+macros.addMacro(['try', 'finally'], function (name, arguments) {
+  return cg.tryStatement(arguments[0].body, undefined, arguments[1].body);
+});
+
 module.exports = macros;

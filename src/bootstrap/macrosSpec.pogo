@@ -116,6 +116,67 @@ spec 'macros'
             }
         }
 
+    spec 'try'
+        spec 'try catch'
+            (expression 'try @{a} catch #ex @{b}') should contain fields {
+                is try statement
+                body {
+                    statements [
+                        {variable ['a']}
+                    ]
+                }
+                catch body {
+                    is block
+                    parameters [{is parameter. expression {variable ['ex']}}]
+                    body {
+                        statements [
+                            {variable ['b']}
+                        ]
+                    }
+                }
+                finally body @undefined
+            }
+
+        spec 'try finally'
+            (expression 'try @{a} finally @{b}') should contain fields {
+                is try statement
+                body {
+                    statements [
+                        {variable ['a']}
+                    ]
+                }
+                catch body @undefined
+                finally body {
+                    statements [
+                        {variable ['b']}
+                    ]
+                }
+            }
+
+        spec 'try catch finally'
+            (expression 'try @{a} catch #ex @{b} finally @{c}') should contain fields {
+                is try statement
+                body {
+                    statements [
+                        {variable ['a']}
+                    ]
+                }
+                catch body {
+                    is block
+                    parameters [{is parameter. expression {variable ['ex']}}]
+                    body {
+                        statements [
+                            {variable ['b']}
+                        ]
+                    }
+                }
+                finally body {
+                    statements [
+                        {variable ['c']}
+                    ]
+                }
+            }
+
     spec 'new'
         spec 'constructor with arguments'
             (expression 'new (Date 2011 2 21)') should contain fields {
