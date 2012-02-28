@@ -743,7 +743,7 @@ spec 'parser'
     
     spec 'comments'
         spec 'should allow one-line C++ style comments, as in: // this is a comment'
-            spec 'when between lines'
+            spec 'when at the end of a line'
                 (statements "a // this is a comment\nb") should contain fields {
                     is statements
                     statements [
@@ -777,6 +777,15 @@ spec 'parser'
                     ]
                 }
 
+            spec 'when between lines'
+                (statements "a\n// this is a comment\nb") should contain fields {
+                    is statements
+                    statements [
+                        {variable ['a']}
+                        {variable ['b']}
+                    ]
+                }
+
         spec 'should allow multi-line C style comments, as in: /* this is a comment */'
             spec 'when on one line'
                 (statements "a /* comment */ b") should contain fields {
@@ -789,6 +798,15 @@ spec 'parser'
                 (statements "a /* comment */ b /* another comment */ c") should contain fields {
                     statements [
                         {variable ['a'. 'b'. 'c']}
+                    ]
+                }
+
+            spec 'when between lines'
+                (statements "a\n/* comment */\nb\n/* another comment */\nc") should contain fields {
+                    statements [
+                        {variable ['a']}
+                        {variable ['b']}
+                        {variable ['c']}
                     ]
                 }
 

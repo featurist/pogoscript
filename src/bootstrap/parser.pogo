@@ -19,9 +19,18 @@ create parser! =
     
     parser
 
+@s without c style comments =
+    s: replace `/\*([^*](\*[^/]|))*(\*/|$)`gm ''
+
+@s without c plus plus style comments =
+    s: replace `//[^\n]*`gm ''
+
+@s without comments =
+    (@s without c plus plus style comments) without c style comments
+
 exports: parse @source =
     parser = create parser!
-    parser: parse @source
+    parser: parse (@source without comments)
 
 exports: write parser to file @f =
     parser source = create parser? : generate?
