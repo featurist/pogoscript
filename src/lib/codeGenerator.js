@@ -29,6 +29,9 @@ var ExpressionPrototype = new function () {
   };
   this.definitionName = function(scope) {
   };
+  this.arguments = function () {
+    return this;
+  };
   this.inspectTerm = function () {
     return util.inspect(this, false, 10);
   };
@@ -158,9 +161,14 @@ var expressionTerm = function (name, constructor) {
 var semanticFailure = require('./semanticFailure');
 
 exports.identifier = function (name) {
-  return {
-    identifier: name
-  };
+  return term(function () {
+    this.isIdentifier = true;
+    this.identifier = name;
+    
+    this.arguments = function () {
+      return [];
+    };
+  });
 };
 
 var integer = expressionTerm('integer', function (value, location) {
@@ -359,13 +367,23 @@ var selfExpression = exports.selfExpression = function () {
   return variable(['self'], {shadow: true});
 };
 
-var noArgSuffix = expressionTerm('noArgSuffix', function () {
+var noArgSuffix = exports.noArgSuffix = function () {
+  return term(function () {
     this.noArgumentFunctionCallSuffix = true;
-});
+    
+    this.arguments = function () {
+      return [];
+    };
+  });
+};
 
 var parameter = expressionTerm('parameter', function (expression) {
   this.expression = expression;
   this.isParameter = true;
+  
+  this.arguments = function () {
+    return [];
+  };
   
   this.generateJavaScript = function (buffer, scope) {
     this.expression.generateJavaScriptParameter(buffer, scope);
@@ -1743,6 +1761,14 @@ var subExpression = exports.subExpression = function (statements) {
         return this.statements[0].parameter();
       } else {
         return errors.addTermWithMessage(this, 'this cannot be used as a parameter');
+      }
+    };
+    
+    this.arguments = function () {
+      if (this.statements.length > 1) {
+        return this;
+      } else {
+        return this.statements[0];
       }
     };
 

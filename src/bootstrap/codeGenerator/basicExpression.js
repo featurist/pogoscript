@@ -37,9 +37,9 @@ module.exports = function (terminals) {
         return this._arguments;
       } else {
         this._buildBlocks();
-        return this._arguments = _(this.terminals).filter(function (terminal) {
-          return !terminal.identifier && !terminal.noArgumentFunctionCallSuffix && !terminal.isParameter;
-        });
+        return this._arguments = _((this.terminals).map(function (terminal) {
+          return terminal.arguments();
+        })).flatten();
       }
     };
 
