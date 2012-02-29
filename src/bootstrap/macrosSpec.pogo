@@ -18,7 +18,7 @@ block @name = cg: block [] (cg: statements [variable @name])
 spec 'macros'
     spec 'if'
         spec 'if'
-            (expression 'if @true @{a}') should contain fields {
+            (expression 'if (true) @{a}') should contain fields {
                 is if expression
                 cases [{
                     condition {variable ['true']}
@@ -27,7 +27,7 @@ spec 'macros'
             }
         
         spec 'if else'
-            (expression 'if @true @{a} else @{b}') should contain fields {
+            (expression 'if (true) @{a} else @{b}') should contain fields {
                 is if expression
                 _else {statements [{variable ['b']}]}
                 cases [{
@@ -37,7 +37,7 @@ spec 'macros'
             }
         
         spec 'if else if'
-            (expression 'if @true @{a} else if @false @{b}') should contain fields {
+            (expression 'if (true) @{a} else if (false) @{b}') should contain fields {
                 is if expression
                 _else @undefined
                 cases [
@@ -53,7 +53,7 @@ spec 'macros'
             }
                 
         spec 'if else if else'
-            (expression 'if @true @{a} else if @false @{b} else @{c}') should contain fields {
+            (expression 'if (true) @{a} else if (false) @{b} else @{c}') should contain fields {
                 is if expression
                 _else {statements [{variable ['c']}]}
                 cases [
@@ -118,7 +118,7 @@ spec 'macros'
 
     spec 'try'
         spec 'try catch'
-            (expression 'try @{a} catch #ex @{b}') should contain fields {
+            (expression 'try @{a} catch @(ex) @{b}') should contain fields {
                 is try statement
                 body {
                     statements [
@@ -154,7 +154,7 @@ spec 'macros'
             }
 
         spec 'try catch finally'
-            (expression 'try @{a} catch #ex @{b} finally @{c}') should contain fields {
+            (expression 'try @{a} catch @(ex) @{b} finally @{c}') should contain fields {
                 is try statement
                 body {
                     statements [
@@ -199,7 +199,7 @@ spec 'macros'
             }
 
         spec 'constructor without arguments, just variable'
-            (expression 'new @Date') should contain fields {
+            (expression 'new (Date)') should contain fields {
                 is new operator
                 function call {variable ['Date']}
             }

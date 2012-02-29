@@ -321,21 +321,9 @@ spec 'parser'
 
     spec 'function calls'
         spec 'function call'
-            (expression 'touch @ file') should contain fields {
+            (expression 'touch (file)') should contain fields {
                 function {variable ['touch']}
                 arguments [{variable ['file']}]
-            }
-
-        spec 'function call with self argument'
-            (expression 'touch @: file') should contain fields {
-                function {variable ['touch']}
-                arguments [
-                    {
-                        is field reference
-                        object {variable ['self']}
-                        name ['file']
-                    }
-                ]
             }
 
         spec 'function call with splat argument'
@@ -354,7 +342,7 @@ spec 'parser'
             }
 
         spec 'function call with block with parameters'
-            (expression "with file (file) #stream\n  stream") should contain fields {
+            (expression "with file (file) \@(stream)\n  stream") should contain fields {
                 function {variable ['with'. 'file']}
                 arguments [
                     {variable ['file']}
@@ -369,7 +357,7 @@ spec 'parser'
             }
 
         spec 'function call with block with long parameters'
-            (expression "open database #(database connection)\n  database connection") should contain fields {
+            (expression "open database \@(database connection)\n  database connection") should contain fields {
                 function {variable ['open'. 'database']}
                 arguments [
                     {
@@ -385,7 +373,7 @@ spec 'parser'
             }
 
         spec 'function call with two blocks with parameters'
-            (expression 'name #x @{x} #y @ {y}') should contain fields {
+            (expression 'name @(x) @{x} @ (y) @ {y}') should contain fields {
                 function {variable ['name']}
                 arguments [
                     {
@@ -504,7 +492,7 @@ spec 'parser'
             }
 
         spec 'block with parameter'
-            (expression "#x\n  x.y") should contain fields {
+            (expression "\@(x)\n  x.y") should contain fields {
                 is block
                 parameters [{is parameter. expression {variable ['x']}}]
                 redefines self (false)
@@ -517,7 +505,7 @@ spec 'parser'
             }
 
         spec 'block with parameter, redefining self'
-            (expression '#x => @{x.y}') should contain fields {
+            (expression '@(x) => @{x.y}') should contain fields {
                 is block
                 parameters [{is parameter. expression {variable ['x']}}]
                 redefines self (true)

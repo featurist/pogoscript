@@ -7,7 +7,6 @@ exports: grammar = {
         rules [
             ['\s*$'. 'return yy.eof();']
             ['\(\s*'. 'yy.setIndentation(yytext); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.openBracket()} return "(";']
-            ['#\(\s*'. 'yy.setIndentation(yytext); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.openBracket()} return "#(";']
             ['\s*\)'. 'yy.unsetIndentation(); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.closeBracket(); if (yy.terms.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.terms.interpolation.stopInterpolation()}} return '')'';']
             ['{\s*'. 'yy.setIndentation(yytext); return ''{'';']
             ['\s*}'. 'yy.unsetIndentation(); return ''}'';']
@@ -158,7 +157,7 @@ exports: grammar = {
         ]
         terminal [
             ['( arguments_list )'. '$$ = yy.terms.loc(yy.terms.argumentList(yy.terms.normaliseArguments($2)), @$);']
-            ['#( statement )'. '$$ = yy.terms.parameter($2);']
+            ['@ ( statement )'. '$$ = yy.terms.parameter($3);']
             ['block_start statements }'. '$$ = yy.terms.loc(yy.terms.block([], $2), @$);']
             ['=> block_start statements }'. '$$ = yy.terms.loc(yy.terms.block([], $3, {redefinesSelf: true}), @$);']
             ['[ statements_list ]'. '$$ = yy.terms.loc(yy.terms.list($2), @$);']
@@ -166,7 +165,6 @@ exports: grammar = {
             ['float'. '$$ = yy.terms.loc(yy.terms.float(parseFloat(yytext)), @$);']
             ['integer'. '$$ = yy.terms.loc(yy.terms.integer(parseInt(yytext)), @$);']
             ['identifier'. '$$ = yy.terms.loc(yy.terms.identifier(yytext), @$);']
-            ['# identifier'. '$$ = yy.terms.loc(yy.terms.parameter(yy.terms.variable([$2])), @$);']
             ['string'. '$$ = yy.terms.loc(yy.terms.string(yy.terms.unindent(@$.first_column + 1, yy.terms.normaliseString(yytext))), @$);']
             ['reg_exp'. '$$ = yy.terms.loc(yy.terms.regExp(yy.terms.parseRegExp(yy.terms.unindent(@$.first_column + 1, yytext))), @$);']
             ['interpolated_string'. '$$ = yy.terms.loc($1, @$);']
