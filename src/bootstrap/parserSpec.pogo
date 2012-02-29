@@ -166,7 +166,7 @@ spec 'parser'
 
             spec 'two expressions'
                 (expression '(x. y)') should contain fields {
-                    is sub expression
+                    is scope
                     statements [
                         {variable ['x']}
                         {variable ['y']}

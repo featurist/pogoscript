@@ -64,6 +64,14 @@ exports: grammar = {
             ['statement'. '$$ = [$1];']
             [''. '$$ = [];']
         ]
+        arguments_list [
+            ['arguments_list , expression_list'. '$1.push($3); $$ = $1;']
+            ['expression_list'. '$$ = [$1];']
+        ]
+        expression_list [
+            ['expression_list . statement'. '$1.push($3); $$ = $1;']
+            ['statement'. '$$ = [$1];']
+        ]
         list_statements_list [
             ['list_statements_list comma_dot list_statement'. '$1.push($3); $$ = $1;']
             ['list_statement'. '$$ = [$1];']
@@ -149,7 +157,7 @@ exports: grammar = {
             ['terminal'. '$$ = [$1];']
         ]
         terminal [
-            ['( statements_list )'. '$$ = yy.terms.loc(yy.terms.subExpression($2), @$);']
+            ['( arguments_list )'. '$$ = yy.terms.loc(yy.terms.argumentList(yy.terms.normaliseArguments($2)), @$);']
             ['#( statement )'. '$$ = yy.terms.parameter($2);']
             ['block_start statements }'. '$$ = yy.terms.loc(yy.terms.block([], $2), @$);']
             ['=> block_start statements }'. '$$ = yy.terms.loc(yy.terms.block([], $3, {redefinesSelf: true}), @$);']
@@ -158,8 +166,6 @@ exports: grammar = {
             ['float'. '$$ = yy.terms.loc(yy.terms.float(parseFloat(yytext)), @$);']
             ['integer'. '$$ = yy.terms.loc(yy.terms.integer(parseInt(yytext)), @$);']
             ['identifier'. '$$ = yy.terms.loc(yy.terms.identifier(yytext), @$);']
-            ['@ identifier'. '$$ = yy.terms.loc(yy.terms.variable([$2]), @$);']
-            ['@: identifier'. '$$ = yy.terms.loc(yy.terms.fieldReference(yy.terms.variable([''self'']), [$2]), @$);']
             ['# identifier'. '$$ = yy.terms.loc(yy.terms.parameter(yy.terms.variable([$2])), @$);']
             ['string'. '$$ = yy.terms.loc(yy.terms.string(yy.terms.unindent(@$.first_column + 1, yy.terms.normaliseString(yytext))), @$);']
             ['reg_exp'. '$$ = yy.terms.loc(yy.terms.regExp(yy.terms.parseRegExp(yy.terms.unindent(@$.first_column + 1, yytext))), @$);']

@@ -962,7 +962,7 @@ var module = expressionTerm('module', function (statements) {
   
   this.generateJavaScript = function (buffer, scope) {
     var b = block([], this.statements, {returnLastStatement: false, redefinesSelf: true});
-    methodCall(subExpression([b]), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
+    methodCall(subExpression(b), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
   };
 });
 
@@ -1544,7 +1544,7 @@ var ifCases = expressionTerm('ifCases', function (cases, _else) {
   };
 
   this.generateJavaScript = function (buffer, scope) {
-    functionCall(subExpression([block([], statements([this]))]), []).generateJavaScript(buffer, scope);
+    functionCall(subExpression(block([], statements([this]))), []).generateJavaScript(buffer, scope);
   };
 
   this.generateJavaScriptReturn = function (buffer, scope) {
@@ -1573,7 +1573,7 @@ var ifExpression = expressionTerm('ifExpression', function (condition, then, _el
   };
   
   this.generateJavaScript = function (buffer, scope) {
-    functionCall(subExpression([block([], statements([this]))]), []).generateJavaScript(buffer, scope);
+    functionCall(subExpression(block([], statements([this]))), []).generateJavaScript(buffer, scope);
   };
   
   this.generateJavaScriptReturn = function (buffer, scope) {
@@ -1749,39 +1749,53 @@ macros.addMacro(['while'], function(basicExpression) {
   return whileStatement(test, statements);
 });
 
-var subExpression = exports.subExpression = function (statements) {
+var scope = exports.scope = function (stmts) {
+  return term(function () {
+    this.isScope = true;
+    this.statements = stmts;
+    
+    this.generateJavaScript = function (buffer, scope) {
+      functionCall(block([], statements(this.statements)), []).generateJavaScript(buffer, scope);
+    };
+  });
+}
+
+var normaliseArguments = exports.normaliseArguments = function (args) {
+  return _(args).map(function (arg) {
+    if (arg.length == 1) {
+      return arg;
+    } else if (arg.length > 1) {
+      return scope(arg);
+    } else {
+      throw new Error("this shouldn't happen!")
+    }
+  });
+};
+
+var subExpression = exports.subExpression = function (expression) {
   return term(function () {
     this.isSubExpression = true;
-    this.statements = statements;
+    this.expression = expression;
 
-    this.subterms('statements');
-
-    this.parameter = function () {
-      if (this.statements.length == 1) {
-        return this.statements[0].parameter();
-      } else {
-        return errors.addTermWithMessage(this, 'this cannot be used as a parameter');
-      }
-    };
-    
-    this.arguments = function () {
-      if (this.statements.length > 1) {
-        return this;
-      } else {
-        return this.statements[0];
-      }
-    };
+    this.subterms('expression');
 
     this.generateJavaScript = function (buffer, scope) {
-      if (statements.length > 1) {
-        functionCall(block([], new Statements(this.statements)), []).generateJavaScript(buffer, scope);
-      } else if (this.statements.length == 1) {
-        buffer.write('(');
-        this.statements[0].generateJavaScript(buffer, scope);
-        buffer.write(')');
-      } else {
-        errors.addTermWithMessage(this, 'must have at least one expression');
-      }
+      buffer.write('(');
+      this.expression.generateJavaScript(buffer, scope);
+      buffer.write(')');
+    };
+  });
+};
+
+var argumentList = exports.argumentList = function (args) {
+  return term(function () {
+    this.isArgumentList = true;
+    this.args = args;
+
+    this.subterms('args');
+    
+    this.arguments = function () {
+      return this.args;
     };
   });
 };

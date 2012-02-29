@@ -69,7 +69,7 @@ spec 'macros'
             }
 
     spec 'for'
-        (expression 'for (n = 0. n < 10. n = n + 1) @{a}') should contain fields {
+        (expression 'for (n = 0, n < 10, n = n + 1) @{a}') should contain fields {
             is for
             initialization {
                 is definition
