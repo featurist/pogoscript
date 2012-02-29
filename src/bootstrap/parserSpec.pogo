@@ -187,7 +187,25 @@ spec 'parser'
                 }
             
             spec 'two items'
-                (expression '[1. 2]') should contain fields {
+                (expression '[1, 2]') should contain fields {
+                    is list
+                    items [
+                        {integer 1}
+                        {integer 2}
+                    ]
+                }
+            
+            spec 'two items separated by newlines'
+                (expression "[\n  1\n  2\n]") should contain fields {
+                    is list
+                    items [
+                        {integer 1}
+                        {integer 2}
+                    ]
+                }
+            
+            spec 'two items separated by dots'
+                (expression "[1. 2]") should contain fields {
                     is list
                     items [
                         {integer 1}

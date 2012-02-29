@@ -60,7 +60,7 @@ exports: grammar = {
             [','. '$$ = $1;']
         ]
         statements_list [
-            ['statements_list . statement'. '$1.push($3); $$ = $1;']
+            ['statements_list comma_dot statement'. '$1.push($3); $$ = $1;']
             ['statement'. '$$ = [$1];']
             [''. '$$ = [];']
         ]
