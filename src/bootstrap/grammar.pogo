@@ -17,7 +17,7 @@ exports: grammar = {
             [' +'. '/* ignore whitespace */']
             ['[0-9]+\.[0-9]+'. 'return ''float'';']
             ['[0-9]+'. 'return ''integer'';']
-            ['([:=,?!.@~#%^&*+<>/?\\|-])+'. 'return yy.terms.lexOperator(yytext);']
+            ['([:;=,?!.@~#%^&*+<>/?\\|-])+'. 'return yy.terms.lexOperator(yytext);']
             [identifier pattern. 'return ''identifier'';']
             ['$'. 'return ''eof'';']
             ['''([^'']*'''')*[^'']*'''. 'return ''string'';']
@@ -124,7 +124,7 @@ exports: grammar = {
             ['list_basic_expression'. '$$ = yy.terms.complexExpression($1);']
         ]
         basic_expression_list [
-            ['basic_expression_list , terminal_list'. '$1.push($3); $$ = $1;']
+            ['basic_expression_list ; terminal_list'. '$1.push($3); $$ = $1;']
             ['terminal_list_no_arg'. '$$ = [$1];']
         ]
         list_basic_expression [

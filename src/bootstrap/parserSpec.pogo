@@ -255,7 +255,7 @@ spec 'parser'
                 }
                     
             spec 'should allow methods to be defined, redefining self'
-                (expression '{say hi to (name), greeting = print (name)}') should contain fields {
+                (expression '{say hi to (name); greeting = print (name)}') should contain fields {
                     is hash
                     entries [
                         {
@@ -388,7 +388,7 @@ spec 'parser'
             }
 
         spec 'function call with two optional arguments'
-            (expression 'name (a), port 34, server (s)') should contain fields {
+            (expression 'name (a); port 34; server (s)') should contain fields {
                 function {variable ['name']}
                 arguments [
                     {variable ['a']}
@@ -406,7 +406,7 @@ spec 'parser'
             }
 
         spec 'function call with no arguments and one optional argument'
-            (expression 'start server, port 34') should contain fields {
+            (expression 'start server; port 34') should contain fields {
                 function {variable ['start'. 'server']}
                 arguments []
                 optional arguments [
@@ -427,7 +427,7 @@ spec 'parser'
             }
         
         spec 'method call with optional arguments'
-            (expression 'object: method (argument), view (view)') should contain fields {
+            (expression 'object: method (argument); view (view)') should contain fields {
                 is method call
                 object {variable ['object']}
                 name ['method']
@@ -589,7 +589,7 @@ spec 'parser'
                 }
 
             spec 'function with one parameter, and one optional parameter'
-                (expression 'func (x), port 80 = x') should contain fields {
+                (expression 'func (x); port 80 = x') should contain fields {
                     is definition
                     target {variable ['func']}
                     source {
