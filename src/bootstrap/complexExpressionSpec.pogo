@@ -83,7 +83,7 @@ spec 'complex expression'
       }
 
     spec 'finds macro'
-      expression [[id 'if'. variable. block]] should contain fields {
+      expression [[id 'if'. variable 'x'. block]] should contain fields {
         is if expression
       }
 

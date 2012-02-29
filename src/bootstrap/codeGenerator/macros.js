@@ -100,9 +100,11 @@ macros.addMacro(['for'], function(name, arguments) {
 macros.addMacro(['while'], function(name, arguments) {
   var test;
   if (arguments[0].isSubExpression) {
-      test = arguments[0].statements[0];
+    test = arguments[0].statements[0];
+  } else if (arguments[0].isBlock) {
+    test = arguments[0].body.statements[0];
   } else {
-      test = arguments[0].body.statements[0];
+    test = arguments[0];
   }
   var statements = arguments[1].body;
   

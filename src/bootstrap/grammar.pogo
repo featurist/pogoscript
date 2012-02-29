@@ -51,7 +51,7 @@ exports: grammar = {
             ['statements_list'. '$$ = yy.terms.statements($1);']
         ]
         hash_entries [
-            ['hash_entries . expression'. '$1.push($3.hashEntry()); $$ = $1;']
+            ['hash_entries comma_dot expression'. '$1.push($3.hashEntry()); $$ = $1;']
             ['expression'. '$$ = [$1.hashEntry()];']
             [''. '$$ = [];']
         ]

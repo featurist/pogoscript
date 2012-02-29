@@ -232,7 +232,7 @@ spec 'parser'
                 }
                     
             spec 'hash with two entries'
-                (expression '{port 1234. ip address ''1.1.1.1''}') should contain fields {
+                (expression '{port 1234, ip address ''1.1.1.1''}') should contain fields {
                     is hash
                     entries [
                         {
