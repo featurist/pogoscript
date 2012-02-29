@@ -742,6 +742,13 @@ spec 'parser'
             }
     
     spec 'comments'
+        spec 'removing comments, but replacing with spaces and newlines'
+            spec 'should replace /* */ comments'
+                (parser: "x /* commentary \n\n more commentary */ y" without comments) should equal "x               \n\n                    y"
+                
+            spec 'should replace // comments'
+                (parser: "x // comments\n// more comments\ny" without comments) should equal "x            \n                \ny"
+        
         spec 'should allow one-line C++ style comments, as in: // this is a comment'
             spec 'when at the end of a line'
                 (statements "a // this is a comment\nb") should contain fields {
@@ -819,9 +826,19 @@ spec 'parser'
 
             spec 'when it covers two lines'
                 (statements "a /* line one\nline two */ b") should contain fields {
-                    statements [
-                        {variable ['a'. 'b']}
-                    ]
+                    statements [{
+                        is function call
+                        function {variable ['a']}
+                        arguments [{
+                            is block
+                            body {
+                                statements [
+                                    {variable ['b']}
+                                ]
+                            }
+                            parameters []
+                        }]
+                    }]
                 }
 
             spec 'when it extends to the end of the file'

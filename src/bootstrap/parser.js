@@ -1,5 +1,5 @@
 (function() {
-    var self, jisonParser, terms, ms, createParserContext, createDynamicLexer, grammar, parser, jisonLexer, createParser;
+    var self, jisonParser, terms, ms, createParserContext, createDynamicLexer, grammar, parser, jisonLexer, createParser, withoutCStyleComments, withoutCPlusPlusStyleComments, withoutComments;
     self = this;
     jisonParser = require("jison").Parser;
     terms = require("./codeGenerator/codeGenerator");
@@ -23,20 +23,35 @@
         parser.lexer = dynamicLexer;
         return parser;
     };
-    exports.parse = function(source) {
+    withoutCStyleComments = function(s) {
+        return s.replace(/\/\*([^*](\*[^\/]|))*(\*\/|$)/gm, function(comment) {
+            return comment.replace(/./g, " ");
+        });
+    };
+    withoutCPlusPlusStyleComments = function(s) {
+        return s.replace(/\/\/[^\n]*/gm, function(comment) {
+            return comment.replace(/./g, " ");
+        });
+    };
+    withoutComments = self.withoutComments = function(s) {
+        var self;
+        self = this;
+        return withoutCStyleComments(withoutCPlusPlusStyleComments(s));
+    };
+    self.parse = function(source) {
         var self;
         self = this;
         parser = createParser();
-        return parser.parse(source);
+        return parser.parse(withoutComments(source));
     };
-    exports.writeParserToFile = function(f) {
+    self.writeParserToFile = function(f) {
         var self, parserSource, fs;
         self = this;
         parserSource = createParser().generate();
         fs = require("fs");
         return fs.writeFileSync("jisonParser.js", parserSource, "utf-8");
     };
-    exports.lex = function(source) {
+    self.lex = function(source) {
         var self, tokens, tokenIndex, lexer, parserContext;
         self = this;
         tokens = [];
