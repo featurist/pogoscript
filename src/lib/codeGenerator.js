@@ -377,6 +377,17 @@ var noArgSuffix = exports.noArgSuffix = function () {
   });
 };
 
+var parameters = exports.parameters = function (parms) {
+  return term(function () {
+    this.isParameters = true;
+    this.parameters = parms;
+    
+    this.arguments = function () {
+      return [];
+    };
+  });
+};
+
 var parameter = expressionTerm('parameter', function (expression) {
   this.expression = expression;
   this.isParameter = true;

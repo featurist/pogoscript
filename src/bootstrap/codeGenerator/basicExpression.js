@@ -71,8 +71,8 @@ module.exports = function (terminals) {
       var parameters = [];
 
       _(this.terminals).each(function (terminal) {
-        if (terminal.isParameter) {
-          parameters.push(terminal);
+        if (terminal.isParameters) {
+          parameters.push.apply(parameters, terminal.parameters);
         } else if (terminal.isBlock) {
           terminal.parameters = parameters;
           parameters = [];

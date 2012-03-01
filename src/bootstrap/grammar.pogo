@@ -67,6 +67,10 @@ exports: grammar = {
             ['arguments_list , expression_list'. '$1.push($3); $$ = $1;']
             ['expression_list'. '$$ = [$1];']
         ]
+        parameter_list [
+            ['parameter_list , statement'. '$1.push($3); $$ = $1;']
+            ['statement'. '$$ = [$1];']
+        ]
         expression_list [
             ['expression_list . statement'. '$1.push($3); $$ = $1;']
             ['statement'. '$$ = [$1];']
@@ -157,7 +161,7 @@ exports: grammar = {
         ]
         terminal [
             ['( arguments_list )'. '$$ = yy.terms.loc(yy.terms.argumentList(yy.terms.normaliseArguments($2)), @$);']
-            ['@ ( statement )'. '$$ = yy.terms.parameter($3);']
+            ['@ ( parameter_list )'. '$$ = yy.terms.loc(yy.terms.parameters($3), @$);']
             ['block_start statements }'. '$$ = yy.terms.loc(yy.terms.block([], $2), @$);']
             ['=> block_start statements }'. '$$ = yy.terms.loc(yy.terms.block([], $3, {redefinesSelf: true}), @$);']
             ['[ statements_list ]'. '$$ = yy.terms.loc(yy.terms.list($2), @$);']
