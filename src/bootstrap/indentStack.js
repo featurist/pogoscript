@@ -56,30 +56,35 @@
                 return tokens;
             };
             return self.tokensForNewLine = function(text) {
-                var self, currentIndentation, indentation;
+                var self;
                 self = this;
-                currentIndentation = self.currentIndentation();
-                indentation = self.indentation(text);
-                if (currentIndentation == indentation) {
-                    return [ "." ];
-                } else if (currentIndentation < indentation) {
-                    self.indents.unshift(indentation);
-                    return [ "@{" ];
-                } else {
-                    var tokens;
-                    tokens = [];
-                    while (self.indents[0] > indentation) {
-                        tokens.push("}");
-                        self.indents.shift();
-                    }
-                    if (self.isMultiNewLine(text)) {
-                        tokens.push(".");
-                    }
-                    if (self.indents[0] < indentation) {
-                        tokens.push("@{");
+                if (self.hasNewLine(text)) {
+                    var currentIndentation, indentation;
+                    currentIndentation = self.currentIndentation();
+                    indentation = self.indentation(text);
+                    if (currentIndentation == indentation) {
+                        return [ "." ];
+                    } else if (currentIndentation < indentation) {
                         self.indents.unshift(indentation);
+                        return [ "@{" ];
+                    } else {
+                        var tokens;
+                        tokens = [];
+                        while (self.indents[0] > indentation) {
+                            tokens.push("}");
+                            self.indents.shift();
+                        }
+                        if (self.isMultiNewLine(text)) {
+                            tokens.push(".");
+                        }
+                        if (self.indents[0] < indentation) {
+                            tokens.push("@{");
+                            self.indents.unshift(indentation);
+                        }
+                        return tokens;
                     }
-                    return tokens;
+                } else {
+                    return [];
                 }
             };
         });

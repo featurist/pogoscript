@@ -723,13 +723,6 @@ spec 'parser'
             }
     
     spec 'comments'
-        spec 'removing comments, but replacing with spaces and newlines'
-            spec 'should replace /* */ comments'
-                (parser: "x /* commentary \n\n more commentary */ y" without comments) should equal "x               \n\n                    y"
-                
-            spec 'should replace // comments'
-                (parser: "x // comments\n// more comments\ny" without comments) should equal "x            \n                \ny"
-        
         spec 'should not treat comment-like syntax as comments in strings'
             (statements "get 'http://pogoscript.org/'") should contain fields {
                 is statements
@@ -820,17 +813,8 @@ spec 'parser'
             spec 'when it covers two lines'
                 (statements "a /* line one\nline two */ b") should contain fields {
                     statements [{
-                        is function call
-                        function {variable ['a']}
-                        arguments [{
-                            is block
-                            body {
-                                statements [
-                                    {variable ['b']}
-                                ]
-                            }
-                            parameters []
-                        }]
+                        is variable
+                        variable ['a'. 'b']
                     }]
                 }
 

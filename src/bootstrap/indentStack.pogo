@@ -41,26 +41,29 @@ exports: create indent stack = create indent stack! =
             
         
         :tokens for new line @text =
-            current indentation = :current indentation?
-            indentation = :indentation @text
+            if (:(text) has new line?)
+                current indentation = :current indentation?
+                indentation = :indentation @text
         
-            if (current indentation == indentation)
-                ['.']
-            else if (current indentation < indentation)
-                :indents: unshift @indentation
-                ['@{']
-            else
-                tokens = []
-                
-                while (:indents: 0 > indentation)
-                    tokens: push '}'
-                    :indents: shift!
-                
-                if (:is @text multi new line)
-                    tokens: push '.'
-                
-                if (:indents: 0 < indentation)
-                    tokens: push '@{'
+                if (current indentation == indentation)
+                    ['.']
+                else if (current indentation < indentation)
                     :indents: unshift @indentation
+                    ['@{']
+                else
+                    tokens = []
                 
-                tokens
+                    while (:indents: 0 > indentation)
+                        tokens: push '}'
+                        :indents: shift!
+                
+                    if (:is @text multi new line)
+                        tokens: push '.'
+                
+                    if (:indents: 0 < indentation)
+                        tokens: push '@{'
+                        :indents: unshift @indentation
+                
+                    tokens
+            else
+                []

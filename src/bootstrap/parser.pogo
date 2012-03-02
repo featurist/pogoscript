@@ -19,20 +19,9 @@ create parser! =
     
     parser
 
-(s) without c style comments =
-    s: replace `/\*([^*](\*[^/]|))*(\*/|$)`gm #comment
-        comment: replace `.`g ' '
-
-(s) without c plus plus style comments =
-    s: replace `//[^\n]*`gm #comment
-        comment: replace `.`g ' '
-
-without comments = :(s) without comments =
-    ((s) without c plus plus style comments) without c style comments
-
 :parse (source) =
     parser = create parser!
-    parser: parse ((source) without comments)
+    parser: parse (source)
 
 :write parser to file (f) =
     parser source = create parser? : generate?

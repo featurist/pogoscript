@@ -1,11 +1,14 @@
 identifier pattern = '[a-zA-Z_$][a-zA-Z_$0-9]*'
+comment pattern = '(/\*([^*](\*[^/]|))*(\*/|$)|//[^\n]*)'
 
 exports: grammar = {
     lex {
         start conditions {interpolated_string. interpolated_string_terminal}
 
         rules [
+            [' +'. '/* ignore whitespace */']
             ['\s*$'. 'return yy.eof();']
+            ['\s*((/\*([^*](\*[^/]|))*(\*/|$)|//[^\n]*)\s*)+'. 'var indentation = yy.indentation(yytext); if (indentation) { return indentation; }']
             ['\(\s*'. 'yy.setIndentation(yytext); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.openBracket()} return "(";']
             ['\s*\)'. 'yy.unsetIndentation(); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.closeBracket(); if (yy.terms.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.terms.interpolation.stopInterpolation()}} return '')'';']
             ['{\s*'. 'yy.setIndentation(yytext); return ''{'';']
@@ -13,7 +16,6 @@ exports: grammar = {
             ['\[\s*'. 'yy.setIndentation(yytext); return ''['';']
             ['\s*\]'. 'yy.unsetIndentation(); return '']'';']
             ['(\n *)*\n *'. 'return yy.indentation(yytext);']
-            [' +'. '/* ignore whitespace */']
             ['[0-9]+\.[0-9]+'. 'return ''float'';']
             ['[0-9]+'. 'return ''integer'';']
             ['([:;=,?!.@~#%^&*+<>/?\\|-])+'. 'return yy.terms.lexOperator(yytext);']
