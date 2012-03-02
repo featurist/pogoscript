@@ -103,7 +103,7 @@ spec 'operator expression'
                     
                 source {
                     is block
-                    parameters [{is parameter. expression {variable ['b']}}]
+                    parameters [{variable ['b']}]
                     body {statements [{variable ['c']}]}
                 }
             }

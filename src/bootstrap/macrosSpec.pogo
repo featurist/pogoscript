@@ -127,7 +127,7 @@ spec 'macros'
                 }
                 catch body {
                     is block
-                    parameters [{is parameter. expression {variable ['ex']}}]
+                    parameters [{variable ['ex']}]
                     body {
                         statements [
                             {variable ['b']}
@@ -163,7 +163,7 @@ spec 'macros'
                 }
                 catch body {
                     is block
-                    parameters [{is parameter. expression {variable ['ex']}}]
+                    parameters [{variable ['ex']}]
                     body {
                         statements [
                             {variable ['b']}

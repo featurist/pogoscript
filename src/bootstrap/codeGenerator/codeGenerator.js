@@ -5,7 +5,6 @@ exports.variable = cg.variable;
 exports.selfExpression = cg.selfExpression;
 exports.statements = cg.statements;
 exports.block = cg.block;
-exports.parameter = cg.parameter;
 exports.parameters = cg.parameters;
 exports.identifier = cg.identifier;
 exports.integer = cg.integer;

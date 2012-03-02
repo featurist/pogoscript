@@ -290,10 +290,7 @@ spec 'parser'
                                     }]
                                 }
 
-                                parameters [{
-                                    is parameter
-                                    expression {variable ['name']}
-                                }]
+                                parameters [{variable ['name']}]
 
                                 optional parameters [{
                                     is hash entry
@@ -348,10 +345,7 @@ spec 'parser'
                     {variable ['file']}
                     {
                         body {statements [{variable ['stream']}]}
-                        parameters [{
-                            is parameter
-                            expression {variable ['stream']}
-                        }]
+                        parameters [{variable ['stream']}]
                     }
                 ]
             }
@@ -362,10 +356,7 @@ spec 'parser'
                 arguments [
                     {
                         parameters [
-                            {
-                                is parameter
-                                expression {variable ['database'. 'connection']}
-                            }
+                            {variable ['database'. 'connection']}
                         ]
                         body {statements [{variable ['database'. 'connection']}]}
                     }
@@ -378,17 +369,11 @@ spec 'parser'
                 arguments [
                     {
                         body {statements [{variable ['x']}]}
-                        parameters [{
-                            is parameter
-                            expression {variable ['x']}
-                        }]
+                        parameters [{variable ['x']}]
                     }
                     {
                         body {statements [{variable ['y']}]}
-                        parameters [{
-                            is parameter
-                            expression {variable ['y']}
-                        }]
+                        parameters [{variable ['y']}]
                     }
                 ]
             }
@@ -494,7 +479,7 @@ spec 'parser'
         spec 'block with parameter'
             (expression "\@(x)\n  x.y") should contain fields {
                 is block
-                parameters [{is parameter. expression {variable ['x']}}]
+                parameters [{variable ['x']}]
                 redefines self (false)
                 body {
                     statements [
@@ -507,7 +492,7 @@ spec 'parser'
         spec 'block with parameter, redefining self'
             (expression '@(x) => @{x.y}') should contain fields {
                 is block
-                parameters [{is parameter. expression {variable ['x']}}]
+                parameters [{variable ['x']}]
                 redefines self (true)
                 body {
                     statements [
@@ -589,7 +574,7 @@ spec 'parser'
                     is definition
                     target {variable ['func']}
                     source {
-                        parameters [{is parameter. expression {variable ['x']}}]
+                        parameters [{variable ['x']}]
                         body {statements [{variable ['x']}]}
                     }
                 }
@@ -599,7 +584,7 @@ spec 'parser'
                     is definition
                     target {variable ['func']}
                     source {
-                        parameters [{is parameter. expression {variable ['x']}}]
+                        parameters [{variable ['x']}]
                         optional parameters [{field ['port']. value {integer 80}}]
                         body {statements [{variable ['x']}]}
                     }
@@ -745,6 +730,18 @@ spec 'parser'
             spec 'should replace // comments'
                 (parser: "x // comments\n// more comments\ny" without comments) should equal "x            \n                \ny"
         
+        spec 'should not treat comment-like syntax as comments in strings'
+            (statements "get 'http://pogoscript.org/'") should contain fields {
+                is statements
+                statements [{
+                    is function call
+                    function {variable ['get']}
+                    arguments [
+                        {string 'http://pogoscript.org/'}
+                    ]
+                }]
+            }
+            
         spec 'should allow one-line C++ style comments, as in: // this is a comment'
             spec 'when at the end of a line'
                 (statements "a // this is a comment\nb") should contain fields {

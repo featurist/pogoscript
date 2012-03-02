@@ -62,9 +62,9 @@ spec 'basic expression'
       }]
     
     spec 'block with a parameter'
-      terminals [cg: parameter (cg: variable ['x']). block] should have arguments [{
+      terminals [cg: parameters ([cg: variable ['x']]). block] should have arguments [{
         is block
-        parameters [{is parameter. expression {variable ['x']}}]
+        parameters [{variable ['x']}]
         body {
           statements [{is variable. variable ['a']}]
         }
@@ -88,7 +88,7 @@ spec 'basic expression'
             target [id 'car'. variable] has some parameters
 
         spec 'parameters'
-            target [id 'car'. variable] has parameters [{is parameter. expression {variable ['a']}}]
+            target [id 'car'. variable] has parameters [{variable ['a']}]
   
     spec 'no arg punctuation'
         spec 'has parameters'

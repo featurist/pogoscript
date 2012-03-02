@@ -359,7 +359,7 @@ var variable = expressionTerm('variable', function (name, options) {
   };
   
   this.parameter = function () {
-    return parameter(this);
+    return this;
   };
 });
 
@@ -387,19 +387,6 @@ var parameters = exports.parameters = function (parms) {
     };
   });
 };
-
-var parameter = expressionTerm('parameter', function (expression) {
-  this.expression = expression;
-  this.isParameter = true;
-  
-  this.arguments = function () {
-    return [];
-  };
-  
-  this.generateJavaScript = function (buffer, scope) {
-    this.expression.generateJavaScriptParameter(buffer, scope);
-  };
-});
 
 var concatName = exports.concatName = function (nameSegments) {
   var name = '';

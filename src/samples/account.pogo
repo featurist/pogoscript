@@ -1,20 +1,20 @@
-create account, balance = {
+create account; balance = {
     balance = balance
 
-    withdraw @amount =
+    withdraw (amount) =
         if (:balance >= amount)
             :balance = :balance - amount
         else
             throw 'insufficient funds'
 
-    deposit @amount =
+    deposit (amount) =
         :balance = :balance + amount
     
     current balance? =
         :balance
 }
 
-account = create account, balance 100
+account = create account; balance 100
 
 account: withdraw 30
 account: deposit 100

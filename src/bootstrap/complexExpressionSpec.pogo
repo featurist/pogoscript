@@ -221,10 +221,7 @@ spec 'complex expression'
                 ]
             }
 
-            parameters [{
-                is parameter
-                expression {variable ['name']}
-            }]
+            parameters [{variable ['name']}]
 
             redefines self
         }
@@ -245,7 +242,7 @@ spec 'complex expression'
         
         source {
           is block
-          parameters [{is parameter. expression {variable ['x']}}]
+          parameters [{variable ['x']}]
         }
       }
     
@@ -261,7 +258,7 @@ spec 'complex expression'
         source {
           is block
           redefines self
-          parameters [{is parameter. expression {variable ['x']}}]
+          parameters [{variable ['x']}]
           body {statements [{variable ['y']}]}
         }
       }
@@ -317,7 +314,7 @@ spec 'complex expression'
           }
           
           parameters [
-            {is parameter. expression {variable ['p']}}
+            {variable ['p']}
           ]
         }
       }
@@ -361,7 +358,7 @@ spec 'complex expression'
         
         source {
           is block
-          parameters [{is parameter. expression {variable ['x']}}]
+          parameters [{variable ['x']}]
           body {statements [{variable ['x']}]}
         }
       }
@@ -376,7 +373,7 @@ spec 'complex expression'
         
         source {
           is block
-          parameters [{is parameter. expression {variable ['x']}}]
+          parameters [{variable ['x']}]
           optional parameters [
             {field ['port']. value {integer 80}}
             {field ['name']. value @undefined}
@@ -395,7 +392,7 @@ spec 'complex expression'
         
         source {
           is block
-          parameters [{is parameter. expression {variable ['x']}}]
+          parameters [{variable ['x']}]
           body {statements [{variable ['y']}]}
         }
       }
@@ -456,7 +453,4 @@ spec 'complex expression'
             (cg: complex expression @p: expression? : parameter?) should contain fields @fields
         
         spec 'variable'
-            parameter [[id 'a']] should contain fields {
-                is parameter
-                expression {variable ['a']}
-            }
+            parameter [[id 'a']] should contain fields {variable ['a']}
