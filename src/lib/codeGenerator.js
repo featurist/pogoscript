@@ -227,28 +227,28 @@ var unindent = exports.unindent = function (columns, text) {
 };
 
 expressionTerm('interpolatedString', function (components, columnStart) {
-  if (components.length == 1) {
-    return components[0];
-  }
-  
   this.isInterpolatedString = true;
   this.components = (function () {
     var removeIndentation = unindenter(columnStart + 1);
     
     var collapsedComponents = collapse(components, function (c) {
       if (c.isString) {
-        return c.string;
+        return removeIndentation(c.string);
       }
     }, function (string, c) {
       if (c.isString) {
-        return string + c.string;
+        return string + removeIndentation(c.string);
       }
     }, function (s) {
-      return string(removeIndentation(s));
+      return string(s);
     });
 
     return collapsedComponents;
   })();
+  
+  if (this.components.length == 1) {
+    return this.components[0];
+  }
 
   this.componentsDelimitedByStrings = function () {
     var comps = [];

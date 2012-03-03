@@ -51,6 +51,22 @@ spec 'parser'
                     is string
                     string "one\ntwo"
                 }
+                    
+            spec 'multiline double-quote string'
+                (expression "  \"one\n   two\"") should contain fields {
+                    is string
+                    string "one\ntwo"
+                }
+                    
+            spec 'two multiline string in function'
+                (expression "x 'one\n   two' y \"three\n           four\"") should contain fields {
+                    is function call
+                    function {variable ['x'. 'y']}
+                    arguments [
+                        {string "one\ntwo"}
+                        {string "three\nfour"}
+                    ]
+                }
 
         spec 'interpolated strings'
             spec 'simple'
@@ -61,26 +77,17 @@ spec 'parser'
 
             spec 'with newline'
                 (expression '"one\ntwo"') should contain fields {
-                    is interpolated string
-                    components [
-                        {string "one\ntwo"}
-                    ]
+                    string "one\ntwo"
+                }
+
+            spec 'with newline escape and indentation should not remove indentation'
+                (expression '  "one\n    two"') should contain fields {
+                    string "one\n    two"
                 }
 
             spec 'with indentation'
-                (expression '"one\n  two"') should contain fields {
-                    is interpolated string
-                    components [
-                        {string "one\n two"}
-                    ]
-                }
-
-            spec 'indented string'
-                (expression '  "one\n   two"') should contain fields {
-                    is interpolated string
-                    components [
-                        {string "one\ntwo"}
-                    ]
+                (expression "  \"one\n   two\"") should contain fields {
+                    string "one\ntwo"
                 }
 
             spec 'null string'
