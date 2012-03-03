@@ -13,8 +13,10 @@ exports: create parser context =
         :set indentation @text =
             :indent stack:set indentation @text
 
-        :unset indentation! =
-            :indent stack:unset indentation!
+        :unset indentation (token) =
+            tokens = :indent stack:unset indentation!
+            tokens: push (token)
+            :tokens (tokens)
 
         :indentation @text =
             tokens = :indent stack:tokens for new line @text

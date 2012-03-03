@@ -495,6 +495,22 @@ spec 'parser'
                     ]
                 }
             }
+        
+        spec 'block in parens'
+            (expression "(one\n  two\n)") should contain fields {
+                is function call
+                function {variable ['one']}
+                arguments [
+                    {
+                        is block
+                        body {
+                            statements [
+                                {variable ['two']}
+                            ]
+                        }
+                    }
+                ]
+            }
 
         spec 'block with parameter, redefining self'
             (expression '@(x) => @{x.y}') should contain fields {

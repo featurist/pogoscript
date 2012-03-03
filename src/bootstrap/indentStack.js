@@ -33,15 +33,26 @@
                 var self;
                 self = this;
                 if (self.hasNewLine(text)) {
+                    self.indents.unshift("bracket");
                     return self.indents.unshift(self.indentation(text));
                 } else {
-                    return self.indents.unshift(self.currentIndentation());
+                    var current;
+                    current = self.currentIndentation();
+                    self.indents.unshift("bracket");
+                    return self.indents.unshift(current);
                 }
             };
             self.unsetIndentation = function() {
-                var self;
+                var self, tokens;
                 self = this;
-                return self.indents.shift();
+                self.indents.shift();
+                tokens = [];
+                while (self.indents[0] != "bracket") {
+                    tokens.push("}");
+                    self.indents.shift();
+                }
+                self.indents.shift();
+                return tokens;
             };
             self.tokensForEof = function() {
                 var self, tokens, indents;

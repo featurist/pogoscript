@@ -20,12 +20,23 @@ exports: create indent stack = create indent stack! =
         
         :set indentation @text =
             if (: @text has new line?)
+                :indents:unshift 'bracket'
                 :indents:unshift (:indentation @text)
             else
-                :indents:unshift (:current indentation?)
+                current = :current indentation?
+                :indents:unshift 'bracket'
+                :indents:unshift (current)
         
         :unset indentation! =
-            :indents:shift!
+            :indents: shift!
+
+            tokens = []
+            while (:indents: 0 != 'bracket')
+                tokens: push '}'
+                :indents: shift!
+            
+            :indents: shift!
+            tokens
         
         :tokens for eof? =
             tokens = []
