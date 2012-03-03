@@ -1754,7 +1754,7 @@ var scope = exports.scope = function (stmts) {
     this.statements = stmts;
     
     this.generateJavaScript = function (buffer, scope) {
-      functionCall(block([], statements(this.statements)), []).generateJavaScript(buffer, scope);
+      functionCall(subExpression(block([], statements(this.statements))), []).generateJavaScript(buffer, scope);
     };
   });
 }
@@ -1823,6 +1823,8 @@ var tryStatement = exports.tryStatement = function (body, catchBody, finallyBody
         buffer.write('}');
       }
     };
+    
+    this.generateJavaScriptReturn = this.generateJavaScript;
   });
 };
 

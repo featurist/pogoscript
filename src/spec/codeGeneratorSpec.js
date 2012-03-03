@@ -610,6 +610,18 @@ spec('code generator', function () {
       generatesExpression(t, 'try{a;}catch(ex){b;}');
     });
 
+    spec("try catch is never returned", function () {
+      var t = cg.tryStatement(
+        cg.statements([cg.variable(['a'])]),
+        cg.block(
+          [cg.variable(['ex'])],
+          cg.statements([cg.variable(['b'])])
+        )
+      );
+
+      generatesReturnExpression(t, 'try{a;}catch(ex){b;}');
+    });
+
     spec('try catch finally', function () {
       var t = cg.tryStatement(
         cg.statements([cg.variable(['a'])]),
@@ -673,7 +685,7 @@ spec('code generator', function () {
     });
   });
   
-  spec('scope', function () {
+  spec('symbol scope', function () {
     spec('variable defined in outer scope, assigned to in inner scope', function () {
       var s = cg.statements([
         cg.definition(cg.variable(['x']), cg.integer(1)),
@@ -685,6 +697,14 @@ spec('code generator', function () {
       
       generatesStatements(s, 'var x;x=1;f(function(){x=2;return x;});');
     });
+  });
+  
+  spec('scope', function () {
+    spec('places scope contents inside a function which is called immediately', function () {
+      var s = cg.scope([cg.definition(cg.variable(['a']), cg.integer(8)), cg.variable(['a'])]);
+      
+      generatesExpression(s, '(function(){var a;a=8;return a;})()');
+    })
   });
   
   spec('module', function () {
