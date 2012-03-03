@@ -249,7 +249,7 @@ spec('code generator', function () {
       });
       
       spec('with parameters', function () {
-        var b = cg.block([cg.parameter(['a'])], cg.statements([cg.variable(['a'])]));
+        var b = cg.block([cg.parameters([cg.variable(['a'])])], cg.statements([cg.variable(['a'])]));
         assert.equal(b.scopify(), b);
       });
     });
@@ -267,13 +267,13 @@ spec('code generator', function () {
     });
     
     spec('with two parameters', function () {
-      var b = cg.block([cg.parameter(cg.variable(['x'])), cg.parameter(cg.variable(['y']))], cg.statements([cg.variable(['x'])]));
+      var b = cg.block([cg.variable(['x']), cg.variable(['y'])], cg.statements([cg.variable(['x'])]));
       
       generatesExpression(b, 'function(x,y){return x;}');
     });
     
     spec('with two parameters and two statements', function () {
-      var b = cg.block([cg.parameter(cg.variable(['x'])), cg.parameter(cg.variable(['y']))], cg.statements([cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]), cg.variable(['x'])]));
+      var b = cg.block([cg.variable(['x']), cg.variable(['y'])], cg.statements([cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]), cg.variable(['x'])]));
       
       generatesExpression(b, 'function(x,y){y(x);return x;}');
     });
@@ -281,8 +281,8 @@ spec('code generator', function () {
     spec('block with new context', function () {
       var b = cg.block(
         [
-          cg.parameter(cg.variable(['x'])),
-          cg.parameter(cg.variable(['y']))
+          cg.variable(['x']),
+          cg.variable(['y'])
         ],
         cg.statements([
           cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]),
@@ -298,8 +298,8 @@ spec('code generator', function () {
     spec('with a parameter and two optional parameters', function () {
       var b = cg.block(
         [
-          cg.parameter(cg.variable(['x'])),
-          cg.parameter(cg.variable(['y']))
+          cg.variable(['x']),
+          cg.variable(['y'])
         ],
         cg.statements([
           cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]),
@@ -318,10 +318,10 @@ spec('code generator', function () {
     spec('with splat parameters', function () {
       var b = cg.block(
         [
-          cg.parameter(cg.variable(['x'])),
-          cg.parameter(cg.variable(['y'])),
+          cg.variable(['x']),
+          cg.variable(['y']),
           cg.splat(),
-          cg.parameter(cg.variable(['z']))
+          cg.variable(['z'])
         ],
         cg.statements([
           cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]),
@@ -602,7 +602,7 @@ spec('code generator', function () {
       var t = cg.tryStatement(
         cg.statements([cg.variable(['a'])]),
         cg.block(
-          [cg.parameter(cg.variable(['ex']))],
+          [cg.variable(['ex'])],
           cg.statements([cg.variable(['b'])])
         )
       );
@@ -614,7 +614,7 @@ spec('code generator', function () {
       var t = cg.tryStatement(
         cg.statements([cg.variable(['a'])]),
         cg.block(
-          [cg.parameter(cg.variable(['ex']))],
+          [cg.variable(['ex'])],
           cg.statements([cg.variable(['b'])])
         ),
         cg.statements([cg.variable(['c'])])
@@ -697,7 +697,7 @@ spec('code generator', function () {
         ]))])
       ]));
       
-      generatesExpression(s, '(function(){var self,x;self=this;x=1;f(function(){x=2;return x;});}).call(this)');
+      generatesExpression(s, '(function(){var self,x;self=this;x=1;f(function(){x=2;return x;});}).call(this);');
     });
   });
   
@@ -800,9 +800,9 @@ spec('code generator', function () {
   
   spec('parseSplatParameters', function () {
     spec('no splat', function () {
-      var splat = cg.parseSplatParameters([cg.parameter(cg.variable(['a']))]);
+      var splat = cg.parseSplatParameters([cg.variable(['a'])]);
       shouldContainFields(splat, {
-        firstParameters: [{isParameter: true, expression: {variable: ['a']}}],
+        firstParameters: [{variable: ['a']}],
         splatParameter: undefined,
         lastParameters: []
       });
@@ -810,57 +810,57 @@ spec('code generator', function () {
     
     spec('only splat', function () {
       var splat = cg.parseSplatParameters([
-        cg.parameter(cg.variable(['a'])),
+        cg.variable(['a']),
         cg.splat()
       ]);
       
       shouldContainFields(splat, {
         firstParameters: [],
-        splatParameter: {isParameter: true, expression: {variable: ['a']}},
+        splatParameter: {variable: ['a']},
         lastParameters: []
       });
     });
     
     spec('splat start', function () {
       var splat = cg.parseSplatParameters([
-        cg.parameter(cg.variable(['a'])),
+        cg.variable(['a']),
         cg.splat(),
-        cg.parameter(cg.variable(['b']))
+        cg.variable(['b'])
       ]);
       
       shouldContainFields(splat, {
         firstParameters: [],
-        splatParameter: {isParameter: true, expression: {variable: ['a']}},
-        lastParameters: [{isParameter: true, expression: {variable: ['b']}}]
+        splatParameter: {variable: ['a']},
+        lastParameters: [{variable: ['b']}]
       });
     });
     
     spec('splat end', function () {
       var splat = cg.parseSplatParameters([
-        cg.parameter(cg.variable(['a'])),
-        cg.parameter(cg.variable(['b'])),
+        cg.variable(['a']),
+        cg.variable(['b']),
         cg.splat()
       ]);
       
       shouldContainFields(splat, {
-        firstParameters: [{isParameter: true, expression: {variable: ['a']}}],
-        splatParameter: {isParameter: true, expression: {variable: ['b']}},
+        firstParameters: [{variable: ['a']}],
+        splatParameter: {variable: ['b']},
         lastParameters: []
       });
     });
     
     spec('splat middle', function () {
       var splat = cg.parseSplatParameters([
-        cg.parameter(cg.variable(['a'])),
-        cg.parameter(cg.variable(['b'])),
+        cg.variable(['a']),
+        cg.variable(['b']),
         cg.splat(),
-        cg.parameter(cg.variable(['c']))
+        cg.variable(['c'])
       ]);
       
       shouldContainFields(splat, {
-        firstParameters: [{isParameter: true, expression: {variable: ['a']}}],
-        splatParameter: {isParameter: true, expression: {variable: ['b']}},
-        lastParameters: [{isParameter: true, expression: {variable: ['c']}}]
+        firstParameters: [{variable: ['a']}],
+        splatParameter: {variable: ['b']},
+        lastParameters: [{variable: ['c']}]
       });
     });
     
@@ -869,20 +869,20 @@ spec('code generator', function () {
       secondSplat.secondSplat = true;
       
       var splat = cg.parseSplatParameters([
-        cg.parameter(cg.variable(['a'])),
-        cg.parameter(cg.variable(['b'])),
+        cg.variable(['a']),
+        cg.variable(['b']),
         cg.splat(),
-        cg.parameter(cg.variable(['c'])),
+        cg.variable(['c']),
         secondSplat,
-        cg.parameter(cg.variable(['d']))
+        cg.variable(['d'])
       ]);
       
       shouldContainFields(splat, {
-        firstParameters: [{isParameter: true, expression: {variable: ['a']}}],
-        splatParameter: {isParameter: true, expression: {variable: ['b']}},
+        firstParameters: [{variable: ['a']}],
+        splatParameter: {variable: ['b']},
         lastParameters: [
-          {isParameter: true, expression: {variable: ['c']}},
-          {isParameter: true, expression: {variable: ['d']}}
+          {variable: ['c']},
+          {variable: ['d']}
         ]
       });
     });

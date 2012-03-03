@@ -451,7 +451,7 @@ var splatParameters = function (next) {
       
         var splatParameter =
           definition(
-            splat.splatParameter.expression,
+            splat.splatParameter,
             javascript('Array.prototype.slice.call(arguments, ' + splat.firstParameters.length + ', ' + lastIndex + ')')
           );
       
@@ -460,7 +460,7 @@ var splatParameters = function (next) {
           var param = splat.lastParameters[n];
           lastParameterStatements.push(
             definition(
-              param.expression,
+              param,
               javascript('arguments[arguments.length - ' + (splat.lastParameters.length - n) + ']')
             )
           );
@@ -658,7 +658,7 @@ var optionalParameters = function (optionalParameters, next) {
       options: generatedVariable(['options']),
       
       parameters: function () {
-        return next.parameters().concat([parameter(this.options)]);
+        return next.parameters().concat([this.options]);
       },
     
       statements: function () {
@@ -961,6 +961,7 @@ var module = expressionTerm('module', function (statements) {
   this.generateJavaScript = function (buffer, scope) {
     var b = block([], this.statements, {returnLastStatement: false, redefinesSelf: true});
     methodCall(subExpression(b), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
+    buffer.write(';');
   };
 });
 
