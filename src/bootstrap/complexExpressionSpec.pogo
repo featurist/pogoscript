@@ -412,6 +412,21 @@ spec 'complex expression'
         }
       }
     
+    spec 'function definition with empty param list'
+      definition [[id 'function'. cg: argument list []]] (variable 'y') should contain fields {
+        is definition
+        target {
+          is variable
+          variable ['function']
+        }
+        
+        source {
+          is block
+          parameters []
+          body {statements [{variable ['y']}]}
+        }
+      }
+    
     spec 'variable definition'
       definition [[id 'function']] (variable 'y') should contain fields {
         is definition

@@ -28,19 +28,24 @@ module.exports = function (terminals) {
     
     this.hasArguments = function () {
       return this._hasArguments || (this._hasArguments =
-        this.arguments().length > 0 || this.containsCallPunctuation()
+        this.argumentTerminals().length > 0
       );
+    };
+    
+    this.argumentTerminals = function() {
+      if (this._argumentTerminals) {
+        return this._argumentTerminals;
+      } else {
+        this._buildBlocks();
+        return this._argumentTerminals =
+          _.compact(_.map(this.terminals, function (terminal) {
+            return terminal.arguments();
+          }));
+      }
     };
 
     this.arguments = function() {
-      if (this._arguments) {
-        return this._arguments;
-      } else {
-        this._buildBlocks();
-        return this._arguments = _((this.terminals).map(function (terminal) {
-          return terminal.arguments();
-        })).flatten();
-      }
+      return this._arguments || (this._arguments = _.flatten(this.argumentTerminals()));
     };
 
     this.parameters = function (options) {
@@ -63,7 +68,7 @@ module.exports = function (terminals) {
     
     this.hasParameters = function () {
       return this._hasParameters || (this._hasParameters =
-        this.containsCallPunctuation() || this.arguments().length > 0
+        this.argumentTerminals().length > 0
       );
     };
     

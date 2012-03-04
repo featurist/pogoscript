@@ -68,6 +68,7 @@ exports: grammar = {
         arguments_list [
             ['arguments_list , expression_list'. '$1.push($3); $$ = $1;']
             ['expression_list'. '$$ = [$1];']
+            [''. '$$ = [];']
         ]
         parameter_list [
             ['parameter_list , statement'. '$1.push($3); $$ = $1;']

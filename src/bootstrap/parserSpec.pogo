@@ -345,6 +345,12 @@ spec 'parser'
                 arguments []
             }
 
+        spec 'function call with no argument using empty parens'
+            (expression 'delete everything ()') should contain fields {
+                function {variable ['delete'. 'everything']}
+                arguments []
+            }
+
         spec 'function call with block with parameters'
             (expression "with file (file) \@(stream)\n  stream") should contain fields {
                 function {variable ['with'. 'file']}
@@ -653,6 +659,19 @@ spec 'parser'
 
         spec 'assignment of command'
             (expression 'x! = 8') should contain fields {
+                is definition
+                target {variable ['x']}
+                source {
+                    is block
+                    parameters []
+                    body {
+                        statements [{integer 8}]
+                    }
+                }
+            }
+
+        spec 'definition of function with no arguments, using empty parens "()"'
+            (expression 'x () = 8') should contain fields {
                 is definition
                 target {variable ['x']}
                 source {

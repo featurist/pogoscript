@@ -35,6 +35,9 @@ spec 'basic expression'
     
     spec 'with name, no arguments but a no arg punctuation'
       with terminals [id 'c'. no arg punctuation] should have arguments
+    
+    spec 'with name and empty argument list'
+      with terminals [id 'c'. cg: argument list []] should have arguments
       
   spec 'doesnt have arguments'
     spec 'with just an identifier'
@@ -52,6 +55,9 @@ spec 'basic expression'
     
     spec 'variable with name'
       terminals [id 'move'. variable] should have arguments [variable]
+    
+    spec 'with name and empty argument list'
+      terminals [id 'c'. cg: argument list []] should have arguments []
     
     spec 'block'
       terminals [block] should have arguments [{
@@ -96,6 +102,13 @@ spec 'basic expression'
             
         spec 'parameters'
             target [id 'car'. no arg punctuation] has parameters []
+  
+    spec 'empty argument list'
+        spec 'has parameters'
+            target [id 'car'. cg: argument list []] has some parameters
+            
+        spec 'parameters'
+            target [id 'car'. cg: argument list []] has parameters []
     
   spec 'has name'
     terminals @terminals should have a name =

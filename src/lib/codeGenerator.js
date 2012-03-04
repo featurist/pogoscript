@@ -166,7 +166,7 @@ exports.identifier = function (name) {
     this.identifier = name;
     
     this.arguments = function () {
-      return [];
+      return undefined;
     };
   });
 };
