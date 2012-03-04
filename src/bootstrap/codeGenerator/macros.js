@@ -86,10 +86,10 @@ macros.addMacro(['for'], function(name, arguments) {
     return errors.addTermWithMessage(arguments[0], 'expected init, as in (n = 0. ...)');
 
   if (!test)
-    return errors.addTermWithMessage(arguments[1], 'expected test, as in (... . n < 10. ...)');
+    return errors.addTermWithMessage(arguments[0], 'expected test, as in (... . n < 10. ...)');
 
   if (!incr)
-    return errors.addTermWithMessage(arguments[2], 'expected incr, as in (... . ... . n = n + 1)');
+    return errors.addTermWithMessage(arguments[0], 'expected incr, as in (... . ... . n = n + 1)');
   
   return cg.forStatement(init, test, incr, arguments[3].body);
 });

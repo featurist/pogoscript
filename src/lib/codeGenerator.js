@@ -1753,6 +1753,8 @@ var scope = exports.scope = function (stmts) {
     this.isScope = true;
     this.statements = stmts;
     
+    this.subterms('statements');
+    
     this.generateJavaScript = function (buffer, scope) {
       functionCall(subExpression(block([], statements(this.statements))), []).generateJavaScript(buffer, scope);
     };

@@ -29,9 +29,15 @@ module.exports = new function () {
 
       this.generateJavaScript = function(buffer, scope) {
       };
-
-      this.generateJavaScriptHashEntry = function (buffer, scope) {
+      
+      this.generateJavaScriptStatement = this.generateJavaScript;
+      this.generateJavaScriptHashEntry = this.generateJavaScript;
+      
+      this.definitions = function (scope) {
+        return [];
       };
+      
+      this.walkEachSubterm = function () {};
 
       this.printError = function(sourceFile) {
         sourceFile.printLocation(this.terms[0].location());
