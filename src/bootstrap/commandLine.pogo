@@ -56,19 +56,14 @@ js filename from pogo filename (pogo) =
     process: argv: 1 = fs: realpath sync (filename)
     require 'module': run main!
 
-/*
-    js = js from pogo file (filename)
-    
-    module: filename = fs: realpath sync (filename)
-    
-    module: _compile (js, filename)
-*/
-
-:compile (pogo); filename =
+:compile (pogo); filename; in scope (true); ugly =
     term = parse (pogo)
-    term: in scope = false
+    term: in scope = in scope
 
     code = generate code (term)
+
+    if (!ugly)
+        code = beautify (code)
 
     if (errors: has errors?)
         errors: print errors (source location printer; filename (filename); source (pogo))
@@ -77,7 +72,7 @@ js filename from pogo filename (pogo) =
         code
 
 :evaluate (pogo, definitions) =
-    js = exports: compile (pogo)
+    js = exports: compile (pogo); ugly
     definition names = _: keys (definitions)
     
     parameters = definition names: join ','

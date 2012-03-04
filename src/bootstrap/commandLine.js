@@ -77,12 +77,17 @@
         return require("module").runMain();
     };
     self.compile = function(pogo, gen4_options) {
-        var filename, self, term, code;
+        var filename, inScope, ugly, self, term, code;
         filename = gen4_options && gen4_options.filename != null ? gen4_options.filename : undefined;
+        inScope = gen4_options && gen4_options.inScope != null ? gen4_options.inScope : true;
+        ugly = gen4_options && gen4_options.ugly != null ? gen4_options.ugly : undefined;
         self = this;
         term = parse(pogo);
-        term.inScope = false;
+        term.inScope = inScope;
         code = generateCode(term);
+        if (!ugly) {
+            code = beautify(code);
+        }
         if (errors.hasErrors()) {
             errors.printErrors(sourceLocationPrinter({
                 filename: filename,
@@ -96,7 +101,9 @@
     self.evaluate = function(pogo, definitions) {
         var self, js, definitionNames, parameters, runScript, definitionValues;
         self = this;
-        js = exports.compile(pogo);
+        js = exports.compile(pogo, {
+            ugly: true
+        });
         definitionNames = _.keys(definitions);
         parameters = definitionNames.join(",");
         runScript = new Function(parameters, js);
