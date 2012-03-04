@@ -51,6 +51,22 @@ spec 'parser'
                     is string
                     string "one\ntwo"
                 }
+                    
+            spec 'multiline double-quote string'
+                (expression "  \"one\n   two\"") should contain fields {
+                    is string
+                    string "one\ntwo"
+                }
+                    
+            spec 'two multiline string in function'
+                (expression "x 'one\n   two' y \"three\n           four\"") should contain fields {
+                    is function call
+                    function {variable ['x'. 'y']}
+                    arguments [
+                        {string "one\ntwo"}
+                        {string "three\nfour"}
+                    ]
+                }
 
         spec 'interpolated strings'
             spec 'simple'
@@ -61,26 +77,17 @@ spec 'parser'
 
             spec 'with newline'
                 (expression '"one\ntwo"') should contain fields {
-                    is interpolated string
-                    components [
-                        {string "one\ntwo"}
-                    ]
+                    string "one\ntwo"
+                }
+
+            spec 'with newline escape and indentation should not remove indentation'
+                (expression '  "one\n    two"') should contain fields {
+                    string "one\n    two"
                 }
 
             spec 'with indentation'
-                (expression '"one\n  two"') should contain fields {
-                    is interpolated string
-                    components [
-                        {string "one\n two"}
-                    ]
-                }
-
-            spec 'indented string'
-                (expression '  "one\n   two"') should contain fields {
-                    is interpolated string
-                    components [
-                        {string "one\ntwo"}
-                    ]
+                (expression "  \"one\n   two\"") should contain fields {
+                    string "one\ntwo"
                 }
 
             spec 'null string'
@@ -117,12 +124,7 @@ spec 'parser'
                         {string 'a boat '}
                         {
                             function {variable ['lookup'. 'boat'. 'length'. 'from']}
-                            arguments [{
-                                is sub expression
-                                statements [
-                                    {variable ['boat'. 'database']}
-                                ]
-                            }]
+                            arguments [{variable ['boat'. 'database']}]
                         }
                         {string ' meters in length'}
                     ]
@@ -167,16 +169,11 @@ spec 'parser'
 
         spec 'sub expressions'
             spec 'single expression'
-                (expression '(x)') should contain fields {
-                    is sub expression
-                    statements [
-                        {variable ['x']}
-                    ]
-                }
+                (expression '(x)') should contain fields {variable ['x']}
 
             spec 'two expressions'
                 (expression '(x. y)') should contain fields {
-                    is sub expression
+                    is scope
                     statements [
                         {variable ['x']}
                         {variable ['y']}
@@ -197,7 +194,25 @@ spec 'parser'
                 }
             
             spec 'two items'
-                (expression '[1. 2]') should contain fields {
+                (expression '[1, 2]') should contain fields {
+                    is list
+                    items [
+                        {integer 1}
+                        {integer 2}
+                    ]
+                }
+            
+            spec 'two items separated by newlines'
+                (expression "[\n  1\n  2\n]") should contain fields {
+                    is list
+                    items [
+                        {integer 1}
+                        {integer 2}
+                    ]
+                }
+            
+            spec 'two items separated by dots'
+                (expression "[1. 2]") should contain fields {
                     is list
                     items [
                         {integer 1}
@@ -224,7 +239,7 @@ spec 'parser'
                 }
                     
             spec 'hash with two entries'
-                (expression '{port 1234. ip address ''1.1.1.1''}') should contain fields {
+                (expression '{port 1234, ip address ''1.1.1.1''}') should contain fields {
                     is hash
                     entries [
                         {
@@ -265,7 +280,7 @@ spec 'parser'
                 }
                     
             spec 'should allow methods to be defined, redefining self'
-                (expression '{say hi to @name, greeting = print @name}') should contain fields {
+                (expression '{say hi to (name); greeting = print (name)}') should contain fields {
                     is hash
                     entries [
                         {
@@ -282,10 +297,7 @@ spec 'parser'
                                     }]
                                 }
 
-                                parameters [{
-                                    is parameter
-                                    expression {variable ['name']}
-                                }]
+                                parameters [{variable ['name']}]
 
                                 optional parameters [{
                                     is hash entry
@@ -306,32 +318,20 @@ spec 'parser'
                         }   
                         {
                             field ['readonly']
-                            value @undefined
+                            value (undefined)
                         }
                     ]
                 }
 
     spec 'function calls'
         spec 'function call'
-            (expression 'touch @ file') should contain fields {
+            (expression 'touch (file)') should contain fields {
                 function {variable ['touch']}
                 arguments [{variable ['file']}]
             }
 
-        spec 'function call with self argument'
-            (expression 'touch @: file') should contain fields {
-                function {variable ['touch']}
-                arguments [
-                    {
-                        is field reference
-                        object {variable ['self']}
-                        name ['file']
-                    }
-                ]
-            }
-
         spec 'function call with splat argument'
-            (expression 'touch @files ...') should contain fields {
+            (expression 'touch (files) ...') should contain fields {
                 function {variable ['touch']}
                 arguments [
                   {variable ['files']}
@@ -345,31 +345,31 @@ spec 'parser'
                 arguments []
             }
 
+        spec 'function call with no argument using empty parens'
+            (expression 'delete everything ()') should contain fields {
+                function {variable ['delete'. 'everything']}
+                arguments []
+            }
+
         spec 'function call with block with parameters'
-            (expression "with file \@file #stream\n  stream") should contain fields {
+            (expression "with file (file) \@(stream)\n  stream") should contain fields {
                 function {variable ['with'. 'file']}
                 arguments [
                     {variable ['file']}
                     {
                         body {statements [{variable ['stream']}]}
-                        parameters [{
-                            is parameter
-                            expression {variable ['stream']}
-                        }]
+                        parameters [{variable ['stream']}]
                     }
                 ]
             }
 
         spec 'function call with block with long parameters'
-            (expression "open database #(database connection)\n  database connection") should contain fields {
+            (expression "open database \@(database connection)\n  database connection") should contain fields {
                 function {variable ['open'. 'database']}
                 arguments [
                     {
                         parameters [
-                            {
-                                is parameter
-                                expression {variable ['database'. 'connection']}
-                            }
+                            {variable ['database'. 'connection']}
                         ]
                         body {statements [{variable ['database'. 'connection']}]}
                     }
@@ -377,28 +377,22 @@ spec 'parser'
             }
 
         spec 'function call with two blocks with parameters'
-            (expression 'name #x @{x} #y @ {y}') should contain fields {
+            (expression 'name @(x) @{x} @ (y) @ {y}') should contain fields {
                 function {variable ['name']}
                 arguments [
                     {
                         body {statements [{variable ['x']}]}
-                        parameters [{
-                            is parameter
-                            expression {variable ['x']}
-                        }]
+                        parameters [{variable ['x']}]
                     }
                     {
                         body {statements [{variable ['y']}]}
-                        parameters [{
-                            is parameter
-                            expression {variable ['y']}
-                        }]
+                        parameters [{variable ['y']}]
                     }
                 ]
             }
 
         spec 'function call with two optional arguments'
-            (expression 'name @a, port 34, server @s') should contain fields {
+            (expression 'name (a); port 34; server (s)') should contain fields {
                 function {variable ['name']}
                 arguments [
                     {variable ['a']}
@@ -416,7 +410,7 @@ spec 'parser'
             }
 
         spec 'function call with no arguments and one optional argument'
-            (expression 'start server, port 34') should contain fields {
+            (expression 'start server; port 34') should contain fields {
                 function {variable ['start'. 'server']}
                 arguments []
                 optional arguments [
@@ -429,7 +423,7 @@ spec 'parser'
     
     spec 'object operations'
         spec 'method call'
-            (expression 'object: method @argument') should contain fields {
+            (expression 'object: method (argument)') should contain fields {
                 is method call
                 object {variable ['object']}
                 name ['method']
@@ -437,7 +431,7 @@ spec 'parser'
             }
         
         spec 'method call with optional arguments'
-            (expression 'object: method @argument, view @view') should contain fields {
+            (expression 'object: method (argument); view (view)') should contain fields {
                 is method call
                 object {variable ['object']}
                 name ['method']
@@ -469,7 +463,7 @@ spec 'parser'
             }
         
         spec 'indexer'
-            (expression 'object: @x') should contain fields {
+            (expression 'object: (x)') should contain fields {
                 is indexer
                 object {variable ['object']}
                 indexer {variable ['x']}
@@ -480,7 +474,7 @@ spec 'parser'
             (expression '@{}') should contain fields {
                 is block
                 parameters []
-                redefines self @false
+                redefines self (false)
                 body {statements []}
             }
                 
@@ -488,7 +482,7 @@ spec 'parser'
             (expression '@{x.y}') should contain fields {
                 is block
                 parameters []
-                redefines self @false
+                redefines self (false)
                 body {statements [
                     {variable ['x']}
                     {variable ['y']}
@@ -496,10 +490,10 @@ spec 'parser'
             }
 
         spec 'block with parameter'
-            (expression "#x\n  x.y") should contain fields {
+            (expression "\@(x)\n  x.y") should contain fields {
                 is block
-                parameters [{is parameter. expression {variable ['x']}}]
-                redefines self @false
+                parameters [{variable ['x']}]
+                redefines self (false)
                 body {
                     statements [
                         {variable ['x']}
@@ -507,12 +501,28 @@ spec 'parser'
                     ]
                 }
             }
+        
+        spec 'block in parens'
+            (expression "(one\n  two\n)") should contain fields {
+                is function call
+                function {variable ['one']}
+                arguments [
+                    {
+                        is block
+                        body {
+                            statements [
+                                {variable ['two']}
+                            ]
+                        }
+                    }
+                ]
+            }
 
         spec 'block with parameter, redefining self'
-            (expression '#x => @{x.y}') should contain fields {
+            (expression '@(x) => @{x.y}') should contain fields {
                 is block
-                parameters [{is parameter. expression {variable ['x']}}]
-                redefines self @true
+                parameters [{variable ['x']}]
+                redefines self (true)
                 body {
                     statements [
                         {variable ['x']}
@@ -589,21 +599,21 @@ spec 'parser'
 
         spec 'function definition'
             spec 'function with one parameter'
-                (expression 'func @x = x') should contain fields {
+                (expression 'func (x) = x') should contain fields {
                     is definition
                     target {variable ['func']}
                     source {
-                        parameters [{is parameter. expression {variable ['x']}}]
+                        parameters [{variable ['x']}]
                         body {statements [{variable ['x']}]}
                     }
                 }
 
             spec 'function with one parameter, and one optional parameter'
-                (expression 'func @x, port 80 = x') should contain fields {
+                (expression 'func (x); port 80 = x') should contain fields {
                     is definition
                     target {variable ['func']}
                     source {
-                        parameters [{is parameter. expression {variable ['x']}}]
+                        parameters [{variable ['x']}]
                         optional parameters [{field ['port']. value {integer 80}}]
                         body {statements [{variable ['x']}]}
                     }
@@ -622,7 +632,7 @@ spec 'parser'
             }
 
         spec 'index assignment'
-            (expression 'o: @x = y') should contain fields {
+            (expression 'o: (x) = y') should contain fields {
                 is definition
                 target {
                     is indexer
@@ -660,6 +670,19 @@ spec 'parser'
                 }
             }
 
+        spec 'definition of function with no arguments, using empty parens "()"'
+            (expression 'x () = 8') should contain fields {
+                is definition
+                target {variable ['x']}
+                source {
+                    is block
+                    parameters []
+                    body {
+                        statements [{integer 8}]
+                    }
+                }
+            }
+
         spec 'assignment of query'
             (expression 'x? = 8') should contain fields {
                 is definition
@@ -674,7 +697,7 @@ spec 'parser'
             }
 
         spec 'assignment from method call'
-            (expression 'x = y: z @a') should contain fields {
+            (expression 'x = y: z (a)') should contain fields {
                 is definition
                 target {variable ['x']}
                 source {
@@ -689,7 +712,7 @@ spec 'parser'
             }
 
         spec 'field assignment from method call'
-            (expression 'i: x = y: z @a') should contain fields {
+            (expression 'i: x = y: z (a)') should contain fields {
                 is definition
                 target {
                     is field reference
@@ -742,6 +765,18 @@ spec 'parser'
             }
     
     spec 'comments'
+        spec 'should not treat comment-like syntax as comments in strings'
+            (statements "get 'http://pogoscript.org/'") should contain fields {
+                is statements
+                statements [{
+                    is function call
+                    function {variable ['get']}
+                    arguments [
+                        {string 'http://pogoscript.org/'}
+                    ]
+                }]
+            }
+            
         spec 'should allow one-line C++ style comments, as in: // this is a comment'
             spec 'when at the end of a line'
                 (statements "a // this is a comment\nb") should contain fields {
@@ -819,9 +854,10 @@ spec 'parser'
 
             spec 'when it covers two lines'
                 (statements "a /* line one\nline two */ b") should contain fields {
-                    statements [
-                        {variable ['a'. 'b']}
-                    ]
+                    statements [{
+                        is variable
+                        variable ['a'. 'b']
+                    }]
                 }
 
             spec 'when it extends to the end of the file'
@@ -832,10 +868,11 @@ spec 'parser'
                 }
 
     spec 'lexer'
-        tokens = parser: lex 'a @b'
-        @tokens should contain fields [
+        tokens = parser: lex 'a (b)'
+        (tokens) should contain fields [
             ['identifier'. 'a']
-            ['@']
+            ['(']
             ['identifier'. 'b']
+            [')']
             ['eof']
         ]

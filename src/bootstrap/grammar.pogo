@@ -1,25 +1,24 @@
 identifier pattern = '[a-zA-Z_$][a-zA-Z_$0-9]*'
+comment pattern = '(/\*([^*](\*[^/]|))*(\*/|$)|//[^\n]*)'
 
 exports: grammar = {
     lex {
-        start conditions {interpolated_string. interpolated_string_terminal}
+        start conditions {interpolated_string, interpolated_string_terminal}
 
         rules [
-            ['\s*$'. 'return yy.eof();']
-            ['\(\s*'. 'yy.setIndentation(yytext); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.openBracket()} return "(";']
-            ['#\(\s*'. 'yy.setIndentation(yytext); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.openBracket()} return "#(";']
-            ['\s*\)'. 'yy.unsetIndentation(); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.closeBracket(); if (yy.terms.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.terms.interpolation.stopInterpolation()}} return '')'';']
-            ['{\s*'. 'yy.setIndentation(yytext); return ''{'';']
-            ['\s*}'. 'yy.unsetIndentation(); return ''}'';']
-            ['\[\s*'. 'yy.setIndentation(yytext); return ''['';']
-            ['\s*\]'. 'yy.unsetIndentation(); return '']'';']
-            ['(\n *)*\n *'. 'return yy.indentation(yytext);']
             [' +'. '/* ignore whitespace */']
-            ['//[^\n]*'. '/* ignore comment */']
-            ['/\*([^*](\*[^/]|))*(\*/|$)'. '/* ignore comment */']
+            ['\s*$'. 'return yy.eof();']
+            ['\s*((/\*([^*](\*[^/]|))*(\*/|$)|//[^\n]*)\s*)+'. 'var indentation = yy.indentation(yytext); if (indentation) { return indentation; }']
+            ['\(\s*'. 'yy.setIndentation(yytext); if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.openBracket()} return "(";']
+            ['\s*\)'. 'if (yy.terms.interpolation.interpolating()) {yy.terms.interpolation.closeBracket(); if (yy.terms.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.terms.interpolation.stopInterpolation()}} return yy.unsetIndentation('')'');']
+            ['{\s*'. 'yy.setIndentation(yytext); return ''{'';']
+            ['\s*}'. 'return yy.unsetIndentation(''}'');']
+            ['\[\s*'. 'yy.setIndentation(yytext); return ''['';']
+            ['\s*\]'. 'return yy.unsetIndentation('']'')']
+            ['(\n *)*\n *'. 'return yy.indentation(yytext);']
             ['[0-9]+\.[0-9]+'. 'return ''float'';']
             ['[0-9]+'. 'return ''integer'';']
-            ['([:=,?!.@~#%^&*+<>/?\\|-])+'. 'return yy.terms.lexOperator(yytext);']
+            ['([:;=,?!.@~#%^&*+<>/?\\|-])+'. 'return yy.terms.lexOperator(yytext);']
             [identifier pattern. 'return ''identifier'';']
             ['$'. 'return ''eof'';']
             ['''([^'']*'''')*[^'']*'''. 'return ''string'';']
@@ -53,7 +52,7 @@ exports: grammar = {
             ['statements_list'. '$$ = yy.terms.statements($1);']
         ]
         hash_entries [
-            ['hash_entries . expression'. '$1.push($3.hashEntry()); $$ = $1;']
+            ['hash_entries comma_dot expression'. '$1.push($3.hashEntry()); $$ = $1;']
             ['expression'. '$$ = [$1.hashEntry()];']
             [''. '$$ = [];']
         ]
@@ -62,9 +61,22 @@ exports: grammar = {
             [','. '$$ = $1;']
         ]
         statements_list [
-            ['statements_list . statement'. '$1.push($3); $$ = $1;']
+            ['statements_list comma_dot statement'. '$1.push($3); $$ = $1;']
             ['statement'. '$$ = [$1];']
             [''. '$$ = [];']
+        ]
+        arguments_list [
+            ['arguments_list , expression_list'. '$1.push($3); $$ = $1;']
+            ['expression_list'. '$$ = [$1];']
+            [''. '$$ = [];']
+        ]
+        parameter_list [
+            ['parameter_list , statement'. '$1.push($3); $$ = $1;']
+            ['statement'. '$$ = [$1];']
+        ]
+        expression_list [
+            ['expression_list . statement'. '$1.push($3); $$ = $1;']
+            ['statement'. '$$ = [$1];']
         ]
         list_statements_list [
             ['list_statements_list comma_dot list_statement'. '$1.push($3); $$ = $1;']
@@ -126,7 +138,7 @@ exports: grammar = {
             ['list_basic_expression'. '$$ = yy.terms.complexExpression($1);']
         ]
         basic_expression_list [
-            ['basic_expression_list , terminal_list'. '$1.push($3); $$ = $1;']
+            ['basic_expression_list ; terminal_list'. '$1.push($3); $$ = $1;']
             ['terminal_list_no_arg'. '$$ = [$1];']
         ]
         list_basic_expression [
@@ -151,8 +163,8 @@ exports: grammar = {
             ['terminal'. '$$ = [$1];']
         ]
         terminal [
-            ['( statements_list )'. '$$ = yy.terms.loc(yy.terms.subExpression($2), @$);']
-            ['#( statement )'. '$$ = yy.terms.parameter($2);']
+            ['( arguments_list )'. '$$ = yy.terms.loc(yy.terms.argumentList(yy.terms.normaliseArguments($2)), @$);']
+            ['@ ( parameter_list )'. '$$ = yy.terms.loc(yy.terms.parameters($3), @$);']
             ['block_start statements }'. '$$ = yy.terms.loc(yy.terms.block([], $2), @$);']
             ['=> block_start statements }'. '$$ = yy.terms.loc(yy.terms.block([], $3, {redefinesSelf: true}), @$);']
             ['[ statements_list ]'. '$$ = yy.terms.loc(yy.terms.list($2), @$);']
@@ -160,9 +172,6 @@ exports: grammar = {
             ['float'. '$$ = yy.terms.loc(yy.terms.float(parseFloat(yytext)), @$);']
             ['integer'. '$$ = yy.terms.loc(yy.terms.integer(parseInt(yytext)), @$);']
             ['identifier'. '$$ = yy.terms.loc(yy.terms.identifier(yytext), @$);']
-            ['@ identifier'. '$$ = yy.terms.loc(yy.terms.variable([$2]), @$);']
-            ['@: identifier'. '$$ = yy.terms.loc(yy.terms.fieldReference(yy.terms.variable([''self'']), [$2]), @$);']
-            ['# identifier'. '$$ = yy.terms.loc(yy.terms.parameter(yy.terms.variable([$2])), @$);']
             ['string'. '$$ = yy.terms.loc(yy.terms.string(yy.terms.unindent(@$.first_column + 1, yy.terms.normaliseString(yytext))), @$);']
             ['reg_exp'. '$$ = yy.terms.loc(yy.terms.regExp(yy.terms.parseRegExp(yy.terms.unindent(@$.first_column + 1, yytext))), @$);']
             ['interpolated_string'. '$$ = yy.terms.loc($1, @$);']

@@ -5,12 +5,12 @@ create parser context = require './parserContext': create parser context
 create dynamic lexer = require './dynamicLexer': create dynamic lexer
 grammar = require './grammar.pogo': grammar
 
-parser = new (jison parser @grammar)
+parser = new (jison parser (grammar))
 jison lexer = parser:lexer
 
 create parser! =
-    dynamic lexer = create dynamic lexer, next lexer (jison lexer)
-    parser context = create parser context, terms @terms
+    dynamic lexer = create dynamic lexer; next lexer (jison lexer)
+    parser context = create parser context; terms (terms)
 
     parser context: lexer = dynamic lexer
     jison lexer: yy = parser context
@@ -19,29 +19,20 @@ create parser! =
     
     parser
 
-@s without c style comments =
-    s: replace `/\*([^*](\*[^/]|))*(\*/|$)`gm ''
-
-@s without c plus plus style comments =
-    s: replace `//[^\n]*`gm ''
-
-@s without comments =
-    (@s without c plus plus style comments) without c style comments
-
-exports: parse @source =
+:parse (source) =
     parser = create parser!
-    parser: parse (@source without comments)
+    parser: parse (source)
 
-exports: write parser to file @f =
+:write parser to file (f) =
     parser source = create parser? : generate?
     fs = require 'fs'
     fs: write file sync 'jisonParser.js' (parser source) 'utf-8'
 
-exports: lex @source =
+:lex (source) =
     tokens = []
     token index = undefined
-    lexer = create dynamic lexer, next lexer (jison lexer), source @source
-    parser context = create parser context, terms @terms
+    lexer = create dynamic lexer; next lexer (jison lexer); source (source)
+    parser context = create parser context; terms (terms)
     parser context: lexer = lexer
     jison lexer: yy = parser context
     
@@ -64,7 +55,7 @@ exports: lex @source =
                 lexer: yytext
 
         lexer token =
-            if @text
+            if (text)
                 [token. text]
             else
                 [token]

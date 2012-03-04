@@ -5,7 +5,7 @@ exports.variable = cg.variable;
 exports.selfExpression = cg.selfExpression;
 exports.statements = cg.statements;
 exports.block = cg.block;
-exports.parameter = cg.parameter;
+exports.parameters = cg.parameters;
 exports.identifier = cg.identifier;
 exports.integer = cg.integer;
 exports.float = cg.float;
@@ -20,6 +20,8 @@ exports.parseRegExp = cg.parseRegExp;
 exports.module = cg.module;
 exports.interpolation = cg.interpolation;
 exports.list = cg.list;
+exports.normaliseArguments = cg.normaliseArguments;
+exports.argumentList = cg.argumentList;
 exports.subExpression = cg.subExpression;
 exports.fieldReference = cg.fieldReference;
 exports.hash = cg.hash;
@@ -40,7 +42,7 @@ exports.expression = function (e) {
 };
 
 exports.lexOperator = function (op) {
-  if (/^(=>|\.\.\.|@:|[#@:!?,.=])$/.test(op)) {
+  if (/^(=>|\.\.\.|@:|[#@:!?,.=;])$/.test(op)) {
     return op;
   } else {
     return 'operator';

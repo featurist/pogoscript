@@ -1,4 +1,4 @@
-(function() {
+((function() {
     var self, createDynamicLexer;
     self = this;
     exports.createDynamicLexer = createDynamicLexer = function(gen1_options) {
@@ -42,4 +42,4 @@
             }
         });
     };
-})();
+})).call(this);

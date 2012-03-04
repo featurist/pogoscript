@@ -1,11 +1,11 @@
-exports: create dynamic lexer = create dynamic lexer, next lexer, source = object =>
+exports: create dynamic lexer = create dynamic lexer; next lexer; source = object =>
     :tokens = []
     :next lexer = next lexer
     
     :lex! =
         token = :tokens: shift!
         
-        if @token
+        if (token)
             :yytext = token
             token
         else
@@ -22,8 +22,8 @@ exports: create dynamic lexer = create dynamic lexer, next lexer, source = objec
     :show position? =
         :next lexer: show position?
     
-    :set input @input =
-        :next lexer: set input @input
+    :set input (input) =
+        :next lexer: set input (input)
     
-    if @source
-        :set input @source
+    if (source)
+        :set input (source)

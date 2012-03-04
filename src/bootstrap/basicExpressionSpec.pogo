@@ -4,22 +4,22 @@ require './assertions.pogo'
 assert = require 'assert'
 
 spec 'basic expression'
-  with terminals @terminals should not have arguments =
-    ex = cg: basic expression @terminals
+  with terminals (terminals) should not have arguments =
+    ex = cg: basic expression (terminals)
     (ex: has arguments?) should be falsy
     
-  with terminals @terminals should have arguments =
-    ex = cg: basic expression @terminals
+  with terminals (terminals) should have arguments =
+    ex = cg: basic expression (terminals)
     (ex: has arguments?) should be truthy
   
   variable = cg: variable ['a']
   block = cg: block [] (cg: statements [variable])
-  id @name = cg: identifier @name
-  int @n =
-    cg: integer @n
+  id (name) = cg: identifier (name)
+  int (n) =
+    cg: integer (n)
     
-  string @n =
-    cg: string @n
+  string (n) =
+    cg: string (n)
   
   no arg punctuation = cg: no arg suffix?
   
@@ -35,6 +35,9 @@ spec 'basic expression'
     
     spec 'with name, no arguments but a no arg punctuation'
       with terminals [id 'c'. no arg punctuation] should have arguments
+    
+    spec 'with name and empty argument list'
+      with terminals [id 'c'. cg: argument list []] should have arguments
       
   spec 'doesnt have arguments'
     spec 'with just an identifier'
@@ -44,14 +47,17 @@ spec 'basic expression'
       with terminals [id 'a'. id 'b'] should not have arguments
 
   spec 'arguments'
-    terminals @terminals should have arguments @arguments =
-      (cg: basic expression @terminals: arguments?) should contain fields @arguments
+    terminals (terminals) should have arguments (arguments) =
+      (cg: basic expression (terminals): arguments?) should contain fields (arguments)
     
     spec 'single variable'
       terminals [variable] should have arguments [variable]
     
     spec 'variable with name'
       terminals [id 'move'. variable] should have arguments [variable]
+    
+    spec 'with name and empty argument list'
+      terminals [id 'c'. cg: argument list []] should have arguments []
     
     spec 'block'
       terminals [block] should have arguments [{
@@ -62,23 +68,23 @@ spec 'basic expression'
       }]
     
     spec 'block with a parameter'
-      terminals [cg: parameter (cg: variable ['x']). block] should have arguments [{
+      terminals [cg: parameters ([cg: variable ['x']]). block] should have arguments [{
         is block
-        parameters [{is parameter. expression {variable ['x']}}]
+        parameters [{variable ['x']}]
         body {
           statements [{is variable. variable ['a']}]
         }
       }]
 
   spec 'parameters'
-    target @expression has some parameters =
-      (cg: basic expression @expression: has parameters?) should be truthy
+    target (expression) has some parameters =
+      (cg: basic expression (expression): has parameters?) should be truthy
       
-    target @expression doesnt have some parameters =
-      (cg: basic expression @expression: has parameters?) should be falsy
+    target (expression) doesnt have some parameters =
+      (cg: basic expression (expression): has parameters?) should be falsy
   
-    target @expression has parameters @parameters =
-      (cg: basic expression @expression: parameters?) should contain fields @parameters
+    target (expression) has parameters (parameters) =
+      (cg: basic expression (expression): parameters?) should contain fields (parameters)
   
     spec 'single name'
       target [id 'car'] doesnt have some parameters
@@ -88,7 +94,7 @@ spec 'basic expression'
             target [id 'car'. variable] has some parameters
 
         spec 'parameters'
-            target [id 'car'. variable] has parameters [{is parameter. expression {variable ['a']}}]
+            target [id 'car'. variable] has parameters [{variable ['a']}]
   
     spec 'no arg punctuation'
         spec 'has parameters'
@@ -96,17 +102,24 @@ spec 'basic expression'
             
         spec 'parameters'
             target [id 'car'. no arg punctuation] has parameters []
+  
+    spec 'empty argument list'
+        spec 'has parameters'
+            target [id 'car'. cg: argument list []] has some parameters
+            
+        spec 'parameters'
+            target [id 'car'. cg: argument list []] has parameters []
     
   spec 'has name'
-    terminals @terminals should have a name =
-      (cg: basic expression @terminals: has name?) should be truthy
+    terminals (terminals) should have a name =
+      (cg: basic expression (terminals): has name?) should be truthy
 
     spec 'with two identifiers'
       terminals [id 'car'. id 'idle'] should have a name
 
   spec 'name'
-    terminals @terminals should have name @name =
-      (cg: basic expression @terminals: name?) should contain fields @name
+    terminals (terminals) should have name (name) =
+      (cg: basic expression (terminals): name?) should contain fields (name)
       
     spec 'with two identifiers'
       terminals [id 'car'. id 'idle'] should have name ['car'. 'idle']
@@ -115,8 +128,8 @@ spec 'basic expression'
       terminals [id 'car'. cg: variable ['car']. id 'idle'] should have name ['car'. 'idle']
 
   spec 'hash entry'
-    hash entry @terminals should contain fields @f =
-      (cg: basic expression @terminals: hash entry?) should contain fields @f
+    hash entry (terminals) should contain fields (f) =
+      (cg: basic expression (terminals): hash entry?) should contain fields (f)
   
     spec 'with an argument'
       hash entry [id 'port'. int 10] should contain fields {
@@ -129,7 +142,7 @@ spec 'basic expression'
       hash entry [id 'port'] should contain fields {
         is hash entry
         field ['port']
-        value @undefined
+        value = undefined
       }
   
     spec 'with a string name'
@@ -140,8 +153,8 @@ spec 'basic expression'
       }
 
   spec 'hash entry, without block'
-    hash entry @terminals should contain fields @f =
-      (cg: basic expression @terminals: hash entry, without block) should contain fields @f
+    hash entry (terminals) should contain fields (f) =
+      (cg: basic expression (terminals): hash entry; without block) should contain fields (f)
       
     spec 'with block'
       hash entry [id 'port'. int 10. block] should contain fields {
@@ -154,12 +167,12 @@ spec 'basic expression'
       hash entry [id 'port'] should contain fields {
         is hash entry
         field ['port']
-        value @undefined
+        value = undefined
       }
 
   spec 'hash entry block'
-    hash entry block @terminals should contain fields @f =
-      (cg: basic expression @terminals: hash entry block?) should contain fields @f
+    hash entry block (terminals) should contain fields (f) =
+      (cg: basic expression (terminals): hash entry block?) should contain fields (f)
 
     spec 'with block'
       hash entry block [id 'port'. int 10. block] should contain fields {
@@ -168,18 +181,18 @@ spec 'basic expression'
       }
 
     spec 'without block'
-      assert: (cg: basic expression [id 'port'. int 10]: hash entry block?) equal @undefined
+      assert: (cg: basic expression [id 'port'. int 10]: hash entry block?) equal (undefined)
 
     spec 'without hash'
-      assert: (cg: basic expression [id 'port']: hash entry block?) equal @undefined
+      assert: (cg: basic expression [id 'port']: hash entry block?) equal (undefined)
 
   spec 'hash key'
     spec 'if string then should return array containing string'
       key = cg: basic expression [string 'port']: hash key?
       
-      @key should contain fields ['port']
+      (key) should contain fields ['port']
       
     spec 'if variable then should return array containing string'
       key = cg: basic expression [id 'port']: hash key?
       
-      @key should contain fields ['port']
+      (key) should contain fields ['port']

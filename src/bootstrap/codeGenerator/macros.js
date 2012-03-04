@@ -70,7 +70,7 @@ var createForEach = function (name, arguments) {
   var collection = arguments[0];
   var block = arguments[1];
 
-  var itemVariable = block.parameters[0].expression;
+  var itemVariable = block.parameters[0];
   
   return cg.forEach(collection, itemVariable, block.body);
 };
@@ -78,31 +78,30 @@ var createForEach = function (name, arguments) {
 macros.addMacro(['for', 'each', 'in'], createForEach);
 
 macros.addMacro(['for'], function(name, arguments) {
-  if (!arguments[0] || !arguments[0].isSubExpression)
-    return errors.addTermWithMessage('expected (init. test. incr)');
-
-  var init = arguments[0].statements[0];
-  var test = arguments[0].statements[1];
-  var incr = arguments[0].statements[2];
+  var init = arguments[0];
+  var test = arguments[1];
+  var incr = arguments[2];
 
   if (!init)
     return errors.addTermWithMessage(arguments[0], 'expected init, as in (n = 0. ...)');
 
   if (!test)
-    return errors.addTermWithMessage(arguments[0], 'expected test, as in (... . n < 10. ...)');
+    return errors.addTermWithMessage(arguments[1], 'expected test, as in (... . n < 10. ...)');
 
   if (!incr)
-    return errors.addTermWithMessage(arguments[0], 'expected incr, as in (... . ... . n = n + 1)');
+    return errors.addTermWithMessage(arguments[2], 'expected incr, as in (... . ... . n = n + 1)');
   
-  return cg.forStatement(init, test, incr, arguments[1].body);
+  return cg.forStatement(init, test, incr, arguments[3].body);
 });
 
 macros.addMacro(['while'], function(name, arguments) {
   var test;
   if (arguments[0].isSubExpression) {
-      test = arguments[0].statements[0];
+    test = arguments[0].statements[0];
+  } else if (arguments[0].isBlock) {
+    test = arguments[0].body.statements[0];
   } else {
-      test = arguments[0].body.statements[0];
+    test = arguments[0];
   }
   var statements = arguments[1].body;
   

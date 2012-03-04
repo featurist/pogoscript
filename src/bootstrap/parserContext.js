@@ -1,4 +1,4 @@
-(function() {
+((function() {
     var self, createIndentStack;
     self = this;
     createIndentStack = require("./indentStack").createIndentStack;
@@ -23,10 +23,12 @@
                     self = this;
                     return self.indentStack.setIndentation(text);
                 };
-                self.unsetIndentation = function() {
-                    var self;
+                self.unsetIndentation = function(token) {
+                    var self, tokens;
                     self = this;
-                    return self.indentStack.unsetIndentation();
+                    tokens = self.indentStack.unsetIndentation();
+                    tokens.push(token);
+                    return self.tokens(tokens);
                 };
                 self.indentation = function(text) {
                     var self, tokens;
@@ -42,4 +44,4 @@
             });
         };
     }();
-})();
+})).call(this);

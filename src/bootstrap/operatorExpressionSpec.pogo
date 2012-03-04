@@ -2,13 +2,13 @@ require 'cupoftea'
 cg = require './codeGenerator/codeGenerator'
 require './assertions.pogo'
 
-expression @expression =
-    cg: operator expression (complex expression @expression)
+expression (expression) =
+    cg: operator expression (complex expression (expression))
 
-complex expression @expression =
+complex expression (expression) =
     cg: complex expression [expression]
 
-variable @name =
+variable (name) =
     cg: variable [name]
 
 loc = {
@@ -18,7 +18,7 @@ loc = {
     last column 8
 }
 
-id @name = cg: loc (cg: identifier @name) @loc
+id (name) = cg: loc (cg: identifier (name), loc)
 
 spec 'operator expression'
     spec 'a'
@@ -68,7 +68,7 @@ spec 'operator expression'
             (e: hash entry?) should contain fields {
                 is hash entry
                 field ['a']
-                value @undefined
+                value = undefined
             }
 
         spec 'a */ b'
@@ -103,7 +103,7 @@ spec 'operator expression'
                     
                 source {
                     is block
-                    parameters [{is parameter. expression {variable ['b']}}]
+                    parameters [{variable ['b']}]
                     body {statements [{variable ['c']}]}
                 }
             }

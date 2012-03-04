@@ -2,7 +2,7 @@ cg = require '../../lib/codeGenerator'
 macros = require './macros'
 errors = require './errors'
 
-exports: new unary operator expression, operator, expression =
+exports: new unary operator expression; operator; expression =
     cg: term =>
         :operator = operator
         :expr = expression
@@ -16,6 +16,6 @@ exports: new unary operator expression, operator, expression =
                 cg: method call (:expr) [:operator] []
         
         :hash entry? =
-            errors: add term @self with message 'cannot be a hash entry'
+            errors: add term (self) with message 'cannot be a hash entry'
         
         :subterms 'expr'

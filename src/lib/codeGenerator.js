@@ -29,6 +29,9 @@ var ExpressionPrototype = new function () {
   };
   this.definitionName = function(scope) {
   };
+  this.arguments = function () {
+    return this;
+  };
   this.inspectTerm = function () {
     return util.inspect(this, false, 10);
   };
@@ -158,9 +161,14 @@ var expressionTerm = function (name, constructor) {
 var semanticFailure = require('./semanticFailure');
 
 exports.identifier = function (name) {
-  return {
-    identifier: name
-  };
+  return term(function () {
+    this.isIdentifier = true;
+    this.identifier = name;
+    
+    this.arguments = function () {
+      return undefined;
+    };
+  });
 };
 
 var integer = expressionTerm('integer', function (value, location) {
@@ -219,28 +227,28 @@ var unindent = exports.unindent = function (columns, text) {
 };
 
 expressionTerm('interpolatedString', function (components, columnStart) {
-  if (components.length == 1) {
-    return components[0];
-  }
-  
   this.isInterpolatedString = true;
   this.components = (function () {
     var removeIndentation = unindenter(columnStart + 1);
     
     var collapsedComponents = collapse(components, function (c) {
       if (c.isString) {
-        return c.string;
+        return removeIndentation(c.string);
       }
     }, function (string, c) {
       if (c.isString) {
-        return string + c.string;
+        return string + removeIndentation(c.string);
       }
     }, function (s) {
-      return string(removeIndentation(s));
+      return string(s);
     });
 
     return collapsedComponents;
   })();
+  
+  if (this.components.length == 1) {
+    return this.components[0];
+  }
 
   this.componentsDelimitedByStrings = function () {
     var comps = [];
@@ -351,7 +359,7 @@ var variable = expressionTerm('variable', function (name, options) {
   };
   
   this.parameter = function () {
-    return parameter(this);
+    return this;
   };
 });
 
@@ -359,18 +367,26 @@ var selfExpression = exports.selfExpression = function () {
   return variable(['self'], {shadow: true});
 };
 
-var noArgSuffix = expressionTerm('noArgSuffix', function () {
+var noArgSuffix = exports.noArgSuffix = function () {
+  return term(function () {
     this.noArgumentFunctionCallSuffix = true;
-});
+    
+    this.arguments = function () {
+      return [];
+    };
+  });
+};
 
-var parameter = expressionTerm('parameter', function (expression) {
-  this.expression = expression;
-  this.isParameter = true;
-  
-  this.generateJavaScript = function (buffer, scope) {
-    this.expression.generateJavaScriptParameter(buffer, scope);
-  };
-});
+var parameters = exports.parameters = function (parms) {
+  return term(function () {
+    this.isParameters = true;
+    this.parameters = parms;
+    
+    this.arguments = function () {
+      return [];
+    };
+  });
+};
 
 var concatName = exports.concatName = function (nameSegments) {
   var name = '';
@@ -435,7 +451,7 @@ var splatParameters = function (next) {
       
         var splatParameter =
           definition(
-            splat.splatParameter.expression,
+            splat.splatParameter,
             javascript('Array.prototype.slice.call(arguments, ' + splat.firstParameters.length + ', ' + lastIndex + ')')
           );
       
@@ -444,7 +460,7 @@ var splatParameters = function (next) {
           var param = splat.lastParameters[n];
           lastParameterStatements.push(
             definition(
-              param.expression,
+              param,
               javascript('arguments[arguments.length - ' + (splat.lastParameters.length - n) + ']')
             )
           );
@@ -642,7 +658,7 @@ var optionalParameters = function (optionalParameters, next) {
       options: generatedVariable(['options']),
       
       parameters: function () {
-        return next.parameters().concat([parameter(this.options)]);
+        return next.parameters().concat([this.options]);
       },
     
       statements: function () {
@@ -944,7 +960,8 @@ var module = expressionTerm('module', function (statements) {
   
   this.generateJavaScript = function (buffer, scope) {
     var b = block([], this.statements, {returnLastStatement: false, redefinesSelf: true});
-    methodCall(subExpression([b]), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
+    methodCall(subExpression(b), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
+    buffer.write(';');
   };
 });
 
@@ -1526,7 +1543,7 @@ var ifCases = expressionTerm('ifCases', function (cases, _else) {
   };
 
   this.generateJavaScript = function (buffer, scope) {
-    functionCall(subExpression([block([], statements([this]))]), []).generateJavaScript(buffer, scope);
+    functionCall(subExpression(block([], statements([this]))), []).generateJavaScript(buffer, scope);
   };
 
   this.generateJavaScriptReturn = function (buffer, scope) {
@@ -1555,7 +1572,7 @@ var ifExpression = expressionTerm('ifExpression', function (condition, then, _el
   };
   
   this.generateJavaScript = function (buffer, scope) {
-    functionCall(subExpression([block([], statements([this]))]), []).generateJavaScript(buffer, scope);
+    functionCall(subExpression(block([], statements([this]))), []).generateJavaScript(buffer, scope);
   };
   
   this.generateJavaScriptReturn = function (buffer, scope) {
@@ -1731,31 +1748,53 @@ macros.addMacro(['while'], function(basicExpression) {
   return whileStatement(test, statements);
 });
 
-var subExpression = exports.subExpression = function (statements) {
+var scope = exports.scope = function (stmts) {
+  return term(function () {
+    this.isScope = true;
+    this.statements = stmts;
+    
+    this.generateJavaScript = function (buffer, scope) {
+      functionCall(subExpression(block([], statements(this.statements))), []).generateJavaScript(buffer, scope);
+    };
+  });
+}
+
+var normaliseArguments = exports.normaliseArguments = function (args) {
+  return _(args).map(function (arg) {
+    if (arg.length == 1) {
+      return arg;
+    } else if (arg.length > 1) {
+      return scope(arg);
+    } else {
+      throw new Error("this shouldn't happen!")
+    }
+  });
+};
+
+var subExpression = exports.subExpression = function (expression) {
   return term(function () {
     this.isSubExpression = true;
-    this.statements = statements;
+    this.expression = expression;
 
-    this.subterms('statements');
-
-    this.parameter = function () {
-      if (this.statements.length == 1) {
-        return this.statements[0].parameter();
-      } else {
-        return errors.addTermWithMessage(this, 'this cannot be used as a parameter');
-      }
-    };
+    this.subterms('expression');
 
     this.generateJavaScript = function (buffer, scope) {
-      if (statements.length > 1) {
-        functionCall(block([], new Statements(this.statements)), []).generateJavaScript(buffer, scope);
-      } else if (this.statements.length == 1) {
-        buffer.write('(');
-        this.statements[0].generateJavaScript(buffer, scope);
-        buffer.write(')');
-      } else {
-        errors.addTermWithMessage(this, 'must have at least one expression');
-      }
+      buffer.write('(');
+      this.expression.generateJavaScript(buffer, scope);
+      buffer.write(')');
+    };
+  });
+};
+
+var argumentList = exports.argumentList = function (args) {
+  return term(function () {
+    this.isArgumentList = true;
+    this.args = args;
+
+    this.subterms('args');
+    
+    this.arguments = function () {
+      return this.args;
     };
   });
 };
@@ -1784,6 +1823,8 @@ var tryStatement = exports.tryStatement = function (body, catchBody, finallyBody
         buffer.write('}');
       }
     };
+    
+    this.generateJavaScriptReturn = this.generateJavaScript;
   });
 };
 

@@ -6,11 +6,11 @@ exports: create indent stack = create indent stack! =
         :indentation regex = new (RegExp '\n( *)$')
         :multi new line regex = new (RegExp '\n *\n')
         
-        :is @text multi new line =
-            :multi new line regex: test @text
+        :is (text) multi new line =
+            :multi new line regex: test (text)
         
-        : @text has new line? =
-            :indentation regex: test @text
+        :(text) has new line? =
+            :indentation regex: test (text)
         
         :indentation (new line) =
             :indentation regex: exec (new line): 1: length
@@ -18,14 +18,25 @@ exports: create indent stack = create indent stack! =
         :current indentation? =
             :indents: 0
         
-        :set indentation @text =
-            if (: @text has new line?)
-                :indents:unshift (:indentation @text)
+        :set indentation (text) =
+            if (:(text) has new line?)
+                :indents:unshift 'bracket'
+                :indents:unshift (:indentation (text))
             else
-                :indents:unshift (:current indentation?)
+                current = :current indentation?
+                :indents:unshift 'bracket'
+                :indents:unshift (current)
         
         :unset indentation! =
-            :indents:shift!
+            :indents: shift!
+
+            tokens = []
+            while (:indents: 0 != 'bracket')
+                tokens: push '}'
+                :indents: shift!
+            
+            :indents: shift!
+            tokens
         
         :tokens for eof? =
             tokens = []
@@ -40,27 +51,30 @@ exports: create indent stack = create indent stack! =
             tokens
             
         
-        :tokens for new line @text =
-            current indentation = :current indentation?
-            indentation = :indentation @text
+        :tokens for new line (text) =
+            if (:(text) has new line?)
+                current indentation = :current indentation?
+                indentation = :indentation (text)
         
-            if (current indentation == indentation)
-                ['.']
-            else if (current indentation < indentation)
-                :indents: unshift @indentation
-                ['@{']
+                if (current indentation == indentation)
+                    ['.']
+                else if (current indentation < indentation)
+                    :indents: unshift (indentation)
+                    ['@{']
+                else
+                    tokens = []
+                
+                    while (:indents: 0 > indentation)
+                        tokens: push '}'
+                        :indents: shift!
+                
+                    if (:is (text) multi new line)
+                        tokens: push '.'
+                
+                    if (:indents: 0 < indentation)
+                        tokens: push '@{'
+                        :indents: unshift (indentation)
+                
+                    tokens
             else
-                tokens = []
-                
-                while (:indents: 0 > indentation)
-                    tokens: push '}'
-                    :indents: shift!
-                
-                if (:is @text multi new line)
-                    tokens: push '.'
-                
-                if (:indents: 0 < indentation)
-                    tokens: push '@{'
-                    :indents: unshift @indentation
-                
-                tokens
+                []

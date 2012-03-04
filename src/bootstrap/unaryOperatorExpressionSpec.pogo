@@ -4,7 +4,7 @@ require './assertions.pogo'
 
 spec 'unary operator expression'
     spec 'as expression'
-        op expr = cg: new unary operator expression, operator '%', expression {variable ['a']}
+        op expr = cg: new unary operator expression; operator '%'; expression {variable ['a']}
 
         (op expr: expression?) should contain fields {
             is method call
@@ -14,7 +14,7 @@ spec 'unary operator expression'
         }
     
     spec 'as expression with macro'
-        op expr = cg: new unary operator expression, operator '!', expression {variable ['a']}
+        op expr = cg: new unary operator expression; operator '!'; expression {variable ['a']}
         
         (op expr: expression?) should contain fields {
             is operator
@@ -23,7 +23,7 @@ spec 'unary operator expression'
         }
 
     spec 'as hash entry will be semantic failure'
-        op expr = cg: new unary operator expression, operator '%', expression {variable ['a']}
+        op expr = cg: new unary operator expression; operator '%'; expression {variable ['a']}
         
         (op expr: hash entry?) should contain fields {
           is semantic failure

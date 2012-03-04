@@ -1,4 +1,4 @@
-(function() {
+((function() {
     var self, createIndentStack;
     self = this;
     require("./runtime");
@@ -33,15 +33,26 @@
                 var self;
                 self = this;
                 if (self.hasNewLine(text)) {
+                    self.indents.unshift("bracket");
                     return self.indents.unshift(self.indentation(text));
                 } else {
-                    return self.indents.unshift(self.currentIndentation());
+                    var current;
+                    current = self.currentIndentation();
+                    self.indents.unshift("bracket");
+                    return self.indents.unshift(current);
                 }
             };
             self.unsetIndentation = function() {
-                var self;
+                var self, tokens;
                 self = this;
-                return self.indents.shift();
+                self.indents.shift();
+                tokens = [];
+                while (self.indents[0] != "bracket") {
+                    tokens.push("}");
+                    self.indents.shift();
+                }
+                self.indents.shift();
+                return tokens;
             };
             self.tokensForEof = function() {
                 var self, tokens, indents;
@@ -56,32 +67,37 @@
                 return tokens;
             };
             return self.tokensForNewLine = function(text) {
-                var self, currentIndentation, indentation;
+                var self;
                 self = this;
-                currentIndentation = self.currentIndentation();
-                indentation = self.indentation(text);
-                if (currentIndentation == indentation) {
-                    return [ "." ];
-                } else if (currentIndentation < indentation) {
-                    self.indents.unshift(indentation);
-                    return [ "@{" ];
-                } else {
-                    var tokens;
-                    tokens = [];
-                    while (self.indents[0] > indentation) {
-                        tokens.push("}");
-                        self.indents.shift();
-                    }
-                    if (self.isMultiNewLine(text)) {
-                        tokens.push(".");
-                    }
-                    if (self.indents[0] < indentation) {
-                        tokens.push("@{");
+                if (self.hasNewLine(text)) {
+                    var currentIndentation, indentation;
+                    currentIndentation = self.currentIndentation();
+                    indentation = self.indentation(text);
+                    if (currentIndentation == indentation) {
+                        return [ "." ];
+                    } else if (currentIndentation < indentation) {
                         self.indents.unshift(indentation);
+                        return [ "@{" ];
+                    } else {
+                        var tokens;
+                        tokens = [];
+                        while (self.indents[0] > indentation) {
+                            tokens.push("}");
+                            self.indents.shift();
+                        }
+                        if (self.isMultiNewLine(text)) {
+                            tokens.push(".");
+                        }
+                        if (self.indents[0] < indentation) {
+                            tokens.push("@{");
+                            self.indents.unshift(indentation);
+                        }
+                        return tokens;
                     }
-                    return tokens;
+                } else {
+                    return [];
                 }
             };
         });
     };
-}).call(this);
+})).call(this);

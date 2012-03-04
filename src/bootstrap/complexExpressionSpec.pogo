@@ -2,30 +2,30 @@ require 'cupoftea'
 cg = require './codeGenerator/codeGenerator'
 require './assertions.pogo'
 
-int @n =
-  cg: integer @n
+int (n) =
+  cg: integer (n)
 
 loc = {first line 1. last line 1. first column 7. last column 13}
 
-id @name = cg: loc (cg: identifier @name) @loc
+id (name) = cg: loc (cg: identifier (name), loc)
 
-variable @name = cg: variable [name]
+variable (name) = cg: variable [name]
 
-parameter @name = cg: parameter [name]
+parameter (name) = cg: parameter [name]
 
 block = cg: block [] (cg: statements [variable 'x'])
 
-string @value = cg: string @value
+string (value) = cg: string (value)
 
 no arg punctuation = cg: no arg suffix?
 
-expression @e should contain fields @f =
-  (cg: complex expression @e: expression?) should contain fields @f
+expression (e) should contain fields (f) =
+  (cg: complex expression (e): expression?) should contain fields (f)
 
 spec 'complex expression'
   spec 'has arguments'
-    expression @e should have arguments =
-      (cg: complex expression @e: has arguments?) should be truthy
+    expression (e) should have arguments =
+      (cg: complex expression (e): has arguments?) should be truthy
     
     spec 'with arguments in head'
       expression [[id 'a'. int 10]] should have arguments
@@ -37,8 +37,8 @@ spec 'complex expression'
       expression [[id 'a']. [id 'readonly'. block]] should have arguments
       
   spec 'arguments'
-    expression @e should have arguments @a =
-      (cg: complex expression @e: arguments?) should contain fields @a
+    expression (e) should have arguments (a) =
+      (cg: complex expression (e): arguments?) should contain fields (a)
     
     spec 'with arguments in head'
       expression [[id 'a'. int 10]] should have arguments [{integer 10}]
@@ -83,7 +83,7 @@ spec 'complex expression'
       }
 
     spec 'finds macro'
-      expression [[id 'if'. variable. block]] should contain fields {
+      expression [[id 'if'. variable 'x'. block]] should contain fields {
         is if expression
       }
 
@@ -113,8 +113,8 @@ spec 'complex expression'
       }
 
   spec 'object operation -> expression'
-    expression @object @operation should contain fields @fields =
-      (cg: complex expression @operation: object operation @object: expression?) should contain fields @fields
+    expression (object, operation) should contain fields (fields) =
+      (cg: complex expression (operation): object operation (object): expression?) should contain fields (fields)
   
     spec 'method call'
       expression (variable 'a') [[id 'method'. int 10]] should contain fields {
@@ -172,14 +172,14 @@ spec 'complex expression'
       }
 
   spec 'hash entry'
-    hash entry @expression should contain fields @fields =
-      (cg: complex expression @expression: hash entry?) should contain fields @fields
+    hash entry (expression) should contain fields (fields) =
+      (cg: complex expression (expression): hash entry?) should contain fields (fields)
     
     spec 'if contains one component that is the hash entry'
       hash entry [[id 'field']] should contain fields {
         is hash entry
         field ['field']
-        value @undefined
+        value = undefined
       }
     
     spec 'if contains more than component then semantic error'
@@ -191,7 +191,7 @@ spec 'complex expression'
     spec 'string key'
       hash entry = cg: complex expression [[string 'port']]: definition (cg: variable ['a']): hash entry?
       
-      @hashEntry should contain fields {
+      (hashEntry) should contain fields {
         is hash entry
         field ['port']
         value {variable ['a']}
@@ -200,7 +200,7 @@ spec 'complex expression'
     spec 'identifier key'
       hash entry = cg: complex expression [[id 'port']]: definition (cg: variable ['a']): hash entry?
       
-      @hashEntry should contain fields {
+      (hashEntry) should contain fields {
         is hash entry
         field ['port']
         value {variable ['a']}
@@ -209,7 +209,7 @@ spec 'complex expression'
     spec 'can define a method as a hash key'
       hash entry = cg: complex expression [[id 'name'. variable 'name']]: definition (cg: variable ['name']): hash entry?
       
-      @hashEntry should contain fields {
+      (hashEntry) should contain fields {
         is hash entry
         field ['name']
         value {
@@ -221,21 +221,18 @@ spec 'complex expression'
                 ]
             }
 
-            parameters [{
-                is parameter
-                expression {variable ['name']}
-            }]
+            parameters [{variable ['name']}]
 
             redefines self
         }
       }
 
   spec 'object operation -> definition'
-    definition @object @operation @source should contain fields @fields =
-      (cg: complex expression @operation: object operation @object: definition @source: expression?) should contain fields @fields
+    definition (object, operation, source) should contain fields (fields) =
+      (cg: complex expression (operation): object operation (object): definition (source): expression?) should contain fields (fields)
     
     spec 'method definition'
-      definition (variable 'object') [[id 'method'. variable 'x']] @block should contain fields {
+      definition (variable 'object') [[id 'method'. variable 'x']] (block) should contain fields {
         is definition
         target {
           is field reference
@@ -245,7 +242,7 @@ spec 'complex expression'
         
         source {
           is block
-          parameters [{is parameter. expression {variable ['x']}}]
+          parameters [{variable ['x']}]
         }
       }
     
@@ -261,7 +258,7 @@ spec 'complex expression'
         source {
           is block
           redefines self
-          parameters [{is parameter. expression {variable ['x']}}]
+          parameters [{variable ['x']}]
           body {statements [{variable ['y']}]}
         }
       }
@@ -317,7 +314,7 @@ spec 'complex expression'
           }
           
           parameters [
-            {is parameter. expression {variable ['p']}}
+            {variable ['p']}
           ]
         }
       }
@@ -348,11 +345,11 @@ spec 'complex expression'
       }
 
   spec 'definition'
-    definition @target @source should contain fields @fields =
-      (cg: complex expression @target: definition @source: expression?) should contain fields @fields
+    definition (target, source) should contain fields (fields) =
+      (cg: complex expression (target): definition (source): expression?) should contain fields (fields)
     
     spec 'function definition'
-      definition [[id 'function'. variable 'x']] @block should contain fields {
+      definition [[id 'function'. variable 'x']] (block) should contain fields {
         is definition
         target {
           is variable
@@ -361,7 +358,7 @@ spec 'complex expression'
         
         source {
           is block
-          parameters [{is parameter. expression {variable ['x']}}]
+          parameters [{variable ['x']}]
           body {statements [{variable ['x']}]}
         }
       }
@@ -376,10 +373,10 @@ spec 'complex expression'
         
         source {
           is block
-          parameters [{is parameter. expression {variable ['x']}}]
+          parameters [{variable ['x']}]
           optional parameters [
             {field ['port']. value {integer 80}}
-            {field ['name']. value @undefined}
+            {field ['name']. value = undefined}
           ]
           body {statements [{variable ['y']}]}
         }
@@ -395,13 +392,28 @@ spec 'complex expression'
         
         source {
           is block
-          parameters [{is parameter. expression {variable ['x']}}]
+          parameters [{variable ['x']}]
           body {statements [{variable ['y']}]}
         }
       }
     
     spec 'no arg function definition'
       definition [[id 'function'. no arg punctuation]] (variable 'y') should contain fields {
+        is definition
+        target {
+          is variable
+          variable ['function']
+        }
+        
+        source {
+          is block
+          parameters []
+          body {statements [{variable ['y']}]}
+        }
+      }
+    
+    spec 'function definition with empty param list'
+      definition [[id 'function'. cg: argument list []]] (variable 'y') should contain fields {
         is definition
         target {
           is variable
@@ -452,11 +464,8 @@ spec 'complex expression'
       }
 
     spec 'parameter'
-        parameter @p should contain fields @fields =
-            (cg: complex expression @p: expression? : parameter?) should contain fields @fields
+        parameter (p) should contain fields (fields) =
+            (cg: complex expression (p): expression? : parameter?) should contain fields (fields)
         
         spec 'variable'
-            parameter [[id 'a']] should contain fields {
-                is parameter
-                expression {variable ['a']}
-            }
+            parameter [[id 'a']] should contain fields {variable ['a']}

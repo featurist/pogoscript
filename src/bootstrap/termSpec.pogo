@@ -9,22 +9,22 @@ terms (subterms) ... =
         
         :subterms 'terms'
         
-branch @left @right =
+branch (left, right) =
     cg: term =>
         :left = left
         :right = right
         
         :subterms 'left' 'right'
 
-leaf @name =
+leaf (name) =
     cg: term =>
         :name = name
 
-location @fl @ll @fc @lc = {
-    first_line @fl
-    last_line @ll
-    first_column @fc
-    last_column @lc
+location (fl, ll, fc, lc) = {
+    first_line = fl
+    last_line = ll
+    first_column = fc
+    last_column = lc
 }
 
 spec 'term'
@@ -41,7 +41,7 @@ spec 'term'
     
     spec 'locations'
         spec 'location'
-            id = cg new: loc (cg: identifier 'a') (location 1 2 3 4)
+            id = cg new: loc (cg: identifier 'a', location 1 2 3 4)
             
             (id: location?) should contain fields {
                 first line 1
@@ -52,8 +52,8 @@ spec 'term'
         
         spec 'subterm location'
             term = cg: term
-                this: a = cg new: loc (cg: identifier 'a') (location 1 1 3 10)
-                this: b = cg new: loc (cg: identifier 'b') (location 1 1 2 12)
+                this: a = cg new: loc (cg: identifier 'a', location 1 1 3 10)
+                this: b = cg new: loc (cg: identifier 'b', location 1 1 2 12)
                 this: subterms 'a' 'b'
 
             (term: location?) should contain fields {
@@ -64,10 +64,10 @@ spec 'term'
             }
     
     spec 'derived term'
-        a = cg new: loc (leaf 'a') (location 1 1 2 8)
-        b = cg new: loc (leaf 'b') (location 2 2 2 8)
+        a = cg new: loc (leaf 'a', location 1 1 2 8)
+        b = cg new: loc (leaf 'b', location 2 2 2 8)
 
-        term = branch @a @b
+        term = branch (a, b)
         c = term: derived term (leaf 'c')
 
         (c: location?) should contain fields {
@@ -78,23 +78,23 @@ spec 'term'
         }
 
     spec 'depth first walk'
-        root = terms (branch (leaf 'a') (leaf 'b')) (branch (leaf 'c') (branch (leaf 'd') (leaf 'e')))
+        root = terms (branch (leaf 'a', leaf 'b'), branch (leaf 'c', branch (leaf 'd', leaf 'e')))
         
         spec 'walks all terms depth first'
             leaf terms = []
         
-            root: walk each subterm #term
+            root: walk each subterm @(term)
                 if (term: name)
                     leaf terms: push (term: name)
 
             (leaf terms) should contain fields ['a'. 'b'. 'c'. 'd'. 'e']
 
         spec "doesn't walk undefined subterms"
-            term = branch (leaf 'a') @undefined
+            term = branch (leaf 'a', undefined)
             
             leaf terms = []
             
-            term: walk each subterm #term
-                leaf terms: push @term
+            term: walk each subterm @(term)
+                leaf terms: push (term)
             
             (leaf terms) should contain fields [{name 'a'}]
