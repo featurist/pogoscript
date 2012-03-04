@@ -4,6 +4,7 @@ parser = require './parser'
 parse = parser: parse
 uglify = require 'uglify-js'
 errors = require './codeGenerator/errors'
+_ = require 'underscore'
 
 generate code @term =
     memory stream = new (ms: MemoryStream)
@@ -58,17 +59,33 @@ js filename from pogo filename @pogo =
     
     module: _compile @js @filename
 
-js from pogo file @filename =
-    contents = fs: read file sync @filename 'utf-8'
-    term = parse @contents
-    
+:compile @pogo, filename =
+    term = parse @pogo
+
     code = generate code @term
 
     if (errors: has errors?)
-        errors: print errors (source location printer, filename @filename, source @contents)
+        errors: print errors (source location printer, filename @filename, source @pogo)
         process: exit 1
     else
         code
+
+:evaluate @pogo @definitions =
+    js = exports: compile (pogo)
+    definition names = _: keys (definitions)
+    
+    parameters = definition names: join ','
+    
+    run script = new (Function @parameters @js)
+    
+    definition values = _: map (definition names) #name
+        definitions: (name)
+    
+    run script: apply (undefined) (definition values)
+
+js from pogo file @filename =
+    contents = fs: read file sync @filename 'utf-8'
+    exports: compile @contents, filename @filename
         
 source location printer, filename, source =
     object =>

@@ -1,5 +1,5 @@
 (function() {
-    var self, jisonParser, terms, ms, createParserContext, createDynamicLexer, grammar, parser, jisonLexer, createParser, withoutCStyleComments, withoutCPlusPlusStyleComments, withoutComments;
+    var self, jisonParser, terms, ms, createParserContext, createDynamicLexer, grammar, parser, jisonLexer, createParser;
     self = this;
     jisonParser = require("jison").Parser;
     terms = require("./codeGenerator/codeGenerator");
@@ -23,26 +23,11 @@
         parser.lexer = dynamicLexer;
         return parser;
     };
-    withoutCStyleComments = function(s) {
-        return s.replace(/\/\*([^*](\*[^\/]|))*(\*\/|$)/gm, function(comment) {
-            return comment.replace(/./g, " ");
-        });
-    };
-    withoutCPlusPlusStyleComments = function(s) {
-        return s.replace(/\/\/[^\n]*/gm, function(comment) {
-            return comment.replace(/./g, " ");
-        });
-    };
-    withoutComments = self.withoutComments = function(s) {
-        var self;
-        self = this;
-        return withoutCStyleComments(withoutCPlusPlusStyleComments(s));
-    };
     self.parse = function(source) {
         var self;
         self = this;
         parser = createParser();
-        return parser.parse(withoutComments(source));
+        return parser.parse(source);
     };
     self.writeParserToFile = function(f) {
         var self, parserSource, fs;

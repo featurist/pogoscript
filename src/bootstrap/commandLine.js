@@ -1,5 +1,5 @@
 (function() {
-    var self, fs, ms, parser, parse, uglify, errors, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, jsFromPogoFile, sourceLocationPrinter;
+    var self, fs, ms, parser, parse, uglify, errors, _, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, jsFromPogoFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     ms = require("../lib/memorystream");
@@ -7,6 +7,7 @@
     parse = parser.parse;
     uglify = require("uglify-js");
     errors = require("./codeGenerator/errors");
+    _ = require("underscore");
     generateCode = function(term) {
         var memoryStream;
         memoryStream = new ms.MemoryStream;
@@ -76,25 +77,45 @@
         process.argv[0] = "pogo";
         return module._compile(js, filename);
     };
-    jsFromPogoFile = function(filename) {
-        var contents, term, code;
-        contents = fs.readFileSync(filename, "utf-8");
-        term = parse(contents);
+    self.compile = function(pogo, gen4_options) {
+        var filename, self, term, code;
+        filename = gen4_options && gen4_options.filename != null ? gen4_options.filename : undefined;
+        self = this;
+        term = parse(pogo);
         code = generateCode(term);
         if (errors.hasErrors()) {
             errors.printErrors(sourceLocationPrinter({
                 filename: filename,
-                source: contents
+                source: pogo
             }));
             return process.exit(1);
         } else {
             return code;
         }
     };
-    sourceLocationPrinter = function(gen4_options) {
+    self.evaluate = function(pogo, definitions) {
+        var self, js, definitionNames, parameters, runScript, definitionValues;
+        self = this;
+        js = exports.compile(pogo);
+        definitionNames = _.keys(definitions);
+        parameters = definitionNames.join(",");
+        runScript = new Function(parameters, js);
+        definitionValues = _.map(definitionNames, function(name) {
+            return definitions[name];
+        });
+        return runScript.apply(undefined, definitionValues);
+    };
+    jsFromPogoFile = function(filename) {
+        var contents;
+        contents = fs.readFileSync(filename, "utf-8");
+        return exports.compile(contents, {
+            filename: filename
+        });
+    };
+    sourceLocationPrinter = function(gen5_options) {
         var filename, source;
-        filename = gen4_options && gen4_options.filename != null ? gen4_options.filename : undefined;
-        source = gen4_options && gen4_options.source != null ? gen4_options.source : undefined;
+        filename = gen5_options && gen5_options.filename != null ? gen5_options.filename : undefined;
+        source = gen5_options && gen5_options.source != null ? gen5_options.source : undefined;
         return object(function() {
             var self;
             self = this;
@@ -104,18 +125,18 @@
                 lines = source.split(/\n/);
                 return lines.slice(range.from - 1, range.to);
             };
-            self.printLinesInRange = function(gen5_options) {
-                var prefix, from, to, self, gen6_items, gen7_i, line;
-                prefix = gen5_options && gen5_options.prefix != null ? gen5_options.prefix : "";
-                from = gen5_options && gen5_options.from != null ? gen5_options.from : undefined;
-                to = gen5_options && gen5_options.to != null ? gen5_options.to : undefined;
+            self.printLinesInRange = function(gen6_options) {
+                var prefix, from, to, self, gen7_items, gen8_i, line;
+                prefix = gen6_options && gen6_options.prefix != null ? gen6_options.prefix : "";
+                from = gen6_options && gen6_options.from != null ? gen6_options.from : undefined;
+                to = gen6_options && gen6_options.to != null ? gen6_options.to : undefined;
                 self = this;
-                gen6_items = self.linesInRange({
+                gen7_items = self.linesInRange({
                     from: from,
                     to: to
                 });
-                for (gen7_i = 0; gen7_i < gen6_items.length; gen7_i++) {
-                    line = gen6_items[gen7_i];
+                for (gen8_i = 0; gen8_i < gen7_items.length; gen8_i++) {
+                    line = gen7_items[gen8_i];
                     process.stderr.write(prefix + line + "\n");
                 }
             };
