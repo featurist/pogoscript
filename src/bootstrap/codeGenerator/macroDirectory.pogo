@@ -18,12 +18,12 @@ exports: seq (keywords) = {
 
 exports: zero or more (pattern) = {
     as regexp? =
-        "(@(pattern: as regexp?))*"
+        "(#(pattern: as regexp?))*"
 }
 
 exports: opt (pattern) = {
     as regexp? =
-        "(@(pattern: as regexp?))?"
+        "(#(pattern: as regexp?))?"
 }
 
 exports: kw (value) = {

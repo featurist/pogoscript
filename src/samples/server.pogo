@@ -20,4 +20,4 @@ server = http : create server @(req, res)
 
 port = 8000
 server : listen (port)
-console: log "run > curl localhost:@port"
+console: log "run > curl localhost:#(port)"

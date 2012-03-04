@@ -1,7 +1,7 @@
 pogo : commandLine.js codeGenerator/unaryOperatorExpression.js runtime.js grammar.js indentStack.js parserContext.js dynamicLexer.js
 
 test : *Spec.pogo
-	bash -c 'for spec in *Spec.pogo; do echo $$spec; pogo-future $$spec; done'
+	bash -c 'for spec in *Spec.pogo; do echo $$spec; pogo $$spec; done'
 
 commandLine.js : commandLine.pogo
 	pogo -c commandLine.pogo

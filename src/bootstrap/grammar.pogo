@@ -25,13 +25,12 @@ exports: grammar = {
             ['`([^\\]*\\`)*[^`]*`(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|)', 'return ''reg_exp'';']
             ['"', 'this.begin(''interpolated_string''); return ''start_interpolated_string'';']
             
-            [['interpolated_string'], '\\@', 'return ''escaped_interpolated_string_terminal_start'';']
-            [['interpolated_string'], '@', 'this.begin(''interpolated_string_terminal''); return ''interpolated_string_terminal_start'';']
-            [['interpolated_string_terminal'], identifier pattern, 'this.popState(); return ''identifier'';']
+            [['interpolated_string'], '\\#', 'return ''escaped_interpolated_string_terminal_start'';']
+            [['interpolated_string'], '#', 'this.begin(''interpolated_string_terminal''); return ''interpolated_string_terminal_start'';']
             [['interpolated_string_terminal'], '\(', 'yy.setIndentation(yytext); yy.terms.interpolation.startInterpolation(); this.begin(''INITIAL''); return ''('';']
             [['interpolated_string'], '"', 'this.popState(); return ''end_interpolated_string'';']
             [['interpolated_string'], '\\.', 'return ''escape_sequence'';']
-            [['interpolated_string'], '[^"@\\]*', 'return ''interpolated_string_body'';']
+            [['interpolated_string'], '[^"#\\]*', 'return ''interpolated_string_body'';']
             
             ['.', 'return ''non_token'';']
         ]
@@ -187,7 +186,6 @@ exports: grammar = {
         ]
         interpolated_terminal [
             ['( statement )', '$$ = $2;']
-            ['identifier', '$$ = yy.terms.variable([$1]);']
         ]
         interpolated_string [
             ['start_interpolated_string interpolated_string_components end_interpolated_string', '$$ = yy.terms.interpolatedString($2, @$.first_column);']
@@ -200,7 +198,7 @@ exports: grammar = {
         interpolated_string_component [
             ['interpolated_string_terminal_start interpolated_terminal', '$$ = $2;']
             ['interpolated_string_body', '$$ = yy.terms.string($1);']
-            ['escaped_interpolated_string_terminal_start', '$$ = yy.terms.string("@");']
+            ['escaped_interpolated_string_terminal_start', '$$ = yy.terms.string("#");']
             ['escape_sequence', '$$ = yy.terms.string(yy.terms.normaliseInterpolatedString($1));']
         ]
     }

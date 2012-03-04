@@ -16,7 +16,7 @@ web server (methods); port 3000 =
     
     methods: call (app context)
     app: listen (port)
-    console: log "hosting at http://localhost:@port/"
+    console: log "hosting at http://localhost:#(port)/"
 
 web server; port 4567 =>
     :get '/' =>

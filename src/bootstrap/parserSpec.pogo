@@ -96,18 +96,8 @@ spec 'parser'
                     string "one\ntwo"
                 }
 
-            spec 'with single identifier variable'
-                (expression '"a boat @length meters in length"') should contain fields {
-                    is interpolated string
-                    components [
-                        {string 'a boat '}
-                        {variable ['length']}
-                        {string ' meters in length'}
-                    ]
-                }
-
             spec 'with single variable expression'
-                (expression '"a boat @(boat length) meters in length"') should contain fields {
+                (expression '"a boat #(boat length) meters in length"') should contain fields {
                     is interpolated string
                     components [
                         {string 'a boat '}
@@ -116,8 +106,14 @@ spec 'parser'
                     ]
                 }
 
+            spec 'with escaped #'
+                (expression '"a boat \#(boat length) meters in length"') should contain fields {
+                    is string
+                    string 'a boat #(boat length) meters in length'
+                }
+
             spec 'with complex expression'
-                (expression '"a boat @(lookup boat length from (boat database)) meters in length"') should contain fields {
+                (expression '"a boat #(lookup boat length from (boat database)) meters in length"') should contain fields {
                     is interpolated string
                     components [
                         {string 'a boat '}
@@ -130,7 +126,7 @@ spec 'parser'
                 }
                 
             spec 'in block'
-                (expression "abc =\n    \"\@(stuff)\"") should contain fields {
+                (expression "abc =\n    \"#(stuff)\"") should contain fields {
                     is definition
                     target {
                         is variable
@@ -151,7 +147,7 @@ spec 'parser'
                 }
 
             spec 'with inner interpolation'
-                (expression '"a boat @("@(boat length) meters") in length"') should contain fields {
+                (expression '"a boat #("#(boat length) meters") in length"') should contain fields {
                     is interpolated string
                     components [
                         {string 'a boat '}
@@ -351,7 +347,7 @@ spec 'parser'
             }
 
         spec 'function call with block with parameters'
-            (expression "with file (file) \@(stream)\n  stream") should contain fields {
+            (expression "with file (file) @(stream)\n  stream") should contain fields {
                 function {variable ['with'. 'file']}
                 arguments [
                     {variable ['file']}
@@ -363,7 +359,7 @@ spec 'parser'
             }
 
         spec 'function call with block with long parameters'
-            (expression "open database \@(database connection)\n  database connection") should contain fields {
+            (expression "open database @(database connection)\n  database connection") should contain fields {
                 function {variable ['open'. 'database']}
                 arguments [
                     {
@@ -489,7 +485,7 @@ spec 'parser'
             }
 
         spec 'block with parameter'
-            (expression "\@(x)\n  x.y") should contain fields {
+            (expression "@(x)\n  x.y") should contain fields {
                 is block
                 parameters [{variable ['x']}]
                 redefines self (false)

@@ -32,7 +32,7 @@ when (filename) changes (act) =
 
 :watch file (filename, options) =
     compile! =
-        console: log "compiling @filename => @(js filename from pogo filename (filename))"
+        console: log "compiling #(filename) => #(js filename from pogo filename (filename))"
         compile file (filename, options)
 
     compile!
@@ -45,7 +45,7 @@ when (filename) changes (act) =
     tokens = parser: lex (source)
 
     for each @(token) in (tokens)
-        console: log "<@(token: 0)>" (token: 1)
+        console: log "<#(token: 0)>" (token: 1)
 
 js filename from pogo filename (pogo) =
     pogo: replace `\.pogo$` '' + '.js'

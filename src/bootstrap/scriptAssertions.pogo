@@ -68,5 +68,5 @@ chomp (s) =
         assert: equal (ex: to string! , expected error)
     
     if (failed)
-        assert: fail "expected @(expected error)"
+        assert: fail "expected #(expected error)"
     
