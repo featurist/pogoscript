@@ -719,6 +719,20 @@ spec('code generator', function () {
       
       generatesExpression(s, '(function(){var self,x;self=this;x=1;f(function(){x=2;return x;});}).call(this);');
     });
+
+    spec('module should not be wrapped in function if in scope is false', function () {
+      var s = cg.module(cg.statements([
+        cg.definition(cg.variable(['x']), cg.integer(1)),
+        cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
+          cg.definition(cg.variable(['x']), cg.integer(2)),
+          cg.variable(['x'])
+        ]))])
+      ]));
+
+      s.inScope = false;
+      
+      generatesExpression(s, 'var x;x=1;f(function(){x=2;return x;});');
+    });
   });
   
   spec('macro directory', function() {

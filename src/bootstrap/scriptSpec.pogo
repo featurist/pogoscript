@@ -15,6 +15,9 @@ spec 'pogo command'
                                                                                  'one',
                                                                                  'two' ]"
 
+    spec "`__filename` should be the name of the script"
+        'console: log (8)' with args ['onex'] should output ""
+
 spec 'script'
     spec 'integers'
         spec 'can denote an integer literally'

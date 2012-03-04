@@ -248,6 +248,8 @@ expressionTerm('interpolatedString', function (components, columnStart) {
   
   if (this.components.length == 1) {
     return this.components[0];
+  } else if (this.components.length == 0) {
+    return string('');
   }
 
   this.componentsDelimitedByStrings = function () {
@@ -957,11 +959,16 @@ var Statements = function (statements) {
 var module = expressionTerm('module', function (statements) {
   this.statements = statements;
   this.isModule = true;
+  this.inScope = true;
   
   this.generateJavaScript = function (buffer, scope) {
-    var b = block([], this.statements, {returnLastStatement: false, redefinesSelf: true});
-    methodCall(subExpression(b), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
-    buffer.write(';');
+    if (this.inScope) {
+      var b = block([], this.statements, {returnLastStatement: false, redefinesSelf: true});
+      methodCall(subExpression(b), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
+      buffer.write(';');
+    } else {
+      this.statements.generateJavaScriptStatements(buffer, new Scope());
+    }
   };
 });
 

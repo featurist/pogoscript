@@ -61,6 +61,7 @@ js filename from pogo filename (pogo) =
 
 :compile (pogo); filename =
     term = parse (pogo)
+    term: in scope = false
 
     code = generate code (term)
 

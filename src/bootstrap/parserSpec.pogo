@@ -75,6 +75,12 @@ spec 'parser'
                     string 'a string'
                 }
 
+            spec 'empty'
+                (expression '""') should contain fields {
+                    is string
+                    string ''
+                }
+
             spec 'with newline'
                 (expression '"one\ntwo"') should contain fields {
                     string "one\ntwo"
@@ -88,13 +94,6 @@ spec 'parser'
             spec 'with indentation'
                 (expression "  \"one\n   two\"") should contain fields {
                     string "one\ntwo"
-                }
-
-            spec 'null string'
-                (expression '""') should contain fields {
-                    is interpolated string
-                    components [
-                    ]
                 }
 
             spec 'with single identifier variable'
