@@ -9,8 +9,8 @@ parser = new (jison parser (grammar))
 jison lexer = parser:lexer
 
 create parser! =
-    dynamic lexer = create dynamic lexer, next lexer (jison lexer)
-    parser context = create parser context, terms (terms)
+    dynamic lexer = create dynamic lexer; next lexer (jison lexer)
+    parser context = create parser context; terms (terms)
 
     parser context: lexer = dynamic lexer
     jison lexer: yy = parser context
@@ -31,8 +31,8 @@ create parser! =
 :lex (source) =
     tokens = []
     token index = undefined
-    lexer = create dynamic lexer, next lexer (jison lexer), source (source)
-    parser context = create parser context, terms (terms)
+    lexer = create dynamic lexer; next lexer (jison lexer); source (source)
+    parser context = create parser context; terms (terms)
     parser context: lexer = lexer
     jison lexer: yy = parser context
     

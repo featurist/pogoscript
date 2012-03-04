@@ -3,7 +3,7 @@ comment pattern = '(/\*([^*](\*[^/]|))*(\*/|$)|//[^\n]*)'
 
 exports: grammar = {
     lex {
-        start conditions {interpolated_string. interpolated_string_terminal}
+        start conditions {interpolated_string, interpolated_string_terminal}
 
         rules [
             [' +'. '/* ignore whitespace */']

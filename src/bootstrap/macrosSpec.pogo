@@ -11,9 +11,9 @@ loc = {
     last column 8
 }
 
-id @name = cg: loc (cg: identifier @name) @loc
-variable @name = cg: variable [name]
-block @name = cg: block [] (cg: statements [variable @name])
+id (name) = cg: loc (cg: identifier (name), loc)
+variable (name) = cg: variable [name]
+block (name) = cg: block [] (cg: statements [variable (name)])
 
 spec 'macros'
     spec 'if'
@@ -39,7 +39,7 @@ spec 'macros'
         spec 'if else if'
             (expression 'if (true) @{a} else if (false) @{b}') should contain fields {
                 is if expression
-                _else @undefined
+                _else = undefined
                 cases [
                     {
                         condition {variable ['true']}
@@ -134,7 +134,7 @@ spec 'macros'
                         ]
                     }
                 }
-                finally body @undefined
+                finally body = undefined
             }
 
         spec 'try finally'
@@ -145,7 +145,7 @@ spec 'macros'
                         {variable ['a']}
                     ]
                 }
-                catch body @undefined
+                catch body = undefined
                 finally body {
                     statements [
                         {variable ['b']}

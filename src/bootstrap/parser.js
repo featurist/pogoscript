@@ -6,7 +6,7 @@
     ms = require("../lib/memorystream");
     createParserContext = require("./parserContext").createParserContext;
     createDynamicLexer = require("./dynamicLexer").createDynamicLexer;
-    grammar = require("./grammar").grammar;
+    grammar = require("./grammar.pogo").grammar;
     parser = new jisonParser(grammar);
     jisonLexer = parser.lexer;
     createParser = function() {
