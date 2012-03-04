@@ -1,6 +1,8 @@
-# Why?
+# Whaa?
 
-Inventing programming languages is my mission from god.
+PogoScript is a readable dialect of JavaScript.
+
+Well, that’s the idea anyway. It’s also a bit of an experiment in making a DSL friendly programming language, ala Ruby, but faster, stronger, better.
 
 # Installation
 
@@ -11,6 +13,24 @@ As its still a little bit experimental pogoscript is not in npm yet, but you can
     git clone https://github.com/featurist/pogoscript.git
     cd pogoscript
     npm link
+
+npm will track the latest changes when you `git pull`
+
+# Usage
+
+## Running
+
+    pogo helloWorld.pogo
+
+## Compiling
+
+    pogo -c helloWorld.pogo
+
+Will produce `helloWorld.js`.
+
+## Watching and Compiling
+
+    pogo -cw helloWorld.pogo
 
 # More
 
