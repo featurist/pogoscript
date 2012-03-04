@@ -126,7 +126,7 @@ spec 'parser'
                 }
                 
             spec 'in block'
-                (expression "abc =\n    \"#(stuff)\"") should contain fields {
+                (expression "abc =\n    \"\#(stuff)\"") should contain fields {
                     is definition
                     target {
                         is variable
