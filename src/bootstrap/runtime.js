@@ -1,4 +1,4 @@
-(function() {
+((function() {
     var self;
     self = this;
     global.object = function(members) {
@@ -20,4 +20,4 @@
         c.prototype = base;
         return new c;
     };
-})();
+})).call(this);

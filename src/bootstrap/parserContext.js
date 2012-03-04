@@ -1,4 +1,4 @@
-(function() {
+((function() {
     var self, createIndentStack;
     self = this;
     createIndentStack = require("./indentStack").createIndentStack;
@@ -44,4 +44,4 @@
             });
         };
     }();
-}).call(this);
+})).call(this);

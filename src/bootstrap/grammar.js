@@ -1,4 +1,4 @@
-(function() {
+((function() {
     var self, identifierPattern, commentPattern;
     self = this;
     identifierPattern = "[a-zA-Z_$][a-zA-Z_$0-9]*";
@@ -53,4 +53,4 @@
             interpolated_string_component: [ [ "interpolated_string_terminal_start interpolated_terminal", "$$ = $2;" ], [ "interpolated_string_body", "$$ = yy.terms.string($1);" ], [ "escaped_interpolated_string_terminal_start", '$$ = yy.terms.string("@");' ], [ "escape_sequence", "$$ = yy.terms.string(yy.terms.normaliseInterpolatedString($1));" ] ]
         }
     };
-}).call(this);
+})).call(this);

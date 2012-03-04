@@ -1,4 +1,4 @@
-(function() {
+((function() {
     var self, createIndentStack;
     self = this;
     require("./runtime");
@@ -100,4 +100,4 @@
             };
         });
     };
-}).call(this);
+})).call(this);

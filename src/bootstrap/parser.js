@@ -1,4 +1,4 @@
-(function() {
+((function() {
     var self, jisonParser, terms, ms, createParserContext, createDynamicLexer, grammar, parser, jisonLexer, createParser;
     self = this;
     jisonParser = require("jison").Parser;
@@ -83,4 +83,4 @@
         }
         return tokens;
     };
-}).call(this);
+})).call(this);

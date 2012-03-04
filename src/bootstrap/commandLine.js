@@ -1,4 +1,4 @@
-(function() {
+((function() {
     var self, fs, ms, parser, parse, uglify, errors, _, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, jsFromPogoFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
@@ -178,4 +178,4 @@
         content = jsFromPogoFile(filename);
         return module._compile(content, filename);
     };
-}).call(this);
+})).call(this);

@@ -1,4 +1,4 @@
-(function() {
+((function() {
     var self, cg, macros, errors;
     self = this;
     cg = require("../../lib/codeGenerator");
@@ -32,4 +32,4 @@
             return self.subterms("expr");
         });
     };
-})();
+})).call(this);
