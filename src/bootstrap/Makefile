@@ -1,4 +1,4 @@
-pogo : commandLine.js codeGenerator/unaryOperatorExpression.js runtime.js grammar.js indentStack.js
+pogo : commandLine.js codeGenerator/unaryOperatorExpression.js runtime.js grammar.js indentStack.js parserContext.js
 
 test : *Spec.pogo
 	bash -c 'for spec in *Spec.pogo; do echo $$spec; pogo $$spec; done'
@@ -20,8 +20,11 @@ runtime.js : runtime.pogo
 indentStack.js : indentStack.pogo
 	pogo -c indentStack.pogo
 
+parserContext.js : parserContext.pogo
+	pogo -c parserContext.pogo
+
 codeGenerator/unaryOperatorExpression.js : codeGenerator/unaryOperatorExpression.pogo
 	pogo -c codeGenerator/unaryOperatorExpression.pogo
 
 clean :
-	rm parser.js runtime.js codeGenerator/unaryOperatorExpression.js commandLine.js
+	rm parser.js runtime.js codeGenerator/unaryOperatorExpression.js commandLine.js indentStack.js grammar.js parserContext.js
