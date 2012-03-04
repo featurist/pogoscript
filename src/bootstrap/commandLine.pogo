@@ -24,7 +24,7 @@ beautify (code) =
     fs: write file sync (js filename, js)
 
 when (filename) changes (act) =
-    fs: watch file (filename) {persistent. interval 500} @(prev, curr)
+    fs: watch file (filename) {persistent, interval 500} @(prev, curr)
         if ((curr:size === prev:size) && (curr:mtime:get time? === prev:mtime:get time?))
             return
         

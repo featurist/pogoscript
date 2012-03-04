@@ -31,20 +31,20 @@ spec 'basic expression'
       with terminals [block] should have arguments
     
     spec 'with name and a block'
-      with terminals [id 'c'. block] should have arguments
+      with terminals [id 'c', block] should have arguments
     
     spec 'with name, no arguments but a no arg punctuation'
-      with terminals [id 'c'. no arg punctuation] should have arguments
+      with terminals [id 'c', no arg punctuation] should have arguments
     
     spec 'with name and empty argument list'
-      with terminals [id 'c'. cg: argument list []] should have arguments
+      with terminals [id 'c', cg: argument list []] should have arguments
       
   spec 'doesnt have arguments'
     spec 'with just an identifier'
       with terminals [id 'a'] should not have arguments
       
     spec 'with two identifiers'
-      with terminals [id 'a'. id 'b'] should not have arguments
+      with terminals [id 'a', id 'b'] should not have arguments
 
   spec 'arguments'
     terminals (terminals) should have arguments (arguments) =
@@ -54,25 +54,25 @@ spec 'basic expression'
       terminals [variable] should have arguments [variable]
     
     spec 'variable with name'
-      terminals [id 'move'. variable] should have arguments [variable]
+      terminals [id 'move', variable] should have arguments [variable]
     
     spec 'with name and empty argument list'
-      terminals [id 'c'. cg: argument list []] should have arguments []
+      terminals [id 'c', cg: argument list []] should have arguments []
     
     spec 'block'
       terminals [block] should have arguments [{
         is block
         body {
-          statements [{is variable. variable ['a']}]
+          statements [{is variable, variable ['a']}]
         }
       }]
     
     spec 'block with a parameter'
-      terminals [cg: parameters ([cg: variable ['x']]). block] should have arguments [{
+      terminals [cg: parameters ([cg: variable ['x']]), block] should have arguments [{
         is block
         parameters [{variable ['x']}]
         body {
-          statements [{is variable. variable ['a']}]
+          statements [{is variable, variable ['a']}]
         }
       }]
 
@@ -91,48 +91,48 @@ spec 'basic expression'
   
     spec 'name and variable'
         spec 'has parameters'
-            target [id 'car'. variable] has some parameters
+            target [id 'car', variable] has some parameters
 
         spec 'parameters'
-            target [id 'car'. variable] has parameters [{variable ['a']}]
+            target [id 'car', variable] has parameters [{variable ['a']}]
   
     spec 'no arg punctuation'
         spec 'has parameters'
-            target [id 'car'. no arg punctuation] has some parameters
+            target [id 'car', no arg punctuation] has some parameters
             
         spec 'parameters'
-            target [id 'car'. no arg punctuation] has parameters []
+            target [id 'car', no arg punctuation] has parameters []
   
     spec 'empty argument list'
         spec 'has parameters'
-            target [id 'car'. cg: argument list []] has some parameters
+            target [id 'car', cg: argument list []] has some parameters
             
         spec 'parameters'
-            target [id 'car'. cg: argument list []] has parameters []
+            target [id 'car', cg: argument list []] has parameters []
     
   spec 'has name'
     terminals (terminals) should have a name =
       (cg: basic expression (terminals): has name?) should be truthy
 
     spec 'with two identifiers'
-      terminals [id 'car'. id 'idle'] should have a name
+      terminals [id 'car', id 'idle'] should have a name
 
   spec 'name'
     terminals (terminals) should have name (name) =
       (cg: basic expression (terminals): name?) should contain fields (name)
       
     spec 'with two identifiers'
-      terminals [id 'car'. id 'idle'] should have name ['car'. 'idle']
+      terminals [id 'car', id 'idle'] should have name ['car', 'idle']
       
     spec 'with two identifiers and arg'
-      terminals [id 'car'. cg: variable ['car']. id 'idle'] should have name ['car'. 'idle']
+      terminals [id 'car', cg: variable ['car'], id 'idle'] should have name ['car', 'idle']
 
   spec 'hash entry'
     hash entry (terminals) should contain fields (f) =
       (cg: basic expression (terminals): hash entry?) should contain fields (f)
   
     spec 'with an argument'
-      hash entry [id 'port'. int 10] should contain fields {
+      hash entry [id 'port', int 10] should contain fields {
         is hash entry
         field ['port']
         value {integer 10}
@@ -146,7 +146,7 @@ spec 'basic expression'
       }
   
     spec 'with a string name'
-      hash entry [string 'the port'. int 8] should contain fields {
+      hash entry [string 'the port', int 8] should contain fields {
         is hash entry
         field ['the port']
         value {integer 8}
@@ -157,7 +157,7 @@ spec 'basic expression'
       (cg: basic expression (terminals): hash entry; without block) should contain fields (f)
       
     spec 'with block'
-      hash entry [id 'port'. int 10. block] should contain fields {
+      hash entry [id 'port', int 10, block] should contain fields {
         is hash entry
         field ['port']
         value {integer 10}
@@ -175,13 +175,13 @@ spec 'basic expression'
       (cg: basic expression (terminals): hash entry block?) should contain fields (f)
 
     spec 'with block'
-      hash entry block [id 'port'. int 10. block] should contain fields {
+      hash entry block [id 'port', int 10, block] should contain fields {
         is block
         body {statements [{variable ['a']}]}
       }
 
     spec 'without block'
-      assert: (cg: basic expression [id 'port'. int 10]: hash entry block?) equal (undefined)
+      assert: (cg: basic expression [id 'port', int 10]: hash entry block?) equal (undefined)
 
     spec 'without hash'
       assert: (cg: basic expression [id 'port']: hash entry block?) equal (undefined)
