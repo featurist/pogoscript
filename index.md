@@ -29,8 +29,8 @@ The canonical 99 beers on the wall:
             sing (n - 1) bottles of beer on the wall
 
     (n) bottles of beer on the wall =
-        "@((n) bottles) of beer on the wall, @((n) bottles) of beer on the wall\n" +
-        "take one down, pass it around, @((n - 1) bottles) of beer on the wall."
+        "#((n) bottles) of beer on the wall, #((n) bottles) of beer on the wall\n" +
+        "take one down, pass it around, #((n - 1) bottles) of beer on the wall."
 
     (n) bottles =
         if (n == 0)
@@ -38,7 +38,7 @@ The canonical 99 beers on the wall:
         else if (n == 1)
             "1 bottle"
         else
-            "@n bottles"
+            "#(n) bottles"
 
     sing 99 bottles of beer on the wall
 
@@ -84,10 +84,10 @@ The `self` variable, also known as `this` in JavaScript, is retained from a bloc
         name = "Jack"
         
         say hello! =
-            console: log "hi, my name is @(self: name)"
+            console: log "hi, my name is #(self: name)"
             
             after (10 seconds)
-                console: log "hi! this is @(self: name) again."
+                console: log "hi! this is #(self: name) again."
     }
     
     jack: say hello!
@@ -118,7 +118,7 @@ In fact, there's a shorthand for `self:`, it's just `:`. So we could rewrite the
 Methods and functions can take optional arguments, in the form of a hash passed as the last argument.
 
     web server; port 4567 =
-        console: log "starting web server on port @port"
+        console: log "starting web server on port #(port)"
     
     web server!
     
@@ -151,7 +151,7 @@ What about a multi-line control structure?
     mountains = ['Everest', 'La Tournette', 'Valuga']
 
     render each @(mountain) in (mountains)
-        "<li>@mountain</li>"
+        "<li>#(mountain)</li>"
     if none
         "<li>no mountains...</li>"
 
