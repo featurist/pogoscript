@@ -102,8 +102,8 @@ source location printer; filename; source =
 
             if (location: first line == location: last line)
                 :print lines in range; from (location: first line); to (location: last line)
-                spaces = : ' ' times (location: first column)
-                markers = : '^' times (location: last column - location: first column)
+                spaces = :' ' times (location: first column)
+                markers = :'^' times (location: last column - location: first column)
                 process: stderr: write (spaces + markers + "\n")
             else
                 :print lines in range; prefix '> '; from (location: first line); to (location: last line)
