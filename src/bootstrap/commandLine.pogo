@@ -51,13 +51,18 @@ js filename from pogo filename (pogo) =
     pogo: replace `\.pogo$` '' + '.js'
 
 :run file (filename) =
+    process: argv: shift!
+    process: argv: 0 = 'pogo'
+    process: argv: 1 = fs: realpath sync (filename)
+    require 'module': run main!
+
+/*
     js = js from pogo file (filename)
     
     module: filename = fs: realpath sync (filename)
-    process: argv: shift!
-    process: argv: 0 = 'pogo'
     
     module: _compile (js, filename)
+*/
 
 :compile (pogo); filename =
     term = parse (pogo)

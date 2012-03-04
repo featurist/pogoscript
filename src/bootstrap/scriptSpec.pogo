@@ -16,7 +16,10 @@ spec 'pogo command'
                                                                                  'two' ]"
 
     spec "`__filename` should be the name of the script"
-        'console: log (8)' with args ['onex'] should output ""
+        'console: log (__filename)' with args [] should output "ec798ad9d0e16bd17a4ba1cceab4be9591c65bfe.pogo"
+
+    spec "`__dirname` should be the name of the script"
+        'console: log (__dirname)' with args [] should output "."
 
 spec 'script'
     spec 'integers'
