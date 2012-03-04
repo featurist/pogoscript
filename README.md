@@ -34,4 +34,4 @@ Will produce `helloWorld.js`.
 
 # More
 
-There's more on the [pogoscript home page](http://pogoscript.org/), and you can find some Pogoscript -> Javascript examples [here](http://featurist.github.com/pogo-examples/). And 
+There's more on the [pogoscript home page](http://pogoscript.org/), and you can find some Pogoscript -> Javascript examples [here](http://featurist.github.com/pogo-examples/).
