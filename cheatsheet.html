@@ -39,7 +39,7 @@
 
 <pre><code>filename = &quot;logbook.txt&quot;
 docs dir = &quot;~/docs&quot;
-move file @filename to dir (docs dir)</code></pre>
+move file (filename) to dir (docs dir)</code></pre>
 
 <h2 id='without_arguments'>Without arguments</h2>
 
@@ -51,11 +51,11 @@ move file @filename to dir (docs dir)</code></pre>
 
 <h2 id='with_optional_arguments'>With Optional Arguments</h2>
 
-<pre><code>web server, port 80</code></pre>
+<pre><code>web server; port 80</code></pre>
 
 <h2 id='with_splat_arguments'>With Splat Arguments</h2>
 
-<pre><code>sum @numbers ...</code></pre>
+<pre><code>sum (numbers) ...</code></pre>
 
 <h2 id='block_arguments'>Block Arguments</h2>
 
@@ -69,8 +69,8 @@ move file @filename to dir (docs dir)</code></pre>
 
 <h2 id='block_parameters'>Block Parameters</h2>
 
-<pre><code>map each #name in @names into
-    &quot;&lt;div class=&#39;name&#39;&gt;@name&lt;/div&gt;&quot;</code></pre>
+<pre><code>map each @(name) in (names) into
+    &quot;&lt;div class=&#39;name&#39;&gt;#(name)&lt;/div&gt;&quot;</code></pre>
 
   </div>
   <div class=col>
@@ -78,12 +78,12 @@ move file @filename to dir (docs dir)</code></pre>
 
 <h1 id='defining_functions'>Defining Functions</h1>
 
-<pre><code>move file @filename to dir (dir name) =
+<pre><code>move file (filename) to dir (dir name) =
     ...</code></pre>
 
 <h2 id='without_arguments'>Without Arguments</h2>
 
-<pre><code>current time? = new @Date</code></pre>
+<pre><code>current time? = new (Date)</code></pre>
 
 <p>Or with a <code>!</code></p>
 
@@ -91,15 +91,15 @@ move file @filename to dir (docs dir)</code></pre>
 
 <h2 id='with_optional_parameters'>With Optional Parameters</h2>
 
-<pre><code>web server, port = ...</code></pre>
+<pre><code>web server; port = ...</code></pre>
 
 <p>Or, with an default value</p>
 
-<pre><code>web server, port 80 = ...</code></pre>
+<pre><code>web server; port 80 = ...</code></pre>
 
 <h2 id='with_splat_parameters'>With Splat Parameters</h2>
 
-<pre><code>sum @numbers ... =
+<pre><code>sum (numbers) ... =
     ...</code></pre>
 
 <h1 id='objects'>Objects</h1>
@@ -154,7 +154,7 @@ size: area? = self: x * self: y</code></pre>
   name = 'Man Ray'
   say hi later =
     set timeout
-      console: log "my name is @(:name)"
+      console: log "my name is #(:name)"
     1000
 }</code></pre>
 
@@ -162,12 +162,12 @@ size: area? = self: x * self: y</code></pre>
 
 <p>use <code>=></code> to allow self to be redefined by the caller of the block:</p>
 
-<pre><code>person, name = object =>
+<pre><code>person; name = object =>
     :name = name</code></pre>
 
 <h2 id='array_indexes'>Array Indexes</h2>
 
-<pre><code>fib = [0. 1. 1. 2. 3. 5]
+<pre><code>fib = [0, 1, 1, 2, 3, 5]
 
 fib: 0
 fib: 5 = 5</code></pre>
@@ -176,11 +176,11 @@ fib: 5 = 5</code></pre>
 
 <h1 id='arrays'>Arrays</h1>
 
-<pre><code>colours = [&#39;red&#39;. &#39;blue&#39;. &#39;yellow&#39;]</code></pre>
+<pre><code>colours = [&#39;red&#39;, &#39;blue&#39;, &#39;yellow&#39;]</code></pre>
 
 <h1 id='hashes'>Hashes</h1>
 
-<pre><code>colour scheme = {bg &#39;red&#39;. fg &#39;yellow&#39;}</code></pre>
+<pre><code>colour scheme = {bg &#39;red&#39;, fg &#39;yellow&#39;}</code></pre>
 
 <p>Or</p>
 
@@ -199,12 +199,19 @@ else
 
 <h1>While</h1>
 
-<pre><code>set timeout
-    finished = false
-3000
-  
+<pre><code>finished = false
+
 while (!finished)
     console: log "still going"</code></pre>
+
+<h1>Try Catch</h1>
+
+<pre><code>try
+    something complicated!
+catch @(ex)
+    console: log "it went horribly wrong"
+finally
+    something simpler?</code></pre>
 
 
 </div>
@@ -213,13 +220,13 @@ while (!finished)
 
 <h1>For Each</h1>
 
-<pre><code>for each #mountain in @moutains
-    console: log @mountain</code></pre>
+<pre><code>for each @(mountain) in (moutains)
+    console: log (mountain)</code></pre>
 
 <h1>For</h1>
 
-<pre><code>for (n = 0. n &lt; 10. n = n + 1)
-    console: log @n</code></pre>
+<pre><code>for (n = 0, n &lt; 10, n = n + 1)
+    console: log (n)</code></pre>
 
 <h1 id='comments'>Comments</h1>
 
@@ -240,11 +247,7 @@ while (!finished)
 
 <h2 id='interpolating'>Interpolating</h2>
 
-<pre><code>&quot;hi @name&quot;</code></pre>
-
-<p>Or</p>
-
-<pre><code>&quot;hi @(persons name)&quot;</code></pre>
+<pre><code>&quot;hi #(persons name)&quot;</code></pre>
 
 <h2 id='special_characters'>Special Characters</h2>
 
