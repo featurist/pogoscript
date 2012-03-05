@@ -155,6 +155,10 @@ What about a multi-line control structure?
     if none
         "<li>no mountains...</li>"
 
-## Is that all?
+# How do I install it?
 
-This is a pretty gentle introduction to the motivating philosophy of PogoScript. There's loads more to explore, including a sane syntax for asynchronous function calls (especially useful in [Node](http://nodejs.org/) apps), a hygenic macro system and loads of other useful tidbits. [Stay tuned](https://github.com/featurist/pogoscript).
+The [github](http://github.com/featurist/pogoscript) page will tell you how.
+
+# Any more information?
+
+[joshski](http://github.com/joshski) has put together a page showing [how PogoScript translates into JavaScript](http://featurist.github.com/pogo-examples). You can examine the [cheatsheet](cheatsheet.pdf), or head to the [github](http://github.com/featurist/pogoscript) page.
