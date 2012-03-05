@@ -655,7 +655,7 @@ var blockParameters = function (block) {
 };
 
 var optionalParameters = function (optionalParameters, next) {
-  if (optionalParameters && optionalParameters.length > 0) {
+  if (optionalParameters.length > 0) {
     return {
       options: generatedVariable(['options']),
       
@@ -685,7 +685,7 @@ var block = expressionTerm('block', function (parameters, body, options) {
   this.isBlock = true;
   this.returnLastStatement = options && options.returnLastStatement != null? options.returnLastStatement: true;
   this.parameters = parameters;
-  this.optionalParameters = null;
+  this.optionalParameters = [];
   this.redefinesSelf = options && options.redefinesSelf != null? options.redefinesSelf: false;
   
   this.blockify = function (parameters, optionalParameters) {
@@ -695,8 +695,8 @@ var block = expressionTerm('block', function (parameters, body, options) {
   };
   
   this.scopify = function () {
-    if (this.parameters.length == 0) {
-      return functionCall(this, []);
+    if (this.parameters.length == 0 && this.optionalParameters.length == 0) {
+      return scope(this.body.statements);
     } else {
       return this;
     }

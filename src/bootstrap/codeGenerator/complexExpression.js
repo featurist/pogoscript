@@ -211,7 +211,7 @@ module.exports = function (listOfTerminals) {
               return cg.definition(cg.variable(self.head().name()), source.scopify());
             },
             hashEntry: function () {
-              return cg.hashEntry(self.head().hashKey(), source);
+              return cg.hashEntry(self.head().hashKey(), source.scopify());
             }
           };
         }

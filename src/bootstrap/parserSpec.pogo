@@ -133,16 +133,11 @@ spec 'parser'
                         variable ['abc']
                     }
                     source {
-                        is function call
-                        function {
-                            is block
-                            body {
-                                statements [{
-                                    is variable
-                                    variable ['stuff']
-                                }]
-                            }
-                        }
+                        is scope
+                        statements [{
+                            is variable
+                            variable ['stuff']
+                        }]
                     }
                 }
 
@@ -270,6 +265,23 @@ spec 'parser'
                         {
                             field ['port']
                             value {integer 1234}
+                        }
+                    ]
+                }
+                    
+            spec 'values can be specified on a new line'
+                (expression "{
+                                 height =
+                                     80
+                             }") should contain fields {
+                    is hash
+                    entries [
+                        {
+                            field ['height']
+                            value {
+                                is scope
+                                statements [{integer 80}]
+                            }
                         }
                     ]
                 }

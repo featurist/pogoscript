@@ -206,6 +206,18 @@ spec 'complex expression'
         value {variable ['a']}
       }
       
+    spec "field's value can be on a new indented line"
+      hash entry = cg: complex expression [[id 'port']]: definition (cg: block ([], cg: statements [cg: variable ['a']])): hash entry?
+      
+      (hashEntry) should contain fields {
+        is hash entry
+        field ['port']
+        value {
+          is scope
+          statements [variable ['a']]
+        }
+      }
+      
     spec 'can define a method as a hash key'
       hash entry = cg: complex expression [[id 'name', variable 'name']]: definition (cg: variable ['name']): hash entry?
       
@@ -450,16 +462,8 @@ spec 'complex expression'
         }
         
         source {
-          is function call
-          function {
-            is block
-            parameters []
-            body {
-              statements [{variable ['y']}]
-            }
-          }
-        
-          arguments []
+          is scope
+          statements [{variable ['y']}]
         }
       }
 

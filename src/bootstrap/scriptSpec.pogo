@@ -1,6 +1,7 @@
 require 'cupoftea'
 script = require './scriptAssertions.pogo'
 assert = require 'assert'
+path = require 'path'
 
 should output = script: should output
 should throw = script: should throw
@@ -11,15 +12,15 @@ spec 'pogo command'
           script executed, and the arguments from the command line"
     
         'console: log (process: argv)' with args ['one', 'two'] should output "[ 'pogo',
-                                                                                 '086cb9ffe81d17023c281a4789bdf5c45ddc1d76.pogo',
+                                                                                 '#(path: resolve '086cb9ffe81d17023c281a4789bdf5c45ddc1d76.pogo')',
                                                                                  'one',
                                                                                  'two' ]"
 
     spec "`__filename` should be the name of the script"
-        'console: log (__filename)' with args [] should output "ec798ad9d0e16bd17a4ba1cceab4be9591c65bfe.pogo"
+        'console: log (__filename)' with args [] should output (path: resolve "ec798ad9d0e16bd17a4ba1cceab4be9591c65bfe.pogo")
 
     spec "`__dirname` should be the name of the script"
-        'console: log (__dirname)' with args [] should output "."
+        'console: log (__dirname)' with args [] should output (path: resolve ".")
 
 spec 'script'
     spec 'integers'
