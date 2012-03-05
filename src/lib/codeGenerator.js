@@ -1763,7 +1763,11 @@ var scope = exports.scope = function (stmts) {
     this.subterms('statements');
     
     this.generateJavaScript = function (buffer, scope) {
-      functionCall(subExpression(block([], statements(this.statements))), []).generateJavaScript(buffer, scope);
+      if (this.statements.length == 1) {
+        this.statements[0].generateJavaScript(buffer, scope);
+      } else {
+        functionCall(subExpression(block([], statements(this.statements))), []).generateJavaScript(buffer, scope);
+      }
     };
   });
 }

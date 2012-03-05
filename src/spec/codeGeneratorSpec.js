@@ -242,10 +242,12 @@ spec('code generator', function () {
         
         var scopifiedBlock = b.scopify();
         shouldContainFields(scopifiedBlock, {
-          isFunctionCall: true,
-          arguments: []
+          isScope: true,
+          statements: [{
+            isVariable: true,
+            variable: ['a']
+          }]
         });
-        assert.equal(scopifiedBlock.function, b);
       });
       
       spec('with parameters', function () {
@@ -704,7 +706,13 @@ spec('code generator', function () {
       var s = cg.scope([cg.definition(cg.variable(['a']), cg.integer(8)), cg.variable(['a'])]);
       
       generatesExpression(s, '(function(){var a;a=8;return a;})()');
-    })
+    });
+
+    spec('if there is only one statement, it just generates that statement', function () {
+      var s = cg.scope([cg.variable(['a'])]);
+      
+      generatesExpression(s, 'a');
+    });
   });
   
   spec('module', function () {
