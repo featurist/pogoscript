@@ -6,12 +6,12 @@ command line = require './commandLine'
 util = require 'util'
 _ = require 'underscore'
 
-execute script (script) with args (args) (take output) =
+execute script (script) with args (args, callback) =
     script filename = filename for (script)
 
-    fs: write file (script filename) (script) (should call @(error)
+    fs: write file (script filename, script) @(error)
         if (error)
-            take output (error)
+            callback (error)
         
         pogo = spawn 'pogo' ([script filename]: concat (args))
     
@@ -21,12 +21,9 @@ execute script (script) with args (args) (take output) =
         pogo: stdout: on 'data' @(output)
             all output = all output + output
     
-        pogo: on 'exit' (should call @(code)
-            fs: unlink (script filename) (should call @(code)
-                take output (undefined, all output)
-            )
-        )
-    )
+        pogo: on 'exit' @(code)
+            fs: unlink (script filename) @(code)
+                callback (undefined, all output)
 
 filename for (script) =
     hash = crypto: create hash 'sha1'
@@ -36,12 +33,14 @@ filename for (script) =
 chomp (s) =
     s: to string! : replace `\n$` ''
 
-:(script) with args (args) should output (expected output) =
+:(script) with args (args) should output (expected output, done) =
     execute script (script) with args (args) @(error, actual output)
         if (error)
             assert: fail (error)
         else
             assert: equal (chomp (expected output), chomp (actual output))
+            
+        done!
 
 :evaluate script (script) =
     printed items = []
