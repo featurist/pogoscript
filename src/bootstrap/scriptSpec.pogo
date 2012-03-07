@@ -100,6 +100,15 @@ spec 'script'
                      index = 10
                      print (current index?)' should output '0
                                                             10'
+                
+                spec "a function's parameters shadow variables in outer scope"
+                    'foo (a) =
+                         print (a)
+                    
+                     a = "outer a"
+                     foo "inner a"
+                     print (a)' should output "'inner a'
+                                               'outer a'"
     
         spec 'splats'
             spec 'a function can be defined with a single splat parameter'
@@ -113,6 +122,16 @@ spec 'script'
                      print (args)
              
                  foo 1 [2, 3] ... [4, 5] ... 6' should output '[ 1, 2, 3, 4, 5, 6 ]'
+            
+            spec "a function's splat parameter shadows variables in outer scope"
+                'foo (a, ...) =
+                     print (a: 0)
+                 
+                 a = "outer a"
+                 
+                 foo "inner a"
+                 print (a)' should output "'inner a'
+                                           'outer a'"
         
         spec 'optional arguments'
             spec 'functions can take optional arguments, delimited by semi-colons ";"'
@@ -154,6 +173,26 @@ spec 'script'
                      print (port)
                  
                  open tcp connection; host "pogoscript.org"' should output "80"
+            
+            spec "a function's optional parameter shadows variables in outer scope"
+                'foo; bar =
+                     print (bar)
+                 
+                 bar = "outer bar"
+                 foo; bar ("inner bar")
+                 print (bar)' should output "'inner bar'
+                                             'outer bar'"
+            
+            spec "a function's optional parameter shadows variables in outer scope,
+                  even if it has a default value"
+                  
+                'foo; bar 80 =
+                     print (bar)
+                 
+                 bar = "outer bar"
+                 foo; bar ("inner bar")
+                 print (bar)' should output "'inner bar'
+                                             'outer bar'"
 
     spec 'scope'
         spec 'statements can be delimited by dots in parens, the last statement is returned'

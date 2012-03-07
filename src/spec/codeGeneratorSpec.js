@@ -298,40 +298,47 @@ spec('code generator', function () {
     });
     
     spec('with a parameter and two optional parameters', function () {
-      var b = cg.block(
-        [
-          cg.variable(['x']),
-          cg.variable(['y'])
-        ],
-        cg.statements([
-          cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]),
-          cg.variable(['x'])
-        ])
-      );
+      var b;
+      var s = cg.statements([
+        cg.definition(cg.variable(['port']), cg.integer(1)),
+        b = cg.block(
+          [
+            cg.variable(['x']),
+            cg.variable(['y'])
+          ],
+          cg.statements([
+            cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]),
+            cg.variable(['x'])
+          ])
+        )
+      ]);
 
       b.optionalParameters = [
         cg.hashEntry(['port'], cg.integer(80)),
         cg.hashEntry(['start'])
       ];
       
-      generatesExpression(b, "function(x,y,gen1_options){var port,start;port=(gen1_options&&gen1_options.port!=null)?gen1_options.port:80;start=(gen1_options&&gen1_options.start!=null)?gen1_options.start:undefined;y(x);return x;}");
+      generatesStatements(s, "var port;port=1;function(x,y,gen1_options){var port,start;port=(gen1_options&&gen1_options.port!=null)?gen1_options.port:80;start=(gen1_options&&gen1_options.start!=null)?gen1_options.start:undefined;y(x);return x;};");
     });
     
     spec('with splat parameters', function () {
-      var b = cg.block(
-        [
-          cg.variable(['x']),
-          cg.variable(['y']),
-          cg.splat(),
-          cg.variable(['z'])
-        ],
-        cg.statements([
-          cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]),
-          cg.variable(['z'])
-        ])
-      );
+      var s = cg.statements([
+        cg.definition(cg.variable(['y']), cg.integer(1)),
+        cg.block(
+          [
+            cg.variable(['x']),
+            cg.variable(['y']),
+            cg.splat(),
+            cg.variable(['z'])
+          ],
+          cg.statements([
+            cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]),
+            cg.variable(['z'])
+          ])
+        )
+      ]);
 
-      generatesExpression(b, "function(x){var y,z;y=Array.prototype.slice.call(arguments, 1, arguments.length - 1);z=arguments[arguments.length - 1];y(x);return z;}");
+      generatesStatements(s, "var y;y=1;function(x){var y,z;y=Array.prototype.slice.call(arguments, 1, arguments.length - 1);z=arguments[arguments.length - 1];y(x);return z;};");
     });
   });
   

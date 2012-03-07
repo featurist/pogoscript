@@ -488,6 +488,7 @@ var parseSplatParameters = exports.parseSplatParameters = function (parameters) 
   
   if (maybeSplat && maybeSplat.isSplat) {
     splatParam = firstParameters.pop();
+    splatParam.shadow = true;
     lastParameters = parameters.slice(firstParameters.length + 2);
     
     lastParameters = _.filter(lastParameters, function (param) {
@@ -667,7 +668,7 @@ var optionalParameters = function (optionalParameters, next) {
         var self = this;
 
         var optionalStatements = _.map(optionalParameters, function (parm) {
-          return definition(variable(parm.field), optional(self.options, parm.field, parm.value));
+          return definition(variable(parm.field, {shadow: true}), optional(self.options, parm.field, parm.value));
         });
         
         return optionalStatements.concat(next.statements());
