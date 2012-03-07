@@ -1,4 +1,3 @@
-require 'cupoftea'
 cg = require './codeGenerator/codeGenerator'
 require './assertions.pogo'
 
@@ -19,75 +18,75 @@ string (value) = cg: string (value)
 
 no arg punctuation = cg: no arg suffix?
 
-expression (e) should contain fields (f) =
-  (cg: complex expression (e): expression?) should contain fields (f)
-
-spec 'complex expression'
-  spec 'has arguments'
+describe 'complex expression'
+  describe 'has arguments'
     expression (e) should have arguments =
       (cg: complex expression (e): has arguments?) should be truthy
     
-    spec 'with arguments in head'
+    it 'with arguments in head'
       expression [[id 'a', int 10]] should have arguments
     
-    spec 'with no arg arguments'
+    it 'with no arg arguments'
       expression [[id 'a', no arg punctuation]] should have arguments
     
-    spec 'with tail block'
+    it 'with tail block'
       expression [[id 'a'], [id 'readonly', block]] should have arguments
       
-  spec 'arguments'
+  describe 'arguments'
     expression (e) should have arguments (a) =
       (cg: complex expression (e): arguments?) should contain fields (a)
     
-    spec 'with arguments in head'
+    it 'with arguments in head'
       expression [[id 'a', int 10]] should have arguments [{integer 10}]
     
-    spec 'with tail block'
+    it 'with tail block'
       expression [[id 'a'], [id 'readonly', block]] should have arguments [
         {is block}
       ]
 
-  spec 'expression'
-    spec 'with just one argument is that argument'
+  describe 'expression'
+    expression (e) should contain fields (f) =
+      (cg: complex expression (e): expression?) should contain fields (f)
+
+    it 'with just one argument is that argument'
       expression [[int 9]] should contain fields {
         is integer
         integer 9
       }
 
-    spec 'all arguments is function call, first argument is function'
+    it 'all arguments is function call, first argument is function'
       expression [[variable 'z', int 9]] should contain fields {
         is function call
         function {variable ['z']}
         arguments [{integer 9}]
       }
 
-    spec 'one argument and call punctuation is function call'
+    it 'one argument and call punctuation is function call'
       expression [[variable 'z', no arg punctuation]] should contain fields {
         is function call
         function {variable ['z']}
         arguments []
       }
 
-    spec 'with name is variable'
+    it 'with name is variable'
       expression [[id 'a', id 'variable']] should contain fields {
         is variable
         variable ['a', 'variable']
       }
 
-    spec 'with name and argument is function call'
+    it 'with name and argument is function call'
       expression [[id 'a', id 'variable', int 10]] should contain fields {
         is function call
         function {is variable, variable ['a', 'variable']}
         arguments [{integer 10}]
       }
 
-    spec 'finds macro'
+    it 'finds macro'
       expression [[id 'if', variable 'x', block]] should contain fields {
         is if expression
       }
 
-    spec 'with name and optional args is function call with optional args'
+    it 'with name and optional args is function call with optional args'
       expression [[id 'a', id 'variable'], [id 'port', int 80]] should contain fields {
         is function call
         function {is variable, variable ['a', 'variable']}
@@ -95,7 +94,7 @@ spec 'complex expression'
         optional arguments [{field ['port'], value {integer 80}}]
       }
 
-    spec 'with block after optional arguments'
+    it 'with block after optional arguments'
       expression [[id 'a', id 'variable'], [id 'port', int 80, block]] should contain fields {
         is function call
         function {is variable, variable ['a', 'variable']}
@@ -112,11 +111,11 @@ spec 'complex expression'
         optional arguments [{field ['port'], value {integer 80}}]
       }
 
-  spec 'object operation -> expression'
+  describe 'object operation -> expression'
     expression (object, operation) should contain fields (fields) =
       (cg: complex expression (operation): object operation (object): expression?) should contain fields (fields)
   
-    spec 'method call'
+    it 'method call'
       expression (variable 'a') [[id 'method', int 10]] should contain fields {
         is method call
         object {variable ['a']}
@@ -124,7 +123,7 @@ spec 'complex expression'
         arguments [{integer 10}]
       }
   
-    spec 'method call with optional arguments'
+    it 'method call with optional arguments'
       expression (variable 'a') [[id 'method', int 10], [id 'port', int 80]] should contain fields {
         is method call
         object {variable ['a']}
@@ -133,14 +132,14 @@ spec 'complex expression'
         optional arguments [{field ['port'], value {integer 80}}]
       }
 
-    spec 'index'
+    it 'index'
       expression (variable 'a') [[int 10]] should contain fields {
         is indexer
         object {variable ['a']}
         indexer {integer 10}
       }
 
-    spec 'index call with arguments'
+    it 'index call with arguments'
       expression (variable 'a') [[variable 'z', int 10]] should contain fields {
         is function call
         function {
@@ -152,7 +151,7 @@ spec 'complex expression'
         arguments [{integer 10}]
       }
 
-    spec 'index call with no arguments'
+    it 'index call with no arguments'
       expression (variable 'a') [[variable 'z', no arg punctuation]] should contain fields {
         is function call
         function {
@@ -164,31 +163,31 @@ spec 'complex expression'
         arguments []
       }
 
-    spec 'field reference'
+    it 'field reference'
       expression (variable 'a') [[id 'field']] should contain fields {
         is field reference
         object {variable ['a']}
         name ['field']
       }
 
-  spec 'hash entry'
+  describe 'hash entry'
     hash entry (expression) should contain fields (fields) =
       (cg: complex expression (expression): hash entry?) should contain fields (fields)
     
-    spec 'if contains one component that is the hash entry'
+    it 'if contains one component that is the hash entry'
       hash entry [[id 'field']] should contain fields {
         is hash entry
         field ['field']
         value = undefined
       }
     
-    spec 'if contains more than component then semantic error'
+    it 'if contains more than component then semantic error'
       hash entry [[id 'field'], [id 'secondField']] should contain fields {
         is semantic failure
       }
 
-  spec 'definition -> hash entry'
-    spec 'string key'
+  describe 'definition -> hash entry'
+    it 'string key'
       hash entry = cg: complex expression [[string 'port']]: definition (cg: variable ['a']): hash entry?
       
       (hashEntry) should contain fields {
@@ -197,7 +196,7 @@ spec 'complex expression'
         value {variable ['a']}
       }
       
-    spec 'identifier key'
+    it 'identifier key'
       hash entry = cg: complex expression [[id 'port']]: definition (cg: variable ['a']): hash entry?
       
       (hashEntry) should contain fields {
@@ -206,7 +205,7 @@ spec 'complex expression'
         value {variable ['a']}
       }
       
-    spec "field's value can be on a new indented line"
+    it "field's value can be on a new indented line"
       hash entry = cg: complex expression [[id 'port']]: definition (cg: block ([], cg: statements [cg: variable ['a']])): hash entry?
       
       (hashEntry) should contain fields {
@@ -218,7 +217,7 @@ spec 'complex expression'
         }
       }
       
-    spec 'can define a method as a hash key'
+    it 'can define a method as a hash key'
       hash entry = cg: complex expression [[id 'name', variable 'name']]: definition (cg: variable ['name']): hash entry?
       
       (hashEntry) should contain fields {
@@ -239,11 +238,11 @@ spec 'complex expression'
         }
       }
 
-  spec 'object operation -> definition'
+  describe 'object operation -> definition'
     definition (object, operation, source) should contain fields (fields) =
       (cg: complex expression (operation): object operation (object): definition (source): expression?) should contain fields (fields)
     
-    spec 'method definition'
+    it 'method definition'
       definition (variable 'object') [[id 'method', variable 'x']] (block) should contain fields {
         is definition
         target {
@@ -258,7 +257,7 @@ spec 'complex expression'
         }
       }
     
-    spec 'method definition without block'
+    it 'method definition without block'
       definition (variable 'object') [[id 'method', variable 'x']] (variable 'y') should contain fields {
         is definition
         target {
@@ -275,7 +274,7 @@ spec 'complex expression'
         }
       }
     
-    spec 'field definition'
+    it 'field definition'
       definition (variable 'object') [[id 'x']] (variable 'y') should contain fields {
         is definition
         target {
@@ -290,7 +289,7 @@ spec 'complex expression'
         }
       }
     
-    spec 'index definition'
+    it 'index definition'
       definition (variable 'object') [[variable 'x']] (variable 'y') should contain fields {
         is definition
         target {
@@ -305,7 +304,7 @@ spec 'complex expression'
         }
       }
     
-    spec 'index method definition'
+    it 'index method definition'
       definition (variable 'object') [[cg: string 'xyz', variable 'p']] (variable 'y') should contain fields {
         is definition
         target {
@@ -331,7 +330,7 @@ spec 'complex expression'
         }
       }
     
-    spec 'index method definition with no args'
+    it 'index method definition with no args'
       definition (variable 'object') [[cg: string 'xyz', no arg punctuation]] (variable 'y') should contain fields {
         is definition
         target {
@@ -356,11 +355,11 @@ spec 'complex expression'
         }
       }
 
-  spec 'definition'
+  describe 'definition'
     definition (target, source) should contain fields (fields) =
       (cg: complex expression (target): definition (source): expression?) should contain fields (fields)
     
-    spec 'function definition'
+    it 'function definition'
       definition [[id 'function', variable 'x']] (block) should contain fields {
         is definition
         target {
@@ -375,7 +374,7 @@ spec 'complex expression'
         }
       }
     
-    spec 'function definition with optional parameter'
+    it 'function definition with optional parameter'
       definition [[id 'function', variable 'x'], [id 'port', int 80], [id 'name']] (variable 'y') should contain fields {
         is definition
         target {
@@ -394,7 +393,7 @@ spec 'complex expression'
         }
       }
     
-    spec 'function definition without block'
+    it 'function definition without block'
       definition [[id 'function', variable 'x']] (variable 'y') should contain fields {
         is definition
         target {
@@ -409,7 +408,7 @@ spec 'complex expression'
         }
       }
     
-    spec 'no arg function definition'
+    it 'no arg function definition'
       definition [[id 'function', no arg punctuation]] (variable 'y') should contain fields {
         is definition
         target {
@@ -424,7 +423,7 @@ spec 'complex expression'
         }
       }
     
-    spec 'function definition with empty param list'
+    it 'function definition with empty param list'
       definition [[id 'function', cg: argument list []]] (variable 'y') should contain fields {
         is definition
         target {
@@ -439,7 +438,7 @@ spec 'complex expression'
         }
       }
     
-    spec 'variable definition'
+    it 'variable definition'
       definition [[id 'function']] (variable 'y') should contain fields {
         is definition
         target {
@@ -453,7 +452,7 @@ spec 'complex expression'
         }
       }
 
-    spec 'variable definition with scope'
+    it 'variable definition with scope'
       definition [[id 'function']] (cg: block [] (cg: statements [variable 'y'])) should contain fields {
         is definition
         target {
@@ -467,9 +466,9 @@ spec 'complex expression'
         }
       }
 
-    spec 'parameter'
+    describe 'parameter'
         parameter (p) should contain fields (fields) =
             (cg: complex expression (p): expression? : parameter?) should contain fields (fields)
         
-        spec 'variable'
+        it 'variable'
             parameter [[id 'a']] should contain fields {variable ['a']}
