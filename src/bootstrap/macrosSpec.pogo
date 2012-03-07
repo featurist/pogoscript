@@ -1,4 +1,3 @@
-require 'cupoftea'
 cg = require './codeGenerator/codeGenerator'
 require './assertions.pogo'
 
@@ -15,9 +14,9 @@ id (name) = cg: loc (cg: identifier (name), loc)
 variable (name) = cg: variable [name]
 block (name) = cg: block [] (cg: statements [variable (name)])
 
-spec 'macros'
-    spec 'if'
-        spec 'if'
+describe 'macros'
+    describe 'if'
+        it 'if'
             (expression 'if (true) @{a}') should contain fields {
                 is if expression
                 cases [{
@@ -26,7 +25,7 @@ spec 'macros'
                 }]
             }
         
-        spec 'if else'
+        it 'if else'
             (expression 'if (true) @{a} else @{b}') should contain fields {
                 is if expression
                 _else {statements [{variable ['b']}]}
@@ -36,7 +35,7 @@ spec 'macros'
                 }]
             }
         
-        spec 'if else if'
+        it 'if else if'
             (expression 'if (true) @{a} else if (false) @{b}') should contain fields {
                 is if expression
                 _else = undefined
@@ -52,7 +51,7 @@ spec 'macros'
                 ]
             }
                 
-        spec 'if else if else'
+        it 'if else if else'
             (expression 'if (true) @{a} else if (false) @{b} else @{c}') should contain fields {
                 is if expression
                 _else {statements [{variable ['c']}]}
@@ -68,7 +67,7 @@ spec 'macros'
                 ]
             }
 
-    spec 'for'
+    it 'for'
         (expression 'for (n = 0, n < 10, n = n + 1) @{a}') should contain fields {
             is for
             initialization {
@@ -98,7 +97,7 @@ spec 'macros'
             }
         }
 
-    spec 'while'
+    it 'while'
         (expression 'while (n < 10) @{n}') should contain fields {
             is while
             test {
@@ -116,8 +115,8 @@ spec 'macros'
             }
         }
 
-    spec 'try'
-        spec 'try catch'
+    describe 'try'
+        it 'try catch'
             (expression 'try @{a} catch @(ex) @{b}') should contain fields {
                 is try statement
                 body {
@@ -137,7 +136,7 @@ spec 'macros'
                 finally body = undefined
             }
 
-        spec 'try finally'
+        it 'try finally'
             (expression 'try @{a} finally @{b}') should contain fields {
                 is try statement
                 body {
@@ -153,7 +152,7 @@ spec 'macros'
                 }
             }
 
-        spec 'try catch finally'
+        it 'try catch finally'
             (expression 'try @{a} catch @(ex) @{b} finally @{c}') should contain fields {
                 is try statement
                 body {
@@ -177,8 +176,8 @@ spec 'macros'
                 }
             }
 
-    spec 'new'
-        spec 'constructor with arguments'
+    describe 'new'
+        it 'constructor with arguments'
             (expression 'new (Date 2011 2 21)') should contain fields {
                 is new operator
                 function call {
@@ -192,20 +191,20 @@ spec 'macros'
                 }
             }
 
-        spec 'constructor without arguments'
+        it 'constructor without arguments'
             (expression 'new (Date)') should contain fields {
                 is new operator
                 function call {variable ['Date']}
             }
 
-        spec 'constructor without arguments, just variable'
+        it 'constructor without arguments, just variable'
             (expression 'new (Date)') should contain fields {
                 is new operator
                 function call {variable ['Date']}
             }
 
-    spec 'operators'
-      spec 'a + b'
+    describe 'operators'
+      it 'a + b'
         (expression 'a + b') should contain fields {
           is operator
           operator '+'
@@ -215,7 +214,7 @@ spec 'macros'
           ]
         }
           
-      spec 'a + b + c'
+      it 'a + b + c'
         (expression 'a + b + c') should contain fields {
           is operator
           operator '+'
