@@ -1,4 +1,3 @@
-require 'cupoftea'
 cg = require './codeGenerator/codeGenerator'
 require './assertions.pogo'
 
@@ -20,8 +19,8 @@ loc = {
 
 id (name) = cg: loc (cg: identifier (name), loc)
 
-spec 'operator expression'
-    spec 'a'
+describe 'operator expression'
+    it 'a'
         e = expression [id 'a']
         
         (e: expression?) should contain fields {
@@ -29,7 +28,7 @@ spec 'operator expression'
             variable ['a']
         }
 
-    spec 'a +- b'
+    it 'a +- b'
         e = expression [id 'a']
         e: add operator '+-' expression (complex expression [id 'b'])
         
@@ -40,7 +39,7 @@ spec 'operator expression'
             arguments [{variable ['b']}]
         }
 
-    spec 'a +- b */ c'
+    it 'a +- b */ c'
         e = expression [id 'a']
         e: add operator '+-' expression (complex expression [id 'b'])
         e: add operator '*/' expression (complex expression [id 'c'])
@@ -52,7 +51,7 @@ spec 'operator expression'
             arguments [{variable ['b']}. {variable ['c']}]
         }
     
-    spec 'looks up macro'
+    it 'looks up macro'
         e = expression [id 'a']
         e: add operator '+' expression (complex expression [id 'b'])
     
@@ -61,8 +60,8 @@ spec 'operator expression'
             arguments [{variable ['a']}. {variable ['b']}]
         }
         
-    spec 'hash entry'
-        spec 'a'
+    describe 'hash entry'
+        it 'a'
             e = expression [id 'a']
         
             (e: hash entry?) should contain fields {
@@ -71,7 +70,7 @@ spec 'operator expression'
                 value = undefined
             }
 
-        spec 'a */ b'
+        it 'a */ b'
             e = expression [id 'a']
             e: add operator '*/' expression (complex expression [id 'b'])
         
@@ -79,8 +78,8 @@ spec 'operator expression'
                 is semantic failure
             }
 
-    spec 'definition'
-        spec 'a = b'
+    describe 'definition'
+        it 'a = b'
             e = expression [id 'a']
             
             (e: definition (variable 'b'): expression?) should contain fields {
@@ -89,7 +88,7 @@ spec 'operator expression'
                 source {variable ['b']}
             }
                 
-        spec 'a */ b = c'
+        it 'a */ b = c'
             e = expression [id 'a']
             e: add operator '*/' expression (complex expression [id 'b'])
             

@@ -1,9 +1,8 @@
-require 'cupoftea'
 cg = require './codeGenerator/codeGenerator'
 require './assertions.pogo'
 
-spec 'unary operator expression'
-    spec 'as expression'
+describe 'unary operator expression'
+    it 'as expression'
         op expr = cg: new unary operator expression; operator '%'; expression {variable ['a']}
 
         (op expr: expression?) should contain fields {
@@ -13,7 +12,7 @@ spec 'unary operator expression'
             arguments []
         }
     
-    spec 'as expression with macro'
+    it 'as expression with macro'
         op expr = cg: new unary operator expression; operator '!'; expression {variable ['a']}
         
         (op expr: expression?) should contain fields {
@@ -22,7 +21,7 @@ spec 'unary operator expression'
             arguments [{variable ['a']}]
         }
 
-    spec 'as hash entry will be semantic failure'
+    it 'as hash entry will be semantic failure'
         op expr = cg: new unary operator expression; operator '%'; expression {variable ['a']}
         
         (op expr: hash entry?) should contain fields {

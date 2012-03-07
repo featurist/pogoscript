@@ -22,18 +22,18 @@ describe 'pogo command'
         'console: log (__dirname)' with args [] should output (path: resolve ".") (done)
 
 describe 'script'
-    it 'integers'
+    describe 'integers'
         it 'can denote an integer literally'
             'print 1' should output '1'
 
-    it 'new operator'
+    describe 'new operator'
         it 'can be called with no arguments'
             'print (new (Array))' should output '[]'
             
         it 'new operator can be called with 1 argument'
             'print (new (Date 2010 10 9): value of?)' should output '1289260800000'
 
-    it 'hash'
+    describe 'hash'
         it "a `true` hash entry does not need it's value specified"
             'print {one}' should output '{ one: true }'
         
@@ -52,7 +52,7 @@ describe 'script'
         it 'hash entries can be written with an equals "=" operator'
             "print {color = 'red', size = 'large'}" should output "{ color: 'red', size: 'large' }"
     
-    it 'lists'
+    describe 'lists'
         it 'an empty list is just []'
             'print []' should output '[]'
         
@@ -68,15 +68,15 @@ describe 'script'
                  2
              ]' should output '[ 1, 2 ]'
     
-    it 'functions'
-        it 'definitions'
+    describe 'functions'
+        describe 'definitions'
             it 'functions can be defined by placing the arguments to the left of the equals sign "="'
                 'succ (n) =
                     n + 1
                 
                  print (succ (1))' should output '2'
             
-            it 'functions with no arguments'
+            describe 'functions with no arguments'
                 it 'a function can be defined to have no parameters with the exclamation mark "!"'
                     'say hi! =
                         print "hi"
@@ -109,7 +109,7 @@ describe 'script'
                      print (a)' should output "'inner a'
                                                'outer a'"
     
-        it 'splats'
+        describe 'splats'
             it 'a function can be defined with a single splat parameter'
                 'foo (args, ...) =
                      print (args)
@@ -132,7 +132,7 @@ describe 'script'
                  print (a)' should output "'inner a'
                                            'outer a'"
         
-        it 'optional arguments'
+        describe 'optional arguments'
             it 'functions can take optional arguments, delimited by semi-colons ";"'
                 'print; size 10' should output '{ size: 10 }'
     
@@ -193,7 +193,7 @@ describe 'script'
                  print (bar)' should output "'inner bar'
                                              'outer bar'"
 
-    it 'scope'
+    describe 'scope'
         it 'statements can be delimited by dots in parens, the last statement is returned'
             'print (x = 1. x = x + 1. x)' should output '2'
             

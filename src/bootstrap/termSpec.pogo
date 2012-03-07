@@ -1,4 +1,3 @@
-require 'cupoftea'
 cg = require '../lib/codeGenerator'
 cg new = require './codeGenerator/codeGenerator'
 require './assertions.pogo'
@@ -27,8 +26,8 @@ location (fl, ll, fc, lc) = {
     last_column = lc
 }
 
-spec 'term'
-    spec 'subterms'
+describe 'term'
+    it 'subterms'
         term = cg: term =>
             :a = cg: identifier 'a'
             :b = cg: identifier 'b'
@@ -39,8 +38,8 @@ spec 'term'
             {identifier 'b'}
         ]
     
-    spec 'locations'
-        spec 'location'
+    describe 'locations'
+        it 'location'
             id = cg new: loc (cg: identifier 'a', location 1 2 3 4)
             
             (id: location?) should contain fields {
@@ -50,7 +49,7 @@ spec 'term'
                 last column 4
             }
         
-        spec 'subterm location'
+        it 'subterm location'
             term = cg: term
                 this: a = cg new: loc (cg: identifier 'a', location 1 1 3 10)
                 this: b = cg new: loc (cg: identifier 'b', location 1 1 2 12)
@@ -63,7 +62,7 @@ spec 'term'
                 last column 12
             }
     
-    spec 'derived term'
+    it 'derived term'
         a = cg new: loc (leaf 'a', location 1 1 2 8)
         b = cg new: loc (leaf 'b', location 2 2 2 8)
 
@@ -77,10 +76,10 @@ spec 'term'
             last column 8
         }
 
-    spec 'depth first walk'
+    describe 'depth first walk'
         root = terms (branch (leaf 'a', leaf 'b'), branch (leaf 'c', branch (leaf 'd', leaf 'e')))
         
-        spec 'walks all terms depth first'
+        it 'walks all terms depth first'
             leaf terms = []
         
             root: walk each subterm @(term)
@@ -89,7 +88,7 @@ spec 'term'
 
             (leaf terms) should contain fields ['a'. 'b'. 'c'. 'd'. 'e']
 
-        spec "doesn't walk undefined subterms"
+        it "doesn't walk undefined subterms"
             term = branch (leaf 'a', undefined)
             
             leaf terms = []
