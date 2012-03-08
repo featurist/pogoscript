@@ -22,7 +22,7 @@
         "mogo": "bin/mogo"
     },
     "devDependencies": {
-        "cupoftea": "0.0.1"
+        "mocha": "0.14.1"
     },
     "main": "src/bootstrap/commandLine.js",
     "dependencies": {
