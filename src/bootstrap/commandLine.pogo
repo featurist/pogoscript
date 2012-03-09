@@ -16,10 +16,8 @@ beautify (code) =
     uglify: uglify: gen_code (ast); beautify
 
 :compile file = compile file (filename); ugly =
-    js = js from pogo file (filename)
-    if (!ugly)
-        js = beautify (js)
-        
+    js = js from pogo file (filename); ugly (ugly)
+
     js filename = js filename from pogo filename (filename)
     fs: write file sync (js filename, js)
 
@@ -84,9 +82,9 @@ js filename from pogo filename (pogo) =
     
     run script: apply (undefined) (definition values)
 
-js from pogo file (filename) =
+js from pogo file (filename); ugly =
     contents = fs: read file sync (filename) 'utf-8'
-    exports: compile (contents); filename (filename)
+    exports: compile (contents); filename (filename); ugly (ugly)
         
 source location printer; filename; source =
     object =>
