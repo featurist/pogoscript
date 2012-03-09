@@ -4,9 +4,7 @@ layout: main
 
 # Whaa?
 
-PogoScript is a readable dialect of JavaScript.
-
-Well, that's the idea anyway. It's also a bit of an experiment in making a DSL friendly programming language, ala Ruby, but faster, stronger, better.
+Pogoscript is a programming language that emphasises readability, is friendly to domain specific languages and compiles to regular Javascript.
 
 # Examples
 
