@@ -1756,15 +1756,16 @@ macros.addMacro(['while'], function(basicExpression) {
   return whileStatement(test, statements);
 });
 
-var scope = exports.scope = function (stmts) {
+var scope = exports.scope = function (stmts, options) {
   return term(function () {
     this.isScope = true;
     this.statements = stmts;
+    this.alwaysGenerateFunction = options != null? options.alwaysGenerateFunction: undefined;
     
     this.subterms('statements');
     
     this.generateJavaScript = function (buffer, scope) {
-      if (this.statements.length == 1) {
+      if (this.statements.length == 1 && !this.alwaysGenerateFunction) {
         this.statements[0].generateJavaScript(buffer, scope);
       } else {
         functionCall(subExpression(block([], statements(this.statements))), []).generateJavaScript(buffer, scope);
@@ -1820,25 +1821,47 @@ var tryStatement = exports.tryStatement = function (body, catchBody, finallyBody
     this.catchBody = catchBody;
     this.finallyBody = finallyBody;
 
-    this.generateJavaScript = function (buffer, scope) {
+    this.generateJavaScriptStatement = function (buffer, scope, returnStatements) {
       buffer.write('try{');
-      this.body.generateJavaScriptStatements(buffer, scope);
+      if (returnStatements) {
+        this.body.generateJavaScriptStatementsReturn(buffer, scope);
+      } else {
+        this.body.generateJavaScriptStatements(buffer, scope);
+      }
       buffer.write('}');
       if (this.catchBody) {
         buffer.write('catch(');
         this.catchBody.parameters[0].generateJavaScript(buffer, scope);
         buffer.write('){');
-        this.catchBody.body.generateJavaScriptStatements(buffer, scope);
+        if (returnStatements) {
+          this.catchBody.body.generateJavaScriptStatementsReturn(buffer, scope);
+        } else {
+          this.catchBody.body.generateJavaScriptStatements(buffer, scope);
+        }
         buffer.write('}');
       }
       if (this.finallyBody) {
         buffer.write('finally{');
-        this.finallyBody.generateJavaScriptStatements(buffer, scope);
+        if (returnStatements) {
+          this.finallyBody.generateJavaScriptStatementsReturn(buffer, scope);
+        } else {
+          this.finallyBody.generateJavaScriptStatements(buffer, scope);
+        }
         buffer.write('}');
       }
     };
     
-    this.generateJavaScriptReturn = this.generateJavaScript;
+    this.generateJavaScriptReturn = function (buffer, scope) {
+      this.generateJavaScriptStatement(buffer, scope, true);
+    };
+
+    this.generateJavaScript = function (buffer, symbolScope) {
+      if (this.alreadyCalled) {
+        throw new Error('stuff');
+      }
+      this.alreadyCalled = true;
+      scope([this], {alwaysGenerateFunction: true}).generateJavaScript(buffer, symbolScope);
+    };
   });
 };
 

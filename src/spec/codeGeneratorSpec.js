@@ -616,7 +616,7 @@ spec('code generator', function () {
         )
       );
 
-      generatesExpression(t, 'try{a;}catch(ex){b;}');
+      generatesStatement(t, 'try{a;}catch(ex){b;}');
     });
 
     spec("try catch is never returned", function () {
@@ -625,10 +625,11 @@ spec('code generator', function () {
         cg.block(
           [cg.variable(['ex'])],
           cg.statements([cg.variable(['b'])])
-        )
+        ),
+        cg.statements([cg.variable(['c'])])
       );
 
-      generatesReturnExpression(t, 'try{a;}catch(ex){b;}');
+      generatesReturnExpression(t, 'try{return a;}catch(ex){return b;}finally{return c;}');
     });
 
     spec('try catch finally', function () {
@@ -641,7 +642,7 @@ spec('code generator', function () {
         cg.statements([cg.variable(['c'])])
       );
 
-      generatesExpression(t, 'try{a;}catch(ex){b;}finally{c;}');
+      generatesStatement(t, 'try{a;}catch(ex){b;}finally{c;}');
     });
 
     spec('try finally', function () {
@@ -651,7 +652,20 @@ spec('code generator', function () {
         cg.statements([cg.variable(['b'])])
       );
 
-      generatesExpression(t, 'try{a;}finally{b;}');
+      generatesStatement(t, 'try{a;}finally{b;}');
+    });
+
+    spec('try catch finally as an expression', function () {
+      var t = cg.tryStatement(
+        cg.statements([cg.variable(['a'])]),
+        cg.block(
+          [cg.variable(['ex'])],
+          cg.statements([cg.variable(['b'])])
+        ),
+        cg.statements([cg.variable(['c'])])
+      );
+
+      generatesExpression(t, '(function(){try{return a;}catch(ex){return b;}finally{return c;}})()');
     });
   });
   
