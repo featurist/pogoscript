@@ -6,6 +6,7 @@ uglify = require 'uglify-js'
 errors = require './codeGenerator/errors'
 _ = require 'underscore'
 readline = require 'readline'
+util = require 'util'
 
 generate code (term) =
     memory stream = new (ms: MemoryStream)
@@ -105,7 +106,8 @@ evaluate (pogo) globally =
 
     interface: on 'line' @(line)
         try
-            console: log (exports: evaluate (line); global)
+            result = exports: evaluate (line); global
+            console: log (util: inspect (result, undefined, undefined, true))
         catch @(ex)
             console: log (ex:message)
 

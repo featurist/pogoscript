@@ -1,5 +1,5 @@
 ((function() {
-    var self, fs, ms, parser, parse, uglify, errors, _, readline, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluateLocally, evaluateGlobally, jsFromPogoFile, sourceLocationPrinter;
+    var self, fs, ms, parser, parse, uglify, errors, _, readline, util, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluateLocally, evaluateGlobally, jsFromPogoFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     ms = require("../lib/memorystream");
@@ -9,6 +9,7 @@
     errors = require("./codeGenerator/errors");
     _ = require("underscore");
     readline = require("readline");
+    util = require("util");
     generateCode = function(term) {
         var memoryStream;
         memoryStream = new ms.MemoryStream;
@@ -147,9 +148,11 @@
         interface.prompt();
         interface.on("line", function(line) {
             try {
-                console.log(exports.evaluate(line, {
+                var result;
+                result = exports.evaluate(line, {
                     global: true
-                }));
+                });
+                console.log(util.inspect(result, undefined, undefined, true));
             } catch (ex) {
                 console.log(ex.message);
             }
