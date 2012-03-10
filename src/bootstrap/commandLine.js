@@ -144,7 +144,7 @@
         var self, interface;
         self = this;
         interface = readline.createInterface(process.stdin, process.stdout);
-        interface.setPrompt("> ");
+        interface.setPrompt("λ ", 2);
         interface.prompt();
         interface.on("line", function(line) {
             try {
@@ -152,7 +152,7 @@
                 result = exports.evaluate(line, {
                     global: true
                 });
-                console.log(util.inspect(result, undefined, undefined, true));
+                console.log("→", util.inspect(result, undefined, undefined, true));
             } catch (ex) {
                 console.log(ex.message);
             }

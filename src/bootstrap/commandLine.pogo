@@ -101,13 +101,13 @@ evaluate (pogo) globally =
 :repl! =
     interface = readline: create interface (process: stdin, process: stdout)
 
-    interface: set prompt '> '
+    interface: set prompt 'λ ' 2
     interface: prompt!
 
     interface: on 'line' @(line)
         try
             result = exports: evaluate (line); global
-            console: log (util: inspect (result, undefined, undefined, true))
+            console: log '→' (util: inspect (result, undefined, undefined, true))
         catch @(ex)
             console: log (ex:message)
 
