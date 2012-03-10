@@ -141,10 +141,11 @@
         }
     };
     self.repl = function() {
-        var self, interface;
+        var self, interface, prompt;
         self = this;
         interface = readline.createInterface(process.stdin, process.stdout);
-        interface.setPrompt("λ ", 2);
+        prompt = "λ ";
+        interface.setPrompt(prompt, prompt.length);
         interface.prompt();
         interface.on("line", function(line) {
             try {
@@ -152,7 +153,7 @@
                 result = exports.evaluate(line, {
                     global: true
                 });
-                console.log("→", util.inspect(result, undefined, undefined, true));
+                console.log(" →", util.inspect(result, undefined, undefined, true));
             } catch (ex) {
                 console.log(ex.message);
             }
