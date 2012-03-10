@@ -48,7 +48,7 @@ chomp (s) =
     print (arg) =
         printed items: push (arg)
     
-    command line: evaluate (script); print (print)
+    command line: evaluate (script); definitions {print = print}
     
     _: map (printed items) @(item)
         util: inspect (item)

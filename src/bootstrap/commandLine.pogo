@@ -69,7 +69,7 @@ js filename from pogo filename (pogo) =
     else
         code
 
-:evaluate (pogo, definitions) =
+:evaluate (pogo); definitions {} =
     js = exports: compile (pogo); ugly
     definition names = _: keys (definitions)
     

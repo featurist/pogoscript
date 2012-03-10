@@ -97,8 +97,9 @@
             return code;
         }
     };
-    self.evaluate = function(pogo, definitions) {
-        var self, js, definitionNames, parameters, runScript, definitionValues;
+    self.evaluate = function(pogo, gen5_options) {
+        var definitions, self, js, definitionNames, parameters, runScript, definitionValues;
+        definitions = gen5_options && gen5_options.definitions != null ? gen5_options.definitions : {};
         self = this;
         js = exports.compile(pogo, {
             ugly: true
@@ -111,19 +112,19 @@
         });
         return runScript.apply(undefined, definitionValues);
     };
-    jsFromPogoFile = function(filename, gen5_options) {
+    jsFromPogoFile = function(filename, gen6_options) {
         var ugly, contents;
-        ugly = gen5_options && gen5_options.ugly != null ? gen5_options.ugly : undefined;
+        ugly = gen6_options && gen6_options.ugly != null ? gen6_options.ugly : undefined;
         contents = fs.readFileSync(filename, "utf-8");
         return exports.compile(contents, {
             filename: filename,
             ugly: ugly
         });
     };
-    sourceLocationPrinter = function(gen6_options) {
+    sourceLocationPrinter = function(gen7_options) {
         var filename, source;
-        filename = gen6_options && gen6_options.filename != null ? gen6_options.filename : undefined;
-        source = gen6_options && gen6_options.source != null ? gen6_options.source : undefined;
+        filename = gen7_options && gen7_options.filename != null ? gen7_options.filename : undefined;
+        source = gen7_options && gen7_options.source != null ? gen7_options.source : undefined;
         return object(function() {
             var self;
             self = this;
@@ -133,18 +134,18 @@
                 lines = source.split(/\n/);
                 return lines.slice(range.from - 1, range.to);
             };
-            self.printLinesInRange = function(gen7_options) {
-                var prefix, from, to, self, gen8_items, gen9_i, line;
-                prefix = gen7_options && gen7_options.prefix != null ? gen7_options.prefix : "";
-                from = gen7_options && gen7_options.from != null ? gen7_options.from : undefined;
-                to = gen7_options && gen7_options.to != null ? gen7_options.to : undefined;
+            self.printLinesInRange = function(gen8_options) {
+                var prefix, from, to, self, gen9_items, gen10_i, line;
+                prefix = gen8_options && gen8_options.prefix != null ? gen8_options.prefix : "";
+                from = gen8_options && gen8_options.from != null ? gen8_options.from : undefined;
+                to = gen8_options && gen8_options.to != null ? gen8_options.to : undefined;
                 self = this;
-                gen8_items = self.linesInRange({
+                gen9_items = self.linesInRange({
                     from: from,
                     to: to
                 });
-                for (gen9_i = 0; gen9_i < gen8_items.length; gen9_i++) {
-                    line = gen8_items[gen9_i];
+                for (gen10_i = 0; gen10_i < gen9_items.length; gen10_i++) {
+                    line = gen9_items[gen10_i];
                     process.stderr.write(prefix + line + "\n");
                 }
             };
