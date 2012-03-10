@@ -16,11 +16,15 @@ npm will track the latest changes when you `git pull`
 
 # Usage
 
-## Running
+## Interactive Prompt
+
+    pogo
+
+## Executing a Script
 
     pogo helloWorld.pogo
 
-## Compiling
+## Compiling a Script
 
     pogo -c helloWorld.pogo
 
