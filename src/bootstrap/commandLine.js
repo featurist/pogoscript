@@ -1,5 +1,5 @@
 ((function() {
-    var self, fs, ms, parser, parse, uglify, errors, _, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, jsFromPogoFile, sourceLocationPrinter;
+    var self, fs, ms, parser, parse, uglify, errors, _, readline, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluateLocally, evaluateGlobally, jsFromPogoFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     ms = require("../lib/memorystream");
@@ -8,6 +8,7 @@
     uglify = require("uglify-js");
     errors = require("./codeGenerator/errors");
     _ = require("underscore");
+    readline = require("readline");
     generateCode = function(term) {
         var memoryStream;
         memoryStream = new ms.MemoryStream;
@@ -76,14 +77,16 @@
         return require("module").runMain();
     };
     self.compile = function(pogo, gen4_options) {
-        var filename, inScope, ugly, self, term, code;
+        var filename, inScope, ugly, global, self, moduleTerm, code;
         filename = gen4_options && gen4_options.filename != null ? gen4_options.filename : undefined;
         inScope = gen4_options && gen4_options.inScope != null ? gen4_options.inScope : true;
         ugly = gen4_options && gen4_options.ugly != null ? gen4_options.ugly : undefined;
+        global = gen4_options && gen4_options.global != null ? gen4_options.global : false;
         self = this;
-        term = parse(pogo);
-        term.inScope = inScope;
-        code = generateCode(term);
+        moduleTerm = parse(pogo);
+        moduleTerm.inScope = inScope;
+        moduleTerm.global = global;
+        code = generateCode(moduleTerm);
         if (!ugly) {
             code = beautify(code);
         }
@@ -97,10 +100,9 @@
             return code;
         }
     };
-    self.evaluate = function(pogo, gen5_options) {
-        var definitions, self, js, definitionNames, parameters, runScript, definitionValues;
-        definitions = gen5_options && gen5_options.definitions != null ? gen5_options.definitions : {};
-        self = this;
+    evaluateLocally = function(pogo, gen5_options) {
+        var definitions, js, definitionNames, parameters, runScript, definitionValues;
+        definitions = gen5_options && gen5_options.definitions != null ? gen5_options.definitions : undefined;
         js = exports.compile(pogo, {
             ugly: true
         });
@@ -112,19 +114,65 @@
         });
         return runScript.apply(undefined, definitionValues);
     };
-    jsFromPogoFile = function(filename, gen6_options) {
+    evaluateGlobally = function(pogo) {
+        var js;
+        js = exports.compile(pogo, {
+            ugly: true,
+            inScope: false,
+            global: true
+        });
+        return eval(js);
+    };
+    self.evaluate = function(pogo, gen6_options) {
+        var definitions, global, self;
+        definitions = gen6_options && gen6_options.definitions != null ? gen6_options.definitions : undefined;
+        global = gen6_options && gen6_options.global != null ? gen6_options.global : undefined;
+        self = this;
+        if (global) {
+            if (definitions) {
+                throw new Error("cannot evaluate globally with definitions");
+            }
+            return evaluateGlobally(pogo);
+        } else {
+            return evaluateLocally(pogo, {
+                definitions: definitions || {}
+            });
+        }
+    };
+    self.repl = function() {
+        var self, interface;
+        self = this;
+        interface = readline.createInterface(process.stdin, process.stdout);
+        interface.setPrompt("> ");
+        interface.prompt();
+        interface.on("line", function(line) {
+            try {
+                console.log(exports.evaluate(line, {
+                    global: true
+                }));
+            } catch (ex) {
+                console.log(ex.message);
+            }
+            return interface.prompt();
+        });
+        return interface.on("close", function() {
+            console.log();
+            return process.exit(0);
+        });
+    };
+    jsFromPogoFile = function(filename, gen7_options) {
         var ugly, contents;
-        ugly = gen6_options && gen6_options.ugly != null ? gen6_options.ugly : undefined;
+        ugly = gen7_options && gen7_options.ugly != null ? gen7_options.ugly : undefined;
         contents = fs.readFileSync(filename, "utf-8");
         return exports.compile(contents, {
             filename: filename,
             ugly: ugly
         });
     };
-    sourceLocationPrinter = function(gen7_options) {
+    sourceLocationPrinter = function(gen8_options) {
         var filename, source;
-        filename = gen7_options && gen7_options.filename != null ? gen7_options.filename : undefined;
-        source = gen7_options && gen7_options.source != null ? gen7_options.source : undefined;
+        filename = gen8_options && gen8_options.filename != null ? gen8_options.filename : undefined;
+        source = gen8_options && gen8_options.source != null ? gen8_options.source : undefined;
         return object(function() {
             var self;
             self = this;
@@ -134,18 +182,18 @@
                 lines = source.split(/\n/);
                 return lines.slice(range.from - 1, range.to);
             };
-            self.printLinesInRange = function(gen8_options) {
-                var prefix, from, to, self, gen9_items, gen10_i, line;
-                prefix = gen8_options && gen8_options.prefix != null ? gen8_options.prefix : "";
-                from = gen8_options && gen8_options.from != null ? gen8_options.from : undefined;
-                to = gen8_options && gen8_options.to != null ? gen8_options.to : undefined;
+            self.printLinesInRange = function(gen9_options) {
+                var prefix, from, to, self, gen10_items, gen11_i, line;
+                prefix = gen9_options && gen9_options.prefix != null ? gen9_options.prefix : "";
+                from = gen9_options && gen9_options.from != null ? gen9_options.from : undefined;
+                to = gen9_options && gen9_options.to != null ? gen9_options.to : undefined;
                 self = this;
-                gen9_items = self.linesInRange({
+                gen10_items = self.linesInRange({
                     from: from,
                     to: to
                 });
-                for (gen10_i = 0; gen10_i < gen9_items.length; gen10_i++) {
-                    line = gen9_items[gen10_i];
+                for (gen11_i = 0; gen11_i < gen10_items.length; gen11_i++) {
+                    line = gen10_items[gen11_i];
                     process.stderr.write(prefix + line + "\n");
                 }
             };

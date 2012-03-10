@@ -29,9 +29,9 @@ spec('code generator', function () {
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
-  var generatesStatements = function(term, expectedGeneratedCode) {
+  var generatesStatements = function(term, expectedGeneratedCode, global) {
     var stream = new MemoryStream();
-    term.generateJavaScriptStatements(stream, new cg.Scope());
+    term.generateJavaScriptStatements(stream, new cg.Scope(), global);
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
@@ -365,6 +365,12 @@ spec('code generator', function () {
       var st = cg.statements([cg.definition(cg.variable(['one']), cg.integer(9))]);
       
       generatesStatementsReturn(st, 'var one;return one=9;');
+    });
+
+    spec("when global is true, doesn't generate 'vars' for variables", function () {
+      var st = cg.statements([cg.definition(cg.variable(['one']), cg.integer(9))]);
+      
+      generatesStatements(st, 'one=9;', true);
     });
     
     spec('chained definitions', function () {
@@ -749,18 +755,35 @@ spec('code generator', function () {
       generatesExpression(s, '(function(){var self,x;self=this;x=1;f(function(){x=2;return x;});}).call(this);');
     });
 
-    spec('module should not be wrapped in function if in scope is false', function () {
-      var s = cg.module(cg.statements([
-        cg.definition(cg.variable(['x']), cg.integer(1)),
-        cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
-          cg.definition(cg.variable(['x']), cg.integer(2)),
-          cg.variable(['x'])
-        ]))])
-      ]));
+    spec('when not in scope (inScope = false)', function () {
+      spec('module should not be wrapped in function', function () {
+        var s = cg.module(cg.statements([
+          cg.definition(cg.variable(['x']), cg.integer(1)),
+          cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
+            cg.definition(cg.variable(['x']), cg.integer(2)),
+            cg.variable(['x'])
+          ]))])
+        ]));
 
-      s.inScope = false;
-      
-      generatesExpression(s, 'var x;x=1;f(function(){x=2;return x;});');
+        s.inScope = false;
+        
+        generatesExpression(s, 'var x;x=1;f(function(){x=2;return x;});');
+      });
+
+      spec("variables should not be declared with 'var'", function () {
+        var s = cg.module(cg.statements([
+          cg.definition(cg.variable(['x']), cg.integer(1)),
+          cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
+            cg.definition(cg.variable(['x']), cg.integer(2)),
+            cg.variable(['x'])
+          ]))])
+        ]));
+
+        s.inScope = false;
+        s.global = true;
+        
+        generatesExpression(s, 'x=1;f(function(){x=2;return x;});');
+      });
     });
   });
   

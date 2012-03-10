@@ -70,19 +70,19 @@ var ExpressionPrototype = new function () {
       throw new Error('no locations for term: ' + this.inspectTerm() + '\n');
     }
     
-    firstLines = _.map(locations, function (l) {
+    var firstLines = _.map(locations, function (l) {
       return l.firstLine;
     });
     
-    lastLines = _.map(locations, function (l) {
+    var lastLines = _.map(locations, function (l) {
       return l.lastLine;
     });
     
-    firstColumns = _.map(locations, function (l) {
+    var firstColumns = _.map(locations, function (l) {
       return l.firstColumn;
     });
     
-    lastColumns = _.map(locations, function (l) {
+    var lastColumns = _.map(locations, function (l) {
       return l.lastColumn;
     });
     
@@ -860,7 +860,7 @@ var Statements = function (statements) {
     
     this.subterms('statements');
 
-    this.generateStatements = function (statements, buffer, scope) {
+    this.generateStatements = function (statements, buffer, scope, global) {
       var self = this;
       
       hasScope(scope);
@@ -877,11 +877,13 @@ var Statements = function (statements) {
           scope.define(name);
         });
 
-        buffer.write ('var ');
-        writeToBufferWithDelimiter(namesDefined, ',', buffer, function (item) {
-          buffer.write(item);
-        });
-        buffer.write(';');
+        if (!global) {
+          buffer.write ('var ');
+          writeToBufferWithDelimiter(namesDefined, ',', buffer, function (item) {
+            buffer.write(item);
+          });
+          buffer.write(';');
+        }
       }
 
       _(statements).each(function (statement) {
@@ -907,8 +909,8 @@ var Statements = function (statements) {
       });
     };
 
-    this.generateJavaScriptStatements = function (buffer, scope) {
-      this.generateStatements(this.statements, buffer, scope);
+    this.generateJavaScriptStatements = function (buffer, scope, global) {
+      this.generateStatements(this.statements, buffer, scope, global);
     };
 
     this.blockify = function (parameters, optionalParameters) {
@@ -961,14 +963,15 @@ var module = expressionTerm('module', function (statements) {
   this.statements = statements;
   this.isModule = true;
   this.inScope = true;
+  this.global = false;
   
-  this.generateJavaScript = function (buffer, scope) {
+  this.generateJavaScript = function (buffer, scope, global) {
     if (this.inScope) {
       var b = block([], this.statements, {returnLastStatement: false, redefinesSelf: true});
       methodCall(subExpression(b), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
       buffer.write(';');
     } else {
-      this.statements.generateJavaScriptStatements(buffer, new Scope());
+      this.statements.generateJavaScriptStatements(buffer, new Scope(), this.global);
     }
   };
 });

@@ -5,6 +5,7 @@ parse = parser: parse
 uglify = require 'uglify-js'
 errors = require './codeGenerator/errors'
 _ = require 'underscore'
+readline = require 'readline'
 
 generate code (term) =
     memory stream = new (ms: MemoryStream)
@@ -54,11 +55,12 @@ js filename from pogo filename (pogo) =
     process: argv: 1 = fs: realpath sync (filename)
     require 'module': run main!
 
-:compile (pogo); filename; in scope (true); ugly =
-    term = parse (pogo)
-    term: in scope = in scope
+:compile (pogo); filename; in scope (true); ugly; global (false) =
+    module term = parse (pogo)
+    module term: in scope = in scope
+    module term: global = global
 
-    code = generate code (term)
+    code = generate code (module term)
 
     if (!ugly)
         code = beautify (code)
@@ -69,7 +71,7 @@ js filename from pogo filename (pogo) =
     else
         code
 
-:evaluate (pogo); definitions {} =
+evaluate (pogo) locally; definitions =
     js = exports: compile (pogo); ugly
     definition names = _: keys (definitions)
     
@@ -81,6 +83,37 @@ js filename from pogo filename (pogo) =
         definitions: (name)
     
     run script: apply (undefined) (definition values)
+    
+evaluate (pogo) globally =
+    js = exports: compile (pogo); ugly; in scope (false); global (true)
+    eval (js)
+
+:evaluate (pogo); definitions; global =
+    if (global)
+        if (definitions)
+            throw (new (Error "cannot evaluate globally with definitions"))
+
+        evaluate (pogo) globally
+    else
+        evaluate (pogo) locally; definitions (definitions || {})
+
+:repl! =
+    interface = readline: create interface (process: stdin, process: stdout)
+
+    interface: set prompt '> '
+    interface: prompt!
+
+    interface: on 'line' @(line)
+        try
+            console: log (exports: evaluate (line); global)
+        catch @(ex)
+            console: log (ex:message)
+
+        interface: prompt!
+
+    interface: on 'close'
+        console: log!
+        process: exit 0
 
 js from pogo file (filename); ugly =
     contents = fs: read file sync (filename) 'utf-8'

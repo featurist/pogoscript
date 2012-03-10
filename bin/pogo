@@ -21,6 +21,8 @@ if (argv.lex) {
       commandLine.compileFile(argv._[i], {ugly: argv.ugly});
     }
   }
+} else if (argv._.length == 0) {
+  commandLine.repl();
 } else {
   commandLine.runFile(argv._[0]);
 }
