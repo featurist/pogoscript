@@ -19,14 +19,13 @@ var MemoryStream = function () {
   };
   
   this.toString = function () {
-    var b = new Buffer(totalSizeOfBuffer());
-    var offset = 0;
+    var str = "";
     
     for (var n in buffer) {
-      offset += b.write(buffer[n], offset);
+      str += buffer[n];
     }
     
-    return b.toString();
+    return str;
   };
 };
 
