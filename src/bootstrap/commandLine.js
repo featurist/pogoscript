@@ -1,5 +1,5 @@
 ((function() {
-    var self, fs, ms, parser, parse, uglify, errors, _, readline, util, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluateLocally, evaluateGlobally, jsFromPogoFile, sourceLocationPrinter;
+    var self, fs, ms, parser, parse, uglify, errors, _, readline, util, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluteReplLine, compileFromFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     ms = require("../lib/memorystream");
@@ -26,7 +26,7 @@
     self.compileFile = compileFile = function(filename, gen1_options) {
         var ugly, js, jsFilename;
         ugly = gen1_options && gen1_options.ugly != null ? gen1_options.ugly : undefined;
-        js = jsFromPogoFile(filename, {
+        js = compileFromFile(filename, {
             ugly: ugly
         });
         jsFilename = jsFilenameFromPogoFilename(filename);
@@ -78,15 +78,17 @@
         return require("module").runMain();
     };
     self.compile = function(pogo, gen4_options) {
-        var filename, inScope, ugly, global, self, moduleTerm, code;
+        var filename, inScope, ugly, global, returnResult, self, moduleTerm, code;
         filename = gen4_options && gen4_options.filename != null ? gen4_options.filename : undefined;
         inScope = gen4_options && gen4_options.inScope != null ? gen4_options.inScope : true;
         ugly = gen4_options && gen4_options.ugly != null ? gen4_options.ugly : undefined;
         global = gen4_options && gen4_options.global != null ? gen4_options.global : false;
+        returnResult = gen4_options && gen4_options.returnResult != null ? gen4_options.returnResult : false;
         self = this;
         moduleTerm = parse(pogo);
         moduleTerm.inScope = inScope;
         moduleTerm.global = global;
+        moduleTerm.returnResult = returnResult;
         code = generateCode(moduleTerm);
         if (!ugly) {
             code = beautify(code);
@@ -101,11 +103,16 @@
             return code;
         }
     };
-    evaluateLocally = function(pogo, gen5_options) {
-        var definitions, js, definitionNames, parameters, runScript, definitionValues;
-        definitions = gen5_options && gen5_options.definitions != null ? gen5_options.definitions : undefined;
+    self.evaluate = function(pogo, gen5_options) {
+        var definitions, global, self, js, definitionNames, parameters, runScript, definitionValues;
+        definitions = gen5_options && gen5_options.definitions != null ? gen5_options.definitions : {};
+        global = gen5_options && gen5_options.global != null ? gen5_options.global : false;
+        self = this;
         js = exports.compile(pogo, {
-            ugly: true
+            ugly: true,
+            inScope: !global,
+            global: global,
+            returnResult: global
         });
         definitionNames = _.keys(definitions);
         parameters = definitionNames.join(",");
@@ -115,31 +122,6 @@
         });
         return runScript.apply(undefined, definitionValues);
     };
-    evaluateGlobally = function(pogo) {
-        var js;
-        js = exports.compile(pogo, {
-            ugly: true,
-            inScope: false,
-            global: true
-        });
-        return eval(js);
-    };
-    self.evaluate = function(pogo, gen6_options) {
-        var definitions, global, self;
-        definitions = gen6_options && gen6_options.definitions != null ? gen6_options.definitions : undefined;
-        global = gen6_options && gen6_options.global != null ? gen6_options.global : undefined;
-        self = this;
-        if (global) {
-            if (definitions) {
-                throw new Error("cannot evaluate globally with definitions");
-            }
-            return evaluateGlobally(pogo);
-        } else {
-            return evaluateLocally(pogo, {
-                definitions: definitions || {}
-            });
-        }
-    };
     self.repl = function() {
         var self, interface, prompt;
         self = this;
@@ -148,35 +130,38 @@
         interface.setPrompt(prompt, prompt.length);
         interface.prompt();
         interface.on("line", function(line) {
-            try {
-                var result;
-                result = exports.evaluate(line, {
-                    global: true
-                });
-                console.log(" →", util.inspect(result, undefined, undefined, true));
-            } catch (ex) {
-                console.log(ex.message);
-            }
+            evaluteReplLine(line);
             return interface.prompt();
         });
         return interface.on("close", function() {
-            console.log();
+            process.stdout.write("\n");
             return process.exit(0);
         });
     };
-    jsFromPogoFile = function(filename, gen7_options) {
+    evaluteReplLine = function(line) {
+        try {
+            var result;
+            result = exports.evaluate(line, {
+                global: true
+            });
+            return console.log(" =>", util.inspect(result, undefined, undefined, true));
+        } catch (ex) {
+            return console.log(ex.message);
+        }
+    };
+    compileFromFile = function(filename, gen6_options) {
         var ugly, contents;
-        ugly = gen7_options && gen7_options.ugly != null ? gen7_options.ugly : undefined;
+        ugly = gen6_options && gen6_options.ugly != null ? gen6_options.ugly : undefined;
         contents = fs.readFileSync(filename, "utf-8");
         return exports.compile(contents, {
             filename: filename,
             ugly: ugly
         });
     };
-    sourceLocationPrinter = function(gen8_options) {
+    sourceLocationPrinter = function(gen7_options) {
         var filename, source;
-        filename = gen8_options && gen8_options.filename != null ? gen8_options.filename : undefined;
-        source = gen8_options && gen8_options.source != null ? gen8_options.source : undefined;
+        filename = gen7_options && gen7_options.filename != null ? gen7_options.filename : undefined;
+        source = gen7_options && gen7_options.source != null ? gen7_options.source : undefined;
         return object(function() {
             var self;
             self = this;
@@ -186,18 +171,18 @@
                 lines = source.split(/\n/);
                 return lines.slice(range.from - 1, range.to);
             };
-            self.printLinesInRange = function(gen9_options) {
-                var prefix, from, to, self, gen10_items, gen11_i, line;
-                prefix = gen9_options && gen9_options.prefix != null ? gen9_options.prefix : "";
-                from = gen9_options && gen9_options.from != null ? gen9_options.from : undefined;
-                to = gen9_options && gen9_options.to != null ? gen9_options.to : undefined;
+            self.printLinesInRange = function(gen8_options) {
+                var prefix, from, to, self, gen9_items, gen10_i, line;
+                prefix = gen8_options && gen8_options.prefix != null ? gen8_options.prefix : "";
+                from = gen8_options && gen8_options.from != null ? gen8_options.from : undefined;
+                to = gen8_options && gen8_options.to != null ? gen8_options.to : undefined;
                 self = this;
-                gen10_items = self.linesInRange({
+                gen9_items = self.linesInRange({
                     from: from,
                     to: to
                 });
-                for (gen11_i = 0; gen11_i < gen10_items.length; gen11_i++) {
-                    line = gen10_items[gen11_i];
+                for (gen10_i = 0; gen10_i < gen9_items.length; gen10_i++) {
+                    line = gen9_items[gen10_i];
                     process.stderr.write(prefix + line + "\n");
                 }
             };
@@ -234,9 +219,9 @@
         });
     };
     require.extensions[".pogo"] = function(module, filename) {
-        var self, content;
+        var self, js;
         self = this;
-        content = jsFromPogoFile(filename);
-        return module._compile(content, filename);
+        js = compileFromFile(filename);
+        return module._compile(js, filename);
     };
 })).call(this);

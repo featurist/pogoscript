@@ -10,7 +10,6 @@ web server (methods); port 3000 =
                 request context = object =>
                     :request = req
                     :response = res
-                    :stuff = 'stuff'
                 
                 res: send (action: call (request context))
     

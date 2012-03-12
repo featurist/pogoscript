@@ -770,7 +770,7 @@ spec('code generator', function () {
         generatesExpression(s, 'var x;x=1;f(function(){x=2;return x;});');
       });
 
-      spec("variables should not be declared with 'var'", function () {
+      spec("when global, variables should not be declared with 'var'", function () {
         var s = cg.module(cg.statements([
           cg.definition(cg.variable(['x']), cg.integer(1)),
           cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
@@ -783,6 +783,22 @@ spec('code generator', function () {
         s.global = true;
         
         generatesExpression(s, 'x=1;f(function(){x=2;return x;});');
+      });
+
+      spec("when global and return result, last statement should be returned", function () {
+        var s = cg.module(cg.statements([
+          cg.definition(cg.variable(['x']), cg.integer(1)),
+          cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
+            cg.definition(cg.variable(['x']), cg.integer(2)),
+            cg.variable(['x'])
+          ]))])
+        ]));
+
+        s.inScope = false;
+        s.global = true;
+        s.returnResult = true;
+        
+        generatesExpression(s, 'x=1;return f(function(){x=2;return x;});');
       });
     });
   });
