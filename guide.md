@@ -16,13 +16,32 @@ Here we've declared and initialised a new variable called `wind speed`. And now 
 
 	wind speed = 13
 
+Variables can contain spaces, but the same variables can be written using camel case too and amount to the same thing:
+
+	windSpeed
+	=> 13
+
 # Functions
 
 Variables are the building blocks, but functions have all the fun. In PogoScript functions are called by passing arguments. Arguments can be numbers, strings or other expressions like variables or indeed other functions.
 
 	is (wind speed) strong enough for my kite?
 
-Here we called a function called `is strong enough for my kite`. We passed one argument in parenthesis, `wind speed`. The question mark `?` on the end is optional here.
+Here we called a function named `is strong enough for my kite`. We passed one argument in parenthesis, `wind speed`. The question mark `?` on the end is optional but it helps it to be read like a question.
+
+The actual position of the arguments does not matter, in fact, we could call the same function like this:
+
+	(wind speed) is strong enough for my kite?
+
+Or
+
+	is strong enough for my (wind speed) kite?
+
+Neither of which read as well as the first, but are nevertheless effectively the same thing.
+
+As with variables, function names can be written in camel case, so we could write it in classical JavaScript style too:
+
+	isStrongEnoughForMyKite(windSpeed)
 
 Eventually, you'll want to define your own functions too. Like variables, we use equals `=`, like this:
 
@@ -35,7 +54,7 @@ These are simple functions, but there are other ways functions can be called, an
 
 Notice how the numbers didn't need parenthesis? Numbers and strings don't need to be in parenthesis, but there's nothing stopping you from using them:
 
-	sum (1, 2, 3)
+	sum (1) (2) (3)
 	=> 6
 
 In fact, you can use brackets for some arguments and not for others:
@@ -48,7 +67,12 @@ If two arguments are next to each other, they can be in the same parantheses and
 	sum (1, 2) 3
 	=> 6
 
-Now all of the above is true if there is a name, in this case `sum`. It's time to introduce some new terminology to help us, the *form*. All of the examples you've seen so far are forms. A form is a list of words, numbers, strings and expressions in parentheses. (They can also contain blocks and parameters, but we'll get to that soon.) A form has a name if it contains some words, like our `sum` example above. If a form doesn't have a name, for example, if it's all arguments like this:
+Or
+
+	sum (1, 2, 3)
+	=> 6
+
+Now all of the above is true if there is a name, in this case `sum`. It's time to introduce some new terminology to help us: all of the examples you've seen so far are *forms*. A form is a list of words, numbers, strings and expressions in parentheses. (They can also contain blocks and parameters, but we'll get to that soon.) A form has a name if it contains some words, like our `sum` example above. If a form doesn't have a name, for example, if it's all arguments like this:
 
 	(sum, 1, 2, 3)
 
@@ -57,17 +81,6 @@ Then the *first* argument is taken as the function and the remaining arguments t
 	(sum, 1, 2, 3)
 	sum 1 2 3
 	(sum) 1 2 3
-
-Also, the name can be placed anywhere in the form:
-
-	sum 1 2 3
-	1 sum 2 3
-	1 2 sum 3
-	1 2 3 sum
-
-Are all identical calls. It makes more sense with a better example:
-
-	(Noah) is friends with (Sammy)
 
 If there's only *one* argument and no name, then that argument is taken as a value, not a function, and it's not called. So the following are identical:
 
@@ -93,4 +106,28 @@ That kind of leaves `()` out for conventional use, but its there anyway just in 
 
 # Blocks
 
-*Blocks* are new functions that are passed as arguments to other functions. After all, functions do have all the fun. As weird as it sounds, this technique is frequently used in practice.
+Blocks are new functions that are passed as arguments to other functions. After all, functions do have all the fun. As weird as it sounds, this technique is frequently used in practice. We often use blocks to mark some code to run later, or several times over, or within a context of some sort.
+
+Lets say we have a function called `after seconds` which takes a number of seconds to wait, and a function to call when it's stopped waiting:
+
+	after 5 seconds
+		print 'hi'
+
+When we called that, we'd see `hi` after 5 seconds. The indented code (the `print 'hi'`) is the block, which is a newly defined function that is passed to `after seconds`. You can also write blocks between `@{` and `}`, so we could write this instead:
+
+	after 5 seconds @{ print 'hi' }
+
+Which is the same thing.
+
+Even though the `after seconds` function takes a block, the block argument is no different to other arguments, so we can define it like this using JavaScript's `setTimeout` function. `setTimeout` takes the function to call as the first argument, and the delay in milliseconds as the second argument.
+
+	after (n) seconds (do it) = set timeout (do it, n * 1000)
+
+Sometimes blocks can be called with arguments themselves. Lets imagine we're writing a very simple email client. Emails can come in at any moment and we want to print the subject of the email as soon as it comes in. We'll want the email itself to be passed to our block so we can print its subject.
+
+	when email @(email) arrives
+		print (email: subject)
+
+`@(email)` defines a parameter for our block, called `email`. When the block is called, `email` will refer to the email that just arrived, and we can print the subject. Notice the expression `email: subject`, that means we're accessing the `subject` field of the `email` object. We'll cover objects very shortly.
+
+Like arguments, block parameters can be placed anywhere in the call, the only requirement is that they're placed *before* the block, and of course like arguments, the order is significant.
