@@ -190,7 +190,7 @@ MP3 also defines Variable Bitrate and Constant Bitrate, so we could add that to 
 
     convert (audio file) into mp3; vbr
 
-Here we've called the function specifying the optional argument `vbr` to be true. It's the same as this:
+It's the same as this:
 
     convert (audio file) into mp3; vbr (true)
 
@@ -224,8 +224,8 @@ When defining a function, we can only define one splat parameter, but we can con
 
 But for calling a function, we can specify as many splats as we're happy to:
 
-    small numbers [1, 2, 3]
-    large numbers [7, 8, 9]
+    small numbers = [1, 2, 3]
+    large numbers = [7, 8, 9]
 
     sum (small numbers) ... 4 5 6 (large numbers) ...
 
