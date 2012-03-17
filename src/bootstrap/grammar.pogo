@@ -1,6 +1,3 @@
-identifier pattern = '[a-zA-Z_$][a-zA-Z_$0-9]*'
-comment pattern = '(/\*([^*](\*[^/]|))*(\*/|$)|//[^\n]*)'
-
 exports: grammar = {
     lex {
         start conditions {interpolated_string, interpolated_string_terminal}
@@ -8,7 +5,7 @@ exports: grammar = {
         rules [
             [' +', '/* ignore whitespace */']
             ['\s*$', 'return yy.eof();']
-            ['\s*((/\*([^*](\*[^/]|))*(\*/|$)|//[^\n]*)\s*)+', 'var indentation = yy.indentation(yytext); if (indentation) { return indentation; }']
+            ['\s*((\/\*([^*](\*[^\/]|))*(\*\/|$)|\/\/[^\n]*)\s*)+', 'var indentation = yy.indentation(yytext); if (indentation) { return indentation; }']
             ['\(\s*', 'yy.setIndentation(yytext); if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return "(";']
             ['\s*\)', 'if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.interpolation.stopInterpolation()}} return yy.unsetIndentation('')'');']
             ['{\s*', 'yy.setIndentation(yytext); return ''{'';']
@@ -18,8 +15,8 @@ exports: grammar = {
             ['(\n *)*\n *', 'return yy.indentation(yytext);']
             ['[0-9]+\.[0-9]+', 'return ''float'';']
             ['[0-9]+', 'return ''integer'';']
-            ['([:;=,?!.@~#%^&*+<>/?\\|-])+', 'return yy.terms.lexOperator(yytext);']
-            [identifier pattern, 'return ''identifier'';']
+            ['([:;=,?!.@~#%^&*+<>\/?\\|-])+', 'return yy.terms.lexOperator(yytext);']
+            ['[a-zA-Z_$][a-zA-Z_$0-9]*', 'return ''identifier'';']
             ['$', 'return ''eof'';']
             ['''([^'']*'''')*[^'']*''', 'return ''string'';']
             ['`([^\\]*\\`)*[^`]*`(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|)', 'return ''reg_exp'';']

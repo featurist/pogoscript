@@ -6,7 +6,7 @@ create dynamic lexer = require './dynamicLexer': create dynamic lexer
 grammar = require './grammar.pogo': grammar
 
 parser = new (jison parser (grammar))
-jison lexer = parser:lexer
+jison lexer = parser: lexer
 
 create parser! =
     dynamic lexer = create dynamic lexer; next lexer (jison lexer)
@@ -22,11 +22,6 @@ create parser! =
 :parse (source) =
     parser = create parser!
     parser: parse (source)
-
-:write parser to file (f) =
-    parser source = create parser? : generate?
-    fs = require 'fs'
-    fs: write file sync 'jisonParser.js' (parser source) 'utf-8'
 
 :lex (source) =
     tokens = []

@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+var g = require('./grammar').grammar;
+var fs = require('fs');
+var jison = require('jison');
+
+var parserSource = new jison.Parser (g).generate();
+fs.writeFileSync ('jisonParser.js', parserSource, 'utf-8');
