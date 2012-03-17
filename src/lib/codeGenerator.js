@@ -1372,7 +1372,7 @@ var MacroDirectory = exports.MacroDirectory = function () {
   this.nameNode = function (name) {
     var nameTree = nameTreeRoot;
     _(name).each(function(nameSegment) {
-      if (!nameTree[nameSegment]) {
+      if (!nameTree.hasOwnProperty(nameSegment)) {
         nameTree = nameTree[nameSegment] = {};
       } else {
         nameTree = nameTree[nameSegment];
@@ -1389,9 +1389,11 @@ var MacroDirectory = exports.MacroDirectory = function () {
   this.addWildCardMacro = function (name, matchMacro) {
     var nameTree = this.nameNode(name);
     
-    var matchMacros = nameTree['match macro'];
-    if (!matchMacros) {
+    var matchMacros;
+    if (!nameTree.hasOwnProperty('match macro')) {
       matchMacros = nameTree['match macro'] = [];
+    } else {
+      matchMacros = nameTree['match macro'];
     }
     
     matchMacros.push(matchMacro);
@@ -1409,21 +1411,17 @@ var MacroDirectory = exports.MacroDirectory = function () {
     
     var findMacroInTree = function (nameTree, name, index, wildMacros) {
       if (index < name.length) {
-        var subtree = nameTree[name[index]];
-        
-        if (subtree) {
-          var matchMacros = subtree['match macro'];
-          if (matchMacros) {
-            wildMacros = matchMacros.concat(wildMacros);
+        if (nameTree.hasOwnProperty(name[index])) {
+          var subtree = nameTree[name[index]];
+          if (subtree.hasOwnProperty('match macro')) {
+            wildMacros = subtree['match macro'].concat(wildMacros);
           }
           return findMacroInTree(subtree, name, index + 1, wildMacros);
         } else {
           return findMatchingWildMacro(wildMacros, name);
         }
       } else {
-        var createMacro = nameTree['create macro'];
-        
-        if (createMacro) {
+        if (nameTree.hasOwnProperty('create macro')) {
           return nameTree['create macro'];
         } else {
           return findMatchingWildMacro(wildMacros, name);
