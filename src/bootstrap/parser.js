@@ -7,7 +7,7 @@
     createParserContext = require("./parserContext").createParserContext;
     createDynamicLexer = require("./dynamicLexer").createDynamicLexer;
     grammar = require("./grammar").grammar;
-    parser = require("./jisonParser").parser;
+    parser = new jisonParser(grammar);
     jisonLexer = parser.lexer;
     createParser = function() {
         var dynamicLexer, parserContext;
@@ -28,13 +28,6 @@
         self = this;
         parser = createParser();
         return parser.parse(source);
-    };
-    self.writeParserToFile = function(f) {
-        var self, parserSource, fs;
-        self = this;
-        parserSource = (new jisonParser(grammar)).generate();
-        fs = require("fs");
-        return fs.writeFileSync("jisonParser.js", parserSource, "utf-8");
     };
     self.lex = function(source) {
         var self, tokens, tokenIndex, lexer, parserContext;

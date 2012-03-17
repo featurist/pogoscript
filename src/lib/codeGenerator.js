@@ -923,9 +923,9 @@ var Statements = function (statements) {
       return functionCall(block([], this), []);
     };
 
-    this.generateJavaScriptStatementsReturn = function (buffer, scope) {
+    this.generateJavaScriptStatementsReturn = function (buffer, scope, global) {
       if (this.statements.length > 0) {
-        this.generateStatements(this.statements.slice(0, this.statements.length - 1), buffer, scope);
+        this.generateStatements(this.statements.slice(0, this.statements.length - 1), buffer, scope, global);
         var returnStatement = this.statements[this.statements.length - 1];
         this.writeSubStatementsForAllSubTerms(returnStatement, buffer, scope);
         returnStatement.generateJavaScriptReturn(buffer, scope);
@@ -964,6 +964,7 @@ var module = expressionTerm('module', function (statements) {
   this.isModule = true;
   this.inScope = true;
   this.global = false;
+  this.returnResult = false;
   
   this.generateJavaScript = function (buffer, scope, global) {
     if (this.inScope) {
@@ -971,7 +972,11 @@ var module = expressionTerm('module', function (statements) {
       methodCall(subExpression(b), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
       buffer.write(';');
     } else {
-      this.statements.generateJavaScriptStatements(buffer, new Scope(), this.global);
+      if (this.returnResult) {
+        this.statements.generateJavaScriptStatementsReturn(buffer, new Scope(), this.global);
+      } else {
+        this.statements.generateJavaScriptStatements(buffer, new Scope(), this.global);
+      }
     }
   };
 });

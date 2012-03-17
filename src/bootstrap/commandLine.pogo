@@ -18,7 +18,7 @@ beautify (code) =
     uglify: uglify: gen_code (ast); beautify
 
 :compile file = compile file (filename); ugly =
-    js = js from pogo file (filename); ugly (ugly)
+    js = compile from file (filename); ugly (ugly)
 
     js filename = js filename from pogo filename (filename)
     fs: write file sync (js filename, js)
@@ -56,10 +56,11 @@ js filename from pogo filename (pogo) =
     process: argv: 1 = fs: realpath sync (filename)
     require 'module': run main!
 
-:compile (pogo); filename; in scope (true); ugly; global (false) =
+:compile (pogo); filename; in scope (true); ugly; global (false); return result (false) =
     module term = parse (pogo)
     module term: in scope = in scope
     module term: global = global
+    module term: return result = return result
 
     code = generate code (module term)
 
@@ -72,8 +73,8 @@ js filename from pogo filename (pogo) =
     else
         code
 
-evaluate (pogo) locally; definitions =
-    js = exports: compile (pogo); ugly
+:evaluate (pogo); definitions {}; global (false) =
+    js = exports: compile (pogo); ugly; in scope (!global); global (global); return result (global)
     definition names = _: keys (definitions)
     
     parameters = definition names: join ','
@@ -84,19 +85,6 @@ evaluate (pogo) locally; definitions =
         definitions: (name)
     
     run script: apply (undefined) (definition values)
-    
-evaluate (pogo) globally =
-    js = exports: compile (pogo); ugly; in scope (false); global (true)
-    eval (js)
-
-:evaluate (pogo); definitions; global =
-    if (global)
-        if (definitions)
-            throw (new (Error "cannot evaluate globally with definitions"))
-
-        evaluate (pogo) globally
-    else
-        evaluate (pogo) locally; definitions (definitions || {})
 
 :repl! =
     interface = readline: create interface (process: stdin, process: stdout)
@@ -106,19 +94,21 @@ evaluate (pogo) globally =
     interface: prompt!
 
     interface: on 'line' @(line)
-        try
-            result = exports: evaluate (line); global
-            console: log ' →' (util: inspect (result, undefined, undefined, true))
-        catch @(ex)
-            console: log (ex:message)
-
+        evalute repl line (line)
         interface: prompt!
 
     interface: on 'close'
-        console: log!
+        process: stdout: write "\n"
         process: exit 0
 
-js from pogo file (filename); ugly =
+evalute repl line (line) =
+    try
+        result = exports: evaluate (line); global
+        console: log ' =>' (util: inspect (result, undefined, undefined, true))
+    catch @(ex)
+        console: log (ex: message)
+
+compile from file (filename); ugly =
     contents = fs: read file sync (filename) 'utf-8'
     exports: compile (contents); filename (filename); ugly (ugly)
         
@@ -151,5 +141,5 @@ source location printer; filename; source =
             strings: join ''
 
 require: extensions: '.pogo' (module, filename) =
-    content = js from pogo file (filename)
-    module: _compile (content, filename)
+    js = compile from file (filename)
+    module: _compile (js, filename)
