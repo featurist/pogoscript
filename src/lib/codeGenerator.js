@@ -1961,34 +1961,6 @@ macros.addMacro(['continue'], function(expr) {
   return continueStatement();
 });
 
-var interpolation = exports.interpolation = new function () {
-  this.stack = [];
-
-  this.startInterpolation = function () {
-    this.stack.unshift({brackets: 0});
-  };
-
-  this.openBracket = function () {
-    this.stack[0].brackets++;
-  };
-
-  this.closeBracket = function () {
-    this.stack[0].brackets--;
-  };
-
-  this.finishedInterpolation = function () {
-    return this.stack[0].brackets < 0;
-  };
-
-  this.stopInterpolation = function () {
-    this.stack.shift();
-  };
-
-  this.interpolating = function () {
-    return this.stack.length > 0;
-  };
-};
-
 exports.splat = function () {
   return term(function () {
     this.isSplat = true;

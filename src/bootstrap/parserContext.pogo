@@ -1,4 +1,5 @@
 create indent stack = require './indentStack':create indent stack
+create interpolation = require './interpolation': create interpolation
 
 exports: create parser context =
     create parser context; terms = object =>
@@ -24,3 +25,5 @@ exports: create parser context =
 
         :eof! =
             :tokens (:indent stack:tokens for eof?)
+
+        :interpolation = create interpolation!
