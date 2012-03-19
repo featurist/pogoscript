@@ -237,3 +237,23 @@ The only other restriction when defining functions is that splat parameters cann
 The reason is that since optional arguments are optionally passed, we can never be sure whether an argument belongs in the splat or if it's the optional argument. A technical detail, but nonetheless restrictive.
 
 # Objects
+
+Functions are of course objects in their own way: they can encapsulate state (by referring to variables in lexical scope); they offer an abstract interface (you can call them by passing arguments); they are polymorphic (you can't really tell what implementation you're calling, and nor should you); and they can inherit the behaviour of other functions in delegation, arguably an analogue to object oriented inheritance.
+
+But sometimes functions are not enough and something more is needed. What objects offer is the ability to invoke different but related operations, whereas functions can only invoke a single operation.
+
+Objects in PogoScript are, naturally, no different to objects in JavaScript, they just use a slight variation on the syntax:
+
+    a person = {
+        name = "Jack"
+        hobby = "Fetching pales of water"
+    }
+    
+Adding methods is as you'd expect:
+
+    a person = {
+        name = "Jack"
+        hobby = "Fetching pales of water"
+        do hobby! =
+            print "ouch, "
+    }
