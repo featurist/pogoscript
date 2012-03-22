@@ -1,10 +1,4 @@
-@import url(http://fonts.googleapis.com/css?family=Flamenco);
-
-@import url(akadylan.css);
-
-@import url(bitstream_vera_serif.css);
-
-@import url(http://fonts.googleapis.com/css?family=Slackey);
+@import url(fonts.css);
 /*
  * THEME http://kuler.adobe.com/#themeID/1652699
  */
@@ -62,6 +56,7 @@ h4 {
   opacity: 1.0;
   display: inline-block;
   padding: 5pt;
+  margin-bottom: 0;
   font-family: 'Slackey', cursive;
 }
 h1 {

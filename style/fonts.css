@@ -3,3 +3,8 @@
   font-style: normal;
   src: local('Bitstream Vera Serif'), url('/fonts/VeraSe.ttf') format('truetype');
 }
+@font-face {
+  font-family: 'Slackey';
+  font-style: normal;
+  src: local('Slackey'), url('/fonts/Slackey.ttf') format('truetype');
+}
