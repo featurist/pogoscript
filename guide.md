@@ -18,7 +18,7 @@ Here we've declared and initialised a new variable called `wind speed`. And now 
 
 # Functions
 
-Variables are the building blocks, but functions have all the fun. In PogoScript functions are called by passing arguments. Arguments can be numbers, strings or other expressions like variables or indeed other functions.
+Variables are the building blocks, but functions have all the fun. In PogoScript functions are called by passing arguments. Arguments can be numbers, strings or other expressions like variables or indeed the results of other functions.
 
 	is (wind speed) strong enough for my kite?
 
@@ -94,3 +94,5 @@ That kind of leaves `()` out for conventional use, but its there anyway just in 
 # Blocks
 
 *Blocks* are new functions that are passed as arguments to other functions. After all, functions do have all the fun. As weird as it sounds, this technique is frequently used in practice.
+
+Lets say we have a list of 
