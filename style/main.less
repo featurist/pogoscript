@@ -6,63 +6,63 @@
 
 @import url(http://fonts.googleapis.com/css?family=Flamenco);
 @import url(akadylan.css);
+@import url(bitstream_vera_serif.css);
+@import 'pogo.less';
+@import url(http://fonts.googleapis.com/css?family=Slackey);
 
 body {
   margin: 0pt;
+  background-image: url('../images/paper_cream.png');
   background-color: @page_background;
   color: @content_foreground;
   font-family: sans-serif;
 }
 header {
-  background-color: @header_background;
-  color: @header_foreground;
+  background-color: @code_block_background;
+  color: @pink;
   text-align: center;
   padding: 0.5em;
+  font-family: 'Slackey', cursive;
 }
 header .tagline {
   margin-top: 0;
   font-size: 1.4em;
 }
 header h1 {
-  background-color: inherit;
   color: inherit;
   font-size: 6em;
   margin-left: auto;
   margin-bottom: 0.4em;
   float:none;
-  font-family: 'akaDylan Plain', cursive;
-}
-header .pogo {
-  position: relative;
-}
-header .js {
-  font-size: 0.35em;
-  position: absolute;
-  bottom: -0.2em;
-  right: -0.8em;
 }
 a:visited, a:link {
-    color: @content_background;
-    background-color: @content_foreground;
+    color: @content_foreground;
+    background-color: @code_block_background;
 }
 .content {
   width: 600px;
   margin: auto;
-  background-color: @content_background;
   padding: 10pt;
   border-radius: 5pt 5pt 0 0;
 }
 h1, h2, h3, h4 {
-  background-color: @page_background;
   color: @header_foreground;
-  margin-left: -35pt;
+  opacity: 1.0;
   display:inline-block;
-  border-radius: 5pt;
   padding: 5pt;
+  font-family: 'Slackey', cursive;
+}
+h1 {
+  color: @purple;
+}
+h2 {
+  color: @blue;
+}
+h3 {
+  color: @green;
 }
 pre {
   padding: 1em;
-  width: auto;
   background-color: @code_block_background;
   color: @code_foreground;
   position: relative;
@@ -71,6 +71,7 @@ pre {
   overflow-x: scroll;
   left: -100px;
   width: 800px;
+  margin: 2em 0em;
 }
 .anatomy pre {
     line-height: 3em;
@@ -81,8 +82,8 @@ p code {
 }
 .content p {
   text-align: justify;
-  font-family: serif;
-  font-size: large;
+  font-family: 'Bitstream Vera Serif', serif;
+  font-size: 12pt;
 }
 pre code {
    font-family: 'Monaco';

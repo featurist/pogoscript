@@ -1,51 +1,56 @@
 @import url(http://fonts.googleapis.com/css?family=Flamenco);
 
 @import url(akadylan.css);
+
+@import url(bitstream_vera_serif.css);
+
+@import url(http://fonts.googleapis.com/css?family=Slackey);
 /*
  * THEME http://kuler.adobe.com/#themeID/1652699
  */
+.pogo {
+  font-family: 'Slackey', cursive;
+  position: relative;
+}
+.pogo .js {
+  font-size: 0.35em;
+  position: absolute;
+  bottom: -0.2em;
+  right: -0.8em;
+}
 body {
   margin: 0pt;
+  background-image: url('../images/paper_cream.png');
   background-color: #49006e;
-  color: #3d211d;
+  color: #3d0000;
   font-family: sans-serif;
 }
 header {
-  background-color: #49006e;
-  color: #47c400;
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #d80074;
   text-align: center;
   padding: 0.5em;
+  font-family: 'Slackey', cursive;
 }
 header .tagline {
   margin-top: 0;
   font-size: 1.4em;
 }
 header h1 {
-  background-color: inherit;
   color: inherit;
   font-size: 6em;
   margin-left: auto;
   margin-bottom: 0.4em;
   float: none;
-  font-family: 'akaDylan Plain', cursive;
 }
-header .pogo {
-  position: relative;
-}
-header .js {
-  font-size: 0.35em;
-  position: absolute;
-  bottom: -0.2em;
-  right: -0.8em;
-}
-a:visited, a:link {
-  color: #ffffff;
-  background-color: #3d211d;
+a:visited,
+a:link {
+  color: #3d0000;
+  background-color: rgba(0, 0, 0, 0.05);
 }
 .content {
   width: 600px;
   margin: auto;
-  background-color: #ffffff;
   padding: 10pt;
   border-radius: 5pt 5pt 0 0;
 }
@@ -53,24 +58,32 @@ h1,
 h2,
 h3,
 h4 {
-  background-color: #49006e;
   color: #47c400;
-  margin-left: -35pt;
+  opacity: 1.0;
   display: inline-block;
-  border-radius: 5pt;
   padding: 5pt;
+  font-family: 'Slackey', cursive;
+}
+h1 {
+  color: #9503d9;
+}
+h2 {
+  color: #4593e5;
+}
+h3 {
+  color: #32b544;
 }
 pre {
   padding: 1em;
-  width: auto;
-  background-color: #3d211d;
-  color: #ff2c74;
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #3d0000;
   position: relative;
   border-radius: 5pt;
   line-height: 1.8em;
   overflow-x: scroll;
   left: -100px;
   width: 800px;
+  margin: 2em 0em;
 }
 .anatomy pre {
   line-height: 3em;
@@ -81,8 +94,8 @@ p code {
 }
 .content p {
   text-align: justify;
-  font-family: serif;
-  font-size: large;
+  font-family: 'Bitstream Vera Serif', serif;
+  font-size: 12pt;
 }
 pre code {
   font-family: 'Monaco';

@@ -1,0 +1,5 @@
+@font-face {
+  font-family: 'Bitstream Vera Serif';
+  font-style: normal;
+  src: local('Bitstream Vera Serif'), url('/fonts/VeraSe.ttf') format('truetype');
+}

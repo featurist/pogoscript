@@ -1,4 +1,14 @@
 @import url(akadylan.css);
+.pogo {
+  font-family: 'Slackey', cursive;
+  position: relative;
+}
+.pogo .js {
+  font-size: 0.35em;
+  position: absolute;
+  bottom: -0.2em;
+  right: -0.8em;
+}
 header {
   color: #47c400;
   margin: 10pt;
@@ -10,16 +20,6 @@ header a {
 header p {
   font-size: 2em;
   font-family: sans-serif;
-}
-header .pogo {
-  font-family: 'akaDylan Plain', cursive;
-  position: relative;
-}
-header .js {
-  font-size: 0.35em;
-  position: absolute;
-  bottom: -0.2em;
-  right: -0.8em;
 }
 body {
   background-color: #49006e;
@@ -42,7 +42,8 @@ h2 {
   font-size: 10pt;
   margin-left: -21px;
 }
-h1, h2 {
+h1,
+h2 {
   background-color: #49006e;
   display: inline-block;
   padding: 5px;
