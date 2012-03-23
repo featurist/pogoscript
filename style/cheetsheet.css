@@ -113,9 +113,8 @@ pre {
   border-radius: 5pt;
   line-height: 1.8em;
   overflow-x: scroll;
-  left: -100px;
   width: 800px;
-  margin: 2em 0em;
+  margin: 2em -100px;
 }
 .anatomy pre {
   line-height: 3em;
@@ -132,57 +131,43 @@ p code {
 pre code {
   font-family: 'Monaco';
 }
-header {
-  color: #47c400;
-  margin: 10pt;
-}
-header a {
-  color: inherit;
-  text-decoration: none;
-}
-header p {
+header h1 {
   font-size: 2em;
-  font-family: sans-serif;
-}
-body {
-  background-color: #efecda;
-  font-family: sans-serif;
+  margin-top: auto;
+  margin-bottom: auto;
+  text-align: left;
 }
 .content {
   width: 89em;
 }
-p {
-  font-size: 8pt;
-  font-family: serif;
+.content p {
+  font-size: 7pt;
   margin-top: 4px;
   margin-bottom: 4px;
 }
-h1 {
-  font-size: 12pt;
-  margin-left: -25px;
-}
-h2 {
-  font-size: 10pt;
-  margin-left: -21px;
-}
-h1, h2 {
-  background-color: #efecda;
-  display: inline-block;
-  padding: 5px;
+.content h1, .content h2 {
+  padding: 4px;
+  padding-left: 0;
   border-radius: 5pt;
-  color: #47c400;
-  margin-top: 3px;
-  margin-bottom: 3px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
-pre {
-  margin-left: 16px;
-  font-size: 8pt;
-  margin-top: 6px;
-  margin-bottom: 6px;
-  background-color: rgba(239, 236, 218, 0.05);
+.content h1 {
+  font-size: 12pt;
 }
-.col {
-  background-color: white;
+.content h2 {
+  font-size: 10pt;
+}
+.content pre {
+  font-size: 7pt;
+  margin-top: 0;
+  width: auto;
+  margin: 0;
+  background-color: inherit;
+  padding: 0.4em;
+  padding-left: 16px;
+}
+.content .col {
   display: inline-block;
   vertical-align: top;
   margin-left: 1em;

@@ -103,9 +103,8 @@ pre {
   border-radius: 5pt;
   line-height: 1.8em;
   overflow-x: scroll;
-  left: -100px;
   width: 800px;
-  margin: 2em 0em;
+  margin: 2em -100px;
 }
 .anatomy pre {
   line-height: 3em;
