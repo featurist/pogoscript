@@ -6,7 +6,7 @@ layout: main
 
 Pogoscript is a programming language that emphasises readability, is friendly to domain specific languages and compiles to regular Javascript.
 
-# Examples
+# Examples!
 
 The canonical Node.js hello world:
 
@@ -42,8 +42,6 @@ The canonical 99 beers on the wall:
 
 # The Big Features
 
-<br/>
-
 ## Names
 
 Names of variables, functions and methods can contain spaces.
@@ -51,6 +49,8 @@ Names of variables, functions and methods can contain spaces.
     wind speed = 25
     
     average temperature = 32
+
+These get translated into their camel-case equivalents, so `average temperature` becomes `averageTemperature` in JavaScript.
 
 ## Arguments and Parameters
 

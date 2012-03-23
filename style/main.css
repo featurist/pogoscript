@@ -78,7 +78,7 @@ pre {
   padding: 3em;
 }
 p code {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 .content p {
   text-align: justify;

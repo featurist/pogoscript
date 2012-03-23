@@ -63,7 +63,7 @@ header .js {
   width: 800px;
 }
 .content p code {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 .content .argument {
   color: #198c19;
