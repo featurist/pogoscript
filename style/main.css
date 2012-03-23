@@ -7,10 +7,10 @@
   position: relative;
 }
 .pogo .js {
-  font-size: 0.35em;
+  font-size: 0.45em;
   position: absolute;
   bottom: -0.2em;
-  right: -0.8em;
+  right: -1.25em;
 }
 body {
   margin: 0pt;
@@ -21,7 +21,7 @@ body {
 }
 header {
   background-color: rgba(0, 0, 0, 0.05);
-  color: #d80074;
+  color: #4593e5;
   text-align: center;
   padding: 0.5em;
   font-family: 'Slackey', cursive;
@@ -37,10 +37,8 @@ header h1 {
   margin-bottom: 0.4em;
   float: none;
 }
-a:visited,
-a:link {
-  color: #3d0000;
-  background-color: rgba(0, 0, 0, 0.05);
+a:visited, a:link {
+  color: #4593e5;
 }
 .content {
   width: 600px;
@@ -52,18 +50,13 @@ h1,
 h2,
 h3,
 h4 {
-  color: #47c400;
-  opacity: 1.0;
-  display: inline-block;
-  padding: 5pt;
-  margin-bottom: 0;
   font-family: 'Slackey', cursive;
 }
 h1 {
-  color: #9503d9;
+  color: #d80074;
 }
 h2 {
-  color: #4593e5;
+  color: #9503d9;
 }
 h3 {
   color: #32b544;
