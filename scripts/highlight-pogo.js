@@ -11,10 +11,6 @@ hljs.LANGUAGES.pogoscript = function() {
   
   return {
     defaultMode: {
-      keywords: {
-        'keyword': {'if': 1, 'else': 1, 'for': 1, 'do': 1, 'while': 1, 'self': 1},
-        'literal': {'true': 1, 'false': 1, 'null': 1, 'undefined': 1}
-      },
       contains: [
         hljs.C_NUMBER_MODE,
         {
@@ -29,7 +25,14 @@ hljs.LANGUAGES.pogoscript = function() {
           className: 'string',
           begin: '"',
           end: '"',
-          contains: [hljs.BACKSLASH_ESCAPE]
+          contains: [
+            hljs.BACKSLASH_ESCAPE,
+            {
+              begin: '#\\(',
+              end: '\\)',
+              className: 'interpolated'
+            }
+          ]
         },
         operator(','),
         operator(':'),

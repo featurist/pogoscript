@@ -5,6 +5,7 @@
 @import "colours.less";
 @import url(fonts.css);
 @import 'pogo.less';
+@import 'code.less';
 
 body {
   margin: 0pt;
@@ -97,43 +98,4 @@ p code {
 }
 pre code {
    font-family: 'Monaco';
-}
-.keyword {
-  font-weight: 700;
-}
-.argument {
-    color: @argument;
-}
-.operator {
-    color: @operator;
-}
-.parameter {
-    color: @parameter;
-}
-pre:hover .term.blue {
-    background-color: rgba(0, 0, 255, 0.2);
-}
-pre:hover .term.red {
-    background-color: rgba(255, 0, 0, 0.2);
-}
-pre:hover .term.yellow {
-    background-color: rgba(0, 255, 255, 0.2);
-}
-pre:hover .term-description {
-    display: inline;
-}
-.term-description {
-    display: none;
-    position: absolute;
-    bottom: 40px;
-    left: 0px;
-    right: 0px;
-    color: yellow;
-    line-height: 1em;
-    white-space: normal;
-    text-align: center;
-}
-.term {
-    position: relative;
-    padding: 4px 0px;
 }
