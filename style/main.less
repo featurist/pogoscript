@@ -19,20 +19,39 @@ header {
   text-align: center;
   padding: 0.5em;
   font-family: 'Slackey', cursive;
+  
+  .tagline {
+    margin-top: 0;
+    font-size: 1.4em;
+  }
+  h1 {
+    color: inherit;
+    font-size: 6em;
+    margin-left: auto;
+    margin-bottom: 0.4em;
+    float:none;
+    a {
+      text-decoration: none;
+      border: none;
+    }
+  }
+  ul {
+    list-style-type: none;
+    li {
+      display: inline-block;
+      margin: 1em 1em;
+      a {
+        padding: 0.5em 1em;
+        border: dashed 1pt fade(@blue, 30%);
+        text-decoration: none;
+      }
+    }
+  }
 }
-header .tagline {
-  margin-top: 0;
-  font-size: 1.4em;
-}
-header h1 {
-  color: inherit;
-  font-size: 6em;
-  margin-left: auto;
-  margin-bottom: 0.4em;
-  float:none;
-}
-a:visited, a:link {
+a {
     color: @blue;
+    border-bottom: dashed 1pt fade(@blue, 30%);
+    text-decoration: none;
 }
 .content {
   width: 600px;

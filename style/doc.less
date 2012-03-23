@@ -1,87 +1,11 @@
-@import "colours.less";
-@import url(akadylan.css);
-
-body {
-  margin-top: 0;
-  margin-left: 0;
-  margin-right: 0;
-}
-
 header {
-  color: @header_foreground;
-  background-color: @header_background;
-  margin: 0;
-  font-size: 3em;
-  padding: 0.5em;
-  padding-bottom: 1em;
-  
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  p {
+  h1 {
     font-size: 2em;
-    font-family: sans-serif;
-  }
-  .pogo {
-    font-family: 'akaDylan Plain', cursive;
-    position: relative;
-  }
-  .js {
-    font-size: 0.35em;
-    position: absolute;
-    bottom: -0.2em;
-    right: -0.8em;
-  }
-}
-
-.content {
-  width: 600px;
-  margin: auto;
-  padding: 10pt;
-  border-radius: 5pt 5pt 0 0;
-  margin-top: -20pt;
-  padding-top: 0;
-
-  h1:first-child {
-    margin-top: 0;
-  }
-
-  h1, h2, h3, h4 {
-    font-family: sans-serif;
-    background-color: @page_background;
-    color: @header_foreground;
-    margin-left: -35px;
-    display:inline-block;
-    border-radius: 5pt;
-    padding: 5pt;
-  }
-
-  pre {
-    padding: 0.7em;
-    border-radius: 5pt;
-    background-color: rgba(0, 0, 0, 0.1);
-    overflow-x: scroll;
-
-    position: relative;
-    left: -100px;
     width: 800px;
+    margin: auto;
+    text-align: left;
   }
-
-  @code_darkening: 11%;
-
-  p code {
-    background-color: @code_background;
-  }
-
-  .argument {
-      color: darken(@argument, @code_darkening);
-  }
-  .operator {
-      color: darken(@operator, @code_darkening);
-  }
-  .parameter {
-      color: darken(@parameter, @code_darkening);
+  ul {
+    display: inline-block;
   }
 }

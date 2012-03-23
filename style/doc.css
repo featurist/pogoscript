@@ -1,76 +1,9 @@
-@import url(akadylan.css);
-body {
-  margin-top: 0;
-  margin-left: 0;
-  margin-right: 0;
-}
-header {
-  color: #47c400;
-  background-color: #49006e;
-  margin: 0;
-  font-size: 3em;
-  padding: 0.5em;
-  padding-bottom: 1em;
-}
-header a {
-  color: inherit;
-  text-decoration: none;
-}
-header p {
+header h1 {
   font-size: 2em;
-  font-family: sans-serif;
-}
-header .pogo {
-  font-family: 'akaDylan Plain', cursive;
-  position: relative;
-}
-header .js {
-  font-size: 0.35em;
-  position: absolute;
-  bottom: -0.2em;
-  right: -0.8em;
-}
-.content {
-  width: 600px;
-  margin: auto;
-  padding: 10pt;
-  border-radius: 5pt 5pt 0 0;
-  margin-top: -20pt;
-  padding-top: 0;
-}
-.content h1:first-child {
-  margin-top: 0;
-}
-.content h1,
-.content h2,
-.content h3,
-.content h4 {
-  font-family: sans-serif;
-  background-color: #49006e;
-  color: #47c400;
-  margin-left: -35px;
-  display: inline-block;
-  border-radius: 5pt;
-  padding: 5pt;
-}
-.content pre {
-  padding: 0.7em;
-  border-radius: 5pt;
-  background-color: rgba(0, 0, 0, 0.1);
-  overflow-x: scroll;
-  position: relative;
-  left: -100px;
   width: 800px;
+  margin: auto;
+  text-align: left;
 }
-.content p code {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-.content .argument {
-  color: #198c19;
-}
-.content .operator {
-  color: #fa9200;
-}
-.content .parameter {
-  color: #5050ff;
+header ul {
+  display: inline-block;
 }

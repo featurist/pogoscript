@@ -37,8 +37,26 @@ header h1 {
   margin-bottom: 0.4em;
   float: none;
 }
-a:visited, a:link {
+header h1 a {
+  text-decoration: none;
+  border: none;
+}
+header ul {
+  list-style-type: none;
+}
+header ul li {
+  display: inline-block;
+  margin: 1em 1em;
+}
+header ul li a {
+  padding: 0.5em 1em;
+  border: dashed 1pt rgba(69, 147, 229, 0.3);
+  text-decoration: none;
+}
+a {
   color: #4593e5;
+  border-bottom: dashed 1pt rgba(69, 147, 229, 0.3);
+  text-decoration: none;
 }
 .content {
   width: 600px;

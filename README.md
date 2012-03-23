@@ -1,12 +1,40 @@
----
-layout: main
----
-
 # Whaa?
 
 Pogoscript is a programming language that emphasises readability, is friendly to domain specific languages and compiles to regular Javascript.
 
-# Examples!
+# Installation
+
+Pogoscript requires [node.js](http://nodejs.org/) and [npm](http://npmjs.org/) to be installed.
+
+As its still a little bit experimental pogoscript is not in npm yet, but you can still have npm install it for you from the git repo.
+
+    git clone https://github.com/featurist/pogoscript.git
+    cd pogoscript
+    npm link
+
+npm will track the latest changes when you `git pull`
+
+# Usage
+
+## Interactive Prompt
+
+    pogo
+
+## Executing a Script
+
+    pogo helloWorld.pogo
+
+## Compiling a Script
+
+    pogo -c helloWorld.pogo
+
+Will produce `helloWorld.js`.
+
+## Watching and Compiling
+
+    pogo -cw helloWorld.pogo
+
+# Examples
 
 The canonical Node.js hello world:
 
@@ -42,6 +70,8 @@ The canonical 99 beers on the wall:
 
 # The Big Features
 
+<br/>
+
 ## Names
 
 Names of variables, functions and methods can contain spaces.
@@ -49,8 +79,6 @@ Names of variables, functions and methods can contain spaces.
     wind speed = 25
     
     average temperature = 32
-
-These get translated into their camel-case equivalents, so `average temperature` becomes `averageTemperature` in JavaScript.
 
 ## Arguments and Parameters
 
@@ -153,34 +181,6 @@ What about a multi-line control structure?
     if none
         "<li>no mountains...</li>"
 
-# Installation
+# More
 
-Pogoscript requires [node.js](http://nodejs.org/) and [npm](http://npmjs.org/) to be installed.
-
-Its still a little bit experimental so pogoscript is not in npm yet, but you can still have npm install it for you from the git repo.
-
-    git clone https://github.com/featurist/pogoscript.git
-    cd pogoscript
-    npm link
-
-npm will track the latest changes when you `git pull`
-
-# Usage
-
-## Interactive Prompt
-
-    pogo
-
-## Executing a Script
-
-    pogo helloWorld.pogo
-
-## Compiling a Script
-
-    pogo -c helloWorld.pogo
-
-Will produce `helloWorld.js`.
-
-## Watching and Compiling
-
-    pogo -cw *.pogo
+[joshski](http://github.com/joshski) has put together a page showing [how PogoScript translates into JavaScript](http://featurist.github.com/pogo-examples). You can examine the [cheatsheet](cheatsheet.pdf), or head to the [home page](http://pogoscript.org/) page.

@@ -111,7 +111,7 @@ For functions that don't answer a question but just do something, you should use
 
 That kind of leaves `()` out for conventional use, but its there anyway just in case somebody invents a new convention for it. Nevertheless, this is just a convention, and is useful to communicate to other programmers how you intended to use or define the function.
 
-# Blocks
+## Blocks
 
 Blocks are new functions that are passed as arguments to other functions. After all, functions do have all the fun. As weird as it sounds, this technique is frequently used in practice. We often use blocks to mark some code to run later, or several times over, or within a context of some sort.
 
@@ -162,7 +162,7 @@ White space is significant, even empty lines. Controversial eh? Did I not tell y
 
 Worry not too much however, empty lines are only significant in this one case: immediately after a block. But the syntax is helpful in other ways too, as we'll see when we introduce some more concepts.
 
-# Optional Arguments
+## Optional Arguments
 
 Some function calls can get away with just having good defaults, and not require everything to be configured ad tedium. For these sorts of functions, optional arguments can be used.
 
@@ -194,7 +194,7 @@ It's the same as this:
 
     convert (audio file) into mp3; vbr (true)
 
-# Splat Arguments
+## Splat Arguments
 
 Some functions can accept an arbitrary number of arguments. Our hypothetical `sum` above was one of them. To acheive this, we use *splats*, which is some Ruby terminology for being able to access a number of arguments as one.
 
@@ -255,5 +255,7 @@ Adding methods is as you'd expect:
         name = "Jack"
         hobby = "Fetching pales of water"
         do hobby! =
-            print "ouch, "
+            print "ouch!"
     }
+
+... more to come!
