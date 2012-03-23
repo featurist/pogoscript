@@ -1,0 +1,15 @@
+.keyword {
+  font-weight: 700;
+}
+.operator {
+  color: #4593e5;
+}
+.number {
+  color: #32b544;
+}
+.string {
+  color: #d80074;
+}
+.interpolated {
+  color: #3d0000;
+}

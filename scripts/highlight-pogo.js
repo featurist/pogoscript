@@ -38,6 +38,11 @@ hljs.LANGUAGES.pogoscript = function() {
         operator(':'),
         operator(';'),
         operator('=>'),
+        operator('@'),
+        operator('\\*'),
+        operator('/'),
+        operator('\\+'),
+        operator('-'),
         operator('=')
       ]
     }
