@@ -1,4 +1,4 @@
-@import url(akadylan.css);
+@import url(fonts.css);
 .pogo {
   font-family: 'Slackey', cursive;
   position: relative;
@@ -8,6 +8,152 @@
   position: absolute;
   bottom: -0.2em;
   right: -1.25em;
+}
+/*
+ * THEME http://kuler.adobe.com/#themeID/1652699
+ */
+.pogo {
+  font-family: 'Slackey', cursive;
+  position: relative;
+}
+.pogo .js {
+  font-size: 0.45em;
+  position: absolute;
+  bottom: -0.2em;
+  right: -1.25em;
+}
+body {
+  margin: 0pt;
+  background-image: url('../images/paper_cream.png');
+  background-color: #efecda;
+  color: #3d0000;
+  font-family: sans-serif;
+}
+header {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #4593e5;
+  text-align: center;
+  padding: 0.5em;
+  font-family: 'Slackey', cursive;
+}
+header .tagline {
+  margin-top: 0;
+  font-size: 1.4em;
+}
+header h1 {
+  color: inherit;
+  font-size: 6em;
+  margin-left: auto;
+  margin-bottom: 0.4em;
+  float: none;
+}
+header h1 a {
+  text-decoration: none;
+  border: none;
+}
+header ul {
+  list-style-type: none;
+}
+header ul li {
+  display: inline-block;
+  margin: 1em 1em;
+}
+header ul li a {
+  padding: 0.5em 1em;
+  border: dashed 1pt rgba(69, 147, 229, 0.3);
+  text-decoration: none;
+}
+a {
+  color: #4593e5;
+  border-bottom: dashed 1pt rgba(69, 147, 229, 0.3);
+  text-decoration: none;
+}
+.content {
+  width: 600px;
+  margin: auto;
+  padding: 10pt;
+  border-radius: 5pt 5pt 0 0;
+}
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Slackey', cursive;
+}
+h1 {
+  color: #d80074;
+}
+h2 {
+  color: #9503d9;
+}
+h3 {
+  color: #32b544;
+}
+pre {
+  padding: 1em;
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #3d0000;
+  position: relative;
+  border-radius: 5pt;
+  line-height: 1.8em;
+  overflow-x: scroll;
+  left: -100px;
+  width: 800px;
+  margin: 2em 0em;
+}
+.anatomy pre {
+  line-height: 3em;
+  padding: 3em;
+}
+p code {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.content p {
+  text-align: justify;
+  font-family: 'Bitstream Vera Serif', serif;
+  font-size: 12pt;
+}
+pre code {
+  font-family: 'Monaco';
+}
+.keyword {
+  font-weight: 700;
+}
+.argument {
+  color: #22bb22;
+}
+.operator {
+  color: #ffaa33;
+}
+.parameter {
+  color: #8888ff;
+}
+pre:hover .term.blue {
+  background-color: rgba(0, 0, 255, 0.2);
+}
+pre:hover .term.red {
+  background-color: rgba(255, 0, 0, 0.2);
+}
+pre:hover .term.yellow {
+  background-color: rgba(0, 255, 255, 0.2);
+}
+pre:hover .term-description {
+  display: inline;
+}
+.term-description {
+  display: none;
+  position: absolute;
+  bottom: 40px;
+  left: 0px;
+  right: 0px;
+  color: yellow;
+  line-height: 1em;
+  white-space: normal;
+  text-align: center;
+}
+.term {
+  position: relative;
+  padding: 4px 0px;
 }
 header {
   color: #47c400;
@@ -22,7 +168,7 @@ header p {
   font-family: sans-serif;
 }
 body {
-  background-color: #49006e;
+  background-color: #efecda;
   font-family: sans-serif;
 }
 .content {
@@ -43,7 +189,7 @@ h2 {
   margin-left: -21px;
 }
 h1, h2 {
-  background-color: #49006e;
+  background-color: #efecda;
   display: inline-block;
   padding: 5px;
   border-radius: 5pt;
@@ -56,7 +202,7 @@ pre {
   font-size: 8pt;
   margin-top: 6px;
   margin-bottom: 6px;
-  background-color: rgba(73, 0, 110, 0.05);
+  background-color: rgba(239, 236, 218, 0.05);
 }
 .col {
   background-color: white;
