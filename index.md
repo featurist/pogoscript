@@ -184,3 +184,9 @@ Will produce `helloWorld.js`.
 ## Watching and Compiling
 
     pogo -cw *.pogo
+
+# Credits
+
+PogoScript was developed by Tim Macfarlane: [github.com/refractalize](http://github.com/refractalize), [@refractalize](http://twitter.com/refractalize), [blog.refractalize.org](http://blog.refractalize.org/).
+
+Tim runs [Featurist](http://featurist.co.uk/) with [Josh Chisholm](http://github.com/joshski) and [Adrian Longley](http://github.com/adiel), a small software development consultancy based in London.
