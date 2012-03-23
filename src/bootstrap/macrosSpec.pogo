@@ -203,24 +203,35 @@ describe 'macros'
                 function call {variable ['Date']}
             }
 
-    describe 'operators'
-      it 'a + b'
-        (expression 'a + b') should contain fields {
-          is operator
-          operator '+'
-          arguments [
-            {variable ['a']}
-            {variable ['b']}
-          ]
-        }
-          
-      it 'a + b + c'
-        (expression 'a + b + c') should contain fields {
-          is operator
-          operator '+'
-          arguments [
-            {variable ['a']}
-            {variable ['b']}
-            {variable ['c']}
-          ]
-        }
+    describe 'multi argument operators'
+        it 'a + b'
+            (expression 'a + b') should contain fields {
+                is operator
+                operator '+'
+                arguments [
+                    {variable ['a']}
+                    {variable ['b']}
+                ]
+            }
+
+        it 'a + b + c'
+            (expression 'a + b + c') should contain fields {
+                is operator
+                operator '+'
+                arguments [
+                    {variable ['a']}
+                    {variable ['b']}
+                    {variable ['c']}
+                ]
+            }
+    
+    describe '=='
+        it 'generates ==='
+            (expression 'a == b') should contain fields {
+                is operator
+                operator '==='
+                arguments [
+                    {variable ['a']}
+                    {variable ['b']}
+                ]
+            }

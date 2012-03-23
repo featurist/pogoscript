@@ -25,7 +25,7 @@ beautify (code) =
 
 when (filename) changes (act) =
     fs: watch file (filename) {persistent, interval 500} @(prev, curr)
-        if ((curr:size === prev:size) && (curr:mtime:get time? === prev:mtime:get time?))
+        if ((curr:size == prev:size) && (curr:mtime:get time? == prev:mtime:get time?))
             return
         
         act!

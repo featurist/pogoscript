@@ -34,7 +34,7 @@ module.exports = function (complexExpression) {
     };
     
     this.hashEntry = function () {
-      if (this.arguments.length == 1) {
+      if (this.arguments.length === 1) {
         return this.arguments[0].hashEntry();
       } else {
         return errors.addTermWithMessage(this, 'cannot be used as a hash entry');

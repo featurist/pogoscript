@@ -99,15 +99,15 @@ module.exports = function (terminals) {
         args = args.slice(0, args.length - 1);
       }
 
-      if (name.length > 0 && args.length == 1) {
+      if (name.length > 0 && args.length === 1) {
         return cg.hashEntry(name, args[0]);
       }
 
-      if (name.length > 0 && args.length == 0) {
+      if (name.length > 0 && args.length === 0) {
         return cg.hashEntry(name);
       }
       
-      if (name.length == 0 && args.length == 2 && args[0].isString) {
+      if (name.length === 0 && args.length === 2 && args[0].isString) {
         return cg.hashEntry([args[0].string], args[1])
       }
       
@@ -126,7 +126,7 @@ module.exports = function (terminals) {
     
     this.hashKey = function () {
       var args = this.arguments();
-      if (args.length == 1 && args[0].isString) {
+      if (args.length === 1 && args[0].isString) {
         return [args[0].string];
       } else if (!this.hasParameters() && !this.hasArguments() && this.hasName()) {
         return this.name();

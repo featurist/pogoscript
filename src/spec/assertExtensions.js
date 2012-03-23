@@ -4,8 +4,8 @@ var assert = require('assert');
 assert.containsFields = function (actual, expected, key, originalActual) {
   var inspectedOriginalActual = util.inspect(originalActual);
   
-  if (typeof(expected) == 'object') {
-    assert.ok(typeof(actual) == 'object', 'in ' + inspectedOriginalActual + ', expected ' + key + ' ' + util.inspect(actual) + ' to be an object');
+  if (typeof(expected) === 'object') {
+    assert.ok(typeof(actual) === 'object', 'in ' + inspectedOriginalActual + ', expected ' + key + ' ' + util.inspect(actual) + ' to be an object');
     
     var parentKey;
     if (key) {

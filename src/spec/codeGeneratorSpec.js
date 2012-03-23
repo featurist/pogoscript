@@ -837,7 +837,7 @@ spec('code generator', function () {
         var macro = {};
 
         var wild = function (name) {
-          if (name.length == 3 && name[2] == 'three') {
+          if (name.length === 3 && name[2] === 'three') {
             return macro;
           }
         };
@@ -869,7 +869,7 @@ spec('code generator', function () {
         var macro = {};
 
         var wild = function (name) {
-          if (name.length == 3 && name[2] == 'three') {
+          if (name.length === 3 && name[2] === 'three') {
             return macro;
           }
         };
@@ -888,10 +888,10 @@ spec('code generator', function () {
     var list = [1, "a", "b", 3, "4", "5"];
     
     var collapsedList = cg.collapse(list, function (item) {
-      if (typeof item == 'string')
+      if (typeof item === 'string')
         return item;
     }, function (group, item) {
-      if (typeof item == 'string')
+      if (typeof item === 'string')
         return group + item;
     }, function (group) {
       return "~" + group;

@@ -32,6 +32,13 @@ describe 'script'
             
         it 'new operator can be called with 1 argument'
             'print (new (Date 2010 10 9): value of?)' should output '1289260800000'
+    
+    describe '== has semantics equivalent to === in JS'
+        it 'returns false for equality of "" with 0'
+            'print ("" == 0)' should output 'false'
+            
+        it 'returns true for identical strings'
+            'print ("something" == "something")' should output 'true'
 
     describe 'hash'
         it "a `true` hash entry does not need it's value specified"

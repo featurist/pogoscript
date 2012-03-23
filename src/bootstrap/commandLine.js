@@ -37,7 +37,7 @@
             persistent: true,
             interval: 500
         }, function(prev, curr) {
-            if (curr.size === prev.size && curr.mtime.getTime() === prev.mtime.getTime()) {
+            if (curr.size == prev.size && curr.mtime.getTime() == prev.mtime.getTime()) {
                 return;
             }
             return act();

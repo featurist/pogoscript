@@ -2,7 +2,7 @@ var MemoryStream = function () {
   var buffer = [];
   
   this.write = function (str) {
-    if (typeof str == 'undefined') {
+    if (typeof str === 'undefined') {
       throw new Error('wrote undefined');
     }
     buffer.push(str);

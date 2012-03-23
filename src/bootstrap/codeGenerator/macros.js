@@ -8,8 +8,12 @@ var createOperator = function(name, arguments) {
   return cg.operator(name[0], arguments);
 };
 
-_.each(['/', '-', '>=', '==', '!=', '===', '!==', '<=', '<', '>', '|', '&', '||', '&&', '!'], function(op) {
+_.each(['/', '-', '>=', '!=', '!==', '<=', '<', '>', '|', '&', '||', '&&', '!'], function(op) {
   macros.addMacro([op], createOperator);
+});
+
+macros.addMacro(['=='], function (name, arguments) {
+  return cg.operator('===', arguments);
 });
 
 var matchMultiOperator = function (name) {
@@ -26,7 +30,7 @@ var matchMultiOperator = function (name) {
   };
 };
 
-_.each(['+', '*', '==='], function(op) {
+_.each(['+', '*'], function(op) {
   macros.addWildCardMacro([op], matchMultiOperator);
 });
 
@@ -39,7 +43,7 @@ var createIfExpression = function(name, arguments) {
   
   var _else;
   
-  if (arguments.length % 2 == 1) {
+  if (arguments.length % 2 === 1) {
     _else = arguments[arguments.length - 1].body;
   }
   

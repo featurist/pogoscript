@@ -246,9 +246,9 @@ expressionTerm('interpolatedString', function (components, columnStart) {
     return collapsedComponents;
   })();
   
-  if (this.components.length == 1) {
+  if (this.components.length === 1) {
     return this.components[0];
-  } else if (this.components.length == 0) {
+  } else if (this.components.length === 0) {
     return string('');
   }
 
@@ -395,7 +395,7 @@ var concatName = exports.concatName = function (nameSegments) {
   
   for (var n = 0; n < nameSegments.length; n++) {
     var segment = nameSegments[n];
-    name += nameSegmentRenderedInJavaScript(segment, n == 0);
+    name += nameSegmentRenderedInJavaScript(segment, n === 0);
   }
   
   return name;
@@ -559,10 +559,10 @@ var splattedArguments = function (args, optionalArgs) {
   if (foundSplat) {
     return term(function () {
       this.generateJavaScript = function (buffer, scope) {
-        for (var i in splatArgs) {
+        for (var i = 0; i < splatArgs.length; i++) {
           var splattedArgument = splatArgs[i];
 
-          if (i == 0) {
+          if (i === 0) {
             splattedArgument.generateJavaScript(buffer, scope);
           } else {
             buffer.write('.concat(');
@@ -696,7 +696,7 @@ var block = expressionTerm('block', function (parameters, body, options) {
   };
   
   this.scopify = function () {
-    if (this.parameters.length == 0 && this.optionalParameters.length == 0) {
+    if (this.parameters.length === 0 && this.optionalParameters.length === 0) {
       return scope(this.body.statements);
     } else {
       return this;
@@ -752,7 +752,7 @@ var block = expressionTerm('block', function (parameters, body, options) {
 
 var writeToBufferWithDelimiter = function (array, delimiter, buffer, scope) {
   var writer;
-  if (typeof scope == 'function') {
+  if (typeof scope === 'function') {
     writer = scope;
   } else {
     writer = function (item) {
@@ -1114,7 +1114,7 @@ expressionTerm('basicExpression', function(terminals) {
     }
     
     if (!hasName && hasArgs) {
-      if (args.length == 1) {
+      if (args.length === 1) {
         return indexer(objectExpression, args[0]);
       } else {
         return semanticFailure(args.slice(1), 'index only requires one argument, these are not required')
@@ -1131,7 +1131,7 @@ expressionTerm('basicExpression', function(terminals) {
     var name = this.name();
     var hasOptionalArguments = optionalArguments && optionalArguments.length > 0;
 
-    if (name.length == 0 && terminals.length > 1) {
+    if (name.length === 0 && terminals.length > 1) {
       return functionCall(terminals[0], terminals.splice(1));
     }
 
@@ -1165,15 +1165,15 @@ expressionTerm('basicExpression', function(terminals) {
     var args = this.arguments();
     var name = this.name();
 
-    if (name.length > 0 && args.length == 1) {
+    if (name.length > 0 && args.length === 1) {
       return hashEntry(name, args[0]);
     }
     
-    if (name.length > 0 && args.length == 0) {
+    if (name.length > 0 && args.length === 0) {
       return hashEntry(name, boolean(true));
     }
     
-    if (name.length == 0 && args.length == 2 && args[0].isString) {
+    if (name.length === 0 && args.length === 2 && args[0].isString) {
       return hashEntry([args[0].string], args[1]);
     }
   };
@@ -1209,7 +1209,7 @@ expressionTerm('basicExpression', function(terminals) {
   };
   
   this.hasNameAndNoArguments = function() {
-    return (this.name().length > 0) && (this.arguments().length == 0);
+    return (this.name().length > 0) && (this.arguments().length === 0);
   };
   
   this.objectDefinitionTarget = function(expression, source) {
@@ -1223,7 +1223,7 @@ expressionTerm('basicExpression', function(terminals) {
   };
   
   this.isTerminalExpression = function () {
-    return this.terminals.length == 1;
+    return this.terminals.length === 1;
   };
   
   this.terminal = function () {
@@ -1771,7 +1771,7 @@ var scope = exports.scope = function (stmts, options) {
     this.subterms('statements');
     
     this.generateJavaScript = function (buffer, scope) {
-      if (this.statements.length == 1 && !this.alwaysGenerateFunction) {
+      if (this.statements.length === 1 && !this.alwaysGenerateFunction) {
         this.statements[0].generateJavaScript(buffer, scope);
       } else {
         functionCall(subExpression(block([], statements(this.statements))), []).generateJavaScript(buffer, scope);
@@ -1782,7 +1782,7 @@ var scope = exports.scope = function (stmts, options) {
 
 var normaliseArguments = exports.normaliseArguments = function (args) {
   return _(args).map(function (arg) {
-    if (arg.length == 1) {
+    if (arg.length === 1) {
       return arg;
     } else if (arg.length > 1) {
       return scope(arg);
@@ -1879,7 +1879,7 @@ var operator = expressionTerm('operator', function (op, args) {
   this.generateJavaScript = function(buffer, scope) {
     buffer.write('(');
     
-    if (this.arguments.length == 1) {
+    if (this.arguments.length === 1) {
       buffer.write(op);
       this.arguments[0].generateJavaScript(buffer, scope);
     } else {

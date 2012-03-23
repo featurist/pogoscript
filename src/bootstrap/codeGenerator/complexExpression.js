@@ -35,7 +35,7 @@ module.exports = function (listOfTerminals) {
         
         return this._optionalArguments = _(tail).map(function (e) {
           n++;
-          return e.hashEntry({withoutBlock: n == tailLength});
+          return e.hashEntry({withoutBlock: n === tailLength});
         });
       }
     };
@@ -89,7 +89,7 @@ module.exports = function (listOfTerminals) {
           return head.derivedTerm(cg.variable(head.name()));
         }
       } else {
-        if (!this.hasTail() && this.arguments().length == 1 && !head.containsCallPunctuation()) {
+        if (!this.hasTail() && this.arguments().length === 1 && !head.containsCallPunctuation()) {
           return this.arguments()[0];
         } else {
           return cg.functionCall(this.arguments()[0], this.arguments().slice(1));
@@ -105,7 +105,7 @@ module.exports = function (listOfTerminals) {
           return cg.fieldReference(object, this.head().name());
         }
       } else {
-        if (!this.hasTail() && this.arguments().length == 1 && !this.head().containsCallPunctuation()) {
+        if (!this.hasTail() && this.arguments().length === 1 && !this.head().containsCallPunctuation()) {
           return cg.indexer(object, this.arguments()[0]);
         } else {
           return cg.functionCall(cg.indexer(object, this.arguments()[0]), this.arguments().slice(1));
@@ -160,7 +160,7 @@ module.exports = function (listOfTerminals) {
               return cg.definition(cg.fieldReference(object, self.head().name()), source.scopify());
             }
           } else {
-            if (!self.hasTail() && self.arguments().length == 1 && !self.head().containsCallPunctuation()) {
+            if (!self.hasTail() && self.arguments().length === 1 && !self.head().containsCallPunctuation()) {
               return cg.definition(cg.indexer(object, self.arguments()[0]), source.scopify());
             } else {
               var block = source.blockify(self.parameters({skipFirstParameter: true}), self.optionalParameters());
