@@ -8,7 +8,7 @@ Pogoscript is a programming language that emphasises readability, is friendly to
 
 # Examples!
 
-The canonical Node.js hello world:
+The canonical [Node.js](http://nodejs.org/) hello world:
 
     http = require 'http'
 
@@ -19,7 +19,7 @@ The canonical Node.js hello world:
 
     console: log 'Server running at http://127.0.0.1:1337/'
 
-The canonical 99 beers on the wall:
+The canonical [99 beers on the wall](http://99-bottles-of-beer.net/):
 
     sing (n) bottles of beer on the wall =
         if (n > 0)
@@ -27,8 +27,8 @@ The canonical 99 beers on the wall:
             sing (n - 1) bottles of beer on the wall
 
     (n) bottles of beer on the wall =
-        "#((n) bottles) of beer on the wall, #((n) bottles) of beer on the wall\n" +
-        "take one down, pass it around, #((n - 1) bottles) of beer on the wall."
+        "#((n) bottles) of beer on the wall, #((n) bottles) of beer.\n" +
+        "Take one down, pass it around, #((n - 1) bottles) of beer on the wall."
 
     (n) bottles =
         if (n == 0)
