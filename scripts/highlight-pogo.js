@@ -23,6 +23,21 @@ hljs.LANGUAGES.pogoscript = function() {
         },
         {
           className: 'string',
+          begin: "`",
+          end: "`[gim]*"
+        },
+        {
+          className: 'comment',
+          begin: "/\\*",
+          end: "\\*/"
+        },
+        {
+          className: 'comment',
+          begin: "//",
+          end: "\\n"
+        },
+        {
+          className: 'string',
           begin: '"',
           end: '"',
           contains: [
