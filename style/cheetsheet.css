@@ -115,7 +115,7 @@ pre {
   position: relative;
   border-radius: 5pt;
   line-height: 1.8em;
-  overflow-x: scroll;
+  overflow-x: auto;
   width: 800px;
   margin: 2em -100px;
 }
@@ -149,7 +149,8 @@ header h1 {
   margin-top: 4px;
   margin-bottom: 4px;
 }
-.content h1, .content h2 {
+.content h1,
+.content h2 {
   padding: 4px;
   padding-left: 0;
   border-radius: 5pt;
