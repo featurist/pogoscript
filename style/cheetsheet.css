@@ -47,37 +47,37 @@ body {
   color: #3d0000;
   font-family: sans-serif;
 }
-header {
+.header {
   background-color: rgba(0, 0, 0, 0.05);
   color: #4593e5;
   text-align: center;
   padding: 0.5em;
   font-family: 'Slackey', cursive;
 }
-header .tagline {
+.header .tagline {
   margin-top: 0;
   font-size: 1.4em;
 }
-header h1 {
-  color: inherit;
+.header h1 {
+  color: #4593e5;
   font-size: 6em;
   margin-left: auto;
   margin-bottom: 0.4em;
   margin-top: 0.4em;
   float: none;
 }
-header h1 a {
+.header h1 a {
   text-decoration: none;
   border: none;
 }
-header ul {
+.header ul {
   list-style-type: none;
 }
-header ul li {
+.header ul li {
   display: inline-block;
   margin: 1em 1em;
 }
-header ul li a {
+.header ul li a {
   padding: 0.5em 1em;
   border: dashed 1pt rgba(69, 147, 229, 0.3);
   text-decoration: none;
@@ -132,7 +132,7 @@ p code {
   font-size: 12pt;
 }
 pre code {
-  font-family: 'Monaco';
+  font-family: 'Monaco', 'Courier', 'Courier New';
 }
 header h1 {
   margin-left: 1em;

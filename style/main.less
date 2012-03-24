@@ -14,7 +14,7 @@ body {
   color: @content_foreground;
   font-family: sans-serif;
 }
-header {
+.header {
   background-color: @code_block_background;
   color: @blue;
   text-align: center;
@@ -26,7 +26,7 @@ header {
     font-size: 1.4em;
   }
   h1 {
-    color: inherit;
+    color: @blue;
     font-size: 6em;
     margin-left: auto;
     margin-bottom: 0.4em;
@@ -97,5 +97,5 @@ p code {
   font-size: 12pt;
 }
 pre code {
-   font-family: 'Monaco';
+   font-family: 'Monaco', 'Courier', 'Courier New';
 }
