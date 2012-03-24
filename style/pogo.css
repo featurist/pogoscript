@@ -1,6 +1,7 @@
 .pogo {
   font-family: 'Slackey', cursive;
   position: relative;
+  margin-right: 0.4em;
 }
 .pogo .js {
   font-size: 0.45em;

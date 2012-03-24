@@ -1,0 +1,62 @@
+.pogo {
+  font-family: 'Slackey', cursive;
+  position: relative;
+  margin-right: 0.4em;
+}
+.pogo .js {
+  font-size: 0.45em;
+  position: absolute;
+  bottom: -0.2em;
+  right: -1.25em;
+}
+.header h1 {
+  margin-left: 1em;
+  font-size: 2em;
+  margin-top: auto;
+  margin-bottom: auto;
+  text-align: left;
+}
+.header h1 a {
+  border: none;
+}
+.content {
+  width: 89em;
+}
+.content p {
+  font-size: 7pt;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+.content h1,
+.content h2 {
+  padding: 4px;
+  padding-left: 0;
+  border-radius: 5pt;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.content h1 {
+  font-size: 12pt;
+}
+.content h2 {
+  font-size: 10pt;
+}
+.content pre {
+  font-size: 7pt;
+  margin-top: 0;
+  width: auto;
+  margin: 0;
+  background-color: inherit;
+  padding: 0.4em;
+  padding-left: 16px;
+}
+.content .col {
+  display: inline-block;
+  vertical-align: top;
+  margin-left: 1em;
+  margin-right: 1em;
+  width: 18.5em;
+  border-radius: 10pt;
+  height: 54em;
+  padding: 10px 10px 0 10px;
+}

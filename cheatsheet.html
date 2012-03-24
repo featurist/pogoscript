@@ -1,31 +1,44 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <link rel="stylesheet" type="text/css" href="style/cheetsheet.css">
-        <title>PogoScript Cheetsheet</title>
+        <link rel="stylesheet" type="text/css" href="style/main.css">
+        <link rel="stylesheet" type="text/css" href="style/doc.css">
+        <link rel="stylesheet" type="text/css" href="style/cheatsheet.css">
+        <title>PogoScript Cheat Sheet</title>
     </head>
     <body>
-        <header>
-          <h1>The <a href="/"><span class="pogo">pogoscript<span class="js">js</span></span></a> cheat sheet</h1>
-        </header>
+        <div class="header">
+          <div>
+            <h1>The <a href="/"><span class="pogo">PogoScript<span class="js">js</span></span></a> cheat sheet</h1>
+            <!-- <ul>
+              <li><a href="cheatsheet.pdf">(PDF version)</a></li>
+            </ul> -->
+          </div>
+          <!-- <ul>
+            <li><a href="guide.html">Guide</a></li>
+            <li><a href="http://featurist.github.com/pogo-examples">JavaScript Translation</a></li>
+            <li><a href="http://github.com/featurist/pogoscript">GitHub</a></li>
+          </ul> -->
+        </div>
     
         <div class=content>
           
           <div class=col>
             <h1 id='variables'>Variables</h1>
 
-<p>Variables can contain spaces, numbers, <code>$</code> and <code>_</code>.</p>
+<p>Variables can contain alphas, spaces, numbers, <code>$</code> and <code>_</code>.</p>
 
 <h2 id='defining'>Defining</h2>
 
 <pre><code>small number = 8</code></pre>
 
-<p>Or, on a new line:</p>
+<p>Or in a scoped block:</p>
 
 <pre><code>small number =
-    8</code></pre>
+    n = 2
+    Math: (n) pow 3</code></pre>
 
-<h2 id='identifier_conjugation'>Identifier Conjugation</h2>
+<h2 id='identifier_conjugation'>JavaScript Interop</h2>
 
 <p><code>small number</code> is the same as <code>smallNumber</code></p>
 
@@ -47,6 +60,10 @@ move file (filename) to dir (docs dir)</code></pre>
 
 <pre><code>refresh account info!</code></pre>
 
+<p>Or, with parenthesis <code>()</code></p>
+
+<pre><code>do stuff()</code></pre>
+
 <h2 id='with_optional_arguments'>With Optional Arguments</h2>
 
 <pre><code>web server; port 80</code></pre>
@@ -54,6 +71,10 @@ move file (filename) to dir (docs dir)</code></pre>
 <h2 id='with_splat_arguments'>With Splat Arguments</h2>
 
 <pre><code>sum (numbers) ...</code></pre>
+
+<p>Or</p>
+
+<pre><code>sum (numbers, ...)</code></pre>
 
 <h2 id='block_arguments'>Block Arguments</h2>
 
@@ -156,8 +177,9 @@ size: area? = self: x * self: y</code></pre>
 
 <p>use <code>=></code> to allow self to be redefined by the caller of the block:</p>
 
-<pre><code>person; name = object =>
-    :name = name</code></pre>
+<pre><code>web server =>
+  :get '/' =>
+    :response: end "hi!\n"</code></pre>
 
 <h2 id='array_indexes'>Array Indexes</h2>
 
@@ -205,7 +227,7 @@ while (!finished)
 catch @(ex)
     console: log "it went horribly wrong"
 finally
-    something simpler?</code></pre>
+    always do this!</code></pre>
 
 
 </div>
