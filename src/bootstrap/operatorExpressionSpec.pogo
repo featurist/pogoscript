@@ -103,6 +103,7 @@ describe 'operator expression'
                 source {
                     is block
                     parameters [{variable ['b']}]
+                    optional parameters []
                     body {statements [{variable ['c']}]}
                 }
             }

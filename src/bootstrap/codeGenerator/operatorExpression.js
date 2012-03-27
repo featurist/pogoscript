@@ -48,7 +48,7 @@ module.exports = function (complexExpression) {
           return arg.expression().parameter();
         });
         
-        return cg.definition(cg.fieldReference(object, this.name), source.blockify(parms));
+        return cg.definition(cg.fieldReference(object, this.name), source.blockify(parms, []));
       } else {
         return this.arguments[0].definition(source);
       }
