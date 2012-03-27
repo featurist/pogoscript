@@ -7,19 +7,19 @@ This comprehension:
 would become
 
     function () {
-        var pogo$1$results = [];
-        var pogo$1$x = [1, 2];
-        for (var x = 0; x < pogo$1$x.length; x++) {
+        var results = [];
+        var list = [1, 2];
+        for (var x = 0; x < list.length; x++) {
             if (isEven(x)) {
                 var pogo$1$y = [4, 5, 6];
                 for (var y = 0; y < pogo$1$y.length; y++) {
                     if (x * y > 10) {
-                        pogo$1$results.push(x * y);
+                        results.push(x * y);
                     }
                 }
             }
         }
-        return pogo$1$results;
+        return results;
     }();
 
 each:
