@@ -233,6 +233,16 @@ spec('code generator', function () {
       var s = cg.operator('-', [cg.variable(['a'])]);
       generatesExpression(s, "(-a)");
     });
+
+    spec('unary alpha operator generates spaces around operator', function() {
+      var s = cg.operator('instanceof', [cg.variable(['a'])]);
+      generatesExpression(s, "(instanceof a)");
+    });
+
+    spec('alpha operator generates spaces around operator', function() {
+      var s = cg.operator('instanceof', [cg.variable(['a']), cg.variable(['b'])]);
+      generatesExpression(s, "(a instanceof b)");
+    });
   })
   
   spec('block', function () {
@@ -426,6 +436,16 @@ spec('code generator', function () {
     var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.variable(['item'])]))]);
     
     generatesStatements(f, 'var gen1_items,gen2_i,item;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){item=gen1_items[gen2_i];item;}');
+  });
+  
+  spec('for in', function() {
+    var f = cg.forIn(
+      cg.variable(['item']),
+      cg.variable(['items']),
+      cg.statements([cg.variable(['item'])])
+    );
+    
+    generatesReturnExpression(f, 'for(var item in items){item;}');
   });
   
   spec('for', function() {

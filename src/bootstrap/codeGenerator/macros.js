@@ -16,6 +16,10 @@ macros.addMacro(['=='], function (name, arguments) {
   return cg.operator('===', arguments);
 });
 
+macros.addMacro(['<:'], function (name, arguments) {
+  return cg.operator('instanceof', arguments);
+});
+
 var matchMultiOperator = function (name) {
   var firstOp = name[0];
   
@@ -80,6 +84,14 @@ var createForEach = function (name, arguments) {
 };
 
 macros.addMacro(['for', 'each', 'in'], createForEach);
+
+macros.addMacro(['for', 'in'], function (name, arguments) {
+  var collection = arguments[0];
+  var block = arguments[1];
+  var iterator = block.parameters[0];
+  
+  return cg.forIn(iterator, collection, block.body);
+});
 
 macros.addMacro(['for'], function(name, arguments) {
   var init = arguments[0];

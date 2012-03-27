@@ -1727,6 +1727,34 @@ var forStatement = expressionTerm('forStatement', function(init, test, incr, stm
   };
 });
 
+var forIn = expressionTerm('forIn', function(iterator, collection, stmts) {
+  this.isForIn = true;
+  this.iterator = iterator;
+  this.collection = collection;
+  this.statements = stmts;
+  
+  this.generateJavaScript = function(buffer, scope) {
+    buffer.write('for(var ');
+    this.iterator.generateJavaScript(buffer, scope);
+    buffer.write(' in ');
+    this.collection.generateJavaScript(buffer, scope);
+    buffer.write('){');
+    this.statements.generateJavaScriptStatements(buffer, scope);
+    buffer.write('}');
+  };
+  this.generateJavaScriptStatement = this.generateJavaScript;
+  this.generateJavaScriptReturn = this.generateJavaScript;
+  
+  this.definitions = function(scope) {
+    var defs = [];
+    var indexName = this.iterator.definitionName(scope);
+    if (indexName) {
+      defs.push(indexName);
+    }
+    return defs.concat(stmts.definitions(scope));
+  };
+});
+
 macros.addMacro(['for'], function(basicExpression) {
   var args = basicExpression.arguments();
 
@@ -1876,16 +1904,31 @@ var operator = expressionTerm('operator', function (op, args) {
   this.operator = op;
   this.arguments = args;
 
+  this.isOperatorAlpha = function () {
+    return /[a-zA-Z]+/.test(this.operator);
+  };
+
   this.generateJavaScript = function(buffer, scope) {
     buffer.write('(');
     
     if (this.arguments.length === 1) {
       buffer.write(op);
+      if (this.isOperatorAlpha()) {
+        buffer.write(' ');
+      }
       this.arguments[0].generateJavaScript(buffer, scope);
     } else {
+      var alpha = this.isOperatorAlpha();
+      
       this.arguments[0].generateJavaScript(buffer, scope);
       for(var n = 1; n < this.arguments.length; n++) {
+        if (alpha) {
+          buffer.write(' ');
+        }
         buffer.write(op);
+        if (alpha) {
+          buffer.write(' ');
+        }
         this.arguments[n].generateJavaScript(buffer, scope);
       }
     }

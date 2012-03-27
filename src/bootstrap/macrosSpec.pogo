@@ -96,6 +96,19 @@ describe 'macros'
                 }
             }
         }
+    
+    describe 'for @(item) in (items) @{}'
+        it 'generates for (var item in items) {}'
+            (expression 'for @(item) in (items) @{item}') should contain fields {
+                is for in
+                iterator {variable ['item']}
+                collection {variable ['items']}
+                statements {
+                    statements [
+                        {variable ['item']}
+                    ]
+                }
+            }
 
     it 'while'
         (expression 'while (n < 10) @{n}') should contain fields {
@@ -230,6 +243,17 @@ describe 'macros'
             (expression 'a == b') should contain fields {
                 is operator
                 operator '==='
+                arguments [
+                    {variable ['a']}
+                    {variable ['b']}
+                ]
+            }
+        
+    describe '<:'
+        it 'generates instanceof'
+            (expression 'a <: b') should contain fields {
+                is operator
+                operator 'instanceof'
                 arguments [
                     {variable ['a']}
                     {variable ['b']}
