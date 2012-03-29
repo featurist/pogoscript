@@ -8,7 +8,7 @@ assume (term) is module with statements (action) =
         throw (new (Error ('expected module, but found ' + term)))
 
 assume (statements) has just one statement (action) =
-    if (statements: statements: length === 1)
+    if (statements: statements: length == 1)
         action (statements: statements: 0)
     else
         throw (new (Error ('expected statements to have just one statement, found ' + statements: statements: length)))

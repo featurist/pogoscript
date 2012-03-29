@@ -41,8 +41,12 @@ exports.expression = function (e) {
   };
 };
 
-exports.lexOperator = function (op) {
-  if (/^(=>|\.\.\.|@:|[#@:!?,.=;])$/.test(op)) {
+exports.lexOperator = function (parserContext, op) {
+  if (op === '?:') {
+    return parserContext.tokens(['?', ':']);
+  } else if (op === '!:') {
+    return parserContext.tokens(['!', ':']);
+  } else if (/^(=>|\.\.\.|@:|[#@:!?,.=;])$/.test(op)) {
     return op;
   } else {
     return 'operator';

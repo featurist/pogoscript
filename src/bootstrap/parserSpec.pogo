@@ -474,6 +474,62 @@ describe 'parser'
                 object {variable ['object']}
                 indexer {variable ['x']}
             }
+        
+        it 'parses no argument method with ?'
+            (expression 'object: method?') should contain fields {
+                is method call
+                object {variable ['object']}
+                name ['method']
+                arguments []
+            }
+        
+        it 'parses no argument method with ? and field'
+            (expression 'object: method? : field') should contain fields {
+                is field reference
+                object {
+                    is method call
+                    object {variable ['object']}
+                    name ['method']
+                    arguments []
+                }
+                name ['field']
+            }
+        
+        it 'parses no argument method with ? and field'
+            (expression 'object: method?: field') should contain fields {
+                is field reference
+                object {
+                    is method call
+                    object {variable ['object']}
+                    name ['method']
+                    arguments []
+                }
+                name ['field']
+            }
+        
+        it 'parses no argument method with ! and field'
+            (expression 'object: method! : field') should contain fields {
+                is field reference
+                object {
+                    is method call
+                    object {variable ['object']}
+                    name ['method']
+                    arguments []
+                }
+                name ['field']
+            }
+        
+        it 'parses no argument method with ! and field'
+            (expression 'object: method!: field') should contain fields {
+                is field reference
+                object {
+                    is method call
+                    object {variable ['object']}
+                    name ['method']
+                    arguments []
+                }
+                name ['field']
+            }
 
     describe 'blocks'
         it 'empty block'

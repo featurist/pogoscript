@@ -15,7 +15,7 @@ exports: grammar = {
             ['(\n *)*\n *', 'return yy.indentation(yytext);']
             ['[0-9]+\.[0-9]+', 'return ''float'';']
             ['[0-9]+', 'return ''integer'';']
-            ['([:;=,?!.@~#%^&*+<>\/?\\|-])+', 'return yy.terms.lexOperator(yytext);']
+            ['([:;=,?!.@~#%^&*+<>\/?\\|-])+', 'return yy.terms.lexOperator(yy, yytext);']
             ['[a-zA-Z_$][a-zA-Z_$0-9]*', 'return ''identifier'';']
             ['$', 'return ''eof'';']
             ['''([^'']*'''')*[^'']*''', 'return ''string'';']
