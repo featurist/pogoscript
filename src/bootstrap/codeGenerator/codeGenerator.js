@@ -42,10 +42,8 @@ exports.expression = function (e) {
 };
 
 exports.lexOperator = function (parserContext, op) {
-  if (op === '?:') {
-    return parserContext.tokens(['?', ':']);
-  } else if (op === '!:') {
-    return parserContext.tokens(['!', ':']);
+  if (/[?!][:;]/.test(op)) {
+    return parserContext.tokens([op[0], op[1]]);
   } else if (/^(=>|\.\.\.|@:|[#@:!?,.=;])$/.test(op)) {
     return op;
   } else {

@@ -426,6 +426,30 @@ describe 'parser'
                     }
                 ]
             }
+
+        it 'function call with no arguments using ! and one optional argument'
+            (expression 'start server!; port 34') should contain fields {
+                function {variable ['start'. 'server']}
+                arguments []
+                optional arguments [
+                    {
+                        field ['port']
+                        value {integer 34}
+                    }
+                ]
+            }
+
+        it 'function call with no arguments using ? and one optional argument'
+            (expression 'start server?; port 34') should contain fields {
+                function {variable ['start'. 'server']}
+                arguments []
+                optional arguments [
+                    {
+                        field ['port']
+                        value {integer 34}
+                    }
+                ]
+            }
     
     describe 'object operations'
         it 'method call'
