@@ -468,7 +468,7 @@ describe 'complex expression'
 
     describe 'parameter'
         parameter (p) should contain fields (fields) =
-            (cg: complex expression (p): expression? : parameter?) should contain fields (fields)
+            (cg: complex expression (p): expression?: parameter?) should contain fields (fields)
         
         it 'variable'
             parameter [[id 'a']] should contain fields {variable ['a']}

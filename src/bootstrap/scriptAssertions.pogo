@@ -31,7 +31,7 @@ filename for (script) =
     hash: digest 'hex' + '.pogo'
 
 chomp (s) =
-    s: to string! : replace `\n$` ''
+    s: to string!: replace `\n$` ''
 
 :(script) with args (args) should output (expected output, done) =
     execute script (script) with args (args) @(error, actual output)

@@ -15,7 +15,7 @@ test (err, collection) =
             collection: count @(err, count)
                 console: log (count)
 
-            collection: find? : to array @(err, results)
+            collection: find?: to array @(err, results)
                 console: log (results: length)
                 console: log (results: 0: a)
 
