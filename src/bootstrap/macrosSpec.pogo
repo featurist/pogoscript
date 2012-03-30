@@ -248,6 +248,17 @@ describe 'macros'
                     {variable ['b']}
                 ]
             }
+    
+    describe '!='
+        it 'generates !=='
+            (expression 'a != b') should contain fields {
+                is operator
+                operator '!=='
+                arguments [
+                    {variable ['a']}
+                    {variable ['b']}
+                ]
+            }
         
     describe '<:'
         it 'generates instanceof'
@@ -259,3 +270,59 @@ describe 'macros'
                     {variable ['b']}
                 ]
             }
+        
+    describe 'in'
+        it 'generates in'
+            (expression '(a) in (b)') should contain fields {
+                is operator
+                operator 'in'
+                arguments [
+                    {variable ['a']}
+                    {variable ['b']}
+                ]
+            }
+    
+    describe 'JavaScript operators'
+        it generates unary (op) =
+            it "generates unary #(op)"
+                (expression "#(op) a") should contain fields {
+                    is operator
+                    operator (op)
+                    arguments [
+                        {variable ['a']}
+                    ]
+                }
+        
+        it generates binary (op) =
+            it "generates binary #(op)"
+                (expression "a #(op) b") should contain fields {
+                    is operator
+                    operator (op)
+                    arguments [
+                        {variable ['a']}
+                        {variable ['b']}
+                    ]
+                }
+    
+        it generates unary '!'
+        it generates unary '~'
+        it generates unary '+'
+        it generates unary '-'
+        
+        it generates binary '+'
+        it generates binary '*'
+        it generates binary '/'
+        it generates binary '-'
+        it generates binary '%'
+        it generates binary '<<'
+        it generates binary '>>'
+        it generates binary '>>>'
+        it generates binary '>'
+        it generates binary '>='
+        it generates binary '<'
+        it generates binary '<='
+        it generates binary '&'
+        it generates binary '^'
+        it generates binary '|'
+        it generates binary '&&'
+        it generates binary '||'

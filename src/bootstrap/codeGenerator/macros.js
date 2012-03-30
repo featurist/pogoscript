@@ -8,12 +8,41 @@ var createOperator = function(name, arguments) {
   return cg.operator(name[0], arguments);
 };
 
-_.each(['/', '-', '>=', '!=', '!==', '<=', '<', '>', '|', '&', '||', '&&', '!'], function(op) {
+var javaScriptOperators = [
+  '/',
+  '-',
+  '>=',
+  '!=',
+  '<=',
+  '<',
+  '>',
+  '|',
+  '&',
+  '||',
+  '&&',
+  '!',
+  '~',
+  '%',
+  '>>',
+  '>>>',
+  '<<',
+  '^'
+];
+
+_.each(javaScriptOperators, function(op) {
   macros.addMacro([op], createOperator);
 });
 
 macros.addMacro(['=='], function (name, arguments) {
   return cg.operator('===', arguments);
+});
+
+macros.addMacro(['!='], function (name, arguments) {
+  return cg.operator('!==', arguments);
+});
+
+macros.addMacro(['in'], function (name, arguments) {
+  return cg.operator('in', arguments);
 });
 
 macros.addMacro(['<:'], function (name, arguments) {
