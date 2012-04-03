@@ -3,12 +3,12 @@ require './assertions.pogo'
 
 describe 'unary operator expression'
     it 'as expression'
-        op expr = cg: new unary operator expression; operator '%'; expression {variable ['a']}
+        op expr = cg: new unary operator expression; operator '%%'; expression {variable ['a']}
 
         (op expr: expression?) should contain fields {
             is method call
             object {variable ['a']}
-            name ['%']
+            name ['%%']
             arguments []
         }
     
