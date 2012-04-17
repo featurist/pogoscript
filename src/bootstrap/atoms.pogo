@@ -7,20 +7,27 @@ atom prototype = object {
     block? = null
 }
 
-:atom (members) = object extending (atom prototype) (members)
+:atom (forms, members) = 
+    a = object extending (atom prototype) (members)
+    a: forms = forms
+    a
 
-:argument atom (argument) = atom {
+:argument atom (forms, argument) = :atom (forms) {
     arguments? = [argument]
 }
 
-:block atom (block) = atom {
+:block atom (forms, block) = :atom (forms) {
     block? = block
 }
 
-:word atom (word) = atom {
+:word atom (forms, word) = :atom (forms) {
     word? = word
 }
 
-:block parameters atom (parameters) = atom {
+:block parameters atom (forms, parameters) = :atom (forms) {
     block parameters? = parameters
+}
+
+:integer (forms, int) = object extending (:argument atom (forms, int)) {
+    isInteger = true
 }
