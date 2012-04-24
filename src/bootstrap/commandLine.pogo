@@ -45,7 +45,8 @@ when (filename) changes (act) =
     tokens = parser: lex (source)
 
     for each @(token) in (tokens)
-        console: log "<#(token: 0)>" (token: 1)
+        text = (token: 1 && "'#(token: 1)'") || ''
+        console: log "<#(token: 0)> #(text)"
 
 js filename from pogo filename (pogo) =
     pogo: replace `\.pogo$` '' + '.js'

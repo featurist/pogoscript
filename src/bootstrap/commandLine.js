@@ -37,7 +37,7 @@
             persistent: true,
             interval: 500
         }, function(prev, curr) {
-            if (curr.size == prev.size && curr.mtime.getTime() == prev.mtime.getTime()) {
+            if (curr.size === prev.size && curr.mtime.getTime() === prev.mtime.getTime()) {
                 return;
             }
             return act();
@@ -56,14 +56,15 @@
         });
     };
     self.lexFile = function(filename) {
-        var self, source, tokens, gen2_items, gen3_i, token;
+        var self, source, tokens, gen2_items, gen3_i, token, text;
         self = this;
         source = fs.readFileSync(filename, "utf-8");
         tokens = parser.lex(source);
         gen2_items = tokens;
         for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
             token = gen2_items[gen3_i];
-            console.log("<" + token[0] + ">", token[1]);
+            text = token[1] && "'" + token[1] + "'" || "";
+            console.log("<" + token[0] + "> " + text);
         }
     };
     jsFilenameFromPogoFilename = function(pogo) {
@@ -190,7 +191,7 @@
                 var self;
                 self = this;
                 process.stderr.write(filename + ":" + location.firstLine + "\n");
-                if (location.firstLine == location.lastLine) {
+                if (location.firstLine === location.lastLine) {
                     var spaces, markers;
                     self.printLinesInRange({
                         from: location.firstLine,

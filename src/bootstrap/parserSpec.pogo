@@ -616,6 +616,31 @@ describe 'parser'
                     ]
                 }
             }
+    
+    describe 'statements'
+        it 'can be separated by dots (.)'
+            (statements 'a.b') should contain fields {
+                statements [
+                    {variable ['a']}
+                    {variable ['b']}
+                ]
+            }
+            
+        it 'can be separated by unix new lines'
+            (statements "a\nb") should contain fields {
+                statements [
+                    {variable ['a']}
+                    {variable ['b']}
+                ]
+            }
+            
+        it 'can be separated by windows new lines'
+            (statements "a\r\nb") should contain fields {
+                statements [
+                    {variable ['a']}
+                    {variable ['b']}
+                ]
+            }
 
     describe 'operators'
         it 'should be lower precedence than object operation'
@@ -946,8 +971,22 @@ describe 'parser'
                     }]
                 }
 
-            it 'when it extends to the end of the file'
+            it 'when it is terminated by the end of file'
                 (statements "a /* comment to eof") should contain fields {
+                    statements [
+                        {variable ['a']}
+                    ]
+                }
+
+            it 'when it extends to the end of the file'
+                (statements "a /* comment to end */") should contain fields {
+                    statements [
+                        {variable ['a']}
+                    ]
+                }
+
+            it 'when it extends to the end of the file followed by newline'
+                (statements "a /* comment to end */\n") should contain fields {
                     statements [
                         {variable ['a']}
                     ]
