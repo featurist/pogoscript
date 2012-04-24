@@ -12,7 +12,7 @@ exports: grammar = {
             ['\s*}', 'return yy.unsetIndentation(''}'');']
             ['\[\s*', 'yy.setIndentation(yytext); return ''['';']
             ['\s*\]', 'return yy.unsetIndentation('']'')']
-            ['(\n *)*\n *', 'return yy.indentation(yytext);']
+            ['(\r?\n *)*\r?\n *', 'return yy.indentation(yytext);']
             ['[0-9]+\.[0-9]+', 'return ''float'';']
             ['[0-9]+', 'return ''integer'';']
             ['([:;=,?!.@~#%^&*+<>\/?\\|-])+', 'return yy.terms.lexOperator(yy, yytext);']

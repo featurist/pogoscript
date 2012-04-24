@@ -47,18 +47,18 @@
         while (tokenIndex != 1) {
             var token, text, lexerToken;
             token = function() {
-                if (typeof tokenIndex == "number") {
+                if (typeof tokenIndex === "number") {
                     return parser.terminals_[tokenIndex];
-                } else if (tokenIndex == "") {
+                } else if (tokenIndex === "") {
                     return undefined;
                 } else {
                     return tokenIndex;
                 }
             }();
             text = function() {
-                if (lexer.yytext == "") {
+                if (lexer.yytext === "") {
                     return undefined;
-                } else if (lexer.yytext == token) {
+                } else if (lexer.yytext === token) {
                     return undefined;
                 } else {
                     return lexer.yytext;
