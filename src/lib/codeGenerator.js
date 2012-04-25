@@ -590,7 +590,13 @@ var functionCall = expressionTerm('functionCall', function (fun, args, optionalA
     
     var args = argsAndOptionalArgs(this.arguments, this.optionalArguments);
     
-    if (this.splattedArguments) {
+    if (this.splattedArguments && this.function.isIndexer) {
+      buffer.write('.apply(');
+      this.function.object.generateJavaScript(buffer, scope);
+      buffer.write(',');
+      this.splattedArguments.generateJavaScript(buffer, scope);
+      buffer.write(')');
+    } else if (this.splattedArguments) {
       buffer.write('.apply(null,');
       this.splattedArguments.generateJavaScript(buffer, scope);
       buffer.write(')');

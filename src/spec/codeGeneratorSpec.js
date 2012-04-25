@@ -97,6 +97,12 @@ spec('code generator', function () {
         generatesExpression(f, 'f.apply(null,b)');
       });
       
+      spec('splat with field reference method call', function () {
+        var f = cg.functionCall(cg.indexer(cg.variable(['f']), cg.variable(['g'])), [cg.variable(['b']), cg.splat()]);
+      
+        generatesExpression(f, 'f[g].apply(f,b)');
+      });
+      
       spec('args before', function () {
         var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.variable(['b']), cg.splat()]);
       
