@@ -1,3 +1,5 @@
+comments = '\s*((\/\*([^*](\*[^\/]|))*(\*\/|$)|\/\/[^\n]*)\s*)+'
+
 exports: grammar = {
     lex {
         start conditions {interpolated_string, interpolated_string_terminal}
@@ -5,7 +7,8 @@ exports: grammar = {
         rules [
             [' +', '/* ignore whitespace */']
             ['\s*$', 'return yy.eof();']
-            ['\s*((\/\*([^*](\*[^\/]|))*(\*\/|$)|\/\/[^\n]*)\s*)+', 'var indentation = yy.indentation(yytext); if (indentation) { return indentation; }']
+            [comments + '$', 'return yy.eof();']
+            [comments, 'var indentation = yy.indentation(yytext); if (indentation) { return indentation; }']
             ['\(\s*', 'yy.setIndentation(yytext); if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return "(";']
             ['\s*\)', 'if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.interpolation.stopInterpolation()}} return yy.unsetIndentation('')'');']
             ['{\s*', 'yy.setIndentation(yytext); return ''{'';']
