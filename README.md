@@ -183,4 +183,4 @@ What about a multi-line control structure?
 
 # More
 
-[joshski](http://github.com/joshski) has put together a page showing [how PogoScript translates into JavaScript](http://featurist.github.com/pogo-examples). You can examine the [cheatsheet](cheatsheet.pdf), or head to the [home page](http://pogoscript.org/) page.
+[joshski](http://github.com/joshski) has put together a page showing [how PogoScript translates into JavaScript](http://featurist.github.com/pogo-examples). You can examine the [cheatsheet](http://pogoscript.org/cheatsheet.html), or head to the [home page](http://pogoscript.org/) page.
