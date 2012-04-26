@@ -9,3 +9,15 @@
     becomes
     
         a['#=>'](b)
+
+* When `undefined` and `null` are interplated in strings, make sure they generate empty strings.
+
+        "name: #(undefined)"
+
+    makes
+    
+        "name: "
+
+    not
+    
+        "name: undefined"
