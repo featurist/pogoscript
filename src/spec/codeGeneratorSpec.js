@@ -908,6 +908,46 @@ spec('code generator', function () {
         assert.equal(md.findMacro(['one', 'two', 'four']), undefined);
       });
     });
+    
+    spec('finds macro for invocation', function () {
+       var macros = new cg.MacroDirectory();
+       
+       macros.addMacro(['one', 'two'], function (name, args, optionalArgs) {
+          return {isOneTwo: true, arguments: args, optionalArgs: optionalArgs};
+       });
+       
+       var inv = macros.invocation(['one', 'two'], ['args'], ['optionalArgs']);
+       
+       shouldContainFields(inv, {
+         isOneTwo: true,
+         arguments: ['args'],
+         optionalArgs: ['optionalArgs']
+       });
+    });
+    
+    spec('makes functionCall for invocation when no macro found', function () {
+       var macros = new cg.MacroDirectory();
+       
+       var inv = macros.invocation(['one', 'two'], ['args'], ['optionalArgs']);
+       
+       shouldContainFields(inv, {
+         isFunctionCall: true,
+         function: {variable: ['one', 'two']},
+         arguments: ['args'],
+         optionalArguments: ['optionalArgs']
+       });
+    });
+    
+    spec('makes variable for invocation when no macro found and no args given', function () {
+       var macros = new cg.MacroDirectory();
+       
+       var inv = macros.invocation(['one', 'two']);
+       
+       shouldContainFields(inv, {
+         isVariable: true,
+         variable: ['one', 'two']
+       });
+    });
   });
   
   spec('roll', function () {

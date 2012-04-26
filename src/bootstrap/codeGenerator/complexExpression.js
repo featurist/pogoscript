@@ -86,7 +86,7 @@ module.exports = function (listOfTerminals) {
         if (this.hasArguments()) {
           return macros.invocation(head.name(), this.arguments(), this.optionalArguments());
         } else {
-          return head.derivedTerm(cg.variable(head.name()));
+          return macros.invocation(head.name());
         }
       } else {
         if (!this.hasTail() && this.arguments().length === 1 && !head.containsCallPunctuation()) {

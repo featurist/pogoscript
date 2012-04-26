@@ -31,6 +31,7 @@ exports.operatorExpression = require('./operatorExpression');
 exports.newUnaryOperatorExpression = require('./unaryOperatorExpression').newUnaryOperatorExpression;
 exports.operator = cg.operator;
 exports.splat = cg.splat;
+exports.javascript = cg.javascript;
 exports.macros = require('./macros');
 
 exports.expression = function (e) {

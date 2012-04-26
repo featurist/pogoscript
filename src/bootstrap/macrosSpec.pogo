@@ -282,6 +282,20 @@ describe 'macros'
                 ]
             }
     
+    describe 'break'
+        it 'generates break statement'
+            (expression 'break') should contain fields {
+                is java script
+                source = 'void 0'
+            }
+    
+    describe 'nil'
+        it 'generates void 0'
+            (expression 'nil') should contain fields {
+                is java script
+                source = 'void 0'
+            }
+    
     describe 'JavaScript operators'
         it generates unary (op) =
             it "generates unary #(op)"

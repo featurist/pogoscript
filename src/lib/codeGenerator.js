@@ -42,6 +42,10 @@ var ExpressionPrototype = new function () {
       console.log(this.inspectTerm());
     }
   };
+
+  this.hashEntry = function () {
+      errors.addTermWithMessage(this, 'cannot be used as a hash entry');
+  };
   
   this.hashEntryField = function () {
     errors.addTermWithMessage(this, 'cannot be used as a field name');
@@ -425,10 +429,12 @@ var operatorRenderedInJavaScript = function (operator) {
   return javaScriptName;
 };
 
-var javascript = function (text) {
+var javascript = exports.javascript = function (source) {
   return term(function () {
+    this.isJavaScript = true;
+    this.source = source;
     this.generateJavaScript = function (buffer, scope) {
-      buffer.write(text);
+      buffer.write(this.source);
     };
   });
 };
@@ -1448,8 +1454,10 @@ var MacroDirectory = exports.MacroDirectory = function () {
     
     if (macro) {
       return macro(name, arguments, optionalArguments);
-    } else {
+    } else if (arguments) {
       return functionCall(variable(name), arguments, optionalArguments);
+    } else {
+      return variable(name);
     }
   };
 };

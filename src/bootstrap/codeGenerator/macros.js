@@ -193,4 +193,8 @@ macros.addMacro(['try', 'finally'], function (name, arguments) {
   return cg.tryStatement(arguments[0].body, undefined, arguments[1].body);
 });
 
+macros.addMacro(['nil'], function () {
+  return cg.javascript('void 0');
+});
+
 module.exports = macros;
