@@ -1975,7 +1975,11 @@ var returnStatement = expressionTerm('returnStatement', function(expr) {
   this.isReturn = true;
   this.expression = expr;
   this.generateJavaScriptStatement = function(buffer, scope) {
-    this.expression.generateJavaScriptReturn(buffer, scope);
+    if (this.expression) {
+      this.expression.generateJavaScriptReturn(buffer, scope);
+    } else {
+      buffer.write('return;');
+    }
   };
   this.generateJavaScriptReturn = this.generateJavaScriptStatement;
 });

@@ -165,8 +165,8 @@ macros.addMacro(['not'], function (name, arguments) {
   return cg.operator('!', arguments);
 });
 
-macros.addMacro(['return'], function(name, arguments) {
-  return cg.returnStatement(arguments[0]);
+macros.addMacro(['return'], function(name, args) {
+  return cg.returnStatement(args && args[0]);
 });
 
 macros.addMacro(['throw'], function(name, arguments) {

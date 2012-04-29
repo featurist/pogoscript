@@ -551,6 +551,11 @@ spec('code generator', function () {
       var m = cg.returnStatement(cg.variable(['a']));
       generatesReturnExpression(m, 'return a;');
     });
+    
+    spec('return void', function () {
+      var m = cg.returnStatement();
+      generatesReturnExpression(m, 'return;');
+    });
   });
   
   spec('throw', function () {

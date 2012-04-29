@@ -285,8 +285,14 @@ describe 'macros'
     describe 'break'
         it 'generates break statement'
             (expression 'break') should contain fields {
-                is java script
-                source = 'void 0'
+                is break
+            }
+    
+    describe 'return'
+        it 'generates void return statement'
+            (expression 'return') should contain fields {
+                is return
+                expression = undefined
             }
     
     describe 'nil'
