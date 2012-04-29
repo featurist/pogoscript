@@ -6,14 +6,12 @@ command line = require './commandLine'
 util = require 'util'
 _ = require 'underscore'
 
-execute script (script) with args (args, callback) =
-    script filename = filename for (script)
-
+execute script (script) with args (args, callback); script filename (filename for (script)) =
     fs: write file (script filename, script) @(error)
         if (error)
             callback (error)
         
-        pogo = spawn 'pogo' ([script filename]: concat (args))
+        pogo = spawn '../../bin/pogo' ([script filename]: concat (args))
     
         all output = ''
     
@@ -33,12 +31,12 @@ filename for (script) =
 chomp (s) =
     s: to string!: replace `\n$` ''
 
-:(script) with args (args) should output (expected output, done) =
-    execute script (script) with args (args) @(error, actual output)
+:(script) with args (args) should output (expected output, done); script filename =
+    execute script (script) with args (args); script filename (script filename) @(error, actual output)
         if (error)
             assert: fail (error)
         else
-            assert: equal (chomp (expected output), chomp (actual output))
+            assert: equal (chomp (actual output), chomp (expected output))
             
         done!
 

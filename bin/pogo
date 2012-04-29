@@ -24,5 +24,5 @@ if (argv.lex) {
 } else if (argv._.length === 0) {
   commandLine.repl();
 } else {
-  commandLine.runFile(argv._[0]);
+  commandLine.runMain(argv._[0]);
 }

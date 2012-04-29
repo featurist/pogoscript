@@ -20,6 +20,10 @@ describe 'pogo command'
 
     it "`__dirname` should be the name of the script" @(done)
         'console: log (__dirname)' with args [] should output (path: resolve ".") (done)
+    
+    it "runs script files even if they don't use the .pogo extension" @(done)
+        'console: log "hi"' with args [] should output 'hi'; script filename 'ascript'
+            done!
 
 describe 'script'
     describe 'integers'

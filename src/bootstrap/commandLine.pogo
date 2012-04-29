@@ -7,6 +7,8 @@ errors = require './codeGenerator/errors'
 _ = require 'underscore'
 readline = require 'readline'
 util = require 'util'
+Module = require 'module'
+path = require 'path'
 
 generate code (term) =
     memory stream = new (ms: MemoryStream)
@@ -51,11 +53,24 @@ when (filename) changes (act) =
 js filename from pogo filename (pogo) =
     pogo: replace `\.pogo$` '' + '.js'
 
-:run file (filename) =
+:run file (filename) in module (module) =
+    js = compile from file (filename)
+    module: _compile (js, filename)
+
+:run main (filename) =
+    full filename = fs: realpath sync (filename)
+    
     process: argv: shift!
     process: argv: 0 = 'pogo'
-    process: argv: 1 = fs: realpath sync (filename)
-    require 'module': run main!
+    process: argv: 1 = full filename
+    
+    module = new (Module (full filename, null))
+    process: main module = module
+    module: id = '.'
+    module: filename = full filename
+    module: paths = Module: _node module paths (path: dirname (full filename))
+    :run file (full filename) in module (module)
+    module: loaded = true
 
 :compile (pogo); filename; in scope (true); ugly; global (false); return result (false) =
     module term = parse (pogo)
@@ -142,5 +157,4 @@ source location printer; filename; source =
             strings: join ''
 
 require: extensions: '.pogo' (module, filename) =
-    js = compile from file (filename)
-    module: _compile (js, filename)
+    exports: run file (filename) in module (module)

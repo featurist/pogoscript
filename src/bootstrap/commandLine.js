@@ -1,5 +1,5 @@
 ((function() {
-    var self, fs, ms, parser, parse, uglify, errors, _, readline, util, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluteReplLine, compileFromFile, sourceLocationPrinter;
+    var self, fs, ms, parser, parse, uglify, errors, _, readline, util, Module, path, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluteReplLine, compileFromFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     ms = require("../lib/memorystream");
@@ -10,6 +10,8 @@
     _ = require("underscore");
     readline = require("readline");
     util = require("util");
+    Module = require("module");
+    path = require("path");
     generateCode = function(term) {
         var memoryStream;
         memoryStream = new ms.MemoryStream;
@@ -70,13 +72,26 @@
     jsFilenameFromPogoFilename = function(pogo) {
         return pogo.replace(/\.pogo$/, "") + ".js";
     };
-    self.runFile = function(filename) {
-        var self;
+    self.runFileInModule = function(filename, module) {
+        var self, js;
         self = this;
+        js = compileFromFile(filename);
+        return module._compile(js, filename);
+    };
+    self.runMain = function(filename) {
+        var self, fullFilename, module;
+        self = this;
+        fullFilename = fs.realpathSync(filename);
         process.argv.shift();
         process.argv[0] = "pogo";
-        process.argv[1] = fs.realpathSync(filename);
-        return require("module").runMain();
+        process.argv[1] = fullFilename;
+        module = new Module(fullFilename, null);
+        process.mainModule = module;
+        module.id = ".";
+        module.filename = fullFilename;
+        module.paths = Module._nodeModulePaths(path.dirname(fullFilename));
+        self.runFileInModule(fullFilename, module);
+        return module.loaded = true;
     };
     self.compile = function(pogo, gen4_options) {
         var filename, inScope, ugly, global, returnResult, self, moduleTerm, code;
@@ -220,9 +235,8 @@
         });
     };
     require.extensions[".pogo"] = function(module, filename) {
-        var self, js;
+        var self;
         self = this;
-        js = compileFromFile(filename);
-        return module._compile(js, filename);
+        return exports.runFileInModule(filename, module);
     };
 })).call(this);
