@@ -1001,3 +1001,13 @@ describe 'parser'
             [')']
             ['eof']
         ]
+
+    it 'ignores hash bang #!, at the beginning of the file'
+        (statements '#! /usr/bin/env pogo
+                     a
+                     b') should contain fields {
+            statements [
+                {variable ['a']}
+                {variable ['b']}
+            ]
+        }

@@ -5,6 +5,7 @@ exports: grammar = {
         start conditions {interpolated_string, interpolated_string_terminal}
 
         rules [
+            ['^#![^\n]*', '/* ignore hashbang */']
             [' +', '/* ignore whitespace */']
             ['\s*$', 'return yy.eof();']
             [comments + '$', 'return yy.eof();']
