@@ -1,1 +1,1 @@
-mocha -r pogo -r should $@
+mocha -r pogo -r should "$@"
