@@ -441,7 +441,7 @@ spec('code generator', function () {
   spec('for each', function() {
     var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.variable(['item'])]))]);
     
-    generatesStatements(f, 'var gen1_items,gen2_i;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){(function(item){item;}(gen1_items[gen2_i]));}');
+    generatesStatements(f, 'var gen1_items,gen2_i;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){(function(gen2_i){var item;item=gen1_items[gen2_i];item;}(gen2_i));}');
   });
   
   spec('for in', function() {
@@ -462,7 +462,7 @@ spec('code generator', function () {
       cg.statements([cg.variable(['i'])])
     );
     
-    generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){i;}');
+    generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){(function(i){i;}(i));}');
   });
   
   spec('while', function() {

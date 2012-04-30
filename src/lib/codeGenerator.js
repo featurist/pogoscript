@@ -1681,8 +1681,11 @@ var postIncrement = expressionTerm('postIncrement', function(expr) {
 var forEach = expressionTerm('forEach', function(collection, itemVariable, stmts) {
   var itemsVar = generatedVariable(['items']);
   var indexVar = generatedVariable(['i']);
+
+  var s = [definition(itemVariable, indexer(itemsVar, indexVar))];
+  s.push.apply(s, stmts.statements);
   
-  s = [subExpression(functionCall(block([itemVariable], stmts, {returnLastStatement: false}), [indexer(itemsVar, indexVar)]))];
+  // s = [subExpression(functionCall(block([itemVariable], stmts, {returnLastStatement: false}), [indexer(itemsVar, indexVar)]))];
   
   var statementsWithItemAssignment = statements(s);
   
@@ -1726,7 +1729,8 @@ var forStatement = expressionTerm('forStatement', function(init, test, incr, stm
     buffer.write(';');
     this.increment.generateJavaScript(buffer, scope);
     buffer.write('){');
-    this.statements.generateJavaScriptStatements(buffer, scope);
+    subExpression(functionCall(block([this.indexVariable], this.statements, {returnLastStatement: false}), [this.indexVariable])).generateJavaScriptStatement(buffer, scope);
+    // this.statements.generateJavaScriptStatements(buffer, scope);
     buffer.write('}');
   };
   this.generateJavaScriptStatement = this.generateJavaScript;
@@ -1738,7 +1742,7 @@ var forStatement = expressionTerm('forStatement', function(init, test, incr, stm
     if (indexName) {
       defs.push(indexName);
     }
-    return defs.concat(stmts.definitions(scope));
+    return defs;
   };
 });
 
