@@ -441,7 +441,7 @@ spec('code generator', function () {
   spec('for each', function() {
     var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.variable(['item'])]))]);
     
-    generatesStatements(f, 'var gen1_items,gen2_i,item;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){item=gen1_items[gen2_i];item;}');
+    generatesStatements(f, 'var gen1_items,gen2_i;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){(function(item){item;}(gen1_items[gen2_i]));}');
   });
   
   spec('for in', function() {

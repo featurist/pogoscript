@@ -1681,8 +1681,9 @@ var postIncrement = expressionTerm('postIncrement', function(expr) {
 var forEach = expressionTerm('forEach', function(collection, itemVariable, stmts) {
   var itemsVar = generatedVariable(['items']);
   var indexVar = generatedVariable(['i']);
-  var s = [definition(itemVariable, indexer(itemsVar, indexVar))];
-  s.push.apply(s, stmts.statements);
+  
+  s = [subExpression(functionCall(block([itemVariable], stmts, {returnLastStatement: false}), [indexer(itemsVar, indexVar)]))];
+  
   var statementsWithItemAssignment = statements(s);
   
   var init = definition(indexVar, integer(0));
@@ -1754,7 +1755,6 @@ var forIn = expressionTerm('forIn', function(iterator, collection, stmts) {
     this.collection.generateJavaScript(buffer, scope);
     buffer.write('){');
     subExpression(functionCall(block([this.iterator], this.statements, {returnLastStatement: false}), [this.iterator])).generateJavaScriptStatement(buffer, scope);
-//    this.statements.generateJavaScriptStatements(buffer, scope);
     buffer.write('}');
   };
   this.generateJavaScriptStatement = this.generateJavaScript;
