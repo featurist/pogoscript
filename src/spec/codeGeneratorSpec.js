@@ -451,7 +451,7 @@ spec('code generator', function () {
       cg.statements([cg.variable(['item'])])
     );
     
-    generatesReturnExpression(f, 'for(var item in items){item;}');
+    generatesReturnExpression(f, 'for(var item in items){(function(item){item;}(item));}');
   });
   
   spec('for', function() {

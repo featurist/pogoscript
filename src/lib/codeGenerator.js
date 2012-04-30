@@ -1753,7 +1753,8 @@ var forIn = expressionTerm('forIn', function(iterator, collection, stmts) {
     buffer.write(' in ');
     this.collection.generateJavaScript(buffer, scope);
     buffer.write('){');
-    this.statements.generateJavaScriptStatements(buffer, scope);
+    subExpression(functionCall(block([this.iterator], this.statements, {returnLastStatement: false}), [this.iterator])).generateJavaScriptStatement(buffer, scope);
+//    this.statements.generateJavaScriptStatements(buffer, scope);
     buffer.write('}');
   };
   this.generateJavaScriptStatement = this.generateJavaScript;
