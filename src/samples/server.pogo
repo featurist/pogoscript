@@ -9,15 +9,15 @@ after (time, block) =
 (n) minutes =
     (n * 60) seconds
 
-server = http : create server @(req, res)
-    res : write "stuff\n"
+server = http.create server @(req, res)
+    res.write "stuff\n"
     
     after (0.05 minutes)
-        res : write "stuff after 0.05 minutes\n"
+        res.write "stuff after 0.05 minutes\n"
 
         after (0.5 seconds)
-            res : end "stuff after 0.5 seconds\n"
+            res.end "stuff after 0.5 seconds\n"
 
 port = 8000
-server : listen (port)
-console: log "run > curl localhost:#(port)"
+server.listen (port)
+console.log "run > curl localhost:#(port)"

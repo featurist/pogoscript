@@ -1,6 +1,6 @@
 sing (n) bottles of beer on the wall =
     if (n > 0)
-        console : log ((n) bottles of beer on the wall)
+        console.log ((n) bottles of beer on the wall)
         sing (n - 1) bottles of beer on the wall
 
 (n) bottles of beer on the wall =
