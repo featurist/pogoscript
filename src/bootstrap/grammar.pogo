@@ -39,7 +39,7 @@ exports: grammar = {
 
     operators [
         ['right', '=']
-        ['left', ':']
+        ['left', '.']
     ]
 
     start 'module'
@@ -52,22 +52,17 @@ exports: grammar = {
             ['statements_list', '$$ = yy.terms.statements($1);']
         ]
         hash_entries [
-            ['hash_entries comma_dot expression', '$1.push($3.hashEntry()); $$ = $1;']
+            ['hash_entries , expression', '$1.push($3.hashEntry()); $$ = $1;']
             ['expression', '$$ = [$1.hashEntry()];']
             ['', '$$ = [];']
         ]
-        comma_dot [
-            ['.', '$$ = $1;']
-            [',', '$$ = $1;']
-        ]
         statements_list [
-            ['statements_list comma_dot statement', '$1.push($3); $$ = $1;']
+            ['statements_list , statement', '$1.push($3); $$ = $1;']
             ['statement', '$$ = [$1];']
             ['', '$$ = [];']
         ]
         arguments_list [
-            ['arguments_list , expression_list', '$1.push($3); $$ = $1;']
-            ['expression_list', '$$ = [$1];']
+            ['expression_list', '$$ = $expression_list;']
             ['', '$$ = [];']
         ]
         parameter_list [
@@ -75,7 +70,7 @@ exports: grammar = {
             ['statement', '$$ = [$1];']
         ]
         expression_list [
-            ['expression_list . statement', '$1.push($3); $$ = $1;']
+            ['expression_list , statement', '$1.push($3); $$ = $1;']
             ['statement', '$$ = [$1];']
         ]
         statement [
@@ -86,7 +81,7 @@ exports: grammar = {
             ['operator_expression', '$$ = $1;']
         ]
         operator_with_newline [
-            ['operator .', '$$ = $1']
+            ['operator ,', '$$ = $1']
             ['operator', '$$ = $1']
         ]
         operator_expression [
@@ -98,12 +93,12 @@ exports: grammar = {
             ['unary_operator object_operation', '$$ = yy.terms.newUnaryOperatorExpression({operator: $1, expression: $2.expression()});']
         ]
         object_reference_with_newline [
-            [': .', '$$ = $1']
-            [':', '$$ = $1']
+            ['. ,', '$$ = $1']
+            ['.', '$$ = $1']
         ]
         object_operation [
             ['object_operation object_reference_with_newline complex_expression', '$$ = $3.objectOperation($1.expression());']
-            [': complex_expression', '$$ = $2.objectOperation(yy.terms.selfExpression());']
+            ['. complex_expression', '$$ = $2.objectOperation(yy.terms.selfExpression());']
             ['complex_expression', '$$ = $1;']
         ]
         complex_expression [
@@ -132,7 +127,7 @@ exports: grammar = {
             ['terminal', '$$ = [$1];']
         ]
         terminal [
-            ['( arguments_list )', '$$ = yy.terms.loc(yy.terms.argumentList(yy.terms.normaliseArguments($2)), @$);']
+            ['( arguments_list )', '$$ = yy.terms.loc(yy.terms.argumentList($arguments_list), @$);']
             ['@ ( parameter_list )', '$$ = yy.terms.loc(yy.terms.parameters($3), @$);']
             ['block_start statements }', '$$ = yy.terms.loc(yy.terms.block([], $2), @$);']
             ['=> block_start statements }', '$$ = yy.terms.loc(yy.terms.block([], $3, {redefinesSelf: true}), @$);']

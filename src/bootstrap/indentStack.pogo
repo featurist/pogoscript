@@ -57,7 +57,7 @@ exports: create indent stack = create indent stack! =
                 indentation = :indentation (text)
         
                 if (current indentation == indentation)
-                    ['.']
+                    [',']
                 else if (current indentation < indentation)
                     :indents: unshift (indentation)
                     ['@{']
@@ -69,7 +69,7 @@ exports: create indent stack = create indent stack! =
                         :indents: shift!
                 
                     if (:is (text) multi new line)
-                        tokens: push '.'
+                        tokens: push ','
                 
                     if (:indents: 0 < indentation)
                         tokens: push '@{'

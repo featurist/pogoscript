@@ -43,7 +43,7 @@ exports.expression = function (e) {
 };
 
 exports.lexOperator = function (parserContext, op) {
-  if (/[?!][:;]/.test(op)) {
+  if (/[?!][.;]/.test(op)) {
     return parserContext.tokens([op[0], op[1]]);
   } else if (/^(=>|\.\.\.|@:|[#@:!?,.=;])$/.test(op)) {
     return op;

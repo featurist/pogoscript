@@ -148,7 +148,7 @@ describe 'parser'
                         {
                             is interpolated string
                             components [
-                                {variable ['boat'. 'length']}
+                                {variable ['boat', 'length']}
                                 {string ' meters'}
                             ]
                         }
@@ -159,15 +159,6 @@ describe 'parser'
         describe 'sub expressions'
             it 'single expression'
                 (expression '(x)') should contain fields {variable ['x']}
-
-            it 'two expressions'
-                (expression '(x. y)') should contain fields {
-                    is scope
-                    statements [
-                        {variable ['x']}
-                        {variable ['y']}
-                    ]
-                }
         
         describe 'lists'
             it 'empty'
@@ -193,15 +184,6 @@ describe 'parser'
             
             it 'two items separated by newlines'
                 (expression "[\n  1\n  2\n]") should contain fields {
-                    is list
-                    items [
-                        {integer 1}
-                        {integer 2}
-                    ]
-                }
-            
-            it 'two items separated by dots'
-                (expression "[1. 2]") should contain fields {
                     is list
                     items [
                         {integer 1}
@@ -315,7 +297,7 @@ describe 'parser'
                 }
                     
             it 'hash with true entry'
-                (expression '{port 1234. readonly}') should contain fields {
+                (expression '{port 1234, readonly}') should contain fields {
                     is hash
                     entries [
                         {
@@ -334,6 +316,24 @@ describe 'parser'
             (expression 'touch (file)') should contain fields {
                 function {variable ['touch']}
                 arguments [{variable ['file']}]
+            }
+
+        it 'function call with two arguments in parens'
+            (expression 'f (a, b)') should contain fields {
+                function {variable ['f']}
+                arguments [
+                    {variable ['a']}
+                    {variable ['b']}
+                ]
+            }
+            
+        it 'two expressions'
+            (expression '(x, y)') should contain fields {
+                is function call
+                function {variable ['x']}
+                arguments [
+                    {variable ['y']}
+                ]
             }
 
         it 'function call with splat argument'
@@ -453,7 +453,7 @@ describe 'parser'
     
     describe 'object operations'
         it 'method call'
-            (expression 'object: method (argument)') should contain fields {
+            (expression 'object.method (argument)') should contain fields {
                 is method call
                 object {variable ['object']}
                 name ['method']
@@ -461,7 +461,7 @@ describe 'parser'
             }
         
         it 'method call with optional arguments'
-            (expression 'object: method (argument); view (view)') should contain fields {
+            (expression 'object.method (argument); view (view)') should contain fields {
                 is method call
                 object {variable ['object']}
                 name ['method']
@@ -472,35 +472,28 @@ describe 'parser'
             }
         
         it 'field reference'
-            (expression 'object: field') should contain fields {
+            (expression 'object.field') should contain fields {
                 is field reference
                 object {variable ['object']}
                 name ['field']
             }
         
         it 'field reference with newline'
-            (expression "object:\nfield") should contain fields {
+            (expression "object.\nfield") should contain fields {
                 is field reference
                 object {variable ['object']}
                 name ['field']
             }
         
-        it 'self field reference'
-            (expression ':field') should contain fields {
-                is field reference
-                object {variable ['self']}
-                name ['field']
-            }
-        
         it 'indexer'
-            (expression 'object: (x)') should contain fields {
+            (expression 'object.(x)') should contain fields {
                 is indexer
                 object {variable ['object']}
                 indexer {variable ['x']}
             }
         
         it 'parses no argument method with ?'
-            (expression 'object: method?') should contain fields {
+            (expression 'object.method?') should contain fields {
                 is method call
                 object {variable ['object']}
                 name ['method']
@@ -508,7 +501,7 @@ describe 'parser'
             }
         
         it 'parses no argument method with ? and field'
-            (expression 'object: method? : field') should contain fields {
+            (expression 'object.method? .field') should contain fields {
                 is field reference
                 object {
                     is method call
@@ -520,7 +513,7 @@ describe 'parser'
             }
         
         it 'parses no argument method with ? and field'
-            (expression 'object: method?: field') should contain fields {
+            (expression 'object.method?.field') should contain fields {
                 is field reference
                 object {
                     is method call
@@ -532,7 +525,7 @@ describe 'parser'
             }
         
         it 'parses no argument method with ! and field'
-            (expression 'object: method! : field') should contain fields {
+            (expression 'object.method! . field') should contain fields {
                 is field reference
                 object {
                     is method call
@@ -544,7 +537,7 @@ describe 'parser'
             }
         
         it 'parses no argument method with ! and field'
-            (expression 'object: method!: field') should contain fields {
+            (expression 'object.method!.field') should contain fields {
                 is field reference
                 object {
                     is method call
@@ -565,7 +558,7 @@ describe 'parser'
             }
                 
         it 'block'
-            (expression '@{x.y}') should contain fields {
+            (expression '@{x, y}') should contain fields {
                 is block
                 parameters []
                 redefines self (false)
@@ -576,7 +569,7 @@ describe 'parser'
             }
 
         it 'block with parameter'
-            (expression "@(x)\n  x.y") should contain fields {
+            (expression "@(x)\n  x, y") should contain fields {
                 is block
                 parameters [{variable ['x']}]
                 redefines self (false)
@@ -605,7 +598,7 @@ describe 'parser'
             }
 
         it 'block with parameter, redefining self'
-            (expression '@(x) => @{x.y}') should contain fields {
+            (expression '@(x) => @{x, y}') should contain fields {
                 is block
                 parameters [{variable ['x']}]
                 redefines self (true)
@@ -618,8 +611,8 @@ describe 'parser'
             }
     
     describe 'statements'
-        it 'can be separated by dots (.)'
-            (statements 'a.b') should contain fields {
+        it 'can be separated by commas (,)'
+            (statements 'a, b') should contain fields {
                 statements [
                     {variable ['a']}
                     {variable ['b']}
@@ -644,7 +637,7 @@ describe 'parser'
 
     describe 'operators'
         it 'should be lower precedence than object operation'
-            (expression 'o:m 2 +- o:x') should contain fields {
+            (expression 'o.m 2 +- o.x') should contain fields {
                 is method call
                 object {
                     is method call
@@ -731,7 +724,7 @@ describe 'parser'
                 }
 
         it 'field assignment'
-            (expression 'o: x = y') should contain fields {
+            (expression 'o.x = y') should contain fields {
                 is definition
                 target {
                     is field reference
@@ -743,7 +736,7 @@ describe 'parser'
             }
 
         it 'index assignment'
-            (expression 'o: (x) = y') should contain fields {
+            (expression 'o.(x) = y') should contain fields {
                 is definition
                 target {
                     is indexer
@@ -755,7 +748,7 @@ describe 'parser'
             }
 
         it 'assignment from field'
-            (expression 'x = y: z') should contain fields {
+            (expression 'x = y.z') should contain fields {
                 is definition
                 target {variable ['x']}
                 source {
@@ -808,7 +801,7 @@ describe 'parser'
             }
 
         it 'assignment from method call'
-            (expression 'x = y: z (a)') should contain fields {
+            (expression 'x = y.z (a)') should contain fields {
                 is definition
                 target {variable ['x']}
                 source {
@@ -823,7 +816,7 @@ describe 'parser'
             }
 
         it 'field assignment from method call'
-            (expression 'i: x = y: z (a)') should contain fields {
+            (expression 'i.x = y.z (a)') should contain fields {
                 is definition
                 target {
                     is field reference

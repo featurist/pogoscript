@@ -47,7 +47,7 @@
                 self = this;
                 self.indents.shift();
                 tokens = [];
-                while (self.indents[0] != "bracket") {
+                while (self.indents[0] !== "bracket") {
                     tokens.push("}");
                     self.indents.shift();
                 }
@@ -73,8 +73,8 @@
                     var currentIndentation, indentation;
                     currentIndentation = self.currentIndentation();
                     indentation = self.indentation(text);
-                    if (currentIndentation == indentation) {
-                        return [ "." ];
+                    if (currentIndentation === indentation) {
+                        return [ "," ];
                     } else if (currentIndentation < indentation) {
                         self.indents.unshift(indentation);
                         return [ "@{" ];
@@ -86,7 +86,7 @@
                             self.indents.shift();
                         }
                         if (self.isMultiNewLine(text)) {
-                            tokens.push(".");
+                            tokens.push(",");
                         }
                         if (self.indents[0] < indentation) {
                             tokens.push("@{");
