@@ -81,6 +81,14 @@ describe 'complex expression'
         arguments [{integer 10}]
       }
 
+    it 'hash entries as arguments are optional'
+      expression [[id 'a', int 10, cg: hash entry ['port'] (int 80)]] should contain fields {
+        is function call
+        function {is variable, variable ['a']}
+        arguments [{integer 10}]
+        optional arguments [{field ['port'], value {integer 80}}]
+      }
+
     it 'finds macro with arguments'
       expression [[id 'if', variable 'x', block]] should contain fields {
         is if expression
@@ -379,7 +387,7 @@ describe 'complex expression'
         }
       }
     
-    it 'function definition with optional parameter'
+    it 'function definition with optional parameter in tail'
       definition [[id 'function', variable 'x'], [id 'port', int 80], [id 'name']] (variable 'y') should contain fields {
         is definition
         target {
@@ -393,6 +401,25 @@ describe 'complex expression'
           optional parameters [
             {field ['port'], value {integer 80}}
             {field ['name'], value = undefined}
+          ]
+          body {statements [{variable ['y']}]}
+        }
+      }
+    
+    it 'function definition with optional parameter'
+      definition [[id 'function', variable 'x', cg: hash entry ['port'] (int 80), cg: hash entry ['name'] (variable 'nil')]] (variable 'y') should contain fields {
+        is definition
+        target {
+          is variable
+          variable ['function']
+        }
+        
+        source {
+          is block
+          parameters [{variable ['x']}]
+          optional parameters [
+            {field ['port'], value {integer 80}}
+            {field ['name'], value = {variable ['nil']}}
           ]
           body {statements [{variable ['y']}]}
         }

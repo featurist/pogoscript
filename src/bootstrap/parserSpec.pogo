@@ -397,8 +397,26 @@ describe 'parser'
                 ]
             }
 
-        it 'function call with two optional arguments'
+        it 'function call with two optional arguments using ;'
             (expression 'name (a); port 34; server (s)') should contain fields {
+                function {variable ['name']}
+                arguments [
+                    {variable ['a']}
+                ]
+                optional arguments [
+                    {
+                        field ['port']
+                        value {integer 34}
+                    }
+                    {
+                        field ['server']
+                        value {variable ['s']}
+                    }
+                ]
+            }
+
+        it 'function call with two optional arguments'
+            (expression 'name (a, port: 34, server: s)') should contain fields {
                 function {variable ['name']}
                 arguments [
                     {variable ['a']}

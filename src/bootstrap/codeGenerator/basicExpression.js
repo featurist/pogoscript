@@ -55,7 +55,9 @@ module.exports = function (terminals) {
         return this._parameters;
       }
       
-      var args = this.arguments();
+      var args = _(this.arguments()).filter(function (a) {
+        return !a.isHashEntry;
+      });
 
 			if (skipFirstParameter) {
 				args = args.slice(1);
@@ -64,6 +66,18 @@ module.exports = function (terminals) {
       return this._parameters = _(args).map(function (arg) {
         return arg.parameter();
       });
+    };
+    
+    this.optionalParameters = function () {
+      if (this._optionalParameters) {
+        return this._optionalParameters;
+      }
+      
+      var args = _(this.arguments()).filter(function (a) {
+        return a.isHashEntry;
+      });
+
+      return this._optionalParameters = args;
     };
     
     this.hasParameters = function () {

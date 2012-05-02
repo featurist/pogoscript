@@ -85,6 +85,9 @@ describe 'basic expression'
     target (expression) has parameters (parameters) =
       (cg: basic expression (expression): parameters?) should contain fields (parameters)
   
+    target (expression) has optional parameters (parameters) =
+      (cg: basic expression (expression): optional parameters?) should contain fields (parameters)
+  
     it 'single name'
       target [id 'car'] doesnt have some parameters
   
@@ -94,6 +97,18 @@ describe 'basic expression'
 
         it 'parameters'
             target [id 'car', variable] has parameters [{variable ['a']}]
+  
+    describe 'name and optional'
+        it 'has parameters'
+            target [id 'car', cg: hash entry ['colour'] (cg: variable ['red'])] has some parameters
+
+        it 'parameters'
+            target [id 'car', cg: hash entry ['colour'] (cg: variable ['red'])] has parameters []
+
+        it 'optional parameters'
+            target [id 'car', cg: hash entry ['colour'] (cg: variable ['red'])] has optional parameters [
+                {field ['colour'], value {variable ['red']}}
+            ]
   
     describe 'no arg punctuation'
         it 'has parameters'

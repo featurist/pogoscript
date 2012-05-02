@@ -62,8 +62,13 @@ exports: grammar = {
             ['', '$$ = [];']
         ]
         arguments_list [
-            ['expression_list', '$$ = $expression_list;']
+            ['arguments_list , argument', '$1.push($3); $$ = $1;']
+            ['argument', '$$ = [$1];']
             ['', '$$ = [];']
+        ]
+        argument [
+            ['expression : expression', '$$ = $1.definition($3.expression()).hashEntry();']
+            ['statement', '$$ = $1']
         ]
         parameter_list [
             ['parameter_list , statement', '$1.push($3); $$ = $1;']
@@ -98,7 +103,6 @@ exports: grammar = {
         ]
         object_operation [
             ['object_operation object_reference_with_newline complex_expression', '$$ = $3.objectOperation($1.expression());']
-            ['. complex_expression', '$$ = $2.objectOperation(yy.terms.selfExpression());']
             ['complex_expression', '$$ = $1;']
         ]
         complex_expression [

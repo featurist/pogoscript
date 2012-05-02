@@ -36,7 +36,9 @@ module.exports = function (listOfTerminals) {
         return this._optionalArguments = _(tail).map(function (e) {
           n++;
           return e.hashEntry({withoutBlock: n === tailLength});
-        });
+        }).concat(_(this.head().arguments()).filter(function (a) {
+          return a.isHashEntry;
+        }));
       }
     };
     
@@ -61,7 +63,9 @@ module.exports = function (listOfTerminals) {
       if (this._arguments) {
         return this._arguments;
       } else {
-        var args = this.head().arguments();
+        var args = _(this.head().arguments()).filter(function (a) {
+          return !a.isHashEntry;
+        });
         
         var tailBlock = this.tailBlock();
         
@@ -123,7 +127,7 @@ module.exports = function (listOfTerminals) {
     
     this.hasParameters = function () {
       return this._hasParameters || (this._hasParameters =
-        this.head().hasParameters() || this.optionalParameters().length > 0
+        this.head().hasParameters() > 0 || this.optionalParameters().length > 0
       );
     };
     
