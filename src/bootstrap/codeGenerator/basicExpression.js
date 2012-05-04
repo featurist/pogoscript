@@ -122,7 +122,7 @@ module.exports = function (terminals) {
       }
       
       if (name.length === 0 && args.length === 2 && args[0].isString) {
-        return cg.hashEntry([args[0].string], args[1])
+        return cg.hashEntry(args[0], args[1])
       }
       
       return errors.addTermWithMessage(this, 'cannot be a hash entry');
@@ -141,7 +141,7 @@ module.exports = function (terminals) {
     this.hashKey = function () {
       var args = this.arguments();
       if (args.length === 1 && args[0].isString) {
-        return [args[0].string];
+        return args[0];
       } else if (!this.hasParameters() && !this.hasArguments() && this.hasName()) {
         return this.name();
       } else {
