@@ -110,25 +110,18 @@ exports: grammar = {
         ]
         basic_expression_list [
             ['basic_expression_list ; terminal_list', '$1.push($3); $$ = $1;']
-            ['terminal_list_no_arg', '$$ = [$1];']
-        ]
-        terminal_list_no_arg [
-            ['terminal_list no_arg_punctuation', '$1.push($2); $$ = $1;']
-            ['terminal_list', '$$ = $1;']
+            ['terminal_list', '$$ = [$1];']
         ]
         basic_expression [
             ['terminal_list', '$$ = yy.terms.basicExpression($1);']
         ]
-        no_arg_punctuation [
-            ['no_arg', '$$ = yy.terms.loc(yy.terms.noArgSuffix(), @$);']
-        ]
-        no_arg [
-            ['!', '$$ = $1;']
-            ['?', '$$ = $1;']
-        ]
         terminal_list [
             ['terminal_list terminal', '$1.push($2); $$ = $1;']
+            ['terminal_list async_operator', '$1.push($2); $$ = $1;']
             ['terminal', '$$ = [$1];']
+        ]
+        async_operator [
+            ['!', '$$ = yy.terms.loc(yy.terms.asyncArgument(), @$);']
         ]
         terminal [
             ['( arguments_list )', '$$ = yy.terms.loc(yy.terms.argumentList($arguments_list), @$);']

@@ -20,9 +20,9 @@ module.exports = function (terminals) {
       }));
     };
     
-    this.containsCallPunctuation = function () {
-      return this._containsCallPunctuation || (this._containsCallPunctuation =
-        this.terminals[this.terminals.length - 1].noArgumentFunctionCallSuffix
+    this.hasAsyncArgument = function () {
+      return this._hasAsyncArgument || (this._hasAsyncArgument =
+        this.terminals[this.terminals.length - 1].isAsyncArgument
       );
     };
     

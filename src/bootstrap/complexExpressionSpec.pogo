@@ -16,7 +16,7 @@ block = cg: block [] (cg: statements [variable 'x'])
 
 string (value) = cg: string (value)
 
-no arg punctuation = cg: no arg suffix?
+async argument = cg: async argument?
 
 describe 'complex expression'
   describe 'has arguments'
@@ -26,8 +26,8 @@ describe 'complex expression'
     it 'with arguments in head'
       expression [[id 'a', int 10]] should have arguments
     
-    it 'with no arg arguments'
-      expression [[id 'a', no arg punctuation]] should have arguments
+    it 'with async argument'
+      expression [[id 'a', async argument]] should have arguments
     
     it 'with tail block'
       expression [[id 'a'], [id 'readonly', block]] should have arguments
@@ -61,8 +61,8 @@ describe 'complex expression'
         arguments [{integer 9}]
       }
 
-    it 'one argument and call punctuation is function call'
-      expression [[variable 'z', no arg punctuation]] should contain fields {
+    it 'one argument and async argument is function call'
+      expression [[variable 'z', async argument]] should contain fields {
         is function call
         function {variable ['z']}
         arguments []
@@ -164,8 +164,8 @@ describe 'complex expression'
         arguments [{integer 10}]
       }
 
-    it 'index call with no arguments'
-      expression (variable 'a') [[variable 'z', no arg punctuation]] should contain fields {
+    it 'async index call with no arguments'
+      expression (variable 'a') [[variable 'z', async argument]] should contain fields {
         is function call
         function {
           is indexer
@@ -343,8 +343,8 @@ describe 'complex expression'
         }
       }
     
-    it 'index method definition with no args'
-      definition (variable 'object') [[cg: string 'xyz', no arg punctuation]] (variable 'y') should contain fields {
+    it 'async index method definition with no args'
+      definition (variable 'object') [[cg: string 'xyz', async argument]] (variable 'y') should contain fields {
         is definition
         target {
           is indexer
@@ -440,8 +440,8 @@ describe 'complex expression'
         }
       }
     
-    it 'no arg function definition'
-      definition [[id 'function', no arg punctuation]] (variable 'y') should contain fields {
+    it 'async function definition'
+      definition [[id 'function', async argument]] (variable 'y') should contain fields {
         is definition
         target {
           is variable

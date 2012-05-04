@@ -373,15 +373,15 @@ var selfExpression = exports.selfExpression = function () {
   return variable(['self'], {shadow: true});
 };
 
-var noArgSuffix = exports.noArgSuffix = function () {
+var asyncArgument = exports.asyncArgument = function () {
   return term(function () {
-    this.noArgumentFunctionCallSuffix = true;
+    this.isAsyncArgument = true;
     
     this.arguments = function () {
       return [];
     };
   });
-};
+}
 
 var parameters = exports.parameters = function (parms) {
   return term(function () {

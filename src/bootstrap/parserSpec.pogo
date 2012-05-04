@@ -397,24 +397,6 @@ describe 'parser'
                 ]
             }
 
-        it 'function call with two optional arguments using ;'
-            (expression 'name (a); port 34; server (s)') should contain fields {
-                function {variable ['name']}
-                arguments [
-                    {variable ['a']}
-                ]
-                optional arguments [
-                    {
-                        field ['port']
-                        value {integer 34}
-                    }
-                    {
-                        field ['server']
-                        value {variable ['s']}
-                    }
-                ]
-            }
-
         it 'function call with two optional arguments'
             (expression 'name (a, port: 34, server: s)') should contain fields {
                 function {variable ['name']}
@@ -429,42 +411,6 @@ describe 'parser'
                     {
                         field ['server']
                         value {variable ['s']}
-                    }
-                ]
-            }
-
-        it 'function call with no arguments and one optional argument'
-            (expression 'start server; port 34') should contain fields {
-                function {variable ['start'. 'server']}
-                arguments []
-                optional arguments [
-                    {
-                        field ['port']
-                        value {integer 34}
-                    }
-                ]
-            }
-
-        it 'function call with no arguments using ! and one optional argument'
-            (expression 'start server!; port 34') should contain fields {
-                function {variable ['start'. 'server']}
-                arguments []
-                optional arguments [
-                    {
-                        field ['port']
-                        value {integer 34}
-                    }
-                ]
-            }
-
-        it 'function call with no arguments using ? and one optional argument'
-            (expression 'start server?; port 34') should contain fields {
-                function {variable ['start'. 'server']}
-                arguments []
-                optional arguments [
-                    {
-                        field ['port']
-                        value {integer 34}
                     }
                 ]
             }
@@ -511,7 +457,7 @@ describe 'parser'
             }
         
         it 'parses no argument method with ?'
-            (expression 'object.method?') should contain fields {
+            (expression 'object.method()') should contain fields {
                 is method call
                 object {variable ['object']}
                 name ['method']
@@ -519,19 +465,7 @@ describe 'parser'
             }
         
         it 'parses no argument method with ? and field'
-            (expression 'object.method? .field') should contain fields {
-                is field reference
-                object {
-                    is method call
-                    object {variable ['object']}
-                    name ['method']
-                    arguments []
-                }
-                name ['field']
-            }
-        
-        it 'parses no argument method with ? and field'
-            (expression 'object.method?.field') should contain fields {
+            (expression 'object.method().field') should contain fields {
                 is field reference
                 object {
                     is method call
@@ -794,19 +728,6 @@ describe 'parser'
 
         it 'definition of function with no arguments, using empty parens "()"'
             (expression 'x () = 8') should contain fields {
-                is definition
-                target {variable ['x']}
-                source {
-                    is block
-                    parameters []
-                    body {
-                        statements [{integer 8}]
-                    }
-                }
-            }
-
-        it 'assignment of query'
-            (expression 'x? = 8') should contain fields {
                 is definition
                 target {variable ['x']}
                 source {

@@ -20,7 +20,7 @@ describe 'basic expression'
   string (n) =
     cg: string (n)
   
-  no arg punctuation = cg: no arg suffix?
+  async argument = cg: async argument?
   
   describe 'has arguments'
     it 'with one variable'
@@ -32,8 +32,8 @@ describe 'basic expression'
     it 'with name and a block'
       with terminals [id 'c', block] should have arguments
     
-    it 'with name, no arguments but a no arg punctuation'
-      with terminals [id 'c', no arg punctuation] should have arguments
+    it 'with name, no arguments but an async argument'
+      with terminals [id 'c', async argument] should have arguments
     
     it 'with name and empty argument list'
       with terminals [id 'c', cg: argument list []] should have arguments
@@ -74,6 +74,9 @@ describe 'basic expression'
           statements [{is variable, variable ['a']}]
         }
       }]
+     
+    it 'has async argument'
+      (cg: basic expression [id 'stuff', async argument]: has async argument?) should be truthy
 
   describe 'parameters'
     target (expression) has some parameters =
@@ -110,12 +113,12 @@ describe 'basic expression'
                 {field ['colour'], value {variable ['red']}}
             ]
   
-    describe 'no arg punctuation'
+    describe 'async argument'
         it 'has parameters'
-            target [id 'car', no arg punctuation] has some parameters
+            target [id 'car', async argument] has some parameters
             
         it 'parameters'
-            target [id 'car', no arg punctuation] has parameters []
+            target [id 'car', async argument] has parameters []
   
     describe 'empty argument list'
         it 'has parameters'

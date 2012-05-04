@@ -7,22 +7,22 @@ should throw = script: should throw
 with args should output = script: with args should output
 
 describe 'pogo command'
-    it "`process: argv` contains 'pogo', the name of the
+    it "`process.argv` contains 'pogo', the name of the
          script executed, and the arguments from the command line" @(done)
     
-        'console: log (process: argv)' with args ['one', 'two'] should output "[ 'pogo',
-                                                                                 '#(path: resolve '086cb9ffe81d17023c281a4789bdf5c45ddc1d76.pogo')',
-                                                                                 'one',
-                                                                                 'two' ]" (done)
+        'console.log (process.argv)' with args ['one', 'two'] should output "[ 'pogo',
+                                                                               '#(path: resolve '343111c34d666435dd7e88265c816cbfdbe68cd3.pogo')',
+                                                                               'one',
+                                                                               'two' ]" (done)
 
     it "`__filename` should be the name of the script" @(done)
-        'console: log (__filename)' with args [] should output (path: resolve "ec798ad9d0e16bd17a4ba1cceab4be9591c65bfe.pogo") (done)
+        'console.log (__filename)' with args [] should output (path: resolve "5be55a44c52f14d048d19c020fd913199ae2e61c.pogo") (done)
 
     it "`__dirname` should be the name of the script" @(done)
-        'console: log (__dirname)' with args [] should output (path: resolve ".") (done)
+        'console.log (__dirname)' with args [] should output (path: resolve ".") (done)
     
     it "runs script files even if they don't use the .pogo extension" @(done)
-        'console: log "hi"' with args [] should output 'hi'; script filename 'ascript'
+        'console.log "hi"' with args [] should output 'hi'; script filename 'ascript'
             done!
 
 describe 'script'
@@ -35,7 +35,7 @@ describe 'script'
             'print (new (Array))' should output '[]'
             
         it 'new operator can be called with 1 argument'
-            'print (new (Date 2010 10 9): value of?)' should output '1289260800000'
+            'print (new (Date 2010 10 9).value of())' should output '1289260800000'
     
     describe '== has semantics equivalent to === in JS'
         it 'returns false for equality of "" with 0'
@@ -50,9 +50,6 @@ describe 'script'
         
         it 'a hash can have multiple entries, delimited by commas'
             "print {color 'red', size 'large'}" should output "{ color: 'red', size: 'large' }"
-        
-        it 'a hash can have multiple entries, delimited by dots'
-            "print {color 'red'. size 'large'}" should output "{ color: 'red', size: 'large' }"
         
         it 'a hash can have multiple entries, delimited by new lines'
             "print {
@@ -69,9 +66,6 @@ describe 'script'
         
         it 'list entries can be delimited with a comma ","'
             'print [1, 2]' should output '[ 1, 2 ]'
-        
-        it 'list entries can be delimited with a dot "."'
-            'print [1. 2]' should output '[ 1, 2 ]'
         
         it 'list entries can be delimited with a newline'
             'print [
@@ -99,17 +93,6 @@ describe 'script'
                         print "hi"
                 
                      say hi ()' should output "'hi'"
-                 
-                it 'a function can be defined to have no parameters with the question mark "?"'
-                    'index = 0
-                 
-                     current index? =
-                        index
-                
-                     print (current index?)
-                     index = 10
-                     print (current index?)' should output '0
-                                                            10'
                 
                 it "a function's parameters shadow variables in outer scope"
                     'foo (a) =
@@ -135,7 +118,7 @@ describe 'script'
             
             it "a function's splat parameter shadows variables in outer scope"
                 'foo (a, ...) =
-                     print (a: 0)
+                     print (a.0)
                  
                  a = "outer a"
                  
@@ -203,11 +186,3 @@ describe 'script'
                  foo; bar ("inner bar")
                  print (bar)' should output "'inner bar'
                                              'outer bar'"
-
-    describe 'scope'
-        it 'statements can be delimited by dots in parens, the last statement is returned'
-            'print (x = 1. x = x + 1. x)' should output '2'
-            
-        it 'any variables defined inside the scope are not accessible outside the scope'
-            '(x = 1. x = x + 1. x)
-             x' should throw 'ReferenceError: x is not defined'
