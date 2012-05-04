@@ -162,27 +162,27 @@ describe 'script'
                 and other optional arguments are passed by the caller
                 but not that one, then that default value is used'
                   
-                'open tcp connection; port 80 =
+                'open tcp connection (port: 80) =
                      print (port)
                  
-                 open tcp connection; host "pogoscript.org"' should output "80"
+                 open tcp connection (host: "pogoscript.org")' should output "80"
             
             it "a function's optional parameter shadows variables in outer scope"
-                'foo; bar =
+                'foo (bar: nil) =
                      print (bar)
                  
                  bar = "outer bar"
-                 foo; bar ("inner bar")
+                 foo (bar: "inner bar")
                  print (bar)' should output "'inner bar'
                                              'outer bar'"
             
             it "a function's optional parameter shadows variables in outer scope,
                 even if it has a default value"
                   
-                'foo; bar 80 =
+                'foo (bar: 80) =
                      print (bar)
                  
                  bar = "outer bar"
-                 foo; bar ("inner bar")
+                 foo (bar: "inner bar")
                  print (bar)' should output "'inner bar'
                                              'outer bar'"

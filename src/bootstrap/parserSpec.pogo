@@ -268,7 +268,7 @@ describe 'parser'
                 }
                     
             it 'should allow methods to be defined, redefining self'
-                (expression '{say hi to (name); greeting = print (name)}') should contain fields {
+                (expression '{say hi to (name, greeting: nil) = print (name)}') should contain fields {
                     is hash
                     entries [
                         {
@@ -425,7 +425,7 @@ describe 'parser'
             }
         
         it 'method call with optional arguments'
-            (expression 'object.method (argument); view (view)') should contain fields {
+            (expression 'object.method (argument, view: view)') should contain fields {
                 is method call
                 object {variable ['object']}
                 name ['method']
@@ -665,7 +665,7 @@ describe 'parser'
                 }
 
             it 'function with one parameter, and one optional parameter'
-                (expression 'func (x); port 80 = x') should contain fields {
+                (expression 'func (x, port: 80) = x') should contain fields {
                     is definition
                     target {variable ['func']}
                     source {

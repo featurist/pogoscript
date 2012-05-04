@@ -109,11 +109,7 @@ exports: grammar = {
             ['basic_expression_list', '$$ = yy.terms.complexExpression($1);']
         ]
         basic_expression_list [
-            ['basic_expression_list ; terminal_list', '$1.push($3); $$ = $1;']
             ['terminal_list', '$$ = [$1];']
-        ]
-        basic_expression [
-            ['terminal_list', '$$ = yy.terms.basicExpression($1);']
         ]
         terminal_list [
             ['terminal_list terminal', '$1.push($2); $$ = $1;']
