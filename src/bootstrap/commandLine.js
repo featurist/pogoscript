@@ -25,7 +25,7 @@
             beautify: true
         });
     };
-    self.compileFile = compileFile = function(filename, gen1_options) {
+    exports.compileFile = compileFile = function(filename, gen1_options) {
         var ugly, js, jsFilename;
         ugly = gen1_options && gen1_options.ugly != null ? gen1_options.ugly : undefined;
         js = compileFromFile(filename, {
@@ -45,7 +45,7 @@
             return act();
         });
     };
-    self.watchFile = function(filename, options) {
+    exports.watchFile = function(filename, options) {
         var self, compile;
         self = this;
         compile = function() {
@@ -57,28 +57,31 @@
             return compile();
         });
     };
-    self.lexFile = function(filename) {
-        var self, source, tokens, gen2_items, gen3_i, token, text;
+    exports.lexFile = function(filename) {
+        var self, source, tokens, gen2_items, gen3_i;
         self = this;
         source = fs.readFileSync(filename, "utf-8");
         tokens = parser.lex(source);
         gen2_items = tokens;
         for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
-            token = gen2_items[gen3_i];
-            text = token[1] && "'" + token[1] + "'" || "";
-            console.log("<" + token[0] + "> " + text);
+            (function(gen3_i) {
+                var token, text;
+                token = gen2_items[gen3_i];
+                text = token[1] && "'" + token[1] + "'" || "";
+                console.log("<" + token[0] + "> " + text);
+            })(gen3_i);
         }
     };
     jsFilenameFromPogoFilename = function(pogo) {
         return pogo.replace(/\.pogo$/, "") + ".js";
     };
-    self.runFileInModule = function(filename, module) {
+    exports.runFileInModule = function(filename, module) {
         var self, js;
         self = this;
         js = compileFromFile(filename);
         return module._compile(js, filename);
     };
-    self.runMain = function(filename) {
+    exports.runMain = function(filename) {
         var self, fullFilename, module;
         self = this;
         fullFilename = fs.realpathSync(filename);
@@ -90,10 +93,10 @@
         module.id = ".";
         module.filename = fullFilename;
         module.paths = Module._nodeModulePaths(path.dirname(fullFilename));
-        self.runFileInModule(fullFilename, module);
+        exports.runFileInModule(fullFilename, module);
         return module.loaded = true;
     };
-    self.compile = function(pogo, gen4_options) {
+    exports.compile = function(pogo, gen4_options) {
         var filename, inScope, ugly, global, returnResult, self, moduleTerm, code;
         filename = gen4_options && gen4_options.filename != null ? gen4_options.filename : undefined;
         inScope = gen4_options && gen4_options.inScope != null ? gen4_options.inScope : true;
@@ -119,7 +122,7 @@
             return code;
         }
     };
-    self.evaluate = function(pogo, gen5_options) {
+    exports.evaluate = function(pogo, gen5_options) {
         var definitions, global, self, js, definitionNames, parameters, runScript, definitionValues;
         definitions = gen5_options && gen5_options.definitions != null ? gen5_options.definitions : {};
         global = gen5_options && gen5_options.global != null ? gen5_options.global : false;
@@ -138,7 +141,7 @@
         });
         return runScript.apply(undefined, definitionValues);
     };
-    self.repl = function() {
+    exports.repl = function() {
         var self, interface, prompt;
         self = this;
         interface = readline.createInterface(process.stdin, process.stdout);
@@ -188,7 +191,7 @@
                 return lines.slice(range.from - 1, range.to);
             };
             self.printLinesInRange = function(gen8_options) {
-                var prefix, from, to, self, gen9_items, gen10_i, line;
+                var prefix, from, to, self, gen9_items, gen10_i;
                 prefix = gen8_options && gen8_options.prefix != null ? gen8_options.prefix : "";
                 from = gen8_options && gen8_options.from != null ? gen8_options.from : undefined;
                 to = gen8_options && gen8_options.to != null ? gen8_options.to : undefined;
@@ -198,8 +201,11 @@
                     to: to
                 });
                 for (gen10_i = 0; gen10_i < gen9_items.length; gen10_i++) {
-                    line = gen9_items[gen10_i];
-                    process.stderr.write(prefix + line + "\n");
+                    (function(gen10_i) {
+                        var line;
+                        line = gen9_items[gen10_i];
+                        process.stderr.write(prefix + line + "\n");
+                    })(gen10_i);
                 }
             };
             self.printLocation = function(location) {
@@ -228,7 +234,9 @@
                 self = this;
                 strings = [];
                 for (i = 0; i < n; i = i + 1) {
-                    strings.push(s);
+                    (function(i) {
+                        strings.push(s);
+                    })(i);
                 }
                 return strings.join("");
             };
