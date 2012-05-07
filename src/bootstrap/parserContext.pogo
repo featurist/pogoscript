@@ -1,29 +1,29 @@
-create indent stack = require './indentStack':create indent stack
-create interpolation = require './interpolation': create interpolation
+create indent stack = require './indentStack'.create indent stack
+create interpolation = require './interpolation'.create interpolation
 
-exports: create parser context =
-    create parser context; terms = object =>
-        :terms = terms
+exports.create parser context =
+    create parser context (terms: nil) = object =>
+        self.terms = terms
 
-        :indent stack = create indent stack!
+        self.indent stack = create indent stack ()
 
-        :tokens (tokens) =
-            :lexer:tokens = tokens
-            tokens:shift?
+        self.tokens (tokens) =
+            self.lexer.tokens = tokens
+            tokens.shift ()
 
-        :set indentation (text) =
-            :indent stack:set indentation (text)
+        self.set indentation (text) =
+            self.indent stack.set indentation (text)
 
-        :unset indentation (token) =
-            tokens = :indent stack:unset indentation!
-            tokens: push (token)
-            :tokens (tokens)
+        self.unset indentation (token) =
+            tokens = self.indent stack.unset indentation ()
+            tokens.push (token)
+            self.tokens (tokens)
 
-        :indentation (text) =
-            tokens = :indent stack:tokens for new line (text)
-            :tokens (tokens)
+        self.indentation (text) =
+            tokens = self.indent stack.tokens for new line (text)
+            self.tokens (tokens)
 
-        :eof! =
-            :tokens (:indent stack:tokens for eof?)
+        self.eof () =
+            self.tokens (self.indent stack.tokens for eof ())
 
-        :interpolation = create interpolation!
+        self.interpolation = create interpolation ()

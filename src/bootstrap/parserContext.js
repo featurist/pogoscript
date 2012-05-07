@@ -5,7 +5,7 @@
     createInterpolation = require("./interpolation").createInterpolation;
     exports.createParserContext = createParserContext = function(gen1_options) {
         var terms;
-        terms = gen1_options && gen1_options.terms != null ? gen1_options.terms : undefined;
+        terms = gen1_options && gen1_options.terms != null ? gen1_options.terms : void 0;
         return object(function() {
             var self;
             self = this;
