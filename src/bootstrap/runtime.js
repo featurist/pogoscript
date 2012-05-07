@@ -12,9 +12,11 @@
             return c = function() {
                 var member;
                 for (var member in members) {
-                    if (members.hasOwnProperty(member)) {
-                        this[member] = members[member];
-                    }
+                    (function(member) {
+                        if (members.hasOwnProperty(member)) {
+                            this[member] = members[member];
+                        }
+                    })(member);
                 }
             };
         }
