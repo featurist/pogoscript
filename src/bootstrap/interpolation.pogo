@@ -1,21 +1,21 @@
-exports: create interpolation! = {
+exports.create interpolation () = {
     stack = []
 
-    start interpolation! =
-        :stack: unshift {brackets = 0}
+    start interpolation () =
+        self.stack.unshift {brackets = 0}
 
-    open bracket! =
-        :stack: 0: brackets = :stack: 0: brackets + 1
+    open bracket () =
+        self.stack.0.brackets = self.stack.0.brackets + 1
 
-    close bracket! =
-        :stack: 0: brackets = :stack: 0: brackets - 1
+    close bracket () =
+        self.stack.0.brackets = self.stack.0.brackets - 1
 
-    finished interpolation? =
-        :stack: 0: brackets < 0
+    finished interpolation () =
+        self.stack.0.brackets < 0
 
-    stop interpolation! =
-        :stack: shift!
+    stop interpolation () =
+        self.stack.shift ()
 
-    interpolating? =
-        :stack: length > 0
+    interpolating () =
+        self.stack.length > 0
 }
