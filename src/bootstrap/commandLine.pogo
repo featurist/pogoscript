@@ -17,10 +17,10 @@ generate code (term) =
 
 beautify (code) =
     ast = uglify.parser.parse (code)
-    uglify.uglify.gen_code (ast); beautify
+    uglify.uglify.gen_code (ast, beautify: true)
 
-exports.compile file = compile file (filename); ugly =
-    js = compile from file (filename); ugly (ugly)
+exports.compile file = compile file (filename, ugly: false) =
+    js = compile from file (filename, ugly: ugly)
 
     js filename = js filename from pogo filename (filename)
     fs.write file sync (js filename, js)
@@ -72,7 +72,7 @@ exports.run main (filename) =
     exports.run file (full filename) in module (module)
     module.loaded = true
 
-exports.compile (pogo); filename; in scope (true); ugly; global (false); return result (false) =
+exports.compile (pogo, filename: nil, in scope: true, ugly: false, global: false, return result: false) =
     module term = parse (pogo)
     module term.in scope = in scope
     module term.global = global
@@ -84,13 +84,13 @@ exports.compile (pogo); filename; in scope (true); ugly; global (false); return 
         code = beautify (code)
 
     if (errors.has errors ())
-        errors.print errors (source location printer; filename (filename); source (pogo))
+        errors.print errors (source location printer (filename: filename, source: pogo))
         process.exit 1
     else
         code
 
-exports.evaluate (pogo); definitions {}; global (false) =
-    js = exports.compile (pogo); ugly; in scope (!global); global (global); return result (global)
+exports.evaluate (pogo, definitions: {}, global: false) =
+    js = exports.compile (pogo, ugly: true, in scope: !global, global: global, return result: global)
     definition names = _.keys (definitions)
     
     parameters = definition names.join ','
@@ -119,23 +119,23 @@ exports.repl () =
 
 evalute repl line (line) =
     try
-        result = exports.evaluate (line); global
+        result = exports.evaluate (line, global: true)
         console.log ' =>' (util.inspect (result, undefined, undefined, true))
     catch @(ex)
         console.log (ex.message)
 
-compile from file (filename); ugly =
+compile from file (filename, ugly: false) =
     contents = fs.read file sync (filename) 'utf-8'
-    exports.compile (contents); filename (filename); ugly (ugly)
+    exports.compile (contents, filename: filename, ugly: ugly)
         
-source location printer; filename; source =
+source location printer (filename: nil, source: nil) =
     object =>
         self.lines in range (range) =
             lines = source.split `\n`
             lines.slice (range.from - 1) (range.to)
 
-        self.print lines in range; prefix ''; from; to =
-            for each @(line) in (self.lines in range; from (from); to (to))
+        self.print lines in range (prefix: '', from: nil, to: nil) =
+            for each @(line) in (self.lines in range (from: from, to: to))
                 process.stderr.write (prefix + line + "\n")
 
         self.print location (location) =
