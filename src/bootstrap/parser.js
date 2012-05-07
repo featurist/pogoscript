@@ -44,7 +44,7 @@
         parserContext.lexer = lexer;
         jisonLexer.yy = parserContext;
         tokenIndex = lexer.lex();
-        while (tokenIndex != 1) {
+        while (tokenIndex !== 1) {
             var token, text, lexerToken;
             token = function() {
                 if (typeof tokenIndex === "number") {
