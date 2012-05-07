@@ -18,7 +18,7 @@ describe 'parser'
         describe 'variables'
             it 'simple'
                 (expression 'total weight') should contain fields {
-                    variable ['total'. 'weight']
+                    variable ['total', 'weight']
                 }
 
             it 'can use $ as a variable'
@@ -60,7 +60,7 @@ describe 'parser'
             it 'two multiline string in function'
                 (expression "x 'one\n   two' y \"three\n           four\"") should contain fields {
                     is function call
-                    function {variable ['x'. 'y']}
+                    function {variable ['x', 'y']}
                     arguments [
                         {string "one\ntwo"}
                         {string "three\nfour"}
@@ -100,7 +100,7 @@ describe 'parser'
                     is interpolated string
                     components [
                         {string 'a boat '}
-                        {variable ['boat'. 'length']}
+                        {variable ['boat', 'length']}
                         {string ' meters in length'}
                     ]
                 }
@@ -117,8 +117,8 @@ describe 'parser'
                     components [
                         {string 'a boat '}
                         {
-                            function {variable ['lookup'. 'boat'. 'length'. 'from']}
-                            arguments [{variable ['boat'. 'database']}]
+                            function {variable ['lookup', 'boat', 'length', 'from']}
+                            arguments [{variable ['boat', 'database']}]
                         }
                         {string ' meters in length'}
                     ]
@@ -218,7 +218,7 @@ describe 'parser'
                             value {integer 1234}
                         }
                         {
-                            field ['ip'. 'address']
+                            field ['ip', 'address']
                             value {string '1.1.1.1'}
                         }
                     ]
@@ -233,7 +233,7 @@ describe 'parser'
                             value {integer 1234}
                         }   
                         {
-                            field ['ip'. 'address']
+                            field ['ip', 'address']
                             value {string '1.1.1.1'}
                         }
                     ]
@@ -244,7 +244,7 @@ describe 'parser'
                     is hash
                     entries [
                         {
-                            field ['port']
+                            field {string 'port'}
                             value {integer 1234}
                         }
                     ]
@@ -272,7 +272,7 @@ describe 'parser'
                     is hash
                     entries [
                         {
-                            field ['say'. 'hi'. 'to']
+                            field ['say', 'hi', 'to']
                             value {
                                 is block
                                 redefines self
@@ -347,19 +347,19 @@ describe 'parser'
 
         it 'function call with no argument'
             (expression 'delete everything!') should contain fields {
-                function {variable ['delete'. 'everything']}
+                function {variable ['delete', 'everything']}
                 arguments []
             }
 
         it 'function call with no argument using empty parens'
             (expression 'delete everything ()') should contain fields {
-                function {variable ['delete'. 'everything']}
+                function {variable ['delete', 'everything']}
                 arguments []
             }
 
         it 'function call with block with parameters'
             (expression "with file (file) @(stream)\n  stream") should contain fields {
-                function {variable ['with'. 'file']}
+                function {variable ['with', 'file']}
                 arguments [
                     {variable ['file']}
                     {
@@ -371,13 +371,13 @@ describe 'parser'
 
         it 'function call with block with long parameters'
             (expression "open database @(database connection)\n  database connection") should contain fields {
-                function {variable ['open'. 'database']}
+                function {variable ['open', 'database']}
                 arguments [
                     {
                         parameters [
-                            {variable ['database'. 'connection']}
+                            {variable ['database', 'connection']}
                         ]
-                        body {statements [{variable ['database'. 'connection']}]}
+                        body {statements [{variable ['database', 'connection']}]}
                     }
                 ]
             }
@@ -431,7 +431,7 @@ describe 'parser'
                 name ['method']
                 arguments [{variable ['argument']}]
                 optional arguments [
-                    {field ['view']. value {variable ['view']}}
+                    {field ['view'], value {variable ['view']}}
                 ]
             }
         
@@ -456,7 +456,7 @@ describe 'parser'
                 indexer {variable ['x']}
             }
         
-        it 'parses no argument method with ?'
+        it 'parses no argument method with ()'
             (expression 'object.method()') should contain fields {
                 is method call
                 object {variable ['object']}
@@ -464,7 +464,7 @@ describe 'parser'
                 arguments []
             }
         
-        it 'parses no argument method with ? and field'
+        it 'parses no argument method with () and field'
             (expression 'object.method().field') should contain fields {
                 is field reference
                 object {
@@ -670,7 +670,7 @@ describe 'parser'
                     target {variable ['func']}
                     source {
                         parameters [{variable ['x']}]
-                        optional parameters [{field ['port']. value {integer 80}}]
+                        optional parameters [{field ['port'], value {integer 80}}]
                         body {statements [{variable ['x']}]}
                     }
                 }
@@ -868,14 +868,14 @@ describe 'parser'
             it 'when on one line'
                 (statements "a /* comment */ b") should contain fields {
                     statements [
-                        {variable ['a'. 'b']}
+                        {variable ['a', 'b']}
                     ]
                 }
 
             it 'when there are two'
                 (statements "a /* comment */ b /* another comment */ c") should contain fields {
                     statements [
-                        {variable ['a'. 'b'. 'c']}
+                        {variable ['a', 'b', 'c']}
                     ]
                 }
 
@@ -891,7 +891,7 @@ describe 'parser'
             it 'when it contains a * character'
                 (statements "a /* sh*t */ b") should contain fields {
                     statements [
-                        {variable ['a'. 'b']}
+                        {variable ['a', 'b']}
                     ]
                 }
 
@@ -899,7 +899,7 @@ describe 'parser'
                 (statements "a /* line one\nline two */ b") should contain fields {
                     statements [{
                         is variable
-                        variable ['a'. 'b']
+                        variable ['a', 'b']
                     }]
                 }
 
@@ -925,11 +925,11 @@ describe 'parser'
                 }
 
     it 'lexer'
-        tokens = parser: lex 'a (b)'
+        tokens = parser.lex 'a (b)'
         (tokens) should contain fields [
-            ['identifier'. 'a']
+            ['identifier', 'a']
             ['(']
-            ['identifier'. 'b']
+            ['identifier', 'b']
             [')']
             ['eof']
         ]

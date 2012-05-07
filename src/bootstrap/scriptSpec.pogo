@@ -2,27 +2,27 @@ script = require './scriptAssertions.pogo'
 assert = require 'assert'
 path = require 'path'
 
-should output = script: should output
-should throw = script: should throw
-with args should output = script: with args should output
+should output = script.should output
+should throw = script.should throw
+with args should output = script.with args should output
 
 describe 'pogo command'
     it "`process.argv` contains 'pogo', the name of the
          script executed, and the arguments from the command line" @(done)
     
         'console.log (process.argv)' with args ['one', 'two'] should output "[ 'pogo',
-                                                                               '#(path: resolve '343111c34d666435dd7e88265c816cbfdbe68cd3.pogo')',
+                                                                               '#(path.resolve '343111c34d666435dd7e88265c816cbfdbe68cd3.pogo')',
                                                                                'one',
                                                                                'two' ]" (done)
 
     it "`__filename` should be the name of the script" @(done)
-        'console.log (__filename)' with args [] should output (path: resolve "5be55a44c52f14d048d19c020fd913199ae2e61c.pogo") (done)
+        'console.log (__filename)' with args [] should output (path.resolve "5be55a44c52f14d048d19c020fd913199ae2e61c.pogo") (done)
 
     it "`__dirname` should be the name of the script" @(done)
-        'console.log (__dirname)' with args [] should output (path: resolve ".") (done)
+        'console.log (__dirname)' with args [] should output (path.resolve ".") (done)
     
     it "runs script files even if they don't use the .pogo extension" @(done)
-        'console.log "hi"' with args [] should output 'hi'; script filename 'ascript'
+        'console.log "hi"' with args [] should output 'hi' (script filename: 'ascript')
             done!
 
 describe 'script'
@@ -127,33 +127,22 @@ describe 'script'
                                            'outer a'"
         
         describe 'optional arguments'
-            it 'functions can take optional arguments, delimited by semi-colons ";"'
-                'print; size 10' should output '{ size: 10 }'
+            it 'functions can take optional arguments'
+                'print (size: 10)' should output '{ size: 10 }'
     
-            it 'if an optional argument has no value, it is passed as true'
-                'print; is red' should output '{ isRed: true }'
-            
             it 'a function can be defined to take an optional argument'
-                'open tcp connection; host; port =
+                'open tcp connection (host: nil, port: nil) =
                      print (host)
                      print (port)
                  
-                 open tcp connection; host "pogoscript.org"; port 80' should output "'pogoscript.org'
-                                                                                     80"
-            
-            it 'if the optional parameter has no default value and is not passed by the caller,
-                it is defaulted to "undefined"'
-                  
-                'open tcp connection; host =
-                     print (host)
-                 
-                 open tcp connection!' should output "undefined"
+                 open tcp connection (host: "pogoscript.org", port: 80)' should output "'pogoscript.org'
+                                                                                        80"
             
             it 'if the optional parameter has a default value
                 and no optional arguments are passed by the caller,
                 then that default value is used'
                   
-                'open tcp connection; port 80 =
+                'open tcp connection (port: 80) =
                      print (port)
                  
                  open tcp connection!' should output "80"

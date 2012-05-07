@@ -3,18 +3,20 @@
     self = this;
     constructor = function(members) {
         if (members instanceof Function) {
-            var c;
-            return c = function() {
-                members.call(this);
+            return function() {
+                var self;
+                self = this;
+                members.call(self);
                 return undefined;
             };
         } else {
-            return c = function() {
-                var member;
+            return function() {
+                var self, member;
+                self = this;
                 for (var member in members) {
                     (function(member) {
                         if (members.hasOwnProperty(member)) {
-                            this[member] = members[member];
+                            self[member] = members[member];
                         }
                     })(member);
                 }

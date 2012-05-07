@@ -1,29 +1,29 @@
 require './runtime.pogo'
 
 atom prototype = object {
-    arguments? = []
-    block parameters? = []
-    word? = null
-    block? = null
+    arguments () = []
+    block parameters () = []
+    word () = null
+    block () = null
 }
 
-:atom (forms, members) =
+self.atom (forms, members) =
     a = object extending (atom prototype) (members)
-    a: forms = forms
+    a.forms = forms
     a
 
-:argument (forms, argument) = :atom (forms) {
-    arguments? = [argument]
+self.argument (forms, argument) = self.atom (forms) {
+    arguments () = [argument]
 }
 
-:block atom (forms, block) = :atom (forms) {
-    block? = block
+self.block atom (forms, block) = self.atom (forms) {
+    block () = block
 }
 
-:word (forms, word) = :atom (forms) {
-    word? = word
+self.word (forms, word) = self.atom (forms) {
+    word () = word
 }
 
-:block parameters (forms, parameters) = :atom (forms) {
-    block parameters? = parameters
+self.block parameters (forms, parameters) = self.atom (forms) {
+    block parameters () = parameters
 }

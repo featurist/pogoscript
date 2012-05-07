@@ -10,9 +10,9 @@ loc = {
     last column 8
 }
 
-id (name) = cg: loc (cg: identifier (name), loc)
-variable (name) = cg: variable [name]
-block (name) = cg: block [] (cg: statements [variable (name)])
+id (name) = cg.loc (cg.identifier (name), loc)
+variable (name) = cg.variable [name]
+block (name) = cg.block [] (cg.statements [variable (name)])
 
 describe 'macros'
     describe 'if'

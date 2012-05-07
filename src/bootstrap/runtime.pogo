@@ -1,13 +1,13 @@
 constructor (members) =
   if (members <: Function)
-    c! =
-      members.call (this)
+    =>
+      members.call (self)
       undefined
   else
-    c! =
+    =>
       for @(member) in (members)
         if (members.has own property (member))
-          this.(member) = members.(member)
+          self.(member) = members.(member)
 
 global.object (members) =
     c = constructor (members)
