@@ -2,20 +2,20 @@ cg = require '../../lib/codeGenerator'
 macros = require './macros'
 errors = require './errors'
 
-exports: new unary operator expression; operator; expression =
-    cg: term =>
-        :operator = operator
-        :expr = expression
+exports.new unary operator expression (operator: nil, expression: nil) =
+    cg.term =>
+        self.operator = operator
+        self.expr = expression
 
-        :expression? =
-            found macro = macros: find macro [:operator]
+        self.expression () =
+            found macro = macros.find macro [self.operator]
             
             if (found macro)
-                found macro [:operator] [:expr]
+                found macro [self.operator] [self.expr]
             else
-                cg: method call (:expr) [:operator] []
+                cg.method call (self.expr) [self.operator] []
         
-        :hash entry? =
-            errors: add term (self) with message 'cannot be a hash entry'
+        self.hash entry () =
+            errors.add term (self) with message 'cannot be a hash entry'
         
-        :subterms 'expr'
+        self.subterms 'expr'
