@@ -1,6 +1,6 @@
 comments = '\s*((\/\*([^*](\*[^\/]|))*(\*\/|$)|\/\/[^\n]*)\s*)+'
 
-exports: grammar = {
+exports.grammar = {
     lex {
         start conditions {interpolated_string, interpolated_string_terminal}
 
