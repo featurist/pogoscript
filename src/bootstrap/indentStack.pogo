@@ -1,79 +1,79 @@
 require './runtime'
 
-exports: create indent stack = create indent stack! =
+exports.create indent stack = create indent stack () =
     object =>
-        :indents = [0]
-        :indentation regex = new (RegExp '\n( *)$')
-        :multi new line regex = new (RegExp '\n *\n')
+        self.indents = [0]
+        self.indentation regex = new (RegExp '\n( *)$')
+        self.multi new line regex = new (RegExp '\n *\n')
         
-        :is (text) multi new line =
-            :multi new line regex: test (text)
+        self.is (text) multi new line =
+            self.multi new line regex.test (text)
         
-        :(text) has new line? =
-            :indentation regex: test (text)
+        self.(text) has new line () =
+            self.indentation regex.test (text)
         
-        :indentation (new line) =
-            :indentation regex: exec (new line): 1: length
+        self.indentation (new line) =
+            self.indentation regex.exec (new line).1.length
         
-        :current indentation? =
-            :indents: 0
+        self.current indentation () =
+            self.indents.0
         
-        :set indentation (text) =
-            if (:(text) has new line?)
-                :indents:unshift 'bracket'
-                :indents:unshift (:indentation (text))
+        self.set indentation (text) =
+            if (self.(text) has new line ())
+                self.indents.unshift 'bracket'
+                self.indents.unshift (self.indentation (text))
             else
-                current = :current indentation?
-                :indents:unshift 'bracket'
-                :indents:unshift (current)
+                current = self.current indentation ()
+                self.indents.unshift 'bracket'
+                self.indents.unshift (current)
         
-        :unset indentation! =
-            :indents: shift!
+        self.unset indentation () =
+            self.indents.shift ()
 
             tokens = []
-            while (:indents: 0 != 'bracket')
-                tokens: push '}'
-                :indents: shift!
+            while (self.indents.0 != 'bracket')
+                tokens.push '}'
+                self.indents.shift ()
             
-            :indents: shift!
+            self.indents.shift ()
             tokens
         
-        :tokens for eof? =
+        self.tokens for eof () =
             tokens = []
-            indents = :indents: length
+            indents = self.indents.length
 
             while (indents > 1)
-                tokens: push '}'
+                tokens.push '}'
                 indents = indents - 1
             
-            tokens: push 'eof'
+            tokens.push 'eof'
         
             tokens
             
         
-        :tokens for new line (text) =
-            if (:(text) has new line?)
-                current indentation = :current indentation?
-                indentation = :indentation (text)
+        self.tokens for new line (text) =
+            if (self.(text) has new line ())
+                current indentation = self.current indentation ()
+                indentation = self.indentation (text)
         
                 if (current indentation == indentation)
                     [',']
                 else if (current indentation < indentation)
-                    :indents: unshift (indentation)
+                    self.indents.unshift (indentation)
                     ['@{']
                 else
                     tokens = []
                 
-                    while (:indents: 0 > indentation)
-                        tokens: push '}'
-                        :indents: shift!
+                    while (self.indents.0 > indentation)
+                        tokens.push '}'
+                        self.indents.shift ()
                 
-                    if (:is (text) multi new line)
-                        tokens: push ','
+                    if (self.is (text) multi new line)
+                        tokens.push ','
                 
-                    if (:indents: 0 < indentation)
-                        tokens: push '@{'
-                        :indents: unshift (indentation)
+                    if (self.indents.0 < indentation)
+                        tokens.push '@{'
+                        self.indents.unshift (indentation)
                 
                     tokens
             else
