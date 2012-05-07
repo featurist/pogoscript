@@ -1,29 +1,29 @@
-exports: create dynamic lexer = create dynamic lexer; next lexer; source = object =>
-    :tokens = []
-    :next lexer = next lexer
+exports.create dynamic lexer = create dynamic lexer (next lexer: nil, source: nil) = object =>
+    self.tokens = []
+    self.next lexer = next lexer
     
-    :lex! =
-        token = :tokens: shift!
+    self.lex () =
+        token = self.tokens.shift ()
         
         if (token)
-            :yytext = token
+            self.yytext = token
             token
         else
-            token = :next lexer: lex!
+            token = self.next lexer.lex ()
             
-            :yytext = :next lexer: yytext
-            :yylloc = :next lexer: yylloc
-            :yyleng = :next lexer: yyleng
-            :yylineno = :next lexer: yylineno
-            :match = :next lexer: match
+            self.yytext = self.next lexer.yytext
+            self.yylloc = self.next lexer.yylloc
+            self.yyleng = self.next lexer.yyleng
+            self.yylineno = self.next lexer.yylineno
+            self.match = self.next lexer.match
             
             token
     
-    :show position? =
-        :next lexer: show position?
+    self.show position () =
+        self.next lexer.show position ()
     
-    :set input (input) =
-        :next lexer: set input (input)
+    self.set input (input) =
+        self.next lexer.set input (input)
     
     if (source)
-        :set input (source)
+        self.set input (source)
