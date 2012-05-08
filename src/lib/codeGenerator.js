@@ -297,12 +297,12 @@ var normaliseRegExp = exports.normaliseRegExp = function(s) {
 };
 
 var parseRegExp = exports.parseRegExp = function (s) {
-  var match = /^`((\n|.)*)`([^`]*)$/.exec(s);
+  var match = /^r\/((\n|.)*)\/([^\/]*)$/.exec(s);
   
   return {
-    pattern: match[1].replace(/\\`/g, '`').replace(/\n/, '\\n'),
+    pattern: match[1].replace(/\\\//g, '/').replace(/\n/, '\\n'),
     options: match[3]
-  };
+  }
 };
 
 var normaliseInterpolatedString = exports.normaliseInterpolatedString = function (s) {

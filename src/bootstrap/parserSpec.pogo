@@ -776,26 +776,26 @@ describe 'parser'
     
     describe 'regexps'
         it 'simple'
-            (expression '`abc`') should contain fields {
+            (expression 'r/abc/') should contain fields {
                 is reg exp
                 pattern 'abc'
             }
 
         it 'with options'
-            (expression '`abc`img') should contain fields {
+            (expression 'r/abc/img') should contain fields {
                 is reg exp
                 pattern 'abc'
                 options 'img'
             }
 
         it 'with escaped back ticks'
-            (expression '`abc\`def\`ghi`') should contain fields {
+            (expression 'r/abc\/def\/ghi/') should contain fields {
                 is reg exp
-                pattern 'abc`def`ghi'
+                pattern 'abc/def/ghi'
             }
 
         it 'with newline'
-            (expression "a = `abc\n     def`") should contain fields {
+            (expression "a = r/abc\n      def/") should contain fields {
                 is definition
                 target {
                     is variable
