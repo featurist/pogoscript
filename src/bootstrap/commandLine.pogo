@@ -51,7 +51,7 @@ exports.lex file (filename) =
         console.log "<#(token.0)> #(text)"
 
 js filename from pogo filename (pogo) =
-    pogo.replace `\.pogo$` '' + '.js'
+    pogo.replace r/\.pogo$/ '' + '.js'
 
 exports.run file (filename) in module (module) =
     js = compile from file (filename)
@@ -131,7 +131,7 @@ compile from file (filename, ugly: false) =
 source location printer (filename: nil, source: nil) =
     object =>
         self.lines in range (range) =
-            lines = source.split `\n`
+            lines = source.split r/\n/
             lines.slice (range.from - 1) (range.to)
 
         self.print lines in range (prefix: '', from: nil, to: nil) =
@@ -142,12 +142,12 @@ source location printer (filename: nil, source: nil) =
             process.stderr.write (filename + ':' + location.first line + "\n")
 
             if (location.first line == location.last line)
-                self.print lines in range; from (location.first line); to (location.last line)
+                self.print lines in range (from: location.first line, to: location.last line)
                 spaces = self.' ' times (location.first column)
                 markers = self.'^' times (location.last column - location.first column)
                 process.stderr.write (spaces + markers + "\n")
             else
-                self.print lines in range; prefix '> '; from (location.first line); to (location.last line)
+                self.print lines in range (prefix: '> ', from: location.first line, to: location.last line)
 
         self.(s) times (n) =
             strings = []
