@@ -29,7 +29,7 @@ filename for (script) =
     hash.digest 'hex' + '.pogo'
 
 chomp (s) =
-    s.to string ().replace `\n$` ''
+    s.to string ().replace r/\n$/ ''
 
 exports.(script) with args (args) should output (expected output, done, script filename: nil) =
     execute script (script) with args (args, script filename: script filename) @(error, actual output)
