@@ -1733,7 +1733,6 @@ var forStatement = expressionTerm('forStatement', function(init, test, incr, stm
     this.increment.generateJavaScript(buffer, scope);
     buffer.write('){');
     subExpression(functionCall(block([this.indexVariable], this.statements, {returnLastStatement: false}), [this.indexVariable])).generateJavaScriptStatement(buffer, scope);
-    // this.statements.generateJavaScriptStatements(buffer, scope);
     buffer.write('}');
   };
   this.generateJavaScriptStatement = this.generateJavaScript;
