@@ -23,8 +23,8 @@ hljs.LANGUAGES.pogoscript = function() {
         },
         {
           className: 'string',
-          begin: "`",
-          end: "`[gim]*"
+          begin: "r/",
+          end: "/[gim]*"
         },
         {
           className: 'comment',

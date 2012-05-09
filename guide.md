@@ -25,17 +25,17 @@ Variables can contain spaces, but the same variables can be written using camel 
 
 Variables are the building blocks, but functions have all the fun. In PogoScript functions are called by passing arguments. Arguments can be numbers, strings or other expressions like variables or indeed the results of other functions.
 
-    is (wind speed) strong enough for my kite?
+    is (wind speed) strong enough for my kite
 
-Here we called a function named `is strong enough for my kite`. We passed one argument in parenthesis, `wind speed`. The question mark `?` on the end is optional but it helps it to be read like a question.
+Here we called a function named `is strong enough for my kite`. We passed one argument in parenthesis, `wind speed`.
 
 The actual position of the arguments does not matter, in fact, we could call the same function like this:
 
-    (wind speed) is strong enough for my kite?
+    (wind speed) is strong enough for my kite
 
 Or
 
-    is strong enough for my (wind speed) kite?
+    is strong enough for my (wind speed) kite
 
 Neither of which read as well as the first, but are nevertheless effectively the same thing.
 
@@ -45,11 +45,11 @@ As with variables, function names can be written in camel case, so we could writ
 
 Eventually, you'll want to define your own functions too. Like variables, we use equals `=`, like this:
 
-    is (wind speed) too strong for my kite? = wind speed > 30
+    is (wind speed) too strong for my kite = wind speed > 30
 
 We can also drop the function's body onto an indented line like this:
 
-    is (wind speed) too strong for my kite? =
+    is (wind speed) too strong for my kite =
         wind speed > 30
 
 The last statement in a function is the functions ultimate value.
@@ -94,23 +94,6 @@ If there's only *one* argument and no name, then that argument is taken as a val
     (wind speed)
     wind speed
 
-So how can you call a function if it has no arguments? There are three ways to do this, the first should be familiar to many programmers:
-
-    sum()
-
-And you can use either the question mark `?` at the end of the form, which we've seen before, or the exclamation mark `!`.
-
-    sum!
-    sum?
-
-Whether you use `()`, `?` or `!` matters not at all, but your selection would be based on a convention:
-
-For functions whose sole purpose is to answer some question and return an answer, you should use `?`. We can call these *queries*.
-
-For functions that don't answer a question but just do something, you should use `!`. We can call these *commands*.
-
-That kind of leaves `()` out for conventional use, but its there anyway just in case somebody invents a new convention for it. Nevertheless, this is just a convention, and is useful to communicate to other programmers how you intended to use or define the function.
-
 ## Blocks
 
 Blocks are new functions that are passed as arguments to other functions. After all, functions do have all the fun. As weird as it sounds, this technique is frequently used in practice. We often use blocks to mark some code to run later, or several times over, or within a context of some sort.
@@ -135,16 +118,16 @@ Even though the `after seconds` function takes a block, the block argument is no
 Sometimes blocks can be called with arguments themselves. Lets imagine we're writing a very simple email client. Emails can come in at any moment and we want to print the subject of the email as soon as it comes in. We'll want the email itself to be passed to our block so we can print its subject.
 
     when email @(email) arrives
-        print (email: subject)
+        print (email.subject)
 
-The `@(email)` bit defines a parameter for our block, called `email`. When the block is called, `email` will refer to the email that just arrived, and we can print its subject. Notice the expression `email: subject`, that means we're accessing the `subject` field of the `email` object. We'll cover objects very shortly.
+The `@(email)` bit defines a parameter for our block, called `email`. When the block is called, `email` will refer to the email that just arrived, and we can print its subject. Notice the expression `email.subject`, that means we're accessing the `subject` field of the `email` object. We'll cover objects very shortly.
 
 Like arguments, block parameters can be placed anywhere in the call, the only requirement is that they're placed *before* the block, and of course like arguments, the order is significant.
 
 We may, from time to time, pass more than one block to a function. In our email application, when sending an email we try to send it 3 times, but if that fails we tell the user. To do this we have a function called `try times otherwise`:
 
     try 3 times
-        email server: send (email)
+        email server.send (email)
     otherwise
         print "could not send email, sorry :("
 
@@ -153,7 +136,7 @@ Which, as you can imagine, will try running the first block up to 3 times to sen
 On the other hand, this is two distinct function calls, one to `try times` and another to `otherwise`:
 
     try 3 times
-        email server: send (email)
+        email server.send (email)
 
     otherwise
         print "could not send email, sorry :("
@@ -172,27 +155,14 @@ Say we have a function to transcode CD quality audio into bandwidth friendly MP3
 
 This function would come with some useful defaults for bitrate, say 128kbps. But no doubt at some point we'd like to be able to override that, so we could call it like this:
 
-    convert (audio file) into mp3; bitrate '320kbps'
+    convert (audio file) into mp3 (bitrate: 320 kbps)
 
 This passes an additional named argument to the function. This is indeed a JavaScript hash object, which we'll see covered shortly. To accept this argument, for example, if we were defining this function ourselves, we'd write something like this:
 
-    convert (audio file) into mp3; bitrate '128kbps' =
+    convert (audio file) into mp3 (bitrate: 128 kbps) =
         // code to convert an audio file into mp3 with bitrate
 
-When the function is defined, the default value can be specified, as `128kbps` is above. Of course, this isn't always necessary, and you could have no default too:
-
-    convert (audio file) into mp3; bitrate =
-        // ...
-
-In which case, the value of bitrate not specified at all would be `undefined`.
-
-MP3 also defines Variable Bitrate and Constant Bitrate, so we could add that to our function. When calling the function, if you just specify the key, then it will have a value of `true`.
-
-    convert (audio file) into mp3; vbr
-
-It's the same as this:
-
-    convert (audio file) into mp3; vbr (true)
+When the function is defined, the default value can be specified, as the value of the function call `128 kbps` is above.
 
 ## Splat Arguments
 
@@ -231,7 +201,7 @@ But for calling a function, we can specify as many splats as we're happy to:
 
 The only other restriction when defining functions is that splat parameters cannot be used alongside optional parameters - the following is not allowed:
 
-    sum (args, ...); quickly =
+    sum (args, ..., quickly: true) =
         // ...
 
 The reason is that since optional arguments are optionally passed, we can never be sure whether an argument belongs in the splat or if it's the optional argument. A technical detail, but nonetheless restrictive.
@@ -254,7 +224,7 @@ Adding methods is as you'd expect:
     a person = {
         name = "Jack"
         hobby = "Fetching pales of water"
-        do hobby! =
+        do hobby () =
             print "ouch!"
     }
 
