@@ -214,18 +214,33 @@ But sometimes functions are not enough and something more is needed. What object
 
 Objects in PogoScript are, naturally, no different to objects in JavaScript, they just use a slight variation on the syntax:
 
-    a person = {
-        name = "Jack"
-        hobby = "Fetching pales of water"
-    }
-    
-Adding methods is as you'd expect:
-
-    a person = {
-        name = "Jack"
-        hobby = "Fetching pales of water"
-        do hobby () =
-            print "ouch!"
+    a philosopher = {
+        name = "Jean Baudrillard"
+        hobby = "Philosophy"
     }
 
-... more to come!
+There's also a shorthand, omitting the `=`:
+
+    a philosopher = {name "Jean Baudrillard", hobby "Philosophy"}
+
+Methods follow the same syntax as functions:
+
+    a philosopher = {
+        name = "Jean Baudrillard"
+        hobby = "Philosophy"
+        
+        say something () =
+            console.log "It is always the same: once you are liberated,
+                         you are forced to ask who you are."
+    }
+
+Of course, you can define fields and methods from outside the object too. We could write the above like this:
+
+    a philosopher = {}
+
+    a philosopher.name = "Jean Baudrillard"
+    a philosopher.hobby = "Philosophy"
+
+    a philosopher.say something! = 
+        console.log "It is always the same: once you are liberated,
+                     you are forced to ask who you are."
