@@ -1015,7 +1015,7 @@ var Scope = exports.Scope = function (parentScope, uniqueNames) {
   };
   
   this.isDefined = function (name) {
-    return variables[name] || (parentScope && parentScope.isDefined(name));
+    return variables.hasOwnProperty(name) || (parentScope && parentScope.isDefined(name));
   };
   
   this.subScope = function () {
