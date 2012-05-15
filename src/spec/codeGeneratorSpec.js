@@ -732,7 +732,7 @@ spec('code generator', function () {
     spec('with two items, one with string field', function() {
       var h = cg.hash([
         cg.hashEntry(['street', 'address'], cg.variable(['address'])),
-        cg.hashEntry(['Content-Type'], cg.string('text/plain'))
+        cg.hashEntry(cg.string('Content-Type'), cg.string('text/plain'))
       ]);
       generatesExpression(h, "{streetAddress:address,'Content-Type':'text/plain'}");
     });

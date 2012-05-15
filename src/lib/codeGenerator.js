@@ -1506,7 +1506,7 @@ var hashEntry = expressionTerm('hashEntry', function(field, value) {
 
   this.legalFieldName = function () {
     if (this.field.isString) {
-      return this.field.string;
+      return formatJavaScriptString(this.field.string);
     }
     var f = concatName(this.field);
     if (isLegalJavaScriptIdentifier(f)) {
