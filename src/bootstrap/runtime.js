@@ -1,5 +1,5 @@
 ((function() {
-    var self;
+    var self, constructor;
     self = this;
     constructor = function(members) {
         if (members instanceof Function) {
