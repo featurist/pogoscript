@@ -34,29 +34,29 @@ Will produce `helloWorld.js`.
 
     pogo -cw helloWorld.pogo
 
-# Examples
+# Examples!
 
-The canonical Node.js hello world:
+The canonical [Node.js](http://nodejs.org/) hello world:
 
     http = require 'http'
 
-    http: create server @(req, res)
-        res: write head 200; 'Content-Type' 'text/plain'
-        res: end "Hello World\n"
-    : listen 1337 "127.0.0.1"
+    http.create server @(req, res)
+        res.write head 200 ('Content-Type': 'text/plain')
+        res.end "Hello World\n"
+    .listen 1337 "127.0.0.1"
 
-    console: log 'Server running at http://127.0.0.1:1337/'
+    console.log 'Server running at http://127.0.0.1:1337/'
 
-The canonical 99 beers on the wall:
+The canonical [99 beers on the wall](http://99-bottles-of-beer.net/):
 
     sing (n) bottles of beer on the wall =
         if (n > 0)
-            console : log ((n) bottles of beer on the wall)
+            console.log ((n) bottles of beer on the wall)
             sing (n - 1) bottles of beer on the wall
 
     (n) bottles of beer on the wall =
-        "#((n) bottles) of beer on the wall, #((n) bottles) of beer on the wall\n" +
-        "take one down, pass it around, #((n - 1) bottles) of beer on the wall."
+        "#((n) bottles) of beer on the wall, #((n) bottles) of beer.\n" +
+        "Take one down, pass it around, #((n - 1) bottles) of beer on the wall."
 
     (n) bottles =
         if (n == 0)
@@ -70,8 +70,6 @@ The canonical 99 beers on the wall:
 
 # The Big Features
 
-<br/>
-
 ## Names
 
 Names of variables, functions and methods can contain spaces.
@@ -80,6 +78,8 @@ Names of variables, functions and methods can contain spaces.
     
     average temperature = 32
 
+These get translated into their camel-case equivalents, so `average temperature` becomes `averageTemperature` in JavaScript.
+
 ## Arguments and Parameters
 
 Arguments and parameters can be placed anywhere in the name of a function or method call. The careful placement of an argument or a parameter can give it a lot of meaning.
@@ -87,7 +87,7 @@ Arguments and parameters can be placed anywhere in the name of a function or met
     mountains = ['Everest', 'La Tournette', 'Valuga']
 
     for each @(mountain) in (mountains)
-        console: log (mountain)
+        console.log (mountain)
 
 ## Blocks
 
@@ -100,7 +100,7 @@ Blocks are just indented code:
         n * 1000
     
     after (10 seconds)
-        console: log "hi there!"
+        console.log "hi there!"
 
 ## Self
 
@@ -109,46 +109,41 @@ The `self` variable, also known as `this` in JavaScript, is retained from a bloc
     jack = {
         name = "Jack"
         
-        say hello! =
-            console: log "hi, my name is #(self: name)"
+        say hello () =
+            console.log "hi, my name is #(self.name)"
             
             after (10 seconds)
-                console: log "hi! this is #(self: name) again."
+                console.log "hi! this is #(self.name) again."
     }
     
-    jack: say hello!
+    jack.say hello ()
 
 But if you want and expect `self` to be redefined to something useful, put `=>` before the block like so:
 
-    on each http request (action); port 3000 =
-        server = http: create server @(request, response)
+    on each http request (action, port: 3000) =
+        server = http.create server @(request, response)
             request context = {
                 request = request
                 response = response
             }
             
-            action: call (request context)
+            action.call (request context)
             
-        server: listen (port)
+        server.listen (port)
     
     on each http request =>
-        self: response: end "Hello World\n"
-
-In fact, there's a shorthand for `self:`, it's just `:`. So we could rewrite the above to:
-
-    on each http request =>
-        :response: end "Hello World\n"
+        self.response.end "Hello World\n"
 
 ## Optional Arguments
 
 Methods and functions can take optional arguments, in the form of a hash passed as the last argument.
 
-    web server; port 4567 =
-        console: log "starting web server on port #(port)"
+    web server (port: 4567) =
+        console.log "starting web server on port #(port)"
     
-    web server!
+    web server ()
     
-    web server; port 3000
+    web server (port: 3000)
 
 ## No Built-in Keywords
 
@@ -156,15 +151,15 @@ There are no keywords in PogoScript. All control structures use the same syntax 
 
     unless (condition, block) =
         if (!condition)
-            block!
+            block ()
     
     unless (wind speed > 25)
-        console: log "going surfing"
+        console.log "going surfing"
 
 What about a multi-line control structure?
 
     render each in (list, render) if none (none) =
-        if (list: length > 0)
+        if (list.length > 0)
             content = ''
             
             for each @(item) in (items)
@@ -172,7 +167,7 @@ What about a multi-line control structure?
             
             content
         else
-            none?
+            none ()
 
     mountains = ['Everest', 'La Tournette', 'Valuga']
 
@@ -180,6 +175,7 @@ What about a multi-line control structure?
         "<li>#(mountain)</li>"
     if none
         "<li>no mountains...</li>"
+
 
 # More
 
