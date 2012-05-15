@@ -47,7 +47,7 @@
                 self = this;
                 self.indents.shift();
                 tokens = [];
-                while (self.indents[0] !== "bracket") {
+                while (self.indents.length > 0 && self.indents[0] !== "bracket") {
                     tokens.push("}");
                     self.indents.shift();
                 }
