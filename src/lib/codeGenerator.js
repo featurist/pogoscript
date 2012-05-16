@@ -346,8 +346,12 @@ var variable = expressionTerm('variable', function (name, options) {
   this.isVariable = true;
   this.shadow = options && options.shadow;
   
+  this.nameForVariable = function () {
+    return concatName(this.variable, {escape: true});
+  };
+  
   this.generateJavaScript = function (buffer, scope) {
-    buffer.write(concatName(this.variable));
+    buffer.write(this.nameForVariable());
   };
   
   this.generateJavaScriptTarget = this.generateJavaScript;
@@ -359,8 +363,8 @@ var variable = expressionTerm('variable', function (name, options) {
   this.generateJavaScriptParameter = this.generateJavaScript;
   
   this.definitionName = function(scope) {
-    if (this.shadow || !scope.isDefined(concatName(this.variable))) {
-      return this.variable;
+    if (this.shadow || !scope.isDefined(this.nameForVariable())) {
+      return this.nameForVariable();
     }
   };
   
@@ -394,15 +398,31 @@ var parameters = exports.parameters = function (parms) {
   });
 };
 
-var concatName = exports.concatName = function (nameSegments) {
+var concatName = exports.concatName = function (nameSegments, options) {
   var name = '';
   
   for (var n = 0; n < nameSegments.length; n++) {
     var segment = nameSegments[n];
     name += nameSegmentRenderedInJavaScript(segment, n === 0);
   }
-  
-  return name;
+
+  if (options && options.hasOwnProperty('escape') && options.escape)
+    return escapeReservedWord(name);
+  else
+    return name;
+};
+
+var reservedWords = {
+  'class': true,
+  'function': true
+};
+
+var escapeReservedWord = function (word) {
+  if (reservedWords.hasOwnProperty(word)) {
+    return '$' + word;
+  } else {
+    return word;
+  }
 };
 
 var nameSegmentRenderedInJavaScript = function (nameSegment, isFirst) {
@@ -880,9 +900,7 @@ var Statements = function (statements) {
       var namesDefined = _(this.statements).chain().reduce(function (list, statement) {
         var defs = statement.definitions(scope);
         return list.concat(defs);
-      }, []).map(function (name) {
-        return concatName(name);
-      }).uniq().value();
+      }, []).uniq().value();
 
       if (namesDefined.length > 0) {
         _(namesDefined).each(function (name) {
@@ -1666,9 +1684,9 @@ var generatedVariable = expressionTerm('generatedVariable', function(name) {
   this.generateJavaScriptTarget = this.generateJavaScript;
   
   this.definitionName = function(scope) {
-    var n = this.generatedName(scope);
-    if (!scope.isDefined(concatName([n]))) {
-      return [n];
+    var n = concatName([this.generatedName(scope)]);
+    if (!scope.isDefined(n)) {
+      return n;
     }
   };
 });

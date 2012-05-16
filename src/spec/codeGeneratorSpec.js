@@ -61,6 +61,14 @@ spec('code generator', function () {
     spec('operators', function () {
       assert.equal(cg.concatName(['+*']), '$2b$2a');
     });
+    
+    spec('escapes reserved words when escape is true', function () {
+      assert.equal(cg.concatName(['class'], {escape: true}), '$class');
+    });
+    
+    spec("doesn't escape reserved words when escape isn't true", function () {
+      assert.equal(cg.concatName(['class']), 'class');
+    });
   });
   
   spec('variable', function () {
@@ -74,6 +82,14 @@ spec('code generator', function () {
     
     spec('with capitalised word', function () {
       generatesExpression(cg.variable(['Stack']), 'Stack');
+    });
+    
+    spec('escapes reserved word', function () {
+      generatesExpression(cg.variable(['class']), '$class');
+    });
+    
+    spec("doesn't escape already escaped reserved word", function () {
+      generatesExpression(cg.variable(['$class']), '$class');
     });
   });
   
@@ -425,6 +441,12 @@ spec('code generator', function () {
       generatesExpression(d, 'object.field=9');
     });
     
+    spec('of reserved word field', function () {
+      var d = cg.definition(cg.fieldReference(cg.variable(['object']), ['class']), cg.integer(9));
+      
+      generatesExpression(d, 'object.class=9');
+    });
+    
     spec('of index', function () {
       var d = cg.definition(cg.indexer(cg.variable(['array']), cg.integer(1)), cg.integer(9));
       
@@ -476,6 +498,12 @@ spec('code generator', function () {
       var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff'])]);
       
       generatesExpression(m, 'console.log(stuff)');
+    });
+
+    spec('methods allow reserved words as names', function () {
+      var m = cg.methodCall(cg.variable(['console']), ['class'], [cg.variable(['stuff'])]);
+      
+      generatesExpression(m, 'console.class(stuff)');
     });
 
     spec('method call with optional argument', function () {
@@ -536,9 +564,17 @@ spec('code generator', function () {
   });
   
   spec('field reference', function () {
-    var m = cg.fieldReference(cg.variable(['obj']), ['field', 'name']);
+    spec('normal', function () {
+      var m = cg.fieldReference(cg.variable(['obj']), ['field', 'name']);
     
-    generatesExpression(m, 'obj.fieldName');
+      generatesExpression(m, 'obj.fieldName');
+    });
+    
+    spec('reserved words are allowed', function () {
+      var m = cg.fieldReference(cg.variable(['obj']), ['class']);
+    
+      generatesExpression(m, 'obj.class');
+    });
   });
   
   spec('return', function () {
