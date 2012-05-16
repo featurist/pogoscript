@@ -1650,12 +1650,16 @@ var createIfExpression = function(expression) {
 macros.addMacro(['if'], createIfExpression);
 macros.addMacro(['if', 'else'], createIfExpression);
 
-var newOperator = expressionTerm('newOperator', function(functionCall) {
+var newOperator = expressionTerm('newOperator', function(fn) {
   this.isNewOperator = true;
-  this.functionCall = functionCall;
+  this.functionCall = fn;
   this.generateJavaScript = function(buffer, scope) {
     buffer.write('new ');
-    this.functionCall.generateJavaScript(buffer, scope);
+    if (this.functionCall.isVariable) {
+      functionCall(this.functionCall, []).generateJavaScript(buffer, scope);
+    } else {
+      this.functionCall.generateJavaScript(buffer, scope);
+    }
   }
 });
 

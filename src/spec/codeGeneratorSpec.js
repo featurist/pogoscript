@@ -455,9 +455,17 @@ spec('code generator', function () {
   });
   
   spec('new operator', function() {
-    var n = cg.newOperator(cg.functionCall(cg.variable(['Stack']), [cg.integer(8)]));
+    spec('gnerates js new for function call', function() {
+      var n = cg.newOperator(cg.functionCall(cg.variable(['Stack']), [cg.integer(8)]));
     
-    generatesExpression(n, 'new Stack(8)');
+      generatesExpression(n, 'new Stack(8)');
+    });
+    
+    spec('gnerates js new for variable', function() {
+      var n = cg.newOperator(cg.variable(['Stack']));
+    
+      generatesExpression(n, 'new Stack()');
+    });
   });
   
   spec('for each', function() {
