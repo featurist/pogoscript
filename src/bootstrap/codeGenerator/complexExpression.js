@@ -109,7 +109,7 @@ module.exports = function (listOfTerminals) {
           return cg.fieldReference(object, this.head().name());
         }
       } else {
-        if (!this.hasTail() && this.arguments().length === 1 && !this.head().hasAsyncArgument()) {
+        if (!this.hasTail() && !this.head().isCall() && !this.head().hasAsyncArgument()) {
           return cg.indexer(object, this.arguments()[0]);
         } else {
           return cg.functionCall(cg.indexer(object, this.arguments()[0]), this.arguments().slice(1));

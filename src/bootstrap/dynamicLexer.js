@@ -3,8 +3,8 @@
     self = this;
     exports.createDynamicLexer = createDynamicLexer = function(gen1_options) {
         var nextLexer, source;
-        nextLexer = gen1_options && gen1_options.nextLexer != null ? gen1_options.nextLexer : void 0;
-        source = gen1_options && gen1_options.source != null ? gen1_options.source : void 0;
+        nextLexer = gen1_options && gen1_options.hasOwnProperty("nextLexer") ? gen1_options.nextLexer : void 0;
+        source = gen1_options && gen1_options.hasOwnProperty("source") ? gen1_options.source : void 0;
         return object(function() {
             var self;
             self = this;

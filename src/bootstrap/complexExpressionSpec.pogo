@@ -176,6 +176,18 @@ describe 'complex expression'
         arguments []
       }
 
+    it 'index call with no arguments'
+      expression (variable 'a') [[variable 'z', cg.argument list []]] should contain fields {
+        is function call
+        function {
+          is indexer
+          object {variable ['a']}
+          indexer {variable ['z']}
+        }
+        
+        arguments []
+      }
+
     it 'field reference'
       expression (variable 'a') [[id 'field']] should contain fields {
         is field reference
