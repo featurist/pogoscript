@@ -794,6 +794,12 @@ describe 'parser'
                 pattern 'abc/def/ghi'
             }
 
+        it 'with various escapes'
+            (expression 'r/abc\/def\nghi\/jkl/') should contain fields {
+                is reg exp
+                pattern 'abc/def\nghi/jkl'
+            }
+
         it 'with newline'
             (expression "a = r/abc\n      def/") should contain fields {
                 is definition

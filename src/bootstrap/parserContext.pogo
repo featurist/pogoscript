@@ -27,3 +27,43 @@ exports.create parser context =
             self.tokens (self.indent stack.tokens for eof ())
 
         self.interpolation = create interpolation ()
+        
+        self.lex operator (parser context, op) =
+          if (r/[?!][.;]/.test (op))
+            parser context.tokens [op.0, op.1]
+          else if (r/^(=>|\.\.\.|@:|[#@:!?,.=;])$/.test (op))
+            op
+          else
+            'operator'
+        
+        self.loc (term, location) =
+          loc = {
+            first line = location.first_line
+            last line = location.last_line
+            first column = location.first_column
+            last column = location.last_column
+          }
+
+          term.location () =
+            loc
+
+          term
+
+        self.unindent (columns, string) =
+          r = new (RegExp "\\n {#(columns)}" 'g')
+
+          string.replace (r, "\n")
+
+        self.normalise string (s) =
+          s = s.substring (1, s.length - 1)
+
+          s.replace (r/''/g, "'")
+
+        self.parse reg exp (s) =
+          match = r/^r\/((\n|.)*)\/([^\/]*)$/.exec(s)
+
+          {
+            pattern = match.1.replace(r/\\\//g, '/').replace(r/\n/, '\n')
+            options = match.3
+          }
+
