@@ -47,8 +47,8 @@ describe 'operator expression'
         (e.expression ()) should contain fields {
             is method call
             object {variable ['a']}
-            name ['+-'. '*/']
-            arguments [{variable ['b']}. {variable ['c']}]
+            name ['+-', '*/']
+            arguments [{variable ['b']}, {variable ['c']}]
         }
     
     it 'looks up macro'
@@ -57,7 +57,7 @@ describe 'operator expression'
     
         (e.expression ()) should contain fields {
             operator '+'
-            arguments [{variable ['a']}. {variable ['b']}]
+            arguments [{variable ['a']}, {variable ['b']}]
         }
         
     describe 'hash entry'
