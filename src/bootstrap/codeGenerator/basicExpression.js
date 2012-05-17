@@ -12,6 +12,14 @@ module.exports = function (terminals) {
       return this.name().length > 0;
     };
     
+    this.isCall = function () {
+      if (this.hasName()) {
+        return this.hasArguments();
+      } else {
+        return this.terminals.length > 1;
+      }
+    };
+    
     this.name = function () {
       return this._name || (this._name = _(this.terminals).filter(function (terminal) {
         return terminal.identifier;
