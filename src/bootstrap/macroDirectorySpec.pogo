@@ -14,14 +14,14 @@ describe 'macro pattern compiler'
           into regexp for sequence'
         regexp = compile (seq [kw 'a', kw 'b'])
 
-        (regexp.source) should equal (`a;b;`.source)
+        (regexp.source) should equal (r/a;b;/.source)
 
     it 'can compile a sequence of zero or more "if else" keywords'
         regexp = compile (seq [kw 'if', zero or more (seq [kw 'else', kw 'if']), kw 'else'])
 
-        (regexp.source) should equal (`if;(else;if;)*else;`.source)
+        (regexp.source) should equal (r/if;(else;if;)*else;/.source)
 
     it 'can compile a "try/catch" sequence with an optional "finally" keyword'
         regexp = compile (seq [kw 'try', kw 'catch', opt (kw 'finally')])
 
-        (regexp.source) should equal (`try;catch;(finally;)?`.source)
+        (regexp.source) should equal (r/try;catch;(finally;)?/.source)
