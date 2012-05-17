@@ -350,7 +350,7 @@ spec('code generator', function () {
         cg.hashEntry(['start'])
       ];
       
-      generatesStatements(s, "var port;port=1;function(x,y,gen1_options){var port,start;port=(gen1_options&&gen1_options.hasOwnProperty('port'))?gen1_options.port:80;start=(gen1_options&&gen1_options.hasOwnProperty('start'))?gen1_options.start:undefined;y(x);return x;};");
+      generatesStatements(s, "var port;port=1;function(x,y,gen1_options){var port,start;port=(gen1_options&&gen1_options.hasOwnProperty('port')&&gen1_options.port!==void 0)?gen1_options.port:80;start=(gen1_options&&gen1_options.hasOwnProperty('start')&&gen1_options.start!==void 0)?gen1_options.start:undefined;y(x);return x;};");
     });
     
     spec('with splat parameters', function () {

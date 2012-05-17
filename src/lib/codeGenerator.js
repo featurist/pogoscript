@@ -652,7 +652,9 @@ var optional = expressionTerm('optional', function (options, name, defaultValue)
     this.options.generateJavaScript(buffer, scope);
     buffer.write('&&');
     this.options.generateJavaScript(buffer, scope);
-    buffer.write(".hasOwnProperty('" + concatName(this.name) + "'))?");
+    buffer.write(".hasOwnProperty('" + concatName(this.name) + "')&&");
+    this.options.generateJavaScript(buffer, scope);
+    buffer.write("." + concatName(this.name) + "!==void 0)?");
     this.options.generateJavaScript(buffer, scope);
     buffer.write('.' + concatName(this.name) + ':');
     this.properDefaultValue().generateJavaScript(buffer, scope);
