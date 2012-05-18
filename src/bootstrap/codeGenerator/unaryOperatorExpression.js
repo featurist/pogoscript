@@ -6,8 +6,8 @@
     errors = require("./errors");
     exports.newUnaryOperatorExpression = function(gen1_options) {
         var operator, expression, self;
-        operator = gen1_options && gen1_options.hasOwnProperty("operator") ? gen1_options.operator : void 0;
-        expression = gen1_options && gen1_options.hasOwnProperty("expression") ? gen1_options.expression : void 0;
+        operator = gen1_options && gen1_options.hasOwnProperty("operator") && gen1_options.operator !== void 0 ? gen1_options.operator : void 0;
+        expression = gen1_options && gen1_options.hasOwnProperty("expression") && gen1_options.expression !== void 0 ? gen1_options.expression : void 0;
         self = this;
         return cg.term(function() {
             var self;

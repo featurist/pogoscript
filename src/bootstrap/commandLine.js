@@ -27,7 +27,7 @@
     };
     exports.compileFile = compileFile = function(filename, gen1_options) {
         var ugly, js, jsFilename;
-        ugly = gen1_options && gen1_options.hasOwnProperty("ugly") ? gen1_options.ugly : false;
+        ugly = gen1_options && gen1_options.hasOwnProperty("ugly") && gen1_options.ugly !== void 0 ? gen1_options.ugly : false;
         js = compileFromFile(filename, {
             ugly: ugly
         });
@@ -98,11 +98,11 @@
     };
     exports.compile = function(pogo, gen4_options) {
         var filename, inScope, ugly, global, returnResult, self, moduleTerm, code;
-        filename = gen4_options && gen4_options.hasOwnProperty("filename") ? gen4_options.filename : void 0;
-        inScope = gen4_options && gen4_options.hasOwnProperty("inScope") ? gen4_options.inScope : true;
-        ugly = gen4_options && gen4_options.hasOwnProperty("ugly") ? gen4_options.ugly : false;
-        global = gen4_options && gen4_options.hasOwnProperty("global") ? gen4_options.global : false;
-        returnResult = gen4_options && gen4_options.hasOwnProperty("returnResult") ? gen4_options.returnResult : false;
+        filename = gen4_options && gen4_options.hasOwnProperty("filename") && gen4_options.filename !== void 0 ? gen4_options.filename : void 0;
+        inScope = gen4_options && gen4_options.hasOwnProperty("inScope") && gen4_options.inScope !== void 0 ? gen4_options.inScope : true;
+        ugly = gen4_options && gen4_options.hasOwnProperty("ugly") && gen4_options.ugly !== void 0 ? gen4_options.ugly : false;
+        global = gen4_options && gen4_options.hasOwnProperty("global") && gen4_options.global !== void 0 ? gen4_options.global : false;
+        returnResult = gen4_options && gen4_options.hasOwnProperty("returnResult") && gen4_options.returnResult !== void 0 ? gen4_options.returnResult : false;
         self = this;
         moduleTerm = parse(pogo);
         moduleTerm.inScope = inScope;
@@ -124,8 +124,8 @@
     };
     exports.evaluate = function(pogo, gen5_options) {
         var definitions, global, self, js, definitionNames, parameters, runScript, definitionValues;
-        definitions = gen5_options && gen5_options.hasOwnProperty("definitions") ? gen5_options.definitions : {};
-        global = gen5_options && gen5_options.hasOwnProperty("global") ? gen5_options.global : false;
+        definitions = gen5_options && gen5_options.hasOwnProperty("definitions") && gen5_options.definitions !== void 0 ? gen5_options.definitions : {};
+        global = gen5_options && gen5_options.hasOwnProperty("global") && gen5_options.global !== void 0 ? gen5_options.global : false;
         self = this;
         js = exports.compile(pogo, {
             ugly: true,
@@ -170,7 +170,7 @@
     };
     compileFromFile = function(filename, gen6_options) {
         var ugly, contents;
-        ugly = gen6_options && gen6_options.hasOwnProperty("ugly") ? gen6_options.ugly : false;
+        ugly = gen6_options && gen6_options.hasOwnProperty("ugly") && gen6_options.ugly !== void 0 ? gen6_options.ugly : false;
         contents = fs.readFileSync(filename, "utf-8");
         return exports.compile(contents, {
             filename: filename,
@@ -179,8 +179,8 @@
     };
     sourceLocationPrinter = function(gen7_options) {
         var filename, source;
-        filename = gen7_options && gen7_options.hasOwnProperty("filename") ? gen7_options.filename : void 0;
-        source = gen7_options && gen7_options.hasOwnProperty("source") ? gen7_options.source : void 0;
+        filename = gen7_options && gen7_options.hasOwnProperty("filename") && gen7_options.filename !== void 0 ? gen7_options.filename : void 0;
+        source = gen7_options && gen7_options.hasOwnProperty("source") && gen7_options.source !== void 0 ? gen7_options.source : void 0;
         return object(function() {
             var self;
             self = this;
@@ -192,9 +192,9 @@
             };
             self.printLinesInRange = function(gen8_options) {
                 var prefix, from, to, self, gen9_items, gen10_i;
-                prefix = gen8_options && gen8_options.hasOwnProperty("prefix") ? gen8_options.prefix : "";
-                from = gen8_options && gen8_options.hasOwnProperty("from") ? gen8_options.from : void 0;
-                to = gen8_options && gen8_options.hasOwnProperty("to") ? gen8_options.to : void 0;
+                prefix = gen8_options && gen8_options.hasOwnProperty("prefix") && gen8_options.prefix !== void 0 ? gen8_options.prefix : "";
+                from = gen8_options && gen8_options.hasOwnProperty("from") && gen8_options.from !== void 0 ? gen8_options.from : void 0;
+                to = gen8_options && gen8_options.hasOwnProperty("to") && gen8_options.to !== void 0 ? gen8_options.to : void 0;
                 self = this;
                 gen9_items = self.linesInRange({
                     from: from,
