@@ -67,3 +67,21 @@ exports.create parser context =
             options = match.3
           }
 
+        self.actual characters = [
+          [r/\\\\/g, "\\"]
+          [r/\\b/g, "\b"]
+          [r/\\f/g, "\f"]
+          [r/\\n/g, "\n"]
+          [r/\\0/g, "\0"]
+          [r/\\r/g, "\r"]
+          [r/\\t/g, "\t"]
+          [r/\\v/g, "\v"]
+          [r/\\'/g, "'"]
+          [r/\\"/g, '"']
+        ]
+        
+        self.normalise interpolated string (s) =
+          for each @(mapping) in (self.actual characters)
+            s = s.replace (mapping.0, mapping.1)
+
+          s

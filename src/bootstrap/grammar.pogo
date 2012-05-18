@@ -157,7 +157,7 @@ exports.grammar = {
             ['interpolated_string_terminal_start interpolated_terminal', '$$ = $2;']
             ['interpolated_string_body', '$$ = yy.terms.string($1);']
             ['escaped_interpolated_string_terminal_start', '$$ = yy.terms.string("#");']
-            ['escape_sequence', '$$ = yy.terms.string(yy.terms.normaliseInterpolatedString($1));']
+            ['escape_sequence', '$$ = yy.terms.string(yy.normaliseInterpolatedString($1));']
         ]
     }
 }

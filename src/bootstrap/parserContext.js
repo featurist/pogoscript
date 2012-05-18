@@ -75,12 +75,12 @@
                 return string.replace(r, "\n");
             };
             self.normaliseString = function(s) {
-                var self, s;
+                var self;
                 self = this;
                 s = s.substring(1, s.length - 1);
                 return s.replace(/''/g, "'");
             };
-            return self.parseRegExp = function(s) {
+            self.parseRegExp = function(s) {
                 var self, match;
                 self = this;
                 match = /^r\/((\n|.)*)\/([^\/]*)$/.exec(s);
@@ -88,6 +88,20 @@
                     pattern: match[1].replace(/\\\//g, "/").replace(/\n/, "\\n"),
                     options: match[3]
                 };
+            };
+            self.actualCharacters = [ [ /\\\\/g, "\\" ], [ /\\b/g, "\b" ], [ /\\f/g, "\f" ], [ /\\n/g, "\n" ], [ /\\0/g, "\0" ], [ /\\r/g, "\r" ], [ /\\t/g, "\t" ], [ /\\v/g, "" ], [ /\\'/g, "'" ], [ /\\"/g, '"' ] ];
+            return self.normaliseInterpolatedString = function(s) {
+                var self, gen2_items, gen3_i;
+                self = this;
+                gen2_items = self.actualCharacters;
+                for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
+                    (function(gen3_i) {
+                        var mapping;
+                        mapping = gen2_items[gen3_i];
+                        s = s.replace(mapping[0], mapping[1]);
+                    })(gen3_i);
+                }
+                return s;
             };
         });
     };
