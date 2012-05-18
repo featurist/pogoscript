@@ -284,27 +284,6 @@ expressionTerm('interpolatedString', function (components, columnStart) {
   };
 });
 
-var normaliseString = exports.normaliseString = function(s) {
-  s = s.substring(1, s.length - 1);
-  
-  return s.replace(/''/g, "'");
-};
-
-var normaliseRegExp = exports.normaliseRegExp = function(s) {
-  s = s.substring(1, s.length - 1);
-  
-  return s.replace(/\\`/g, "`");
-};
-
-var parseRegExp = exports.parseRegExp = function (s) {
-  var match = /^r\/((\n|.)*)\/([^\/]*)$/.exec(s);
-  
-  return {
-    pattern: match[1].replace(/\\\//g, '/').replace(/\n/, '\\n'),
-    options: match[3]
-  }
-};
-
 var normaliseInterpolatedString = exports.normaliseInterpolatedString = function (s) {
   for (var i = 0; i < actualCharacters.length; i++) {
     var mapping = actualCharacters[i];
@@ -346,12 +325,12 @@ var variable = expressionTerm('variable', function (name, options) {
   this.isVariable = true;
   this.shadow = options && options.shadow;
   
-  this.nameForVariable = function () {
+  this.variableName = function () {
     return concatName(this.variable, {escape: true});
   };
   
   this.generateJavaScript = function (buffer, scope) {
-    buffer.write(this.nameForVariable());
+    buffer.write(this.variableName());
   };
   
   this.generateJavaScriptTarget = this.generateJavaScript;
@@ -363,8 +342,8 @@ var variable = expressionTerm('variable', function (name, options) {
   this.generateJavaScriptParameter = this.generateJavaScript;
   
   this.definitionName = function(scope) {
-    if (this.shadow || !scope.isDefined(this.nameForVariable())) {
-      return this.nameForVariable();
+    if (this.shadow || !scope.isDefined(this.variableName())) {
+      return this.variableName();
     }
   };
   
@@ -761,7 +740,6 @@ var block = expressionTerm('block', function (parameters, body, options) {
     return this._parameterTransforms = splat;
   };
   
-  
   this.transformedStatements = function () {
     return statements(this.parameterTransforms().statements());
   };
@@ -769,16 +747,25 @@ var block = expressionTerm('block', function (parameters, body, options) {
   this.transformedParameters = function () {
     return this.parameterTransforms().parameters();
   };
+  
+  this.declareParameters = function (scope, parameters) {
+    for (var n = 0; n < parameters.length; n++) {
+      scope.define(parameters[n].variableName(scope));
+    }
+  };
 
   this.generateJavaScript = function (buffer, scope) {
     buffer.write('function(');
-    writeToBufferWithDelimiter(this.transformedParameters(), ',', buffer, scope);
+    var parameters = this.transformedParameters();
+    writeToBufferWithDelimiter(parameters, ',', buffer, scope);
     buffer.write('){');
     var body = this.transformedStatements();
+    var bodyScope = scope.subScope();
+    this.declareParameters(bodyScope, parameters);
     if (this.returnLastStatement) {
-      body.generateJavaScriptStatementsReturn(buffer, scope.subScope());
+      body.generateJavaScriptStatementsReturn(buffer, bodyScope);
     } else {
-      body.generateJavaScriptStatements(buffer, scope.subScope());
+      body.generateJavaScriptStatements(buffer, bodyScope);
     }
     buffer.write('}');
   };
@@ -1679,6 +1666,10 @@ var generatedVariable = expressionTerm('generatedVariable', function(name) {
       genVar = scope.generateVariable(concatName(this.name));
     }
     return genVar;
+  };
+  
+  this.variableName = function (scope) {
+    return this.generatedName(scope);
   };
   
   this.generateJavaScript = function(buffer, scope) {

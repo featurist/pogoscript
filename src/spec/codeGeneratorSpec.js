@@ -180,18 +180,6 @@ spec('code generator', function () {
       
       generatesExpression(s, "'his name was \\'Sue\\'. weird'");
     });
-    
-    spec('normaliseString', function () {
-      spec('simple', function () {
-        var s = cg.normaliseString("'one'");
-        assert.equal(s, 'one');
-      });
-      
-      spec('with quotes', function () {
-        var s = cg.normaliseString("'it''s a ''camera''.'");
-        assert.equal(s, "it's a 'camera'.");
-      });
-    });
   });
   
   spec('regexps', function () {
@@ -298,6 +286,12 @@ spec('code generator', function () {
       var b = cg.block([], cg.statements([]));
       
       generatesExpression(b, 'function(){}');
+    });
+    
+    spec('declares its parameters', function () {
+      var b = cg.block([cg.variable(['x'])], cg.statements([cg.definition(cg.variable(['x']), cg.integer(8))]));
+      
+      generatesExpression(b, 'function(x){return x=8;}');
     });
     
     spec('with two parameters', function () {
