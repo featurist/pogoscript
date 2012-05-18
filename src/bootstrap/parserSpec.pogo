@@ -105,6 +105,18 @@ describe 'parser'
                     ]
                 }
 
+            it 'with hash # character at end'
+                (expression '"this is a hash: #"') should contain fields {
+                    is string
+                    string 'this is a hash: #'
+                }
+
+            it 'with hash # character in middle'
+                (expression '"this is a hash: #, ok?"') should contain fields {
+                    is string
+                    string 'this is a hash: #, ok?'
+                }
+
             it 'with escaped #'
                 (expression '"a boat \#(boat length) meters in length"') should contain fields {
                     is string

@@ -11,7 +11,7 @@ exports.grammar = {
             [comments + '$', 'return yy.eof();']
             [comments, 'var indentation = yy.indentation(yytext); if (indentation) { return indentation; }']
             ['\(\s*', 'yy.setIndentation(yytext); if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return "(";']
-            ['\s*\)', 'if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); this.popState(); yy.interpolation.stopInterpolation()}} return yy.unsetIndentation('')'');']
+            ['\s*\)', 'if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); yy.interpolation.stopInterpolation()}} return yy.unsetIndentation('')'');']
             ['{\s*', 'yy.setIndentation(yytext); return ''{'';']
             ['\s*}', 'return yy.unsetIndentation(''}'');']
             ['\[\s*', 'yy.setIndentation(yytext); return ''['';']
@@ -27,8 +27,8 @@ exports.grammar = {
             ['"', 'this.begin(''interpolated_string''); return ''start_interpolated_string'';']
             
             [['interpolated_string'], '\\#', 'return ''escaped_interpolated_string_terminal_start'';']
-            [['interpolated_string'], '#', 'this.begin(''interpolated_string_terminal''); return ''interpolated_string_terminal_start'';']
-            [['interpolated_string_terminal'], '\(', 'yy.setIndentation(yytext); yy.interpolation.startInterpolation(); this.begin(''INITIAL''); return ''('';']
+            [['interpolated_string'], '#\(', 'yy.setIndentation(''(''); yy.interpolation.startInterpolation(); this.begin(''INITIAL''); return ''('';']
+            [['interpolated_string'], '#', 'return ''interpolated_string_body'';']
             [['interpolated_string'], '"', 'this.popState(); return ''end_interpolated_string'';']
             [['interpolated_string'], '\\.', 'return ''escape_sequence'';']
             [['interpolated_string'], '[^"#\\]*', 'return ''interpolated_string_body'';']
@@ -154,7 +154,7 @@ exports.grammar = {
             ['interpolated_string_component', '$$ = [$1];']
         ]
         interpolated_string_component [
-            ['interpolated_string_terminal_start interpolated_terminal', '$$ = $2;']
+            ['interpolated_terminal', '$$ = $1;']
             ['interpolated_string_body', '$$ = yy.terms.string($1);']
             ['escaped_interpolated_string_terminal_start', '$$ = yy.terms.string("#");']
             ['escape_sequence', '$$ = yy.terms.string(yy.normaliseInterpolatedString($1));']

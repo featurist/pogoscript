@@ -55,9 +55,7 @@ exports.create parser context =
           string.replace (r, "\n")
 
         self.normalise string (s) =
-          s = s.substring (1, s.length - 1)
-
-          s.replace (r/''/g, "'")
+          s.substring (1, s.length - 1).replace (r/''/g, "'")
 
         self.parse reg exp (s) =
           match = r/^r\/((\n|.)*)\/([^\/]*)$/.exec(s)

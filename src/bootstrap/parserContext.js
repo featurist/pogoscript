@@ -77,8 +77,7 @@
             self.normaliseString = function(s) {
                 var self;
                 self = this;
-                s = s.substring(1, s.length - 1);
-                return s.replace(/''/g, "'");
+                return s.substring(1, s.length - 1).replace(/''/g, "'");
             };
             self.parseRegExp = function(s) {
                 var self, match;
