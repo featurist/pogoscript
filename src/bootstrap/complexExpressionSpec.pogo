@@ -58,14 +58,14 @@ describe 'complex expression'
       expression [[variable 'z', int 9]] should contain fields {
         is function call
         function {variable ['z']}
-        arguments [{integer 9}]
+        function arguments [{integer 9}]
       }
 
     it 'one argument and async argument is function call'
       expression [[variable 'z', async argument]] should contain fields {
         is function call
         function {variable ['z']}
-        arguments []
+        function arguments []
       }
 
     it 'with name is variable'
@@ -78,14 +78,14 @@ describe 'complex expression'
       expression [[id 'a', id 'variable', int 10]] should contain fields {
         is function call
         function {is variable, variable ['a', 'variable']}
-        arguments [{integer 10}]
+        function arguments [{integer 10}]
       }
 
     it 'hash entries as arguments are optional'
       expression [[id 'a', int 10, cg.hash entry ['port'] (int 80)]] should contain fields {
         is function call
         function {is variable, variable ['a']}
-        arguments [{integer 10}]
+        function arguments [{integer 10}]
         optional arguments [{field ['port'], value {integer 80}}]
       }
 
@@ -103,7 +103,7 @@ describe 'complex expression'
       expression [[id 'a', id 'variable'], [id 'port', int 80]] should contain fields {
         is function call
         function {is variable, variable ['a', 'variable']}
-        arguments []
+        function arguments []
         optional arguments [{field ['port'], value {integer 80}}]
       }
 
@@ -111,7 +111,7 @@ describe 'complex expression'
       expression [[id 'a', id 'variable'], [id 'port', int 80, block]] should contain fields {
         is function call
         function {is variable, variable ['a', 'variable']}
-        arguments [
+        function arguments [
             {
                 is block
                 body {
@@ -133,7 +133,7 @@ describe 'complex expression'
         is method call
         object {variable ['a']}
         name ['method']
-        arguments [{integer 10}]
+        method arguments [{integer 10}]
       }
   
     it 'method call with optional arguments'
@@ -141,7 +141,7 @@ describe 'complex expression'
         is method call
         object {variable ['a']}
         name ['method']
-        arguments [{integer 10}]
+        method arguments [{integer 10}]
         optional arguments [{field ['port'], value {integer 80}}]
       }
 
@@ -161,7 +161,7 @@ describe 'complex expression'
           indexer {variable ['z']}
         }
         
-        arguments [{integer 10}]
+        function arguments [{integer 10}]
       }
 
     it 'async index call with no arguments'
@@ -173,7 +173,7 @@ describe 'complex expression'
           indexer {variable ['z']}
         }
         
-        arguments []
+        function arguments []
       }
 
     it 'index call with no arguments'
@@ -185,7 +185,7 @@ describe 'complex expression'
           indexer {variable ['z']}
         }
         
-        arguments []
+        function arguments []
       }
 
     it 'field reference'

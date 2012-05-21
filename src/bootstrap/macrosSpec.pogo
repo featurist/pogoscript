@@ -78,7 +78,7 @@ describe 'macros'
             test {
                 is operator
                 operator '<'
-                arguments [
+                operator arguments [
                     {variable ['n']}
                     {integer 10}
                 ]
@@ -89,7 +89,7 @@ describe 'macros'
                 source {
                     is operator
                     operator '+'
-                    arguments [
+                    operator arguments [
                         {variable ['n']}
                         {integer 1}
                     ]
@@ -116,7 +116,7 @@ describe 'macros'
             test {
                 is operator
                 operator '<'
-                arguments [
+                operator arguments [
                     {variable ['n']}
                     {integer 10}
                 ]
@@ -196,7 +196,7 @@ describe 'macros'
                 function call {
                     is function call
                     function {variable ['Date']}
-                    arguments [
+                    function arguments [
                         {integer 2011}
                         {integer 2}
                         {integer 21}
@@ -221,7 +221,7 @@ describe 'macros'
             (expression 'a + b') should contain fields {
                 is operator
                 operator '+'
-                arguments [
+                operator arguments [
                     {variable ['a']}
                     {variable ['b']}
                 ]
@@ -231,7 +231,7 @@ describe 'macros'
             (expression 'a + b + c') should contain fields {
                 is operator
                 operator '+'
-                arguments [
+                operator arguments [
                     {variable ['a']}
                     {variable ['b']}
                     {variable ['c']}
@@ -243,7 +243,7 @@ describe 'macros'
             (expression 'a == b') should contain fields {
                 is operator
                 operator '==='
-                arguments [
+                operator arguments [
                     {variable ['a']}
                     {variable ['b']}
                 ]
@@ -254,7 +254,7 @@ describe 'macros'
             (expression 'a != b') should contain fields {
                 is operator
                 operator '!=='
-                arguments [
+                operator arguments [
                     {variable ['a']}
                     {variable ['b']}
                 ]
@@ -265,7 +265,7 @@ describe 'macros'
             (expression 'a <: b') should contain fields {
                 is operator
                 operator 'instanceof'
-                arguments [
+                operator arguments [
                     {variable ['a']}
                     {variable ['b']}
                 ]
@@ -276,7 +276,7 @@ describe 'macros'
             (expression '(a) in (b)') should contain fields {
                 is operator
                 operator 'in'
-                arguments [
+                operator arguments [
                     {variable ['a']}
                     {variable ['b']}
                 ]
@@ -308,7 +308,7 @@ describe 'macros'
                 (expression "#(op) a") should contain fields {
                     is operator
                     operator (op)
-                    arguments [
+                    operator arguments [
                         {variable ['a']}
                     ]
                 }
@@ -318,7 +318,7 @@ describe 'macros'
                 (expression "a #(op) b") should contain fields {
                     is operator
                     operator (op)
-                    arguments [
+                    operator arguments [
                         {variable ['a']}
                         {variable ['b']}
                     ]

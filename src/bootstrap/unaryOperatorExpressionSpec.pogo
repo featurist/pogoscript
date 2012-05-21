@@ -9,7 +9,7 @@ describe 'unary operator expression'
             is method call
             object {variable ['a']}
             name ['%%']
-            arguments []
+            method arguments []
         }
     
     it 'as expression with macro'
@@ -18,7 +18,7 @@ describe 'unary operator expression'
         (op expr.expression ()) should contain fields {
             is operator
             operator '!'
-            arguments [{variable ['a']}]
+            operator arguments [{variable ['a']}]
         }
 
     it 'as hash entry will be semantic failure'

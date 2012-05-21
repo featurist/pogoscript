@@ -61,7 +61,7 @@ describe 'parser'
                 (expression "x 'one\n   two' y \"three\n           four\"") should contain fields {
                     is function call
                     function {variable ['x', 'y']}
-                    arguments [
+                    function arguments [
                         {string "one\ntwo"}
                         {string "three\nfour"}
                     ]
@@ -130,7 +130,7 @@ describe 'parser'
                         {string 'a boat '}
                         {
                             function {variable ['lookup', 'boat', 'length', 'from']}
-                            arguments [{variable ['boat', 'database']}]
+                            function arguments [{variable ['boat', 'database']}]
                         }
                         {string ' meters in length'}
                     ]
@@ -327,13 +327,13 @@ describe 'parser'
         it 'function call'
             (expression 'touch (file)') should contain fields {
                 function {variable ['touch']}
-                arguments [{variable ['file']}]
+                function arguments [{variable ['file']}]
             }
 
         it 'function call with two arguments in parens'
             (expression 'f (a, b)') should contain fields {
                 function {variable ['f']}
-                arguments [
+                function arguments [
                     {variable ['a']}
                     {variable ['b']}
                 ]
@@ -343,7 +343,7 @@ describe 'parser'
             (expression '(x, y)') should contain fields {
                 is function call
                 function {variable ['x']}
-                arguments [
+                function arguments [
                     {variable ['y']}
                 ]
             }
@@ -351,7 +351,7 @@ describe 'parser'
         it 'function call with splat argument'
             (expression 'touch (files) ...') should contain fields {
                 function {variable ['touch']}
-                arguments [
+                function arguments [
                   {variable ['files']}
                   {is splat}
                 ]
@@ -360,19 +360,19 @@ describe 'parser'
         it 'function call with no argument'
             (expression 'delete everything!') should contain fields {
                 function {variable ['delete', 'everything']}
-                arguments []
+                function arguments []
             }
 
         it 'function call with no argument using empty parens'
             (expression 'delete everything ()') should contain fields {
                 function {variable ['delete', 'everything']}
-                arguments []
+                function arguments []
             }
 
         it 'function call with block with parameters'
             (expression "with file (file) @(stream)\n  stream") should contain fields {
                 function {variable ['with', 'file']}
-                arguments [
+                function arguments [
                     {variable ['file']}
                     {
                         body {statements [{variable ['stream']}]}
@@ -384,7 +384,7 @@ describe 'parser'
         it 'function call with block with long parameters'
             (expression "open database @(database connection)\n  database connection") should contain fields {
                 function {variable ['open', 'database']}
-                arguments [
+                function arguments [
                     {
                         parameters [
                             {variable ['database', 'connection']}
@@ -397,7 +397,7 @@ describe 'parser'
         it 'function call with two blocks with parameters'
             (expression 'name @(x) @{x} @ (y) @ {y}') should contain fields {
                 function {variable ['name']}
-                arguments [
+                function arguments [
                     {
                         body {statements [{variable ['x']}]}
                         parameters [{variable ['x']}]
@@ -412,7 +412,7 @@ describe 'parser'
         it 'function call with two optional arguments'
             (expression 'name (a, port: 34, server: s)') should contain fields {
                 function {variable ['name']}
-                arguments [
+                function arguments [
                     {variable ['a']}
                 ]
                 optional arguments [
@@ -433,7 +433,7 @@ describe 'parser'
                 is method call
                 object {variable ['object']}
                 name ['method']
-                arguments [{variable ['argument']}]
+                method arguments [{variable ['argument']}]
             }
         
         it 'method call with optional arguments'
@@ -441,7 +441,7 @@ describe 'parser'
                 is method call
                 object {variable ['object']}
                 name ['method']
-                arguments [{variable ['argument']}]
+                method arguments [{variable ['argument']}]
                 optional arguments [
                     {field ['view'], value {variable ['view']}}
                 ]
@@ -473,7 +473,7 @@ describe 'parser'
                 is method call
                 object {variable ['object']}
                 name ['method']
-                arguments []
+                method arguments []
             }
         
         it 'parses no argument method with () and field'
@@ -483,7 +483,7 @@ describe 'parser'
                     is method call
                     object {variable ['object']}
                     name ['method']
-                    arguments []
+                    method arguments []
                 }
                 name ['field']
             }
@@ -495,7 +495,7 @@ describe 'parser'
                     is method call
                     object {variable ['object']}
                     name ['method']
-                    arguments []
+                    method arguments []
                 }
                 name ['field']
             }
@@ -507,7 +507,7 @@ describe 'parser'
                     is method call
                     object {variable ['object']}
                     name ['method']
-                    arguments []
+                    method arguments []
                 }
                 name ['field']
             }
@@ -549,7 +549,7 @@ describe 'parser'
             (expression "(one\n  two\n)") should contain fields {
                 is function call
                 function {variable ['one']}
-                arguments [
+                function arguments [
                     {
                         is block
                         body {
@@ -607,11 +607,11 @@ describe 'parser'
                     is method call
                     object {variable ['o']}
                     name ['m']
-                    arguments [{integer 2}]
+                    method arguments [{integer 2}]
                 }
                     
                 name ['+-']
-                arguments [
+                method arguments [
                     {
                         is field reference
                         object {variable ['o']}
@@ -626,7 +626,7 @@ describe 'parser'
                 object {integer 2}
                     
                 name ["+\\+"]
-                arguments [
+                method arguments [
                     {integer 1}
                 ]
             }
@@ -636,12 +636,12 @@ describe 'parser'
                 is operator
                 operator '&&'
                 
-                arguments [
+                operator arguments [
                     {variable ['a']}
                     {
                         is operator
                         operator '!'
-                        arguments [{variable ['b']}]
+                        operator arguments [{variable ['b']}]
                     }
                 ]
             }
@@ -651,7 +651,7 @@ describe 'parser'
                 is operator
                 operator '&&'
                 
-                arguments [
+                operator arguments [
                     {variable ['a']}
                     {variable ['b']}
                 ]
@@ -762,7 +762,7 @@ describe 'parser'
                     }
 
                     name ['z']
-                    arguments [{variable ['a']}]
+                    method arguments [{variable ['a']}]
                 }
             }
 
@@ -782,7 +782,7 @@ describe 'parser'
                     }
 
                     name ['z']
-                    arguments [{variable ['a']}]
+                    method arguments [{variable ['a']}]
                 }
             }
     
@@ -832,7 +832,7 @@ describe 'parser'
                 statements [{
                     is function call
                     function {variable ['get']}
-                    arguments [
+                    function arguments [
                         {string 'http://pogoscript.org/'}
                     ]
                 }]
@@ -854,7 +854,7 @@ describe 'parser'
                     statements [{
                         is function call
                         function {variable ['a']}
-                        arguments [{
+                        function arguments [{
                             is block
                             body {
                                 statements [

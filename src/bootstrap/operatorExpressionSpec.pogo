@@ -36,7 +36,7 @@ describe 'operator expression'
             is method call
             object {variable ['a']}
             name ['+-']
-            arguments [{variable ['b']}]
+            method arguments [{variable ['b']}]
         }
 
     it 'a +- b */ c'
@@ -48,7 +48,7 @@ describe 'operator expression'
             is method call
             object {variable ['a']}
             name ['+-', '*/']
-            arguments [{variable ['b']}, {variable ['c']}]
+            method arguments [{variable ['b']}, {variable ['c']}]
         }
     
     it 'looks up macro'
@@ -57,7 +57,7 @@ describe 'operator expression'
     
         (e.expression ()) should contain fields {
             operator '+'
-            arguments [{variable ['a']}, {variable ['b']}]
+            operator arguments [{variable ['a']}, {variable ['b']}]
         }
         
     describe 'hash entry'

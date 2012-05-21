@@ -976,7 +976,7 @@ spec('code generator', function () {
        shouldContainFields(inv, {
          isFunctionCall: true,
          function: {variable: ['one', 'two']},
-         arguments: ['args'],
+         functionArguments: ['args'],
          optionalArguments: ['optionalArgs']
        });
     });

@@ -584,16 +584,16 @@ var functionCall = expressionTerm('functionCall', function (fun, args, optionalA
   this.isFunctionCall = true;
 
   this.function = fun;
-  this.arguments = args;
+  this.functionArguments = args;
   this.optionalArguments = optionalArgs;
   this.splattedArguments = splattedArguments(args, optionalArgs);
   
-  this.subterms('function', 'arguments', 'optionalArguments');
+  this.subterms('function', 'functionArguments', 'optionalArguments');
 
   this.generateJavaScript = function (buffer, scope) {
     fun.generateJavaScript(buffer, scope);
     
-    var args = argsAndOptionalArgs(this.arguments, this.optionalArguments);
+    var args = argsAndOptionalArgs(this.functionArguments, this.optionalArguments);
     
     if (this.splattedArguments && this.function.isIndexer) {
       buffer.write('.apply(');
@@ -819,17 +819,17 @@ var methodCall = exports.methodCall = function (object, name, args, optionalArgs
       this.isMethodCall = true;
       this.object = object;
       this.name = name;
-      this.arguments = args;
+      this.methodArguments = args;
       this.optionalArguments = optionalArgs;
       
-      this.subterms('object', 'arguments', 'optionalArguments');
+      this.subterms('object', 'methodArguments', 'optionalArguments');
 
       this.generateJavaScript = function (buffer, scope) {
         this.object.generateJavaScript(buffer, scope);
         buffer.write('.');
         buffer.write(concatName(this.name));
         buffer.write('(');
-        writeToBufferWithDelimiter(argsAndOptionalArgs(this.arguments, this.optionalArguments), ',', buffer, scope);
+        writeToBufferWithDelimiter(argsAndOptionalArgs(this.methodArguments, this.optionalArguments), ',', buffer, scope);
         buffer.write(')');
       };
     });
@@ -1938,7 +1938,7 @@ var tryStatement = exports.tryStatement = function (body, catchBody, finallyBody
 var operator = expressionTerm('operator', function (op, args) {
   this.isOperator = true;
   this.operator = op;
-  this.arguments = args;
+  this.operatorArguments = args;
 
   this.isOperatorAlpha = function () {
     return /[a-zA-Z]+/.test(this.operator);
@@ -1947,17 +1947,17 @@ var operator = expressionTerm('operator', function (op, args) {
   this.generateJavaScript = function(buffer, scope) {
     buffer.write('(');
     
-    if (this.arguments.length === 1) {
+    if (this.operatorArguments.length === 1) {
       buffer.write(op);
       if (this.isOperatorAlpha()) {
         buffer.write(' ');
       }
-      this.arguments[0].generateJavaScript(buffer, scope);
+      this.operatorArguments[0].generateJavaScript(buffer, scope);
     } else {
       var alpha = this.isOperatorAlpha();
       
-      this.arguments[0].generateJavaScript(buffer, scope);
-      for(var n = 1; n < this.arguments.length; n++) {
+      this.operatorArguments[0].generateJavaScript(buffer, scope);
+      for(var n = 1; n < this.operatorArguments.length; n++) {
         if (alpha) {
           buffer.write(' ');
         }
@@ -1965,7 +1965,7 @@ var operator = expressionTerm('operator', function (op, args) {
         if (alpha) {
           buffer.write(' ');
         }
-        this.arguments[n].generateJavaScript(buffer, scope);
+        this.operatorArguments[n].generateJavaScript(buffer, scope);
       }
     }
     
