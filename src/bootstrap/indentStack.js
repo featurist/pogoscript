@@ -7,8 +7,8 @@
             var self;
             self = this;
             self.indents = [ 0 ];
-            self.indentationRegex = new RegExp("\\n( *)$");
-            self.multiNewLineRegex = new RegExp("\\n *\\n");
+            self.indentationRegex = new RegExp("\\r?\\n( *)$");
+            self.multiNewLineRegex = new RegExp("\\r?\\n *\\r?\\n");
             self.isMultiNewLine = function(text) {
                 var self;
                 self = this;

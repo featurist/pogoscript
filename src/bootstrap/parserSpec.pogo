@@ -598,6 +598,18 @@ describe 'parser'
                     {variable ['b']}
                 ]
             }
+            
+        it 'windows indentation'
+            (statements "app (stuff) =\r
+                           ok\r
+                         \r
+                         url (path) =\r
+                           ok") should contain fields {
+                statements [
+                    {is definition}
+                    {is definition}
+                ]
+            }
 
     describe 'operators'
         it 'should be lower precedence than object operation'

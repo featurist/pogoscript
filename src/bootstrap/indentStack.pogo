@@ -3,8 +3,8 @@ require './runtime'
 exports.create indent stack = create indent stack () =
     object =>
         self.indents = [0]
-        self.indentation regex = new (RegExp '\n( *)$')
-        self.multi new line regex = new (RegExp '\n *\n')
+        self.indentation regex = new (RegExp '\r?\n( *)$')
+        self.multi new line regex = new (RegExp '\r?\n *\r?\n')
         
         self.is (text) multi new line =
             self.multi new line regex.test (text)
