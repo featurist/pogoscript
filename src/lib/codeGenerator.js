@@ -1,20 +1,9 @@
 var _ = require('underscore');
 var util = require('util');
-var errors = require('../bootstrap/codeGenerator/errors');
 require('../bootstrap/runtime');
 
-var parseError = exports.parseError = function (term, message, expected) {
-  expected = expected || [];
-  
-  var e = new Error(message);
-  e.index = term.index;
-  e.context = term.context;
-  e.expected = expected;
-  
-  return e;
-};
-
 var ExpressionPrototype = new function () {
+  this.isTerm = true;
   this.generateJavaScriptReturn = function (buffer, scope) {
     buffer.write('return ');
     this.generateJavaScript(buffer, scope);
@@ -44,15 +33,15 @@ var ExpressionPrototype = new function () {
   };
 
   this.hashEntry = function () {
-      errors.addTermWithMessage(this, 'cannot be used as a hash entry');
+      this.cg.errors.addTermWithMessage(this, 'cannot be used as a hash entry');
   };
   
   this.hashEntryField = function () {
-    errors.addTermWithMessage(this, 'cannot be used as a field name');
+    this.cg.errors.addTermWithMessage(this, 'cannot be used as a field name');
   };
 
   this.blockify = function (parameters, optionalParameters) {
-    var b = block(parameters, statements([this]));
+    var b = this.cg.block(parameters, this.cg.statements([this]));
     b.optionalParameters = optionalParameters;
     return b;
   };
@@ -62,7 +51,7 @@ var ExpressionPrototype = new function () {
   };
 
   this.parameter = function () {
-    return errors.addTermWithMessage(this, 'this cannot be used as a parameter');
+    return this.cg.errors.addTermWithMessage(this, 'this cannot be used as a parameter');
   };
 
   this.subterms = function () {
@@ -142,30 +131,27 @@ var loc = exports.loc = function (term, location) {
   return term;
 };
 
-var term = exports.term = function (members) {
+exports.term = function (members) {
+  if (!this.thisiscodegen) {
+    throw new Error('no cg!');
+  }
+  
+  if (arguments.length > 1) {
+    throw new Error('too many args to term!');
+  }
+  
+  var cg = this;
+  
   var constructor = function () {
+    Object.defineProperty(this, 'cg', {value: cg});
     members.call(this);
   };
   constructor.prototype = ExpressionPrototype;
   return new constructor();
 };
 
-var expressionTerm = function (name, constructor) {
-  constructor.prototype = ExpressionPrototype;
-  return exports[name] = function () {
-    var args = arguments;
-    var F = function () {
-      return constructor.apply(this, args);
-    }
-    F.prototype = constructor.prototype;
-    return new F();
-  };
-};
-
-var semanticFailure = require('./semanticFailure');
-
 exports.identifier = function (name) {
-  return term(function () {
+  return this.term(function () {
     this.isIdentifier = true;
     this.identifier = name;
     
@@ -175,26 +161,30 @@ exports.identifier = function (name) {
   });
 };
 
-var integer = expressionTerm('integer', function (value, location) {
-  this.isInteger = true;
-  this.integer = value;
-  this.location = location;
-  
-  this.generateJavaScript = function (buffer, scope) {
-    buffer.write(this.integer.toString());
-  };
-});
+exports.integer = function (value, location) {
+  return this.term(function () {
+    this.isInteger = true;
+    this.integer = value;
+    this.location = location;
 
-var boolean = expressionTerm('boolean', function(value) {
-  this.boolean = value;
-  this.generateJavaScript = function (buffer, scope) {
-    if (this.boolean) {
-      buffer.write('true');
-    } else {
-      buffer.write('false');
-    }
-  };
-});
+    this.generateJavaScript = function (buffer, scope) {
+      buffer.write(this.integer.toString());
+    };
+  });
+};
+
+exports.boolean = function(value) {
+  return this.term(function () {
+    this.boolean = value;
+    this.generateJavaScript = function (buffer, scope) {
+      if (this.boolean) {
+        buffer.write('true');
+      } else {
+        buffer.write('false');
+      }
+    };
+  });
+};
 
 var actualCharacters = [
   [/\\\\/g, '\\', /\\/g, '\\\\'],
@@ -230,11 +220,11 @@ var unindent = exports.unindent = function (columns, text) {
   return unindenter(columns)(text);
 };
 
-expressionTerm('interpolatedString', function (components, columnStart) {
-  this.isInterpolatedString = true;
-  this.components = (function () {
+exports.interpolatedString = function (components, columnStart) {
+  var cg = this;
+  var components = (function () {
     var removeIndentation = unindenter(columnStart + 1);
-    
+  
     var collapsedComponents = collapse(components, function (c) {
       if (c.isString) {
         return removeIndentation(c.string);
@@ -244,47 +234,52 @@ expressionTerm('interpolatedString', function (components, columnStart) {
         return string + removeIndentation(c.string);
       }
     }, function (s) {
-      return string(s);
+      return cg.string(s);
     });
 
     return collapsedComponents;
   })();
-  
-  if (this.components.length === 1) {
-    return this.components[0];
-  } else if (this.components.length === 0) {
-    return string('');
-  }
 
-  this.componentsDelimitedByStrings = function () {
-    var comps = [];
-    var lastComponentWasExpression = false;
-    var lastComponentWasString = false;
+  if (components.length === 1) {
+    return components[0];
+  } else if (components.length === 0) {
+    return cg.string('');
+  } else {
+    return this.term(function () {
+      this.isInterpolatedString = true;
+      this.components = components;
 
-    _.each(this.components, function (component) {
-      if (lastComponentWasExpression && !component.isString) {
-        comps.push(string(''));
-      }
+      this.componentsDelimitedByStrings = function () {
+        var comps = [];
+        var lastComponentWasExpression = false;
+        var lastComponentWasString = false;
+
+        _.each(this.components, function (component) {
+          if (lastComponentWasExpression && !component.isString) {
+            comps.push(this.cg.string(''));
+          }
       
-      if (lastComponentWasString && component.isString) {
-        comps[comps.length - 1] = string(comps[comps.length - 1].string + component.string);
-      } else {
-        comps.push(component);
-      }
+          if (lastComponentWasString && component.isString) {
+            comps[comps.length - 1] = this.cg.string(comps[comps.length - 1].string + component.string);
+          } else {
+            comps.push(component);
+          }
 
-      lastComponentWasExpression = !component.isString;
-      lastComponentWasString = component.isString;
+          lastComponentWasExpression = !component.isString;
+          lastComponentWasString = component.isString;
+        });
+
+        return comps;
+      };
+
+      this.generateJavaScript = function (buffer, scope) {
+        writeToBufferWithDelimiter(this.componentsDelimitedByStrings(), '+', buffer, scope);
+      };
     });
+  }
+};
 
-    return comps;
-  };
-
-  this.generateJavaScript = function (buffer, scope) {
-    writeToBufferWithDelimiter(this.componentsDelimitedByStrings(), '+', buffer, scope);
-  };
-});
-
-var normaliseInterpolatedString = exports.normaliseInterpolatedString = function (s) {
+exports.normaliseInterpolatedString = function (s) {
   for (var i = 0; i < actualCharacters.length; i++) {
     var mapping = actualCharacters[i];
     s = s.replace(mapping[0], mapping[1]);
@@ -293,16 +288,18 @@ var normaliseInterpolatedString = exports.normaliseInterpolatedString = function
   return s;
 };
 
-var string = expressionTerm('string', function(value) {
-  this.isString = true;
-  this.string = value;
-  this.generateJavaScript = function(buffer, scope) {
-    buffer.write(formatJavaScriptString(this.string));
-  };
-});
+exports.string = function(value) {
+  return this.term(function () {
+    this.isString = true;
+    this.string = value;
+    this.generateJavaScript = function(buffer, scope) {
+      buffer.write(formatJavaScriptString(this.string));
+    };
+  });
+};
 
-var regExp = exports.regExp = function (patternOptions) {
-  return term(function () {
+exports.regExp = function (patternOptions) {
+  return this.term(function () {
     this.isRegExp = true;
     this.pattern = patternOptions.pattern;
     this.options = patternOptions.options;
@@ -313,51 +310,55 @@ var regExp = exports.regExp = function (patternOptions) {
   });
 };
 
-expressionTerm('float', function (value) {
-  this.float = value;
-  this.generateJavaScript = function (buffer, scope) {
-    buffer.write(this.float.toString());
-  };
-});
-
-var variable = expressionTerm('variable', function (name, options) {
-  this.variable = name;
-  this.isVariable = true;
-  this.shadow = options && options.shadow;
-  
-  this.variableName = function () {
-    return concatName(this.variable, {escape: true});
-  };
-  
-  this.generateJavaScript = function (buffer, scope) {
-    buffer.write(this.variableName());
-  };
-  
-  this.generateJavaScriptTarget = this.generateJavaScript;
-  
-  this.hashEntryField = function () {
-    return this.variable;
-  };
-  
-  this.generateJavaScriptParameter = this.generateJavaScript;
-  
-  this.definitionName = function(scope) {
-    if (this.shadow || !scope.isDefined(this.variableName())) {
-      return this.variableName();
-    }
-  };
-  
-  this.parameter = function () {
-    return this;
-  };
-});
-
-var selfExpression = exports.selfExpression = function () {
-  return variable(['self'], {shadow: true});
+exports.float = function (value) {
+  return this.term(function () {
+    this.float = value;
+    this.generateJavaScript = function (buffer, scope) {
+      buffer.write(this.float.toString());
+    };
+  });
 };
 
-var asyncArgument = exports.asyncArgument = function () {
-  return term(function () {
+exports.variable = function (name, options) {
+  return this.term(function () {
+    this.variable = name;
+    this.isVariable = true;
+    this.shadow = options && options.shadow;
+  
+    this.variableName = function () {
+      return this.cg.concatName(this.variable, {escape: true});
+    };
+  
+    this.generateJavaScript = function (buffer, scope) {
+      buffer.write(this.variableName());
+    };
+  
+    this.generateJavaScriptTarget = this.generateJavaScript;
+  
+    this.hashEntryField = function () {
+      return this.variable;
+    };
+  
+    this.generateJavaScriptParameter = this.generateJavaScript;
+  
+    this.definitionName = function(scope) {
+      if (this.shadow || !scope.isDefined(this.variableName())) {
+        return this.variableName();
+      }
+    };
+  
+    this.parameter = function () {
+      return this;
+    };
+  });
+};
+
+exports.selfExpression = function () {
+  return this.variable(['self'], {shadow: true});
+};
+
+exports.asyncArgument = function () {
+  return this.term(function () {
     this.isAsyncArgument = true;
     
     this.arguments = function () {
@@ -366,8 +367,8 @@ var asyncArgument = exports.asyncArgument = function () {
   });
 }
 
-var parameters = exports.parameters = function (parms) {
-  return term(function () {
+exports.parameters = function (parms) {
+  return this.term(function () {
     this.isParameters = true;
     this.parameters = parms;
     
@@ -377,7 +378,7 @@ var parameters = exports.parameters = function (parms) {
   });
 };
 
-var concatName = exports.concatName = function (nameSegments, options) {
+exports.concatName = function (nameSegments, options) {
   var name = '';
   
   for (var n = 0; n < nameSegments.length; n++) {
@@ -428,8 +429,8 @@ var operatorRenderedInJavaScript = function (operator) {
   return javaScriptName;
 };
 
-var javascript = exports.javascript = function (source) {
-  return term(function () {
+exports.javascript = function (source) {
+  return this.term(function () {
     this.isJavaScript = true;
     this.source = source;
     this.generateJavaScript = function (buffer, scope) {
@@ -438,9 +439,9 @@ var javascript = exports.javascript = function (source) {
   });
 };
 
-var splatParameters = function (next) {
+var splatParameters = function (cg, next) {
   return new function () {
-    this.parsedSplatParameters = parseSplatParameters(next.parameters());
+    this.parsedSplatParameters = parseSplatParameters(cg, next.parameters());
 
     this.parameters = function () {
       return this.parsedSplatParameters.firstParameters;
@@ -457,18 +458,18 @@ var splatParameters = function (next) {
         }
       
         var splatParameter =
-          definition(
+          cg.definition(
             splat.splatParameter,
-            javascript('Array.prototype.slice.call(arguments, ' + splat.firstParameters.length + ', ' + lastIndex + ')')
+            cg.javascript('Array.prototype.slice.call(arguments, ' + splat.firstParameters.length + ', ' + lastIndex + ')')
           );
       
         var lastParameterStatements = [splatParameter];
         for (var n = 0; n < splat.lastParameters.length; n++) {
           var param = splat.lastParameters[n];
           lastParameterStatements.push(
-            definition(
+            cg.definition(
               param,
-              javascript('arguments[arguments.length - ' + (splat.lastParameters.length - n) + ']')
+              cg.javascript('arguments[arguments.length - ' + (splat.lastParameters.length - n) + ']')
             )
           );
         }
@@ -483,7 +484,7 @@ var splatParameters = function (next) {
   };
 };
 
-var parseSplatParameters = exports.parseSplatParameters = function (parameters) {
+var parseSplatParameters = exports.parseSplatParameters = function (cg, parameters) {
   var firstParameters = take(parameters, function (param) {
     return !param.isSplat;
   });
@@ -498,7 +499,7 @@ var parseSplatParameters = exports.parseSplatParameters = function (parameters) 
     
     lastParameters = _.filter(lastParameters, function (param) {
       if (param.isSplat) {
-        errors.addTermWithMessage(param, 'cannot have more than one splat parameter');
+        cg.errors.addTermWithMessage(param, 'cannot have more than one splat parameter');
         return false;
       } else {
         return true;
@@ -530,7 +531,7 @@ var take = function (list, canTake) {
   return takenList;
 };
 
-var splattedArguments = function (args, optionalArgs) {
+var splattedArguments = function (cg, args, optionalArgs) {
   var splatArgs = [];
   var previousArgs = [];
   var foundSplat = false;
@@ -541,28 +542,28 @@ var splattedArguments = function (args, optionalArgs) {
     if (next && next.isSplat) {
       foundSplat = true;
       if (previousArgs.length > 0) {
-        splatArgs.push(list(previousArgs));
+        splatArgs.push(cg.list(previousArgs));
         previousArgs = [];
       }
       splatArgs.push(current);
       i++;
     } else if (current.isSplat) {
-      errors.addTermWithMessage(current, 'splat keyword with no argument to splat');
+      cg.errors.addTermWithMessage(current, 'splat keyword with no argument to splat');
     } else {
       previousArgs.push(current);
     }
   }
   
   if (optionalArgs && optionalArgs.length > 0) {
-    previousArgs.push(hash(optionalArgs));
+    previousArgs.push(cg.hash(optionalArgs));
   }
   
   if (previousArgs.length > 0) {
-    splatArgs.push(list(previousArgs));
+    splatArgs.push(cg.list(previousArgs));
   }
   
   if (foundSplat) {
-    return term(function () {
+    return cg.term(function () {
       this.generateJavaScript = function (buffer, scope) {
         for (var i = 0; i < splatArgs.length; i++) {
           var splattedArgument = splatArgs[i];
@@ -580,67 +581,72 @@ var splattedArguments = function (args, optionalArgs) {
   }
 };
 
-var functionCall = expressionTerm('functionCall', function (fun, args, optionalArgs) {
-  this.isFunctionCall = true;
+exports.functionCall = function (fun, args, optionalArgs) {
+  var cg = this;
+  return this.term(function () {
+    this.isFunctionCall = true;
 
-  this.function = fun;
-  this.functionArguments = args;
-  this.optionalArguments = optionalArgs;
-  this.splattedArguments = splattedArguments(args, optionalArgs);
+    this.function = fun;
+    this.functionArguments = args;
+    this.optionalArguments = optionalArgs;
+    this.splattedArguments = splattedArguments(cg, args, optionalArgs);
   
-  this.subterms('function', 'functionArguments', 'optionalArguments');
+    this.subterms('function', 'functionArguments', 'optionalArguments');
 
-  this.generateJavaScript = function (buffer, scope) {
-    fun.generateJavaScript(buffer, scope);
+    this.generateJavaScript = function (buffer, scope) {
+      fun.generateJavaScript(buffer, scope);
     
-    var args = argsAndOptionalArgs(this.functionArguments, this.optionalArguments);
+      var args = argsAndOptionalArgs(this.cg, this.functionArguments, this.optionalArguments);
     
-    if (this.splattedArguments && this.function.isIndexer) {
-      buffer.write('.apply(');
-      this.function.object.generateJavaScript(buffer, scope);
-      buffer.write(',');
-      this.splattedArguments.generateJavaScript(buffer, scope);
-      buffer.write(')');
-    } else if (this.splattedArguments) {
-      buffer.write('.apply(null,');
-      this.splattedArguments.generateJavaScript(buffer, scope);
-      buffer.write(')');
-    } else {
+      if (this.splattedArguments && this.function.isIndexer) {
+        buffer.write('.apply(');
+        this.function.object.generateJavaScript(buffer, scope);
+        buffer.write(',');
+        this.splattedArguments.generateJavaScript(buffer, scope);
+        buffer.write(')');
+      } else if (this.splattedArguments) {
+        buffer.write('.apply(null,');
+        this.splattedArguments.generateJavaScript(buffer, scope);
+        buffer.write(')');
+      } else {
+        buffer.write('(');
+        writeToBufferWithDelimiter(args, ',', buffer, scope);
+        buffer.write(')');
+      }
+    };
+  });
+};
+
+exports.optional = function (options, name, defaultValue) {
+  return this.term(function () {
+    this.options = options;
+    this.name = name;
+    this.defaultValue = defaultValue;
+  
+    this.properDefaultValue = function () {
+      if (this.defaultValue === undefined) {
+        return this.cg.variable(['undefined']);
+      } else {
+        return this.defaultValue;
+      }
+    };
+
+    this.generateJavaScript = function (buffer, scope) {
       buffer.write('(');
-      writeToBufferWithDelimiter(args, ',', buffer, scope);
-      buffer.write(')');
-    }
-  };
-});
+      this.options.generateJavaScript(buffer, scope);
+      buffer.write('&&');
+      this.options.generateJavaScript(buffer, scope);
+      buffer.write(".hasOwnProperty('" + this.cg.concatName(this.name) + "')&&");
+      this.options.generateJavaScript(buffer, scope);
+      buffer.write("." + this.cg.concatName(this.name) + "!==void 0)?");
+      this.options.generateJavaScript(buffer, scope);
+      buffer.write('.' + this.cg.concatName(this.name) + ':');
+      this.properDefaultValue().generateJavaScript(buffer, scope);
+    };
+  });
+};
 
-var optional = expressionTerm('optional', function (options, name, defaultValue) {
-  this.options = options;
-  this.name = name;
-  this.defaultValue = defaultValue;
-  
-  this.properDefaultValue = function () {
-    if (this.defaultValue === undefined) {
-      return variable(['undefined']);
-    } else {
-      return this.defaultValue;
-    }
-  };
-
-  this.generateJavaScript = function (buffer, scope) {
-    buffer.write('(');
-    this.options.generateJavaScript(buffer, scope);
-    buffer.write('&&');
-    this.options.generateJavaScript(buffer, scope);
-    buffer.write(".hasOwnProperty('" + concatName(this.name) + "')&&");
-    this.options.generateJavaScript(buffer, scope);
-    buffer.write("." + concatName(this.name) + "!==void 0)?");
-    this.options.generateJavaScript(buffer, scope);
-    buffer.write('.' + concatName(this.name) + ':');
-    this.properDefaultValue().generateJavaScript(buffer, scope);
-  };
-});
-
-var selfParameter = function (redefinesSelf, next) {
+var selfParameter = function (cg, redefinesSelf, next) {
   if (redefinesSelf) {
     return {
       parameters: function () {
@@ -648,7 +654,7 @@ var selfParameter = function (redefinesSelf, next) {
       },
     
       statements: function () {
-        return [definition(selfExpression(), variable(['this']))].concat(next.statements());
+        return [cg.definition(cg.selfExpression(), cg.variable(['this']))].concat(next.statements());
       }
     };
   } else {
@@ -668,10 +674,10 @@ var blockParameters = function (block) {
   }
 };
 
-var optionalParameters = function (optionalParameters, next) {
+var optionalParameters = function (cg, optionalParameters, next) {
   if (optionalParameters.length > 0) {
     return {
-      options: generatedVariable(['options']),
+      options: cg.generatedVariable(['options']),
       
       parameters: function () {
         return next.parameters().concat([this.options]);
@@ -681,7 +687,7 @@ var optionalParameters = function (optionalParameters, next) {
         var self = this;
 
         var optionalStatements = _.map(optionalParameters, function (parm) {
-          return definition(variable(parm.field, {shadow: true}), optional(self.options, parm.field, parm.value));
+          return cg.definition(cg.variable(parm.field, {shadow: true}), cg.optional(self.options, parm.field, parm.value));
         });
         
         return optionalStatements.concat(next.statements());
@@ -694,82 +700,87 @@ var optionalParameters = function (optionalParameters, next) {
   }
 };
 
-var block = expressionTerm('block', function (parameters, body, options) {
-  this.body = body;
-  this.isBlock = true;
-  this.returnLastStatement = options && options.returnLastStatement != null? options.returnLastStatement: true;
-  this.parameters = parameters;
-  this.optionalParameters = [];
-  this.redefinesSelf = options && options.redefinesSelf != null? options.redefinesSelf: false;
-  
-  this.blockify = function (parameters, optionalParameters) {
+exports.block = function (parameters, body, options) {
+  return this.term(function () {
+    this.body = body;
+    this.isBlock = true;
+    this.returnLastStatement = options && options.returnLastStatement != null? options.returnLastStatement: true;
     this.parameters = parameters;
-    this.optionalParameters = optionalParameters;
-    return this;
-  };
+    this.optionalParameters = [];
+    this.redefinesSelf = options && options.redefinesSelf != null? options.redefinesSelf: false;
   
-  this.scopify = function () {
-    if (this.parameters.length === 0 && this.optionalParameters.length === 0) {
-      return scope(this.body.statements);
-    } else {
+    this.blockify = function (parameters, optionalParameters) {
+      this.parameters = parameters;
+      this.optionalParameters = optionalParameters;
       return this;
-    }
-  };
+    };
   
-  this.parameterTransforms = function () {
-    if (this._parameterTransforms) {
-      return this._parameterTransforms;
-    }
-    
-    var optionals = optionalParameters(
-      this.optionalParameters,
-      selfParameter(
-        this.redefinesSelf,
-        blockParameters(this)
-      )
-    );
-    
-    var splat = splatParameters(
-      optionals
-    );
-    
-    if (optionals.hasOptionals && splat.hasSplat) {
-      errors.addTermsWithMessage(this.optionalParameters, 'cannot have splat parameters with optional parameters');
-    }
-    
-    return this._parameterTransforms = splat;
-  };
+    this.scopify = function () {
+      if (this.parameters.length === 0 && this.optionalParameters.length === 0) {
+        return this.cg.scope(this.body.statements);
+      } else {
+        return this;
+      }
+    };
   
-  this.transformedStatements = function () {
-    return statements(this.parameterTransforms().statements());
-  };
+    this.parameterTransforms = function () {
+      if (this._parameterTransforms) {
+        return this._parameterTransforms;
+      }
+    
+      var optionals = optionalParameters(
+        this.cg,
+        this.optionalParameters,
+        selfParameter(
+          this.cg,
+          this.redefinesSelf,
+          blockParameters(this)
+        )
+      );
+    
+      var splat = splatParameters(
+        this.cg,
+        optionals
+      );
+    
+      if (optionals.hasOptionals && splat.hasSplat) {
+        this.cg.errors.addTermsWithMessage(this.optionalParameters, 'cannot have splat parameters with optional parameters');
+      }
+    
+      return this._parameterTransforms = splat;
+    };
   
-  this.transformedParameters = function () {
-    return this.parameterTransforms().parameters();
-  };
+    this.transformedStatements = function () {
+      return this.cg.statements(this.parameterTransforms().statements());
+    };
   
-  this.declareParameters = function (scope, parameters) {
-    for (var n = 0; n < parameters.length; n++) {
-      scope.define(parameters[n].variableName(scope));
-    }
-  };
+    this.transformedParameters = function () {
+      return this.parameterTransforms().parameters();
+    };
+  
+    this.declareParameters = function (scope, parameters) {
+      for (var n = 0; n < parameters.length; n++) {
+        scope.define(parameters[n].variableName(scope));
+      }
+    };
 
-  this.generateJavaScript = function (buffer, scope) {
-    buffer.write('function(');
-    var parameters = this.transformedParameters();
-    writeToBufferWithDelimiter(parameters, ',', buffer, scope);
-    buffer.write('){');
-    var body = this.transformedStatements();
-    var bodyScope = scope.subScope();
-    this.declareParameters(bodyScope, parameters);
-    if (this.returnLastStatement) {
-      body.generateJavaScriptStatementsReturn(buffer, bodyScope);
-    } else {
-      body.generateJavaScriptStatements(buffer, bodyScope);
-    }
-    buffer.write('}');
-  };
-});
+    this.generateJavaScript = function (buffer, scope) {
+      buffer.write('function(');
+      var parameters = this.transformedParameters();
+      writeToBufferWithDelimiter(parameters, ',', buffer, scope);
+      buffer.write('){');
+      var body = this.transformedStatements();
+      var bodyScope = scope.subScope();
+      this.declareParameters(bodyScope, parameters);
+      if (this.returnLastStatement) {
+        body.generateJavaScriptStatementsReturn(buffer, bodyScope);
+      } else {
+        body.generateJavaScriptStatements(buffer, bodyScope);
+      }
+      buffer.write('}');
+    };
+  });
+};
 
 var writeToBufferWithDelimiter = function (array, delimiter, buffer, scope) {
   var writer;
@@ -791,31 +802,31 @@ var writeToBufferWithDelimiter = function (array, delimiter, buffer, scope) {
   });
 };
 
-var argsAndOptionalArgs = function (args, optionalArgs) {
+var argsAndOptionalArgs = function (cg, args, optionalArgs) {
   var a = args.slice();
 
   if (optionalArgs && optionalArgs.length > 0) {
-    a.push(hash(optionalArgs));
+    a.push(cg.hash(optionalArgs));
   }
 
   return a;
 };
 
-var methodCall = exports.methodCall = function (object, name, args, optionalArgs) {
-  var splattedArgs = splattedArguments(args, optionalArgs);
+exports.methodCall = function (object, name, args, optionalArgs) {
+  var splattedArgs = splattedArguments(this, args, optionalArgs);
   
   if (splattedArgs) {
-    var objectVar = generatedVariable(['o']);
-    return expressionStatements(statements([
-      definition(objectVar, object),
-      methodCall(
-        fieldReference(objectVar, name),
+    var objectVar = this.generatedVariable(['o']);
+    return this.expressionStatements(statements([
+      this.definition(objectVar, object),
+      this.methodCall(
+        this.fieldReference(objectVar, name),
         ['apply'],
         [objectVar, splattedArgs]
       )
     ]));
   } else {
-    return term(function () {
+    return this.term(function () {
       this.isMethodCall = true;
       this.object = object;
       this.name = name;
@@ -827,39 +838,43 @@ var methodCall = exports.methodCall = function (object, name, args, optionalArgs
       this.generateJavaScript = function (buffer, scope) {
         this.object.generateJavaScript(buffer, scope);
         buffer.write('.');
-        buffer.write(concatName(this.name));
+        buffer.write(this.cg.concatName(this.name));
         buffer.write('(');
-        writeToBufferWithDelimiter(argsAndOptionalArgs(this.methodArguments, this.optionalArguments), ',', buffer, scope);
+        writeToBufferWithDelimiter(argsAndOptionalArgs(this.cg, this.methodArguments, this.optionalArguments), ',', buffer, scope);
         buffer.write(')');
       };
     });
   }
 };
 
-var indexer = expressionTerm('indexer', function (object, indexer) {
-  this.object = object;
-  this.indexer = indexer;
-  this.isIndexer = true;
-  this.generateJavaScript = function (buffer, scope) {
-    this.object.generateJavaScript(buffer, scope);
-    buffer.write('[');
-    this.indexer.generateJavaScript(buffer, scope);
-    buffer.write(']');
-  };
-  this.generateJavaScriptTarget = this.generateJavaScript;
-});
+exports.indexer = function (object, indexer) {
+  return this.term(function () {
+    this.object = object;
+    this.indexer = indexer;
+    this.isIndexer = true;
+    this.generateJavaScript = function (buffer, scope) {
+      this.object.generateJavaScript(buffer, scope);
+      buffer.write('[');
+      this.indexer.generateJavaScript(buffer, scope);
+      buffer.write(']');
+    };
+    this.generateJavaScriptTarget = this.generateJavaScript;
+  });
+};
 
-var fieldReference = expressionTerm('fieldReference', function (object, name) {
-  this.object = object;
-  this.name = name;
-  this.isFieldReference = true;
-  this.generateJavaScript = function (buffer, scope) {
-    this.object.generateJavaScript(buffer, scope);
-    buffer.write('.');
-    buffer.write(concatName(this.name));
-  };
-  this.generateJavaScriptTarget = this.generateJavaScript;
-});
+exports.fieldReference = function (object, name) {
+  return this.term(function () {
+    this.object = object;
+    this.name = name;
+    this.isFieldReference = true;
+    this.generateJavaScript = function (buffer, scope) {
+      this.object.generateJavaScript(buffer, scope);
+      buffer.write('.');
+      buffer.write(this.cg.concatName(this.name));
+    };
+    this.generateJavaScriptTarget = this.generateJavaScript;
+  });
+};
 
 var hasScope = function (s) {
   if (!s) {
@@ -874,8 +889,8 @@ var expressionStatements = function (statements) {
   });
 };
 
-var Statements = function (statements) {
-  return term(function () {
+exports.statements = function (statements) {
+  return this.term(function () {
     this.isStatements = true;
     this.statements = statements;
     
@@ -933,13 +948,13 @@ var Statements = function (statements) {
     };
 
     this.blockify = function (parameters, optionalParameters) {
-      var b = block(parameters, this);
+      var b = this.cg.block(parameters, this);
       b.optionalParameters = optionalParameters;
       return b;
     };
 
     this.scopify = function () {
-      return functionCall(block([], this), []);
+      return this.cg.functionCall(this.cg.block([], this), []);
     };
 
     this.generateJavaScriptStatementsReturn = function (buffer, scope, global) {
@@ -978,27 +993,29 @@ var Statements = function (statements) {
   });
 };
 
-var module = expressionTerm('module', function (statements) {
-  this.statements = statements;
-  this.isModule = true;
-  this.inScope = true;
-  this.global = false;
-  this.returnResult = false;
+exports.module = function (statements) {
+  return this.term(function () {
+    this.statements = statements;
+    this.isModule = true;
+    this.inScope = true;
+    this.global = false;
+    this.returnResult = false;
   
-  this.generateJavaScript = function (buffer, scope, global) {
-    if (this.inScope) {
-      var b = block([], this.statements, {returnLastStatement: false, redefinesSelf: true});
-      methodCall(subExpression(b), ['call'], [variable(['this'])]).generateJavaScript(buffer, new Scope());
-      buffer.write(';');
-    } else {
-      if (this.returnResult) {
-        this.statements.generateJavaScriptStatementsReturn(buffer, new Scope(), this.global);
+    this.generateJavaScript = function (buffer, scope, global) {
+      if (this.inScope) {
+        var b = this.cg.block([], this.statements, {returnLastStatement: false, redefinesSelf: true});
+        this.cg.methodCall(this.cg.subExpression(b), ['call'], [this.cg.variable(['this'])]).generateJavaScript(buffer, new Scope());
+        buffer.write(';');
       } else {
-        this.statements.generateJavaScriptStatements(buffer, new Scope(), this.global);
+        if (this.returnResult) {
+          this.statements.generateJavaScriptStatementsReturn(buffer, new Scope(), this.global);
+        } else {
+          this.statements.generateJavaScriptStatements(buffer, new Scope(), this.global);
+        }
       }
-    }
-  };
-});
+    };
+  });
+};
 
 var UniqueNames = function() {
   var unique = 1;
@@ -1030,10 +1047,6 @@ var Scope = exports.Scope = function (parentScope, uniqueNames) {
   };
 };
 
-var statements = exports.statements = function (s) {
-  return new Statements(s);
-};
-
 var extractName = function (terminals) {
   return _(terminals).filter(function (terminal) {
     return terminal.identifier;
@@ -1042,457 +1055,151 @@ var extractName = function (terminals) {
   });
 };
 
-var definition = expressionTerm('definition', function (target, source) {
-  if (!target) throw Error();
+exports.definition = function (target, source) {
+  return this.term(function () {
+    if (!target) throw Error();
   
-  this.isDefinition = true;
-  this.target = target;
-  this.source = source;
+    this.isDefinition = true;
+    this.target = target;
+    this.source = source;
 
-  this.subterms('target', 'source');
+    this.subterms('target', 'source');
 
-  this.expression = function () {
-    return this;
-  };
+    this.expression = function () {
+      return this;
+    };
   
-  this.hashEntry = function () {
-    return hashEntry(this.target.hashEntryField(), this.source);
-  };
+    this.hashEntry = function () {
+      return hashEntry(this.target.hashEntryField(), this.source);
+    };
 
-  this.generateJavaScript = function (buffer, scope) {
-    target.generateJavaScriptTarget(buffer, scope);
-    buffer.write('=');
-    source.generateJavaScript(buffer, scope);
-  };
+    this.generateJavaScript = function (buffer, scope) {
+      target.generateJavaScriptTarget(buffer, scope);
+      buffer.write('=');
+      source.generateJavaScript(buffer, scope);
+    };
   
-  this.definitions = function (scope) {
-    var defs = [];
-    var t = target.definitionName(scope);
-    if (t) {
-      defs.push(t);
-    }
-    var s = this.source.definitions(scope);
-    defs = defs.concat(s);
-    return defs;
-  };
-});
-  
-var makeSourceWithParameters = function(source, params, optionalParams) {
-  if (params.length > 0 || (optionalParams && optionalParams.length > 0)) {
-    if (!source.isBlock) {
-      var b = block(params, statements([source]));
-      b.optionalParameters = optionalParams;
-      return b;
-    } else {
-      source.parameters = params;
-      source.optionalParameters = optionalParams;
-      return source;
-    }
-  } else {
-    return source;
-  }
+    this.definitions = function (scope) {
+      var defs = [];
+      var t = target.definitionName(scope);
+      if (t) {
+        defs.push(t);
+      }
+      var s = this.source.definitions(scope);
+      defs = defs.concat(s);
+      return defs;
+    };
+  });
 };
 
-expressionTerm('basicExpression', function(terminals) {
-  this.terminals = terminals;
+exports.createMacroDirectory = function () {
+  var cg = this;
+  return new function () {
+    var nameTreeRoot = {};
   
-  this.isVariableExpression = function () {
-    return _(this.terminals).all(function (terminal) {
-      return terminal.identifier;
-    });
-  };
-  
-  this.variable = function () {
-    return variable(this.name());
-  };
-  
-  this.name = function() {
-    return extractName(this.terminals);
-  };
-  
-  this.parameters = function() {
-    return _(this.terminals).filter(function (terminal) {
-      return terminal.isParameter;
-    });
-  };
-  
-  this.methodCall = function(objectExpression) {
-    this.buildBlocks();
-    
-    var name = this.name();
-    var hasName = name.length > 0;
-    var args = this.arguments();
-    var hasArgs = args.length > 0 || this.isNoArgumentFunctionCall();
-    
-    if (hasName && !hasArgs) {
-      return fieldReference(objectExpression, name);
-    }
-    
-    if (hasName && hasArgs) {
-      return methodCall(objectExpression, name, args);
-    }
-    
-    if (!hasName && hasArgs) {
-      if (args.length === 1) {
-        return indexer(objectExpression, args[0]);
-      } else {
-        return semanticFailure(args.slice(1), 'index only requires one argument, these are not required')
-      }
-    }
-    
-    return semanticFailure([this], "basic expression with no name and no arguments, how'd that happen?");
-  };
-  
-  this.expression = function (optionalArguments) {
-    this.buildBlocks();
-    var terminals = this.terminals;
-
-    var name = this.name();
-    var hasOptionalArguments = optionalArguments && optionalArguments.length > 0;
-
-    if (name.length === 0 && terminals.length > 1) {
-      return functionCall(terminals[0], terminals.splice(1));
-    }
-
-    var createMacro = macros.findMacro(name);
-    if (createMacro) {
-      return createMacro(this);
-    }
-
-    if (this.isVariableExpression() && !hasOptionalArguments) {
-      return this.variable();
-    }
-
-    if (this.isTerminalExpression()) {
-      return this.terminal();
-    }
-
-    var isNoArgCall = this.isNoArgumentFunctionCall();
-
-    var arguments = this.arguments();
-
-    if (isNoArgCall && (arguments.length > 0 || hasOptionalArguments)) {
-      return semanticFailure([this], "this function has arguments and an exclaimation mark (implying no arguments)");
-    }
-
-    return functionCall(variable(name), arguments);
-  };
-  
-  this.hashEntry = function() {
-    this.buildBlocks();
-    
-    var args = this.arguments();
-    var name = this.name();
-
-    if (name.length > 0 && args.length === 1) {
-      return hashEntry(name, args[0]);
-    }
-    
-    if (name.length > 0 && args.length === 0) {
-      return hashEntry(name, boolean(true));
-    }
-    
-    if (name.length === 0 && args.length === 2 && args[0].isString) {
-      return hashEntry([args[0].string], args[1]);
-    }
-  };
-
-  this.target = function () {
-    var name = this.name();
-    var arguments = this.arguments();
-    
-    if (arguments.length > 0) {
-      return semanticFailure(arguments, 'these arguments cannot be used in definitions');
-    }
-    
-    if (name.length > 0) {
-      return definitionTarget(variable(this.name()), this.parameters());
-    } else {
-      return semanticFailure(this.terminals, 'no name for definition');
-    }
-  };
-  
-  this.definitionTarget = function (source) {
-    var name = this.name();
-    var arguments = this.arguments();
-    
-    if (arguments.length > 0) {
-      return semanticFailure(arguments, 'these arguments cannot be used in definitions');
-    }
-    
-    if (name.length > 0) {
-      return definition(variable(this.name()), makeSourceWithParameters(source, this.parameters()));
-    } else {
-      return semanticFailure(this.terminals, 'no name for definition');
-    }
-  };
-  
-  this.hasNameAndNoArguments = function() {
-    return (this.name().length > 0) && (this.arguments().length === 0);
-  };
-  
-  this.objectDefinitionTarget = function(expression, source) {
-    if (this.hasNameAndNoArguments()) {
-      return definition(fieldReference(expression, this.name()), makeSourceWithParameters(source, this.parameters()));
-    } else if (this.isTerminalExpression()) {
-      return definition(indexer(expression, this.terminal()), source);
-    } else {
-      throw parseError(this, "didn't expect expression here");
-    }
-  };
-  
-  this.isTerminalExpression = function () {
-    return this.terminals.length === 1;
-  };
-  
-  this.terminal = function () {
-    return this.terminals[0];
-  };
-  
-  this.isNoArgumentFunctionCall = function() {
-    return this.terminals[this.terminals.length - 1].noArgumentFunctionCallSuffix;
-  };
-  
-  this.hasArguments = function () {
-    return this.arguments().length > 0;
-  };
-  
-  this.arguments = function() {
-    return _(this.terminals).filter(function (terminal) {
-      return !terminal.identifier && !terminal.noArgumentFunctionCallSuffix && !terminal.isParameter;
-    });
-  };
-  
-  this.buildBlocks = function () {
-    var parameters = [];
-    
-    _(this.terminals).each(function (terminal) {
-      if (terminal.isParameter) {
-        parameters.push(terminal);
-      } else if (terminal.body) {
-        terminal.parameters = parameters;
-        parameters = [];
-      }
-    });
-    
-    this.terminals = _(this.terminals).filter(function(terminal) {
-      return !terminal.isParameter;
-    });
-  };
-});
-
-expressionTerm('definitionTarget', function (target, parameters, optionalParameters) {
-  this.target = target;
-  this.parameters = parameters;
-  this.optionalParameters = optionalParameters;
-  this.isTarget = target;
-
-  this.definition = function (source) {
-    return definition(this.target, makeSourceWithParameters(source.expression(), this.parameters, this.optionalParameters));
-  };
-});
-
-expressionTerm('objectOperationExpression', function (object, operation) {
-  this.isObjectOperationExpression = true;
-  this.object = object;
-  this.operation = operation;
-
-  this.operation.show('operation');
-  this.show('objectOperationExpression');
-
-  this.expression = function () {
-    return this.operation.objectOperation(this.object.expression());
-  };
-
-  this.target = function () {
-    return definitionTarget(this.operation.objectOperationTarget(this.object), this.operation.parameters());
-  };
-});
-
-expressionTerm('definitionExpression', function (target, source) {
-  this.isDefinitionExpression = true;
-  this.target = target;
-  this.source = source;
-
-  this.expression = function () {
-    return this.target.target().definition(this.source);
-  };
-});
-
-var complexExpression = expressionTerm('complexExpression', function (basicExpressionList) {
-  this.isComplexExpression = true;
-  this.basicExpressions = basicExpressionList;
-
-  this.headExpression = function () {
-    return this.basicExpressions[0];
-  };
-
-  this.tailExpressions = function () {
-    return this.basicExpressions.slice(1);
-  };
-
-  this.hasTail = function () {
-    return this.tailExpressions().length > 0;
-  }
-
-  this.hashEntries = function () {
-    return _.map(this.tailExpressions(), function (optArg) {
-      return optArg.hashEntry();
-    });
-  };
-
-  this.expression = function () {
-    var funcCall = this.headExpression().expression(this.hashEntries());
-    if (funcCall.isFunctionCall) {
-      funcCall.optionalArguments = this.hashEntries();
-    }
-    return funcCall;
-  };
-
-  this.target = function () {
-    var t = this.headExpression().target();
-    t.optionalParameters = this.hashEntries();
-    return t;
-  };
-
-  this.methodCall = function (objectExpression) {
-    var objectOperation = this.headExpression().methodCall(objectExpression);
-
-    if (objectOperation.isMethodCall) {
-      objectOperation.optionalArguments = this.hashEntries();
-    } else if (this.hasTail()) {
-      return semanticFailure(this.tailExpressions(), 'only method calls can have optional arguments')
-    }
-
-    return objectOperation;
-  };
-  this.objectOperation = this.methodCall;
-
-  this.definitionTarget = function (expression) {
-    var def = this.headExpression().definitionTarget(expression);
-    
-    if (this.hasTail()) {
-      if (def.source.isBlock) {
-        def.source.optionalParameters = this.hashEntries();
-      } else {
-        def.source = block([], statements([def.source]));
-        def.source.optionalParameters = this.hashEntries();
-      }
-    }
-
-    return def;
-  };
-
-  this.objectDefinitionTarget = function (objectExpression, expression) {
-    return this.headExpression().objectDefinitionTarget(objectExpression, expression);
-  };
-
-  this.objectOperationTarget = this.objectDefinitionTarget;
-});
-
-var MacroDirectory = exports.MacroDirectory = function () {
-  var nameTreeRoot = {};
-  
-  this.nameNode = function (name) {
-    var nameTree = nameTreeRoot;
-    _(name).each(function(nameSegment) {
-      if (!nameTree.hasOwnProperty(nameSegment)) {
-        nameTree = nameTree[nameSegment] = {};
-      } else {
-        nameTree = nameTree[nameSegment];
-      }
-    });
-    return nameTree;
-  };
-  
-  this.addMacro = function(name, createMacro) {
-    var nameTree = this.nameNode(name);
-    nameTree['create macro'] = createMacro;
-  };
-  
-  this.addWildCardMacro = function (name, matchMacro) {
-    var nameTree = this.nameNode(name);
-    
-    var matchMacros;
-    if (!nameTree.hasOwnProperty('match macro')) {
-      matchMacros = nameTree['match macro'] = [];
-    } else {
-      matchMacros = nameTree['match macro'];
-    }
-    
-    matchMacros.push(matchMacro);
-  };
-  
-  this.findMacro = function(name) {
-    var findMatchingWildMacro = function (wildMacros, name) {
-      for (var n = 0; n < wildMacros.length; n++) {
-        var macro = wildMacros[n](name);
-        if (macro) {
-          return macro;
+    this.nameNode = function (name) {
+      var nameTree = nameTreeRoot;
+      _(name).each(function(nameSegment) {
+        if (!nameTree.hasOwnProperty(nameSegment)) {
+          nameTree = nameTree[nameSegment] = {};
+        } else {
+          nameTree = nameTree[nameSegment];
         }
-      }
+      });
+      return nameTree;
     };
+  
+    this.addMacro = function(name, createMacro) {
+      var nameTree = this.nameNode(name);
+      nameTree['create macro'] = createMacro;
+    };
+  
+    this.addWildCardMacro = function (name, matchMacro) {
+      var nameTree = this.nameNode(name);
     
-    var findMacroInTree = function (nameTree, name, index, wildMacros) {
-      if (index < name.length) {
-        if (nameTree.hasOwnProperty(name[index])) {
-          var subtree = nameTree[name[index]];
-          if (subtree.hasOwnProperty('match macro')) {
-            wildMacros = subtree['match macro'].concat(wildMacros);
+      var matchMacros;
+      if (!nameTree.hasOwnProperty('match macro')) {
+        matchMacros = nameTree['match macro'] = [];
+      } else {
+        matchMacros = nameTree['match macro'];
+      }
+    
+      matchMacros.push(matchMacro);
+    };
+  
+    this.findMacro = function(name) {
+      var findMatchingWildMacro = function (wildMacros, name) {
+        for (var n = 0; n < wildMacros.length; n++) {
+          var macro = wildMacros[n](name);
+          if (macro) {
+            return macro;
           }
-          return findMacroInTree(subtree, name, index + 1, wildMacros);
-        } else {
-          return findMatchingWildMacro(wildMacros, name);
         }
+      };
+    
+      var findMacroInTree = function (nameTree, name, index, wildMacros) {
+        if (index < name.length) {
+          if (nameTree.hasOwnProperty(name[index])) {
+            var subtree = nameTree[name[index]];
+            if (subtree.hasOwnProperty('match macro')) {
+              wildMacros = subtree['match macro'].concat(wildMacros);
+            }
+            return findMacroInTree(subtree, name, index + 1, wildMacros);
+          } else {
+            return findMatchingWildMacro(wildMacros, name);
+          }
+        } else {
+          if (nameTree.hasOwnProperty('create macro')) {
+            return nameTree['create macro'];
+          } else {
+            return findMatchingWildMacro(wildMacros, name);
+          }
+        }
+      };
+    
+      return findMacroInTree(nameTreeRoot, name, 0, []);
+    };
+  
+    this.invocation = function (name, arguments, optionalArguments) {
+      var macro = this.findMacro(name);
+    
+      if (macro) {
+        return macro(name, arguments, optionalArguments);
+      } else if (arguments) {
+        return cg.functionCall(cg.variable(name), arguments, optionalArguments);
       } else {
-        if (nameTree.hasOwnProperty('create macro')) {
-          return nameTree['create macro'];
-        } else {
-          return findMatchingWildMacro(wildMacros, name);
-        }
+        return cg.variable(name);
       }
     };
-    
-    return findMacroInTree(nameTreeRoot, name, 0, []);
-  };
-  
-  this.invocation = function (name, arguments, optionalArguments) {
-    var macro = this.findMacro(name);
-    
-    if (macro) {
-      return macro(name, arguments, optionalArguments);
-    } else if (arguments) {
-      return functionCall(variable(name), arguments, optionalArguments);
-    } else {
-      return variable(name);
-    }
   };
 };
 
-var macros = exports.macros = new MacroDirectory();
+exports.list = function(items) {
+  return this.term(function () {
+    this.isList = true;
+    this.items = items;
+    this.generateJavaScript = function (buffer, scope) {
+      buffer.write('[');
+      writeToBufferWithDelimiter(this.items, ',', buffer, scope);
+      buffer.write(']');
+    };
+  });
+};
 
-var list = expressionTerm('list', function(items) {
-  this.isList = true;
-  this.items = items;
-  this.generateJavaScript = function (buffer, scope) {
-    buffer.write('[');
-    writeToBufferWithDelimiter(this.items, ',', buffer, scope);
-    buffer.write(']');
-  };
-});
-
-var hash = expressionTerm('hash', function(entries) {
-  this.isHash = true;
-  this.entries = entries;
+exports.hash = function(entries) {
+  return this.term(function () {
+    this.isHash = true;
+    this.entries = entries;
   
-  this.generateJavaScript = function(buffer, scope) {
-    buffer.write('{');
-    writeToBufferWithDelimiter(this.entries, ',', buffer, function (item) {
-      item.generateJavaScriptHashEntry(buffer, scope);
-    });
-    buffer.write('}');
-  };
-});
+    this.generateJavaScript = function(buffer, scope) {
+      buffer.write('{');
+      writeToBufferWithDelimiter(this.entries, ',', buffer, function (item) {
+        item.generateJavaScriptHashEntry(buffer, scope);
+      });
+      buffer.write('}');
+    };
+  });
+};
 
 var isLegalJavaScriptIdentifier = function(id) {
   return /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(id);
@@ -1504,330 +1211,258 @@ exports.hashEntries = function (entries) {
   });
 };
 
-var hashEntry = expressionTerm('hashEntry', function(field, value) {
-  this.isHashEntry = true;
-  this.field = field;
-  this.value = value;
+exports.hashEntry = function(field, value) {
+  return this.term(function () {
+    this.isHashEntry = true;
+    this.field = field;
+    this.value = value;
   
-  this.subterms('value');
+    this.subterms('value');
 
-  this.legalFieldName = function () {
-    if (this.field.isString) {
-      return formatJavaScriptString(this.field.string);
+    this.legalFieldName = function () {
+      if (this.field.isString) {
+        return formatJavaScriptString(this.field.string);
+      }
+      var f = this.cg.concatName(this.field);
+      if (isLegalJavaScriptIdentifier(f)) {
+        return f;
+      } else {
+        return formatJavaScriptString(f);
+      }
     }
-    var f = concatName(this.field);
-    if (isLegalJavaScriptIdentifier(f)) {
-      return f;
-    } else {
-      return formatJavaScriptString(f);
-    }
-  }
 
-  this.valueOrTrue = function () {
-    if (this.value === undefined) {
-      return boolean(true);
-    } else {
-      return this.value;
-    }
-  };
+    this.valueOrTrue = function () {
+      if (this.value === undefined) {
+        return this.cg.boolean(true);
+      } else {
+        return this.value;
+      }
+    };
   
-  this.generateJavaScriptHashEntry = function(buffer, scope) {
-    var f = concatName(this.field);
-    buffer.write(this.legalFieldName());
-    buffer.write(':');
-    this.valueOrTrue().generateJavaScript(buffer, scope);
-  };
-});
+    this.generateJavaScriptHashEntry = function(buffer, scope) {
+      var f = this.cg.concatName(this.field);
+      buffer.write(this.legalFieldName());
+      buffer.write(':');
+      this.valueOrTrue().generateJavaScript(buffer, scope);
+    };
+  });
+};
 
-var ifCases = expressionTerm('ifCases', function (cases, _else) {
-  this.isIfExpression = true;
+exports.ifCases = function (cases, _else) {
+  return this.term(function () {
+    this.isIfExpression = true;
   
-  this.cases = cases;
-  this._else = _else;
+    this.cases = cases;
+    this._else = _else;
 
-  this.allSubterms = function () {
-    var subterms = _.flatten(_.map(this.cases, function (c) {
-      return [c.condition, c.action];
-    }));
+    this.allSubterms = function () {
+      var subterms = _.flatten(_.map(this.cases, function (c) {
+        return [c.condition, c.action];
+      }));
     
-    if (this._else) {
-      subterms.push(this._else);
-    }
-    return subterms;
-  };
-
-  this.generateJavaScriptStatement = function (buffer, scope, generateReturnStatements) {
-    writeToBufferWithDelimiter(this.cases, 'else ', buffer, function (case_) {
-      buffer.write('if(');
-      case_.condition.generateJavaScript(buffer, scope);
-      buffer.write('){');
-      if (generateReturnStatements) {
-        case_.action.generateJavaScriptStatementsReturn(buffer, scope);
-      } else {
-        case_.action.generateJavaScriptStatements(buffer, scope);
+      if (this._else) {
+        subterms.push(this._else);
       }
-      buffer.write('}');
-    });
+      return subterms;
+    };
 
-    if (this._else) {
-      buffer.write('else{');
-      if (generateReturnStatements) {
-        this._else.generateJavaScriptStatementsReturn(buffer, scope);
-      } else {
-        this._else.generateJavaScriptStatements(buffer, scope);
+    this.generateJavaScriptStatement = function (buffer, scope, generateReturnStatements) {
+      writeToBufferWithDelimiter(this.cases, 'else ', buffer, function (case_) {
+        buffer.write('if(');
+        case_.condition.generateJavaScript(buffer, scope);
+        buffer.write('){');
+        if (generateReturnStatements) {
+          case_.action.generateJavaScriptStatementsReturn(buffer, scope);
+        } else {
+          case_.action.generateJavaScriptStatements(buffer, scope);
+        }
+        buffer.write('}');
+      });
+
+      if (this._else) {
+        buffer.write('else{');
+        if (generateReturnStatements) {
+          this._else.generateJavaScriptStatementsReturn(buffer, scope);
+        } else {
+          this._else.generateJavaScriptStatements(buffer, scope);
+        }
+        buffer.write('}');
       }
-      buffer.write('}');
-    }
-  };
+    };
 
-  this.generateJavaScript = function (buffer, scope) {
-    functionCall(subExpression(block([], statements([this]))), []).generateJavaScript(buffer, scope);
-  };
+    this.generateJavaScript = function (buffer, scope) {
+      this.cg.functionCall(this.cg.subExpression(this.cg.block([], this.cg.statements([this]))), []).generateJavaScript(buffer, scope);
+    };
 
-  this.generateJavaScriptReturn = function (buffer, scope) {
-    this.generateJavaScriptStatement(buffer, scope, true);
-  };
-});
-
-var ifExpression = expressionTerm('ifExpression', function (condition, then, _else) {
-  this.isIfExpression = true;
-  
-  this.condition = condition;
-  this.then = then;
-  this._else = _else;
-  
-  this.generateJavaScriptStatement = function (buffer, scope) {
-    buffer.write('if(');
-    this.condition.generateJavaScript(buffer, scope);
-    buffer.write('){');
-    this.then.generateJavaScript(buffer, scope);
-    buffer.write('}');
-    if (this._else) {
-      buffer.write('else{');
-      this._else.generateJavaScript(buffer, scope);
-      buffer.write('}');
-    }
-  };
-  
-  this.generateJavaScript = function (buffer, scope) {
-    functionCall(subExpression(block([], statements([this]))), []).generateJavaScript(buffer, scope);
-  };
-  
-  this.generateJavaScriptReturn = function (buffer, scope) {
-    buffer.write('if(');
-    this.condition.generateJavaScript(buffer, scope);
-    buffer.write('){');
-    this.then.generateJavaScriptReturn(buffer, scope);
-    buffer.write('}');
-    if (this._else) {
-      buffer.write('else{');
-      this._else.generateJavaScriptReturn(buffer, scope);
-      buffer.write('}');
-    }
-  };
-});
-
-var createIfExpression = function(expression) {
-  var args = expression.arguments();
-  
-  var _else = args[2];
-  var then = args[1];
-  
-  return ifExpression(args[0], then.body, _else? _else.body: undefined);
+    this.generateJavaScriptReturn = function (buffer, scope) {
+      this.generateJavaScriptStatement(buffer, scope, true);
+    };
+  });
 };
 
-macros.addMacro(['if'], createIfExpression);
-macros.addMacro(['if', 'else'], createIfExpression);
-
-var newOperator = expressionTerm('newOperator', function(fn) {
-  this.isNewOperator = true;
-  this.functionCall = fn;
-  this.generateJavaScript = function(buffer, scope) {
-    buffer.write('new ');
-    if (this.functionCall.isVariable) {
-      functionCall(this.functionCall, []).generateJavaScript(buffer, scope);
-    } else {
-      this.functionCall.generateJavaScript(buffer, scope);
+exports.newOperator = function(fn) {
+  return this.term(function () {
+    this.isNewOperator = true;
+    this.functionCall = fn;
+    this.generateJavaScript = function(buffer, scope) {
+      buffer.write('new ');
+      if (this.functionCall.isVariable) {
+        this.cg.functionCall(this.functionCall, []).generateJavaScript(buffer, scope);
+      } else {
+        this.functionCall.generateJavaScript(buffer, scope);
+      }
     }
-  }
-});
+  });
+};
 
-macros.addMacro(['new'], function(basicExpression) {
-  var args = basicExpression.arguments();
-  return newOperator(args[0]);
-});
+exports.generatedVariable = function(name) {
+  return this.term(function () {
+    this.name = name;
+    var genVar;
+  
+    this.generatedName = function(scope) {
+      if (!genVar) {
+        genVar = scope.generateVariable(this.cg.concatName(this.name));
+      }
+      return genVar;
+    };
+  
+    this.variableName = function (scope) {
+      return this.generatedName(scope);
+    };
+  
+    this.generateJavaScript = function(buffer, scope) {
+      buffer.write(this.generatedName(scope));
+    };
+  
+    this.generateJavaScriptParameter = this.generateJavaScript;
+  
+    this.generateJavaScriptTarget = this.generateJavaScript;
+  
+    this.definitionName = function(scope) {
+      var n = this.cg.concatName([this.generatedName(scope)]);
+      if (!scope.isDefined(n)) {
+        return n;
+      }
+    };
+  });
+};
 
-var generatedVariable = expressionTerm('generatedVariable', function(name) {
-  this.name = name;
-  var genVar;
-  
-  this.generatedName = function(scope) {
-    if (!genVar) {
-      genVar = scope.generateVariable(concatName(this.name));
-    }
-    return genVar;
-  };
-  
-  this.variableName = function (scope) {
-    return this.generatedName(scope);
-  };
-  
-  this.generateJavaScript = function(buffer, scope) {
-    buffer.write(this.generatedName(scope));
-  };
-  
-  this.generateJavaScriptParameter = this.generateJavaScript;
-  
-  this.generateJavaScriptTarget = this.generateJavaScript;
-  
-  this.definitionName = function(scope) {
-    var n = concatName([this.generatedName(scope)]);
-    if (!scope.isDefined(n)) {
-      return n;
-    }
-  };
-});
+exports.postIncrement = function(expr) {
+  return this.term(function () {
+    this.expression = expr;
+    this.generateJavaScript = function(buffer, scope) {
+      this.expression.generateJavaScript(buffer, scope);
+      buffer.write('++');
+    };
+  });
+};
 
-var postIncrement = expressionTerm('postIncrement', function(expr) {
-  this.expression = expr;
-  this.generateJavaScript = function(buffer, scope) {
-    this.expression.generateJavaScript(buffer, scope);
-    buffer.write('++');
-  };
-});
+exports.forEach = function(collection, itemVariable, stmts) {
+  var itemsVar = this.generatedVariable(['items']);
+  var indexVar = this.generatedVariable(['i']);
 
-var forEach = expressionTerm('forEach', function(collection, itemVariable, stmts) {
-  var itemsVar = generatedVariable(['items']);
-  var indexVar = generatedVariable(['i']);
-
-  var s = [definition(itemVariable, indexer(itemsVar, indexVar))];
+  var s = [this.definition(itemVariable, this.indexer(itemsVar, indexVar))];
   s.push.apply(s, stmts.statements);
-  
-  // s = [subExpression(functionCall(block([itemVariable], stmts, {returnLastStatement: false}), [indexer(itemsVar, indexVar)]))];
-  
-  var statementsWithItemAssignment = statements(s);
-  
-  var init = definition(indexVar, integer(0));
-  var test = operator('<', [indexVar, fieldReference(itemsVar, ['length'])]);
-  var incr = postIncrement(indexVar);
-  
-  return expressionStatements(statements([
-    definition(itemsVar, collection),
-    forStatement(init, test, incr, statementsWithItemAssignment)
-  ]));
-});
 
-var createForEach = function (basicExpression) {
-  var args = basicExpression.arguments();
-  var collection = args[0];
-  var block = args[1];
-  
-  var itemVariable = block.parameters[0].parameter;
-  
-  return forEach(collection, itemVariable, block.body);
+  var statementsWithItemAssignment = this.statements(s);
+
+  var init = this.definition(indexVar, this.integer(0));
+  var test = this.operator('<', [indexVar, this.fieldReference(itemsVar, ['length'])]);
+  var incr = this.postIncrement(indexVar);
+
+  return expressionStatements(this.statements([
+    this.definition(itemsVar, collection),
+    this.forStatement(init, test, incr, statementsWithItemAssignment)
+  ]));
 };
 
-macros.addMacro(['for', 'each', 'in', 'do'], createForEach);
-macros.addMacro(['for', 'each', 'in'], createForEach);
+exports.forStatement = function(init, test, incr, stmts) {
+  return this.term(function () {
+    this.isFor = true;
+    this.initialization = init;
+    this.test = test;
+    this.increment = incr;
+    this.statements = stmts;
+  
+    this.indexVariable = init.target;
+  
+    this.generateJavaScript = function(buffer, scope) {
+      buffer.write('for(');
+      this.initialization.generateJavaScript(buffer, scope);
+      buffer.write(';');
+      this.test.generateJavaScript(buffer, scope);
+      buffer.write(';');
+      this.increment.generateJavaScript(buffer, scope);
+      buffer.write('){');
+      this.cg.subExpression(this.cg.functionCall(this.cg.block([this.indexVariable], this.statements, {returnLastStatement: false}), [this.indexVariable])).generateJavaScriptStatement(buffer, scope);
+      buffer.write('}');
+    };
+    this.generateJavaScriptStatement = this.generateJavaScript;
+    this.generateJavaScriptReturn = this.generateJavaScript;
+  
+    this.definitions = function(scope) {
+      var defs = [];
+      var indexName = this.indexVariable.definitionName(scope);
+      if (indexName) {
+        defs.push(indexName);
+      }
+      return defs;
+    };
+  });
+};
 
-var forStatement = expressionTerm('forStatement', function(init, test, incr, stmts) {
-  this.isFor = true;
-  this.initialization = init;
-  this.test = test;
-  this.increment = incr;
-  this.statements = stmts;
+exports.forIn = function(iterator, collection, stmts) {
+  return this.term(function () {
+    this.isForIn = true;
+    this.iterator = iterator;
+    this.collection = collection;
+    this.statements = stmts;
   
-  this.indexVariable = init.target;
+    this.generateJavaScript = function(buffer, scope) {
+      buffer.write('for(var ');
+      this.iterator.generateJavaScript(buffer, scope);
+      buffer.write(' in ');
+      this.collection.generateJavaScript(buffer, scope);
+      buffer.write('){');
+      this.cg.subExpression(this.cg.functionCall(this.cg.block([this.iterator], this.statements, {returnLastStatement: false}), [this.iterator])).generateJavaScriptStatement(buffer, scope);
+      buffer.write('}');
+    };
+    this.generateJavaScriptStatement = this.generateJavaScript;
+    this.generateJavaScriptReturn = this.generateJavaScript;
   
-  this.generateJavaScript = function(buffer, scope) {
-    buffer.write('for(');
-    this.initialization.generateJavaScript(buffer, scope);
-    buffer.write(';');
-    this.test.generateJavaScript(buffer, scope);
-    buffer.write(';');
-    this.increment.generateJavaScript(buffer, scope);
-    buffer.write('){');
-    subExpression(functionCall(block([this.indexVariable], this.statements, {returnLastStatement: false}), [this.indexVariable])).generateJavaScriptStatement(buffer, scope);
-    buffer.write('}');
-  };
-  this.generateJavaScriptStatement = this.generateJavaScript;
-  this.generateJavaScriptReturn = this.generateJavaScript;
-  
-  this.definitions = function(scope) {
-    var defs = [];
-    var indexName = this.indexVariable.definitionName(scope);
-    if (indexName) {
-      defs.push(indexName);
-    }
-    return defs;
-  };
-});
+    this.definitions = function(scope) {
+      var defs = [];
+      var indexName = this.iterator.definitionName(scope);
+      if (indexName) {
+        defs.push(indexName);
+      }
+      return defs.concat(stmts.definitions(scope));
+    };
+  });
+};
 
-var forIn = expressionTerm('forIn', function(iterator, collection, stmts) {
-  this.isForIn = true;
-  this.iterator = iterator;
-  this.collection = collection;
-  this.statements = stmts;
+exports.whileStatement = function(test, statements) {
+  return this.term(function () {
+    this.isWhile = true;
+    this.test = test;
+    this.statements = statements;
   
-  this.generateJavaScript = function(buffer, scope) {
-    buffer.write('for(var ');
-    this.iterator.generateJavaScript(buffer, scope);
-    buffer.write(' in ');
-    this.collection.generateJavaScript(buffer, scope);
-    buffer.write('){');
-    subExpression(functionCall(block([this.iterator], this.statements, {returnLastStatement: false}), [this.iterator])).generateJavaScriptStatement(buffer, scope);
-    buffer.write('}');
-  };
-  this.generateJavaScriptStatement = this.generateJavaScript;
-  this.generateJavaScriptReturn = this.generateJavaScript;
+    this.generateJavaScript = function(buffer, scope) {
+      buffer.write('while(');
+      this.test.generateJavaScript(buffer, scope);
+      buffer.write('){');
+      this.statements.generateJavaScriptStatements(buffer, scope);
+      buffer.write('}');
+    };
   
-  this.definitions = function(scope) {
-    var defs = [];
-    var indexName = this.iterator.definitionName(scope);
-    if (indexName) {
-      defs.push(indexName);
-    }
-    return defs.concat(stmts.definitions(scope));
-  };
-});
+    this.generateJavaScriptReturn = this.generateJavaScript;
+    this.generateJavaScriptStatement = this.generateJavaScript;
+  });
+};
 
-macros.addMacro(['for'], function(basicExpression) {
-  var args = basicExpression.arguments();
-
-  var init = args[0].body.statements[0];
-  var test = args[1].body.statements[0];
-  var incr = args[2].body.statements[0];
-  
-  return forStatement(init, test, incr, args[3].body);
-});
-
-var whileStatement = expressionTerm('whileStatement', function(test, statements) {
-  this.isWhile = true;
-  this.test = test;
-  this.statements = statements;
-  
-  this.generateJavaScript = function(buffer, scope) {
-    buffer.write('while(');
-    this.test.generateJavaScript(buffer, scope);
-    buffer.write('){');
-    this.statements.generateJavaScriptStatements(buffer, scope);
-    buffer.write('}');
-  };
-  
-  this.generateJavaScriptReturn = this.generateJavaScript;
-  this.generateJavaScriptStatement = this.generateJavaScript;
-});
-
-macros.addMacro(['while'], function(basicExpression) {
-  var args = basicExpression.arguments();
-  var test = args[0].body.statements[0];
-  var statements = args[1].body;
-  
-  return whileStatement(test, statements);
-});
-
-var scope = exports.scope = function (stmts, options) {
-  return term(function () {
+exports.scope = function (stmts, options) {
+  return this.term(function () {
     this.isScope = true;
     this.statements = stmts;
     this.alwaysGenerateFunction = options != null? options.alwaysGenerateFunction: undefined;
@@ -1838,26 +1473,14 @@ var scope = exports.scope = function (stmts, options) {
       if (this.statements.length === 1 && !this.alwaysGenerateFunction) {
         this.statements[0].generateJavaScript(buffer, scope);
       } else {
-        functionCall(subExpression(block([], statements(this.statements))), []).generateJavaScript(buffer, scope);
+        this.cg.functionCall(this.cg.subExpression(this.cg.block([], this.cg.statements(this.statements))), []).generateJavaScript(buffer, scope);
       }
     };
   });
 }
 
-var normaliseArguments = exports.normaliseArguments = function (args) {
-  return _(args).map(function (arg) {
-    if (arg.length === 1) {
-      return arg;
-    } else if (arg.length > 1) {
-      return scope(arg);
-    } else {
-      throw new Error("this shouldn't happen!")
-    }
-  });
-};
-
-var subExpression = exports.subExpression = function (expression) {
-  return term(function () {
+exports.subExpression = function (expression) {
+  return this.term(function () {
     this.isSubExpression = true;
     this.expression = expression;
 
@@ -1871,8 +1494,8 @@ var subExpression = exports.subExpression = function (expression) {
   });
 };
 
-var argumentList = exports.argumentList = function (args) {
-  return term(function () {
+exports.argumentList = function (args) {
+  return this.term(function () {
     this.isArgumentList = true;
     this.args = args;
 
@@ -1884,8 +1507,8 @@ var argumentList = exports.argumentList = function (args) {
   });
 };
 
-var tryStatement = exports.tryStatement = function (body, catchBody, finallyBody) {
-  return term(function () {
+exports.tryStatement = function (body, catchBody, finallyBody) {
+  return this.term(function () {
     this.isTryStatement = true;
     this.body = body;
     this.catchBody = catchBody;
@@ -1930,127 +1553,101 @@ var tryStatement = exports.tryStatement = function (body, catchBody, finallyBody
         throw new Error('stuff');
       }
       this.alreadyCalled = true;
-      scope([this], {alwaysGenerateFunction: true}).generateJavaScript(buffer, symbolScope);
+      this.cg.scope([this], {alwaysGenerateFunction: true}).generateJavaScript(buffer, symbolScope);
     };
   });
 };
 
-var operator = expressionTerm('operator', function (op, args) {
-  this.isOperator = true;
-  this.operator = op;
-  this.operatorArguments = args;
+exports.operator = function (op, args) {
+  return this.term(function () {
+    this.isOperator = true;
+    this.operator = op;
+    this.operatorArguments = args;
 
-  this.isOperatorAlpha = function () {
-    return /[a-zA-Z]+/.test(this.operator);
-  };
+    this.isOperatorAlpha = function () {
+      return /[a-zA-Z]+/.test(this.operator);
+    };
 
-  this.generateJavaScript = function(buffer, scope) {
-    buffer.write('(');
+    this.generateJavaScript = function(buffer, scope) {
+      buffer.write('(');
     
-    if (this.operatorArguments.length === 1) {
-      buffer.write(op);
-      if (this.isOperatorAlpha()) {
-        buffer.write(' ');
-      }
-      this.operatorArguments[0].generateJavaScript(buffer, scope);
-    } else {
-      var alpha = this.isOperatorAlpha();
-      
-      this.operatorArguments[0].generateJavaScript(buffer, scope);
-      for(var n = 1; n < this.operatorArguments.length; n++) {
-        if (alpha) {
-          buffer.write(' ');
-        }
+      if (this.operatorArguments.length === 1) {
         buffer.write(op);
-        if (alpha) {
+        if (this.isOperatorAlpha()) {
           buffer.write(' ');
         }
-        this.operatorArguments[n].generateJavaScript(buffer, scope);
+        this.operatorArguments[0].generateJavaScript(buffer, scope);
+      } else {
+        var alpha = this.isOperatorAlpha();
+      
+        this.operatorArguments[0].generateJavaScript(buffer, scope);
+        for(var n = 1; n < this.operatorArguments.length; n++) {
+          if (alpha) {
+            buffer.write(' ');
+          }
+          buffer.write(op);
+          if (alpha) {
+            buffer.write(' ');
+          }
+          this.operatorArguments[n].generateJavaScript(buffer, scope);
+        }
       }
-    }
     
-    buffer.write(')');
-  };
-});
-
-var createOperator = function(expr) {
-  return operator(expr.name()[0], expr.arguments());
+      buffer.write(')');
+    };
+  });
 };
 
-_.each(['+', '*', '/', '-', '>=', '==', '!=', '===', '!==', '<=', '<', '>'], function(op) {
-  macros.addMacro([op], createOperator);
-});
+exports.returnStatement = function(expr) {
+  return this.term(function () {
+    this.isReturn = true;
+    this.expression = expr;
+    this.generateJavaScriptStatement = function(buffer, scope) {
+      if (this.expression) {
+        this.expression.generateJavaScriptReturn(buffer, scope);
+      } else {
+        buffer.write('return;');
+      }
+    };
+    this.generateJavaScriptReturn = this.generateJavaScriptStatement;
+  });
+};
 
-macros.addMacro(['and'], function (expr) {
-  return operator('&&', expr.arguments());
-});
+exports.throwStatement = function(expr) {
+  return this.term(function () {
+    this.isThrow = true;
+    this.expression = expr;
+    this.generateJavaScriptStatement = function(buffer, scope) {
+      buffer.write('throw ');
+      this.expression.generateJavaScript(buffer, scope);
+      buffer.write(';');
+    };
+    this.generateJavaScriptReturn = this.generateJavaScriptStatement;
+  });
+};
 
-macros.addMacro(['or'], function (expr) {
-  return operator('||', expr.arguments());
-});
+exports.breakStatement = function () {
+  return this.term(function () {
+    this.isBreak = true;
+    this.generateJavaScriptStatement = function (buffer, scope) {
+      buffer.write('break;');
+    };
+    this.generateJavaScriptReturn = this.generateJavaScriptStatement;
+  });
+};
 
-macros.addMacro(['not'], function (expr) {
-  return operator('!', expr.arguments());
-});
-
-var returnStatement = expressionTerm('returnStatement', function(expr) {
-  this.isReturn = true;
-  this.expression = expr;
-  this.generateJavaScriptStatement = function(buffer, scope) {
-    if (this.expression) {
-      this.expression.generateJavaScriptReturn(buffer, scope);
-    } else {
-      buffer.write('return;');
-    }
-  };
-  this.generateJavaScriptReturn = this.generateJavaScriptStatement;
-});
-
-macros.addMacro(['return'], function(expr) {
-  return returnStatement(expr.arguments()[0]);
-});
-
-var throwStatement = expressionTerm('throwStatement', function(expr) {
-  this.isThrow = true;
-  this.expression = expr;
-  this.generateJavaScriptStatement = function(buffer, scope) {
-    buffer.write('throw ');
-    this.expression.generateJavaScript(buffer, scope);
-    buffer.write(';');
-  };
-  this.generateJavaScriptReturn = this.generateJavaScriptStatement;
-});
-
-macros.addMacro(['throw'], function(expr) {
-  return throwStatement(expr.arguments()[0]);
-});
-
-var breakStatement = expressionTerm('breakStatement', function () {
-  this.isBreak = true;
-  this.generateJavaScriptStatement = function (buffer, scope) {
-    buffer.write('break;');
-  };
-  this.generateJavaScriptReturn = this.generateJavaScriptStatement;
-});
-
-macros.addMacro(['break'], function(expr) {
-  return breakStatement();
-});
-
-var continueStatement = expressionTerm('continueStatement', function () {
-  this.isContinue = true;
-  this.generateJavaScriptStatement = function (buffer, scope) {
-    buffer.write('continue;');
-  };
-  this.generateJavaScriptReturn = this.generateJavaScriptStatement;
-});
-
-macros.addMacro(['continue'], function(expr) {
-  return continueStatement();
-});
+exports.continueStatement = function () {
+  return this.term(function () {
+    this.isContinue = true;
+    this.generateJavaScriptStatement = function (buffer, scope) {
+      buffer.write('continue;');
+    };
+    this.generateJavaScriptReturn = this.generateJavaScriptStatement;
+  });
+};
 
 exports.splat = function () {
-  return term(function () {
+  return this.term(function () {
     this.isSplat = true;
     
     this.parameter = function () {

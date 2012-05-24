@@ -2,7 +2,7 @@ var _ = require('underscore');
 var errors = require('./errors.js');
 
 exports.macros = function (cg) {
-  var macros = new cg.MacroDirectory();
+  var macros = cg.createMacroDirectory();
 
   var createOperator = function(name, arguments) {
     return cg.operator(name[0], arguments);

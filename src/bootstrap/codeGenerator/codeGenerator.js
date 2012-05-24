@@ -43,7 +43,7 @@ exports.codeGenerator = function () {
   codegen.functionCall = cg.functionCall;
   codegen.scope = cg.scope;
   codegen.Scope = cg.Scope;
-  codegen.MacroDirectory = cg.MacroDirectory;
+  codegen.createMacroDirectory = cg.createMacroDirectory;
   codegen.boolean = cg.boolean;
   codegen.tryStatement = cg.tryStatement;
   codegen.ifCases = cg.ifCases;
@@ -59,9 +59,13 @@ exports.codeGenerator = function () {
   codegen.forEach = cg.forEach;
   codegen.newOperator = cg.newOperator;
   codegen.loc = loc;
+  codegen.generatedVariable = cg.generatedVariable;
+  codegen.optional = cg.optional;
+  codegen.postIncrement = cg.postIncrement;
   codegen.term = cg.term;
   codegen.errors = require('./errors').errors(codegen);
   codegen.macros = require('./macros').macros(codegen);
+  codegen.thisiscodegen = true;
   
   return codegen;
 };
