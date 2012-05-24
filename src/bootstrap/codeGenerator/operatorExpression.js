@@ -1,9 +1,8 @@
-var cg = require('../../lib/codeGenerator');
 var _ = require('underscore');
-var macros = require('./macros');
 var errors = require('./errors');
 
 module.exports = function (complexExpression) {
+  var cg = this;
   return cg.term(function () {
     this.arguments = [complexExpression];
     this.name = [];
@@ -21,7 +20,7 @@ module.exports = function (complexExpression) {
           return arg.expression();
         });
         
-        var macro = macros.findMacro(this.name);
+        var macro = cg.macros.findMacro(this.name);
         
         if (macro) {
           return macro(this.name, argumentExpressions);

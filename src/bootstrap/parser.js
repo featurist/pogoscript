@@ -2,7 +2,7 @@
     var self, jisonParser, terms, ms, createParserContext, createDynamicLexer, grammar, parser, jisonLexer, createParser;
     self = this;
     jisonParser = require("jison").Parser;
-    terms = require("./codeGenerator/codeGenerator");
+    terms = require("./codeGenerator/codeGenerator").codeGenerator();
     ms = require("../lib/memorystream");
     createParserContext = require("./parserContext").createParserContext;
     createDynamicLexer = require("./dynamicLexer").createDynamicLexer;

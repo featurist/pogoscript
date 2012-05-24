@@ -1,9 +1,9 @@
-var cg = require('../../lib/codeGenerator');
 var _ = require('underscore');
 var semanticFailure = require('../../lib/semanticFailure');
 var errors = require('./errors');
 
 module.exports = function (terminals) {
+  var cg = this;
   return cg.term(function () {
     this.terminals = terminals;
     this.subterms('terminals');

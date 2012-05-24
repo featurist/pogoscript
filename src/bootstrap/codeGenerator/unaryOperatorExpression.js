@@ -1,14 +1,13 @@
 ((function() {
-    var self, cg, macros, errors;
+    var self, errors;
     self = this;
-    cg = require("../../lib/codeGenerator");
-    macros = require("./macros");
     errors = require("./errors");
     exports.newUnaryOperatorExpression = function(gen1_options) {
-        var operator, expression, self;
+        var operator, expression, self, cg;
         operator = gen1_options && gen1_options.hasOwnProperty("operator") && gen1_options.operator !== void 0 ? gen1_options.operator : void 0;
         expression = gen1_options && gen1_options.hasOwnProperty("expression") && gen1_options.expression !== void 0 ? gen1_options.expression : void 0;
         self = this;
+        cg = self;
         return cg.term(function() {
             var self;
             self = this;
@@ -17,7 +16,7 @@
             self.expression = function() {
                 var self, foundMacro;
                 self = this;
-                foundMacro = macros.findMacro([ self.operator ]);
+                foundMacro = cg.macros.findMacro([ self.operator ]);
                 if (foundMacro) {
                     return foundMacro([ self.operator ], [ self.expr ]);
                 } else {

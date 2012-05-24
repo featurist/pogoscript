@@ -1,5 +1,5 @@
 jison parser = require 'jison'.Parser
-terms = require './codeGenerator/codeGenerator'
+terms = require './codeGenerator/codeGenerator'.code generator ()
 ms = require '../lib/memorystream'
 create parser context = require './parserContext'.create parser context
 create dynamic lexer = require './dynamicLexer'.create dynamic lexer

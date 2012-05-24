@@ -1,5 +1,4 @@
-cg = require '../lib/codeGenerator'
-cg new = require './codeGenerator/codeGenerator'
+cg = require './codeGenerator/codeGenerator'.code generator ()
 require './assertions.pogo'
 
 terms (subterms) ... =
@@ -40,7 +39,7 @@ describe 'term'
     
     describe 'locations'
         it 'location'
-            id = cg new.loc (cg.identifier 'a', location 1 2 3 4)
+            id = cg.loc (cg.identifier 'a', location 1 2 3 4)
             
             (id.location ()) should contain fields {
                 first line 1
@@ -51,8 +50,8 @@ describe 'term'
         
         it 'subterm location'
             term = cg.term
-                this.a = cg new.loc (cg.identifier 'a', location 1 1 3 10)
-                this.b = cg new.loc (cg.identifier 'b', location 1 1 2 12)
+                this.a = cg.loc (cg.identifier 'a', location 1 1 3 10)
+                this.b = cg.loc (cg.identifier 'b', location 1 1 2 12)
                 this.subterms 'a' 'b'
 
             (term.location ()) should contain fields {
@@ -63,8 +62,8 @@ describe 'term'
             }
     
     it 'derived term'
-        a = cg new.loc (leaf 'a', location 1 1 2 8)
-        b = cg new.loc (leaf 'b', location 2 2 2 8)
+        a = cg.loc (leaf 'a', location 1 1 2 8)
+        b = cg.loc (leaf 'b', location 2 2 2 8)
 
         term = branch (a, b)
         c = term.derived term (leaf 'c')

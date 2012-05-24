@@ -1,4 +1,4 @@
-cg = require './codeGenerator/codeGenerator'
+cg = require './codeGenerator/codeGenerator'.code generator ()
 require './assertions.pogo'
 
 expression (expression) =

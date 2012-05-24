@@ -1,71 +1,71 @@
 var cg = require('../../lib/codeGenerator');
 
-exports.basicExpression = require('./basicExpression');
-exports.variable = cg.variable;
-exports.selfExpression = cg.selfExpression;
-exports.statements = cg.statements;
-exports.block = cg.block;
-exports.parameters = cg.parameters;
-exports.identifier = cg.identifier;
-exports.integer = cg.integer;
-exports.float = cg.float;
-exports.normaliseString = cg.normaliseString;
-exports.unindent = cg.unindent;
-exports.normaliseInterpolatedString = cg.normaliseInterpolatedString;
-exports.string = cg.string;
-exports.interpolatedString = cg.interpolatedString;
-exports.normaliseRegExp = cg.normaliseRegExp;
-exports.regExp = cg.regExp;
-exports.parseRegExp = cg.parseRegExp;
-exports.module = cg.module;
-exports.interpolation = cg.interpolation;
-exports.list = cg.list;
-exports.normaliseArguments = cg.normaliseArguments;
-exports.argumentList = cg.argumentList;
-exports.subExpression = cg.subExpression;
-exports.fieldReference = cg.fieldReference;
-exports.hash = cg.hash;
-exports.asyncArgument = cg.asyncArgument;
-exports.complexExpression = require('./complexExpression');
-exports.operatorExpression = require('./operatorExpression');
-exports.newUnaryOperatorExpression = require('./unaryOperatorExpression').newUnaryOperatorExpression;
-exports.operator = cg.operator;
-exports.splat = cg.splat;
-exports.javascript = cg.javascript;
-exports.hashEntry = cg.hashEntry;
-exports.macros = require('./macros');
-exports.concatName = cg.concatName;
-exports.parseSplatParameters = cg.parseSplatParameters;
-exports.collapse = cg.collapse;
-exports.definition = cg.definition;
-exports.functionCall = cg.functionCall;
-exports.scope = cg.scope;
-exports.Scope = cg.Scope;
-exports.MacroDirectory = cg.MacroDirectory;
-exports.boolean = cg.boolean;
-exports.tryStatement = cg.tryStatement;
-exports.ifCases = cg.ifCases;
-exports.continueStatement = cg.continueStatement;
-exports.breakStatement = cg.breakStatement;
-exports.throwStatement = cg.throwStatement;
-exports.returnStatement = cg.returnStatement;
-exports.methodCall = cg.methodCall;
-exports.indexer = cg.indexer;
-exports.whileStatement = cg.whileStatement;
-exports.forStatement = cg.forStatement;
-exports.forIn = cg.forIn;
-exports.forEach = cg.forEach;
-exports.newOperator = cg.newOperator;
-
-exports.expression = function (e) {
-  return new function () {
-    this.expression = function () {
-      return e;
-    };
-  };
+exports.codeGenerator = function () {
+  codegen = {};
+  
+  codegen.basicExpression = require('./basicExpression');
+  codegen.variable = cg.variable;
+  codegen.selfExpression = cg.selfExpression;
+  codegen.statements = cg.statements;
+  codegen.block = cg.block;
+  codegen.parameters = cg.parameters;
+  codegen.identifier = cg.identifier;
+  codegen.integer = cg.integer;
+  codegen.float = cg.float;
+  codegen.normaliseString = cg.normaliseString;
+  codegen.unindent = cg.unindent;
+  codegen.normaliseInterpolatedString = cg.normaliseInterpolatedString;
+  codegen.string = cg.string;
+  codegen.interpolatedString = cg.interpolatedString;
+  codegen.normaliseRegExp = cg.normaliseRegExp;
+  codegen.regExp = cg.regExp;
+  codegen.parseRegExp = cg.parseRegExp;
+  codegen.module = cg.module;
+  codegen.interpolation = cg.interpolation;
+  codegen.list = cg.list;
+  codegen.normaliseArguments = cg.normaliseArguments;
+  codegen.argumentList = cg.argumentList;
+  codegen.subExpression = cg.subExpression;
+  codegen.fieldReference = cg.fieldReference;
+  codegen.hash = cg.hash;
+  codegen.asyncArgument = cg.asyncArgument;
+  codegen.complexExpression = require('./complexExpression');
+  codegen.operatorExpression = require('./operatorExpression');
+  codegen.newUnaryOperatorExpression = require('./unaryOperatorExpression').newUnaryOperatorExpression;
+  codegen.operator = cg.operator;
+  codegen.splat = cg.splat;
+  codegen.javascript = cg.javascript;
+  codegen.hashEntry = cg.hashEntry;
+  codegen.concatName = cg.concatName;
+  codegen.parseSplatParameters = cg.parseSplatParameters;
+  codegen.collapse = cg.collapse;
+  codegen.definition = cg.definition;
+  codegen.functionCall = cg.functionCall;
+  codegen.scope = cg.scope;
+  codegen.Scope = cg.Scope;
+  codegen.MacroDirectory = cg.MacroDirectory;
+  codegen.boolean = cg.boolean;
+  codegen.tryStatement = cg.tryStatement;
+  codegen.ifCases = cg.ifCases;
+  codegen.continueStatement = cg.continueStatement;
+  codegen.breakStatement = cg.breakStatement;
+  codegen.throwStatement = cg.throwStatement;
+  codegen.returnStatement = cg.returnStatement;
+  codegen.methodCall = cg.methodCall;
+  codegen.indexer = cg.indexer;
+  codegen.whileStatement = cg.whileStatement;
+  codegen.forStatement = cg.forStatement;
+  codegen.forIn = cg.forIn;
+  codegen.forEach = cg.forEach;
+  codegen.newOperator = cg.newOperator;
+  codegen.loc = loc;
+  codegen.term = cg.term;
+  codegen.macros = require('./macros').macros (codegen);
+  
+  return codegen;
 };
 
-exports.loc = function (term, location) {
+var loc = function (term, location) {
   var loc = {
     firstLine: location.first_line,
     lastLine: location.last_line,
@@ -79,5 +79,3 @@ exports.loc = function (term, location) {
   
   return term;
 };
-
-exports.stringBrackets = 0;

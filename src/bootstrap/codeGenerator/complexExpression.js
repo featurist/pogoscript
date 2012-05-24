@@ -1,14 +1,12 @@
-var basicExpression = require('./basicExpression');
 var _ = require('underscore');
-var cg = require('../../lib/codeGenerator');
 var errors = require('./errors');
-var macros = require('./macros');
 
 module.exports = function (listOfTerminals) {
+  var cg = this;
   return cg.term(function () {
     this.isComplexExpression = true;
     this.basicExpressions = _(listOfTerminals).map(function (terminals) {
-      return basicExpression(terminals);
+      return cg.basicExpression(terminals);
     });
     
     this.subterms('basicExpressions');
@@ -88,9 +86,9 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return macros.invocation(head.name(), this.arguments(), this.optionalArguments());
+          return cg.macros.invocation(head.name(), this.arguments(), this.optionalArguments());
         } else {
-          return macros.invocation(head.name());
+          return cg.macros.invocation(head.name());
         }
       } else {
         if (!this.hasTail() && this.arguments().length === 1 && !head.hasAsyncArgument()) {
