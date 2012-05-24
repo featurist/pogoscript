@@ -3,7 +3,6 @@ ms = require '../lib/memorystream'
 parser = require './parser'
 parse = parser.parse
 uglify = require 'uglify-js'
-errors = require './codeGenerator/errors'
 _ = require 'underscore'
 readline = require 'readline'
 util = require 'util'
@@ -83,8 +82,8 @@ exports.compile (pogo, filename: nil, in scope: true, ugly: false, global: false
     if (!ugly)
         code = beautify (code)
 
-    if (errors.has errors ())
-        errors.print errors (source location printer (filename: filename, source: pogo))
+    if (parser.errors.has errors ())
+        parser.errors.print errors (source location printer (filename: filename, source: pogo))
         process.exit 1
     else
         code

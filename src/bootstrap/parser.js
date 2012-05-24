@@ -29,6 +29,7 @@
         parser = createParser();
         return parser.parse(source);
     };
+    self.errors = terms.errors;
     self.lex = function(source) {
         var self, tokens, tokenIndex, lexer, parserContext;
         self = this;

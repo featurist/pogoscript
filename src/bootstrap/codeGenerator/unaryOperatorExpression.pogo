@@ -1,5 +1,3 @@
-errors = require './errors'
-
 exports.new unary operator expression (operator: nil, expression: nil) =
     cg = self
     cg.term =>
@@ -15,6 +13,6 @@ exports.new unary operator expression (operator: nil, expression: nil) =
                 cg.method call (self.expr) [self.operator] []
         
         self.hash entry () =
-            errors.add term (self) with message 'cannot be a hash entry'
+            cg.errors.add term (self) with message 'cannot be a hash entry'
         
         self.subterms 'expr'

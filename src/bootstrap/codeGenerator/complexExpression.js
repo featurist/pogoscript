@@ -1,5 +1,4 @@
 var _ = require('underscore');
-var errors = require('./errors');
 
 module.exports = function (listOfTerminals) {
   var cg = this;
@@ -143,7 +142,7 @@ module.exports = function (listOfTerminals) {
     
     this.hashEntry = function () {
       if (this.hasTail()) {
-        return errors.addTermsWithMessage(this.tail(), 'cannot be used in hash entry');
+        return cg.errors.addTermsWithMessage(this.tail(), 'cannot be used in hash entry');
       }
       return this.head().hashEntry();
     };

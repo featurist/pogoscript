@@ -1,5 +1,4 @@
 var _ = require('underscore');
-var errors = require('./errors');
 
 module.exports = function (complexExpression) {
   var cg = this;
@@ -36,7 +35,7 @@ module.exports = function (complexExpression) {
       if (this.arguments.length === 1) {
         return this.arguments[0].hashEntry();
       } else {
-        return errors.addTermWithMessage(this, 'cannot be used as a hash entry');
+        return cg.errors.addTermWithMessage(this, 'cannot be used as a hash entry');
       }
     };
     

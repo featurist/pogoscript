@@ -1,7 +1,6 @@
 ((function() {
-    var self, errors;
+    var self;
     self = this;
-    errors = require("./errors");
     exports.newUnaryOperatorExpression = function(gen1_options) {
         var operator, expression, self, cg;
         operator = gen1_options && gen1_options.hasOwnProperty("operator") && gen1_options.operator !== void 0 ? gen1_options.operator : void 0;
@@ -26,7 +25,7 @@
             self.hashEntry = function() {
                 var self;
                 self = this;
-                return errors.addTermWithMessage(self, "cannot be a hash entry");
+                return cg.errors.addTermWithMessage(self, "cannot be a hash entry");
             };
             return self.subterms("expr");
         });

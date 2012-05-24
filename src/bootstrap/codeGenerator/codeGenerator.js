@@ -60,7 +60,8 @@ exports.codeGenerator = function () {
   codegen.newOperator = cg.newOperator;
   codegen.loc = loc;
   codegen.term = cg.term;
-  codegen.macros = require('./macros').macros (codegen);
+  codegen.errors = require('./errors').errors(codegen);
+  codegen.macros = require('./macros').macros(codegen);
   
   return codegen;
 };

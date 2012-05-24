@@ -1,12 +1,11 @@
 ((function() {
-    var self, fs, ms, parser, parse, uglify, errors, _, readline, util, Module, path, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluteReplLine, compileFromFile, sourceLocationPrinter;
+    var self, fs, ms, parser, parse, uglify, _, readline, util, Module, path, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluteReplLine, compileFromFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     ms = require("../lib/memorystream");
     parser = require("./parser");
     parse = parser.parse;
     uglify = require("uglify-js");
-    errors = require("./codeGenerator/errors");
     _ = require("underscore");
     readline = require("readline");
     util = require("util");
@@ -112,8 +111,8 @@
         if (!ugly) {
             code = beautify(code);
         }
-        if (errors.hasErrors()) {
-            errors.printErrors(sourceLocationPrinter({
+        if (parser.errors.hasErrors()) {
+            parser.errors.printErrors(sourceLocationPrinter({
                 filename: filename,
                 source: pogo
             }));

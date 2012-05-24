@@ -1,6 +1,4 @@
 var _ = require('underscore');
-var semanticFailure = require('../../lib/semanticFailure');
-var errors = require('./errors');
 
 module.exports = function (terminals) {
   var cg = this;
@@ -107,7 +105,7 @@ module.exports = function (terminals) {
       });
       
       _(parameters).each(function (parm) {
-        errors.addTermWithMessage(parm, 'block parameter with no block');
+        cg.errors.addTermWithMessage(parm, 'block parameter with no block');
       });
     };
     
@@ -133,7 +131,7 @@ module.exports = function (terminals) {
         return cg.hashEntry(args[0], args[1])
       }
       
-      return errors.addTermWithMessage(this, 'cannot be a hash entry');
+      return cg.errors.addTermWithMessage(this, 'cannot be a hash entry');
     };
     
     this.hashEntryBlock = function () {
@@ -153,7 +151,7 @@ module.exports = function (terminals) {
       } else if (!this.hasParameters() && !this.hasArguments() && this.hasName()) {
         return this.name();
       } else {
-        return errors.addTermWithMessage(this, 'cannot be a hash key');
+        return cg.errors.addTermWithMessage(this, 'cannot be a hash key');
       }
     }
   });

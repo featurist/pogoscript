@@ -23,6 +23,8 @@ self.parse (source) =
     parser = create parser ()
     parser.parse (source)
 
+self.errors = terms.errors
+
 self.lex (source) =
     tokens = []
     token index = undefined
