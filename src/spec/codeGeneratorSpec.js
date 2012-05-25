@@ -4,7 +4,7 @@ var assert = require('assert');
 var _ = require('underscore');
 require('cupoftea');
 
-var shouldContainFields = require('./containsFields.js').containsFields;
+var shouldContainFields = require('../../test/containsFields.js').containsFields;
 
 spec('code generator', function () {
   var generatesExpression = function (term, expectedGeneratedCode, print) {
@@ -874,26 +874,26 @@ spec('code generator', function () {
   
   spec('macro directory', function() {
     spec('one macro', function() {
-      var md = new cg.MacroDirectory();
+      var md = cg.createMacroDirectory();
       md.addMacro(['one'], 1);
       assert.equal(md.findMacro(['one']), 1);
     });
     
     spec("longer name doesn't find macro with shorter name", function() {
-      var md = new cg.MacroDirectory();
+      var md = cg.createMacroDirectory();
       md.addMacro(['one'], 1);
       assert.equal(md.findMacro(['one', 'two']), undefined);
     });
     
     spec('finds correct macro among two', function() {
-      var md = new cg.MacroDirectory();
+      var md = cg.createMacroDirectory();
       md.addMacro(['one'], 1);
       md.addMacro(['one', 'two'], 2);
       assert.equal(md.findMacro(['one', 'two']), 2);
     });
     
     spec('adding same macro overwrites previous', function() {
-      var md = new cg.MacroDirectory();
+      var md = cg.createMacroDirectory();
       md.addMacro(['one', 'two'], 2);
       md.addMacro(['one', 'two'], 3);
       assert.equal(md.findMacro(['one', 'two']), 3);
@@ -901,7 +901,7 @@ spec('code generator', function () {
     
     spec('wild card macros', function() {
       spec('wild card macro with further name requirement', function () {
-        var md = new cg.MacroDirectory();
+        var md = cg.createMacroDirectory();
 
         var macro = {};
 
@@ -919,7 +919,7 @@ spec('code generator', function () {
       });
       
       spec('wild card macro with exact name', function () {
-        var md = new cg.MacroDirectory();
+        var md = cg.createMacroDirectory();
 
         var macro = {};
 
@@ -933,7 +933,7 @@ spec('code generator', function () {
       });
       
       spec('normal macros have priority over wild card macros', function () {
-        var md = new cg.MacroDirectory();
+        var md = cg.createMacroDirectory();
 
         var macro = {};
 
@@ -953,7 +953,7 @@ spec('code generator', function () {
     });
     
     spec('finds macro for invocation', function () {
-       var macros = new cg.MacroDirectory();
+       var macros = cg.createMacroDirectory();
        
        macros.addMacro(['one', 'two'], function (name, args, optionalArgs) {
           return {isOneTwo: true, arguments: args, optionalArgs: optionalArgs};
@@ -969,7 +969,7 @@ spec('code generator', function () {
     });
     
     spec('makes functionCall for invocation when no macro found', function () {
-       var macros = new cg.MacroDirectory();
+       var macros = cg.createMacroDirectory();
        
        var inv = macros.invocation(['one', 'two'], ['args'], ['optionalArgs']);
        
@@ -982,7 +982,7 @@ spec('code generator', function () {
     });
     
     spec('makes variable for invocation when no macro found and no args given', function () {
-       var macros = new cg.MacroDirectory();
+       var macros = cg.createMacroDirectory();
        
        var inv = macros.invocation(['one', 'two']);
        
@@ -1011,7 +1011,7 @@ spec('code generator', function () {
   
   spec('parseSplatParameters', function () {
     spec('no splat', function () {
-      var splat = cg.parseSplatParameters([cg.variable(['a'])]);
+      var splat = cg.parseSplatParameters(cg, [cg.variable(['a'])]);
       shouldContainFields(splat, {
         firstParameters: [{variable: ['a']}],
         splatParameter: undefined,
@@ -1020,7 +1020,7 @@ spec('code generator', function () {
     });
     
     spec('only splat', function () {
-      var splat = cg.parseSplatParameters([
+      var splat = cg.parseSplatParameters(cg, [
         cg.variable(['a']),
         cg.splat()
       ]);
@@ -1033,7 +1033,7 @@ spec('code generator', function () {
     });
     
     spec('splat start', function () {
-      var splat = cg.parseSplatParameters([
+      var splat = cg.parseSplatParameters(cg, [
         cg.variable(['a']),
         cg.splat(),
         cg.variable(['b'])
@@ -1047,7 +1047,7 @@ spec('code generator', function () {
     });
     
     spec('splat end', function () {
-      var splat = cg.parseSplatParameters([
+      var splat = cg.parseSplatParameters(cg, [
         cg.variable(['a']),
         cg.variable(['b']),
         cg.splat()
@@ -1061,7 +1061,7 @@ spec('code generator', function () {
     });
     
     spec('splat middle', function () {
-      var splat = cg.parseSplatParameters([
+      var splat = cg.parseSplatParameters(cg, [
         cg.variable(['a']),
         cg.variable(['b']),
         cg.splat(),
@@ -1079,7 +1079,7 @@ spec('code generator', function () {
       var secondSplat = cg.splat();
       secondSplat.secondSplat = true;
       
-      var splat = cg.parseSplatParameters([
+      var splat = cg.parseSplatParameters(cg, [
         cg.variable(['a']),
         cg.variable(['b']),
         cg.splat(),
