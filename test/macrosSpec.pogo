@@ -1,6 +1,4 @@
-cg = require './codeGenerator/codeGenerator'
 require './assertions.pogo'
-
 require './parserAssertions.pogo'
 
 loc = {
@@ -9,10 +7,6 @@ loc = {
     first column 3
     last column 8
 }
-
-id (name) = cg.loc (cg.identifier (name), loc)
-variable (name) = cg.variable [name]
-block (name) = cg.block [] (cg.statements [variable (name)])
 
 describe 'macros'
     describe 'if'

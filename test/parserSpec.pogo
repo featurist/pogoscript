@@ -1,6 +1,6 @@
 require './assertions.pogo'
 
-parser = require './parser.pogo'
+parser = require '../src/bootstrap/parser.pogo'
 require './parserAssertions.pogo'
 
 describe 'parser'

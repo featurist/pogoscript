@@ -1,4 +1,4 @@
-parser = require './parser.pogo'
+parser = require '../src/bootstrap/parser.pogo'
 parse = parser.parse
 
 assume (term) is module with statements (action) =

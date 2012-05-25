@@ -1,6 +1,6 @@
 require './assertions.pogo'
 
-md = require './codeGenerator/macroDirectory.pogo'
+md = require '../src/bootstrap/codeGenerator/macroDirectory.pogo'
 seq = md.seq
 kw = md.kw
 zero or more = md.zero or more

@@ -1,4 +1,4 @@
-cg = require './codeGenerator/codeGenerator'.code generator ()
+cg = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 require './assertions.pogo'
 
 int (n) =

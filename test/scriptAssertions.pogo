@@ -2,16 +2,19 @@ fs = require 'fs'
 spawn = require 'child_process'.spawn
 assert = require 'assert'
 crypto = require 'crypto'
-command line = require './commandLine'
+command line = require '../src/bootstrap/commandLine'
 util = require 'util'
 _ = require 'underscore'
+
+pogo binary () =
+  __dirname + "/../bin/pogo"
 
 execute script (script) with args (args, callback, script filename: filename for (script)) =
     fs.write file (script filename, script) @(error)
         if (error)
             callback (error)
         
-        pogo = spawn '../../bin/pogo' ([script filename].concat (args))
+        pogo = spawn (pogo binary (), [script filename].concat (args))
     
         all output = ''
     

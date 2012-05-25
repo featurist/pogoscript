@@ -3,7 +3,6 @@ assert = require 'assert'
 path = require 'path'
 
 should output = script.should output
-should throw = script.should throw
 with args should output = script.with args should output
 
 describe 'pogo command'
@@ -43,22 +42,6 @@ describe 'script'
             
         it 'returns true for identical strings'
             'print ("something" == "something")' should output 'true'
-
-    describe 'hash'
-        it "a `true` hash entry does not need it's value specified"
-            'print {one}' should output '{ one: true }'
-        
-        it 'a hash can have multiple entries, delimited by commas'
-            "print {color 'red', size 'large'}" should output "{ color: 'red', size: 'large' }"
-        
-        it 'a hash can have multiple entries, delimited by new lines'
-            "print {
-                 color 'red'
-                 size 'large'
-             }" should output "{ color: 'red', size: 'large' }"
-        
-        it 'hash entries can be written with an equals "=" operator'
-            "print {color = 'red', size = 'large'}" should output "{ color: 'red', size: 'large' }"
     
     describe 'lists'
         it 'an empty list is just []'

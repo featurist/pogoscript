@@ -1,4 +1,4 @@
-interpolation = require './interpolation'
+interpolation = require '../src/bootstrap/interpolation'
 
 (x) should be false =
     x.should.not.be.ok
