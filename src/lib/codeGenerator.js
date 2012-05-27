@@ -33,6 +33,26 @@ var ExpressionPrototype = new function () {
     }
   };
 
+  this.rewrite = function (rewriteTerm) {
+    var term = this;
+    return _.each(this._subtermNames, function (name) {
+      var subterm = term[name];
+      if (_.isArray(subterm)) {
+        for (var n = 0; n < subterm.length; n++) {
+          var rewrittenTerm = rewriteTerm(subterm[n]);
+          if (rewrittenTerm) {
+            subterm[n] = rewrittenTerm;
+          }
+        }
+      } else {
+        var rewrittenTerm = rewriteTerm(subterm);
+        if (rewrittenTerm) {
+          term[name] = rewrittenTerm;
+        }
+      }
+    });
+  };
+
   this.hashEntry = function () {
       this.cg.errors.addTermWithMessage(this, 'cannot be used as a hash entry');
   };

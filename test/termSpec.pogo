@@ -36,6 +36,37 @@ describe 'term'
             {identifier 'a'}
             {identifier 'b'}
         ]
+
+    describe 'rewriting'
+        it 'can rewrite subterms'
+            term = cg.term =>
+                self.a = cg.identifier 'a'
+                self.b = cg.identifier 'b'
+
+                self.subterms 'a' 'b'
+
+            term.rewrite @(term)
+                if (term.is identifier && (term.identifier == 'b'))
+                    cg.identifier 'z'
+
+            (term) should contain fields {
+                a {identifier 'a'}
+                b {identifier 'z'}
+            }
+
+        it 'can rewrite subterms in lists'
+            term = cg.term =>
+                self.things = [cg.identifier 'a', cg.identifier 'b']
+
+                self.subterms 'things'
+
+            term.rewrite @(term)
+                if (term.is identifier && (term.identifier == 'b'))
+                    cg.identifier 'z'
+
+            (term) should contain fields {
+                things [{identifier 'a'}, {identifier 'z'}]
+            }
     
     describe 'locations'
         it 'location'
