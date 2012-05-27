@@ -35,21 +35,27 @@ var ExpressionPrototype = new function () {
 
   this.rewrite = function (rewriteTerm) {
     var term = this;
-    return _.each(this._subtermNames, function (name) {
-      var subterm = term[name];
+
+    var rewriteSubterm = function (term, key, subterm) {
       if (_.isArray(subterm)) {
         for (var n = 0; n < subterm.length; n++) {
-          var rewrittenTerm = rewriteTerm(subterm[n]);
-          if (rewrittenTerm) {
-            subterm[n] = rewrittenTerm;
-          }
+          var subsubterm = subterm[n];
+          rewriteSubterm(subterm, n, subsubterm);
         }
-      } else {
+      } else if (_.isObject(subterm)) {
         var rewrittenTerm = rewriteTerm(subterm);
         if (rewrittenTerm) {
-          term[name] = rewrittenTerm;
+          term[key] = rewrittenTerm;
+        }
+        if (subterm.rewrite) {
+          subterm.rewrite(rewriteTerm);
         }
       }
+    };
+
+    return _.each(this._subtermNames, function (name) {
+      var subterm = term[name];
+      rewriteSubterm(term, name, subterm, rewriteTerm);
     });
   };
 
@@ -205,6 +211,10 @@ exports.boolean = function(value) {
       }
     };
   });
+};
+
+exports.nil = function () {
+  return this.javascript('void 0');
 };
 
 var actualCharacters = [
@@ -810,14 +820,14 @@ exports.methodCall = function (object, name, args, optionalArgs) {
   
   if (splattedArgs) {
     var objectVar = this.generatedVariable(['o']);
-    return expressionStatements(this.statements([
+    return this.statements([
       this.definition(objectVar, object),
       this.methodCall(
         this.fieldReference(objectVar, name),
         ['apply'],
         [objectVar, splattedArgs]
       )
-    ]));
+    ], {expression: true});
   } else {
     return this.term(function () {
       this.isMethodCall = true;
@@ -866,12 +876,6 @@ exports.fieldReference = function (object, name) {
       buffer.write(this.cg.concatName(this.name));
     };
     this.generateJavaScriptTarget = this.generateJavaScript;
-  });
-};
-
-var expressionStatements = function (statements) {
-  return objectExtending(statements, function () {
-    this.isExpressionStatements = true;
   });
 };
 
@@ -1129,26 +1133,17 @@ exports.ifCases = function (cases, _else) {
     this.cases = cases;
     this._else = _else;
 
-    this.allSubterms = function () {
-      var subterms = _.flatten(_.map(this.cases, function (c) {
-        return [c.condition, c.action];
-      }));
-    
-      if (this._else) {
-        subterms.push(this._else);
-      }
-      return subterms;
-    };
+    this.subterms('cases', '_else');
 
     this.generateJavaScriptStatement = function (buffer, scope, generateReturnStatements) {
       codegenUtils.writeToBufferWithDelimiter(this.cases, 'else ', buffer, function (case_) {
         buffer.write('if(');
-        case_.condition.generateJavaScript(buffer, scope);
+        case_[0].generateJavaScript(buffer, scope);
         buffer.write('){');
         if (generateReturnStatements) {
-          case_.action.generateJavaScriptStatementsReturn(buffer, scope);
+          case_[1].generateJavaScriptStatementsReturn(buffer, scope);
         } else {
-          case_.action.generateJavaScriptStatements(buffer, scope);
+          case_[1].generateJavaScriptStatements(buffer, scope);
         }
         buffer.write('}');
       });
@@ -1245,10 +1240,10 @@ exports.forEach = function(collection, itemVariable, stmts) {
   var test = this.operator('<', [indexVar, this.fieldReference(itemsVar, ['length'])]);
   var incr = this.postIncrement(indexVar);
 
-  return expressionStatements(this.statements([
+  return this.statements([
     this.definition(itemsVar, collection),
     this.forStatement(init, test, incr, statementsWithItemAssignment)
-  ]));
+  ], {expression: true});
 };
 
 exports.forStatement = function(init, test, incr, stmts) {
@@ -1260,6 +1255,22 @@ exports.forStatement = function(init, test, incr, stmts) {
     this.statements = stmts;
   
     this.indexVariable = init.target;
+
+    this.scopedBody = function () {
+      var loopStatements = [];
+      var forResultVariable = this.cg.generatedVariable(['for', 'result']);
+      var cg = this.cg;
+      this.statements.rewrite(function (term) {
+        if (term.isReturn) {
+          var statements = cg.statements([cg.definition(forResultVariable, term.expression), cg.returnStatement(cg.boolean(true))]);
+          statements.isExpressionStatements = true;
+          return statements;
+        }
+      });
+      loopStatements.push(this.cg.definition(forResultVariable, this.cg.nil()));
+      loopStatements.push(this.cg.ifCases([[this.cg.subExpression(this.cg.functionCall(this.cg.block([this.indexVariable], this.statements, {returnLastStatement: false}), [this.indexVariable])), this.cg.statements([this.cg.returnStatement(forResultVariable)])]]));
+      return this.cg.statements(loopStatements);
+    };
   
     this.generateJavaScript = function(buffer, scope) {
       buffer.write('for(');
@@ -1269,7 +1280,7 @@ exports.forStatement = function(init, test, incr, stmts) {
       buffer.write(';');
       this.increment.generateJavaScript(buffer, scope);
       buffer.write('){');
-      this.cg.subExpression(this.cg.functionCall(this.cg.block([this.indexVariable], this.statements, {returnLastStatement: false}), [this.indexVariable])).generateJavaScriptStatement(buffer, scope);
+      this.scopedBody().generateJavaScriptStatements(buffer, scope);
       buffer.write('}');
     };
     this.generateJavaScriptStatement = this.generateJavaScript;

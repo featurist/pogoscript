@@ -71,7 +71,7 @@ exports.macros = function (cg) {
     var cases = [];
 
     for (var n = 0; n + 1 < arguments.length; n += 2) {
-      cases.push({condition: arguments[n], action: arguments[n + 1].body});
+      cases.push([arguments[n], arguments[n + 1].body]);
     }
 
     var _else;
@@ -194,7 +194,7 @@ exports.macros = function (cg) {
   });
 
   macros.addMacro(['nil'], function () {
-    return cg.javascript('void 0');
+    return cg.nil();
   });
   
   return macros;

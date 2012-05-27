@@ -158,3 +158,29 @@ describe 'script'
                  foo (bar: "inner bar")
                  print (bar)' should output "'inner bar'
                                              'outer bar'"
+
+        describe 'for'
+            it 'can be returned from'
+                'count to three () =
+                     for (n = 0, n < 10, n = n + 1)
+                         if (n > 2)
+                             return "three"
+
+                 print (count to three ())' should output '''three'''
+                
+            it 'can loop'
+                'count to three () =
+                     for (n = 0, n < 10, n = n + 1)
+                         print (n)
+
+                 count to three ()' should output '0
+                                                   1
+                                                   2
+                                                   3
+                                                   4
+                                                   5
+                                                   6
+                                                   7
+                                                   8
+                                                   9'
+                

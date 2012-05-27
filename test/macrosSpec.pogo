@@ -13,20 +13,20 @@ describe 'macros'
         it 'if'
             (expression 'if (true) @{a}') should contain fields {
                 is if expression
-                cases [{
-                    condition {variable ['true']}
-                    action {statements [{variable ['a']}]}
-                }]
+                cases [[
+                    {variable ['true']}
+                    {statements [{variable ['a']}]}
+                ]]
             }
         
         it 'if else'
             (expression 'if (true) @{a} else @{b}') should contain fields {
                 is if expression
                 _else {statements [{variable ['b']}]}
-                cases [{
-                    condition {variable ['true']}
-                    action {statements [{variable ['a']}]}
-                }]
+                cases [[
+                    {variable ['true']}
+                    {statements [{variable ['a']}]}
+                ]]
             }
         
         it 'if else if'
@@ -34,14 +34,14 @@ describe 'macros'
                 is if expression
                 _else = undefined
                 cases [
-                    {
-                        condition {variable ['true']}
-                        action {statements [{variable ['a']}]}
-                    }
-                    {
-                        condition {variable ['false']}
-                        action {statements [{variable ['b']}]}
-                    }
+                    [
+                        {variable ['true']}
+                        {statements [{variable ['a']}]}
+                    ]
+                    [
+                        {variable ['false']}
+                        {statements [{variable ['b']}]}
+                    ]
                 ]
             }
                 
@@ -50,14 +50,14 @@ describe 'macros'
                 is if expression
                 _else {statements [{variable ['c']}]}
                 cases [
-                    {
-                        condition {variable ['true']}
-                        action {statements [{variable ['a']}]}
-                    }
-                    {
-                        condition {variable ['false']}
-                        action {statements [{variable ['b']}]}
-                    }
+                    [
+                        {variable ['true']}
+                        {statements [{variable ['a']}]}
+                    ]
+                    [
+                        {variable ['false']}
+                        {statements [{variable ['b']}]}
+                    ]
                 ]
             }
 

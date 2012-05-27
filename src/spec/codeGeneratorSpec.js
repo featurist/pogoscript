@@ -17,9 +17,11 @@ spec('code generator', function () {
     assert.equal(code, expectedGeneratedCode);
   };
   
-  var generatesReturnExpression = function(term, expectedGeneratedCode) {
+  var generatesReturnExpression = function(term, expectedGeneratedCode, print) {
     var stream = new MemoryStream();
     term.generateJavaScriptReturn(stream, new cg.Scope());
+    if (print)
+        console.log(stream.toString());
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
@@ -29,9 +31,11 @@ spec('code generator', function () {
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
-  var generatesStatements = function(term, expectedGeneratedCode, global) {
+  var generatesStatements = function(term, expectedGeneratedCode, global, print) {
     var stream = new MemoryStream();
     term.generateJavaScriptStatements(stream, new cg.Scope(), global);
+    if (print)
+        console.log(stream.toString())
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
@@ -465,7 +469,7 @@ spec('code generator', function () {
   spec('for each', function() {
     var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.variable(['item'])]))]);
     
-    generatesStatements(f, 'var gen1_items,gen2_i;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){(function(gen2_i){var item;item=gen1_items[gen2_i];item;}(gen2_i));}');
+    generatesStatements(f, 'var gen1_items,gen2_i;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){var gen3_forResult;gen3_forResult=void 0;if((function(gen2_i){var item;item=gen1_items[gen2_i];item;}(gen2_i))){return gen3_forResult;}}');
   });
   
   spec('for in', function() {
@@ -486,7 +490,7 @@ spec('code generator', function () {
       cg.statements([cg.variable(['i'])])
     );
     
-    generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){(function(i){i;}(i));}');
+    generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){var gen1_forResult;gen1_forResult=void 0;if((function(i){i;}(i))){return gen1_forResult;}}');
   });
   
   spec('while', function() {
@@ -634,23 +638,23 @@ spec('code generator', function () {
   
   spec('if', function () {
     spec('if statement', function () {
-      var m = cg.statements([cg.ifCases([{
-        condition: cg.variable(['obj']),
-        action: cg.statements([cg.variable(['stuff'])])
-      }])]);
+      var m = cg.statements([cg.ifCases([[
+        cg.variable(['obj']),
+        cg.statements([cg.variable(['stuff'])])
+      ]])]);
     
       generatesStatements(m, 'if(obj){stuff;}');
     });
   
     spec('if else if else statement', function () {
-      var m = cg.statements([cg.ifCases([{
-          condition: cg.variable(['x', 'ok']),
-          action: cg.statements([cg.variable(['x'])])
-        },
-        {
-          condition: cg.variable(['y', 'ok']),
-          action: cg.statements([cg.variable(['y'])])
-        }],
+      var m = cg.statements([cg.ifCases([[
+          cg.variable(['x', 'ok']),
+          cg.statements([cg.variable(['x'])])
+        ],
+        [
+          cg.variable(['y', 'ok']),
+          cg.statements([cg.variable(['y'])])
+        ]],
         cg.statements([cg.variable(['other', 'stuff'])])
       )]);
     
@@ -658,16 +662,16 @@ spec('code generator', function () {
     });
   
     spec('if expression', function () {
-      var m = cg.ifCases([{condition: cg.variable(['obj']), action: cg.statements([cg.variable(['stuff'])])}]);
+      var m = cg.ifCases([[cg.variable(['obj']), cg.statements([cg.variable(['stuff'])])]]);
     
       generatesExpression(m, '(function(){if(obj){return stuff;}})()');
     });
   
     spec('if else statement', function () {
-      var m = cg.statements([cg.ifCases([{
-          condition: cg.variable(['obj']),
-          action: cg.statements([cg.variable(['stuff'])])
-        }],
+      var m = cg.statements([cg.ifCases([[
+          cg.variable(['obj']),
+          cg.statements([cg.variable(['stuff'])])
+        ]],
         cg.statements([cg.variable(['other', 'stuff'])])
       )]);
     
@@ -675,7 +679,7 @@ spec('code generator', function () {
     });
   
     spec('if else expression', function () {
-      var m = cg.ifCases([{condition: cg.variable(['obj']), action: cg.statements([cg.variable(['stuff'])])}], cg.statements([cg.variable(['other', 'stuff'])]));
+      var m = cg.ifCases([[cg.variable(['obj']), cg.statements([cg.variable(['stuff'])])]], cg.statements([cg.variable(['other', 'stuff'])]));
     
       generatesExpression(m, '(function(){if(obj){return stuff;}else{return otherStuff;}})()');
     });

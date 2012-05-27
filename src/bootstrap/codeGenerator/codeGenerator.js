@@ -47,6 +47,7 @@ exports.codeGenerator = function () {
   codegen.boolean = cg.boolean;
   codegen.tryStatement = cg.tryStatement;
   codegen.ifCases = cg.ifCases;
+  codegen.nil = cg.nil;
   codegen.continueStatement = cg.continueStatement;
   codegen.breakStatement = cg.breakStatement;
   codegen.throwStatement = cg.throwStatement;

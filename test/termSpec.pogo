@@ -67,6 +67,57 @@ describe 'term'
             (term) should contain fields {
                 things [{identifier 'a'}, {identifier 'z'}]
             }
+
+        it "doesn't rewrite subterms that aren't objects"
+            term = cg.term =>
+                self.things = [cg.identifier 'a', null, nil, 0, 1.1, "one", ""]
+                self.a = 6
+                self.b = {x = 5}
+
+                self.subterms 'things' 'a' 'b'
+
+            terms rewritten = []
+
+            term.rewrite @(term)
+                terms rewritten.push (term)
+
+            (terms rewritten) should contain fields [
+                {identifier 'a'}
+                {x = 5}
+            ]
+
+        it "rewrites lists of lists of terms"
+            term = cg.term =>
+                self.things = [cg.identifier 'a', [cg.identifier 'b', [cg.identifier 'c']]]
+
+                self.subterms 'things'
+
+            term.rewrite @(term)
+                if (term.is identifier && (term.identifier == 'c'))
+                    cg.identifier 'z'
+
+            (term) should contain fields {
+                things [{identifier 'a'}, [{identifier 'b'}, [{identifier 'z'}]]]
+            }
+
+        it 'rewrites deep into the graph'
+            subterm = cg.term =>
+                self.a = cg.identifier 'a'
+                self.subterms 'a'
+
+            term = cg.term =>
+                self.thing = subterm
+                self.subterms 'thing'
+
+            term.rewrite @(term)
+                if (term.is identifier && (term.identifier == 'a'))
+                    cg.identifier 'z'
+
+            (term) should contain fields {
+                thing {
+                    a = {identifier 'z'}
+                }
+            }
     
     describe 'locations'
         it 'location'

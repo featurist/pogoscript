@@ -8,10 +8,11 @@ var hasScope = function (s) {
   }
 };
 
-exports.statements = function (statements) {
+exports.statements = function (statements, options) {
   return this.term(function () {
     this.isStatements = true;
     this.statements = statements;
+    this.isExpressionStatements = options && options.hasOwnProperty('expression') && options.expression !== void 0? options.expression: false;
     
     this.subterms('statements');
 
