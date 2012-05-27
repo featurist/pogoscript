@@ -41,6 +41,6 @@ var containsFields = exports.containsFields = function (actual, expected, key, o
       containsFields(actual[n], expected[n], field(n), originalActual);
     }
   } else {
-    assert.deepEqual(expected, actual, message());
+    assert.deepEqual(actual, expected, message());
   }
 };
