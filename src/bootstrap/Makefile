@@ -1,4 +1,4 @@
-pogo : commandLine.js codeGenerator/unaryOperatorExpression.js runtime.js grammar.js indentStack.js parserContext.js dynamicLexer.js interpolation.js
+pogo : commandLine.js codeGenerator/unaryOperatorExpression.js runtime.js grammar.js indentStack.js parserContext.js dynamicLexer.js interpolation.js codeGenerator/macroDirectory.js
 
 test : *Spec.pogo
 	bash -c 'for spec in *Spec.pogo; do echo $$spec; mogo $$spec; done'
@@ -32,5 +32,17 @@ interpolation.js : interpolation.pogo
 codeGenerator/unaryOperatorExpression.js : codeGenerator/unaryOperatorExpression.pogo
 	pogo -c codeGenerator/unaryOperatorExpression.pogo
 
+codeGenerator/macroDirectory.js : codeGenerator/macroDirectory.pogo
+	pogo -c codeGenerator/macroDirectory.pogo
+
 clean :
-	rm parser.js runtime.js codeGenerator/unaryOperatorExpression.js commandLine.js indentStack.js grammar.js parserContext.js dynamicLexer.js
+	rm \
+		parser.js \
+		runtime.js \
+		codeGenerator/unaryOperatorExpression.js \
+		commandLine.js \
+		indentStack.js \
+		grammar.js \
+		parserContext.js \
+		dynamicLexer.js \
+		codeGenerator/macroDirectory.js
