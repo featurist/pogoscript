@@ -2,7 +2,7 @@ express = require 'express'
 require '../bootstrap/runtime.pogo'
 
 web server (methods, port: 3000) =
-    app = express.create server()
+    app = express.create server ()
 
     app context = object =>
         self.get (path, action) =>

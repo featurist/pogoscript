@@ -10,7 +10,7 @@ create account (balance: 0) = {
     deposit (amount) =
         self.balance = self.balance + amount
     
-    current balance() =
+    current balance () =
         self.balance
 }
 
@@ -18,4 +18,4 @@ account = create account (balance: 100)
 
 account.withdraw 30
 account.deposit 100
-console.log (account.current balance())
+console.log (account.current balance ())

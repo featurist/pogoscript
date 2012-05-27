@@ -11,7 +11,7 @@ when (actual, cases) =
     for each @(action if matched) in (cases)
         action = action if (actual) matched
         if (action)
-            return (action())
+            return (action ())
 
 print (args, ...) = console.log (args, ...)
 

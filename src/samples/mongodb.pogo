@@ -4,7 +4,7 @@ assert = require 'assert'
 server (address: '127.0.0.1', port: 27017) =
     new (mongodb.Server (address, port))
 
-db (name: nil, svr: server()) =
+db (name: nil, svr: server ()) =
     new (mongodb.Db (name, svr))
 
 test db = db (name: 'test')
@@ -17,11 +17,11 @@ test (err, collection) =
                 console.log "document count: #(count)"
 
             console.log "searching"
-            collection.find().to array @(err, results)
+            collection.find ().to array @(err, results)
                 console.log "found #(results.length) documents"
                 console.log "document:" (results.0)
 
-                test db.close()
+                test db.close ()
 
 test db.open
     test db.collection 'test_insert' (test)
