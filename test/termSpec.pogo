@@ -1,5 +1,6 @@
 cg = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
-require './assertions.pogo'
+require './assertions'
+term = require '../src/lib/terms'.term
 
 terms (subterms) ... =
     cg.term =>
@@ -25,7 +26,92 @@ location (fl, ll, fc, lc) = {
     last_column = lc
 }
 
-describe 'term'
+/* terms:
+  
+   terms are objects (aka hashes)
+   terms can contain arrays, numbers and strings, or other things, but
+   only objects are terms.
+  
+   terms can have prototypes, in in fact prototypes are where terms
+   get most of their behaviour.
+
+   Terms can be cloned. This means that their prototype is copied,
+   as well as any subterms (object fields). Arrays are copied too.
+
+   Terms can have a location. And terms that derive from that term
+   take a copy of that location, so they can be traced back to the
+   originating source code.
+
+   Terms can be derived from another term.
+
+   Terms can be rewritten while they are cloned. Rewriting a term
+   effectively derives the term's rewrite.
+*/
+
+describe 'terms'
+    describe 'cloning'
+        it 'creates a new object'
+            t = new (term)
+
+            new term = t.clone ()
+
+            new term.should.not.equal (t)
+
+        it 'copies all members when cloning'
+            t = new (term)
+            t.a = 1
+            t.b = "b"
+
+            clone = t.clone ()
+            (clone) should contain fields {
+                a = 1
+                b = "b"
+            }
+
+        it 'arrays are also cloned'
+            t = new (term)
+            t.array = [1]
+
+            clone = t.clone ()
+            
+            clone.array.should.not.equal (t.array)
+            (clone) should contain fields {
+                array = [1]
+            }
+
+        it "an object's prototype is also copied"
+            t = new (term)
+            t.a = 'a'
+
+            clone = t.clone ()
+            Object.get prototype of (clone).should.equal (Object.get prototype of (t))
+
+        it "clones sub-objects"
+            t = new (term)
+            t.a = {name = "jack"}
+
+            clone = t.clone ()
+            
+            (clone) should contain fields {
+                a = {name = "jack"}
+            }
+
+        it "can rewrite an object while being cloned"
+            t = new (term)
+            t.a = {name = "jack"}
+
+            clone = t.clone (
+                rewrite (term):
+                    if (term.name)
+                        {name = "jill"}
+            )
+            
+            (clone) should contain fields {
+                a = {name = "jill"}
+            }
+            
+
+describe 'old terms'
     it 'subterms'
         term = cg.term =>
             self.a = cg.identifier 'a'
@@ -152,7 +238,7 @@ describe 'term'
                 last column 4
             }
         
-        it 'subterm location'
+        it "aggregates locations of subterms if it doesn't have a location itself"
             term = cg.term
                 this.a = cg.loc (cg.identifier 'a', location 1 1 3 10)
                 this.b = cg.loc (cg.identifier 'b', location 1 1 2 12)
