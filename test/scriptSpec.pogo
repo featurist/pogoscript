@@ -168,6 +168,16 @@ describe 'script'
 
                  print (count to three ())' should output '''three'''
                 
+            it 'can be returned from'
+                'items = [[1, 2, 3], [1, 2], [1]]
+                
+                 for each @(item) in (items)
+                   item count () = return (item.length)
+
+                   print (item count ())' should output '3
+                                                         2
+                                                         1'
+                
             it 'can loop'
                 'count to three () =
                      for (n = 0, n < 10, n = n + 1)
