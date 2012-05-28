@@ -33,8 +33,9 @@ var ExpressionPrototype = new function () {
     }
   };
 
-  this.rewrite = function (rewriteTerm) {
+  this.rewrite = function (rewriteTerm, options) {
     var term = this;
+    var limitIf = options && options.hasOwnProperty('limitIf') && options.limitIf !== void 0? options.limitIf: void 0;
 
     var rewriteSubterm = function (term, key, subterm) {
       if (_.isArray(subterm)) {
@@ -47,7 +48,7 @@ var ExpressionPrototype = new function () {
         if (rewrittenTerm) {
           term[key] = rewrittenTerm;
         }
-        if (subterm.rewrite) {
+        if (subterm.rewrite && !(limitIf && limitIf(subterm))) {
           subterm.rewrite(rewriteTerm);
         }
       }

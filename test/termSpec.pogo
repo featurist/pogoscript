@@ -118,6 +118,28 @@ describe 'term'
                     a = {identifier 'z'}
                 }
             }
+
+        it "doesn't rewrite beyond limit"
+            subterm = cg.term =>
+                self.is subterm = true
+                self.a = cg.identifier 'a'
+                self.subterms 'a'
+
+            term = cg.term =>
+                self.thing = subterm
+                self.b = cg.identifier 'b'
+                self.subterms 'thing' 'b'
+
+            term.rewrite (limit (term) if: term.is subterm) @(term)
+                if (term.is identifier)
+                    cg.identifier 'z'
+
+            (term) should contain fields {
+                thing {
+                    a = {identifier 'a'}
+                }
+                b = {identifier 'z'}
+            }
     
     describe 'locations'
         it 'location'
