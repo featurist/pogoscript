@@ -1,13 +1,10 @@
 mongodb = require 'mongodb'
 assert = require 'assert'
 
-server (address: '127.0.0.1', port: 27017) =
-    new (mongodb.Server (address, port))
+mongodb named (name, address: '127.0.0.1', port: 27017) =
+    new (mongodb.Db (name, new (mongodb.Server (address, port))))
 
-db (name: nil, svr: server ()) =
-    new (mongodb.Db (name, svr))
-
-test db = db (name: 'test')
+test db = mongodb named 'test'
 
 test (err, collection) =
     collection.remove
@@ -24,4 +21,4 @@ test (err, collection) =
                 test db.close ()
 
 test db.open
-    test db.collection 'test_insert' (test)
+    test db.collection ('test_insert', test)
