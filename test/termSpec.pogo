@@ -1,6 +1,6 @@
 cg = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 require './assertions'
-term = require '../src/lib/terms'.term
+term = require '../lib/terms'.term
 
 terms (subterms) ... =
     cg.term =>

@@ -1,13 +1,18 @@
 require './class'
 _ = require 'underscore'
 
+derive (term) from (ancestor term) =
+    term.location () = ancestor term.location ()
+    term
+
 exports.term = class {
     location () = nil
+
     clone (rewrite (): nil) =
         clone object (term) =
-            rewritten = rewrite (term)
+            rewritten term = rewrite (term)
 
-            if (!rewritten)
+            if (!rewritten term)
                 t = Object.create (Object.get prototype of (term))
 
                 for @(member) in (term)
@@ -16,7 +21,7 @@ exports.term = class {
 
                 t
             else
-                rewritten
+                rewritten term
             
         clone array (terms) =
             _.map (terms) @(term)

@@ -2,7 +2,7 @@
     var self, fs, ms, parser, parse, uglify, _, readline, util, Module, path, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluteReplLine, compileFromFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
-    ms = require("../lib/memorystream");
+    ms = require("../../lib/memorystream");
     parser = require("./parser");
     parse = parser.parse;
     uglify = require("uglify-js");

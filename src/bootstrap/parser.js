@@ -3,7 +3,7 @@
     self = this;
     jisonParser = require("jison").Parser;
     terms = require("./codeGenerator/codeGenerator").codeGenerator();
-    ms = require("../lib/memorystream");
+    ms = require("../../lib/memorystream");
     createParserContext = require("./parserContext").createParserContext;
     createDynamicLexer = require("./dynamicLexer").createDynamicLexer;
     grammar = require("./grammar").grammar;

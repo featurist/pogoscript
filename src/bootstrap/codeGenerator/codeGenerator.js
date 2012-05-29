@@ -1,4 +1,4 @@
-var cg = require('../../lib/codeGenerator');
+var cg = require('../../../lib/codeGenerator');
 
 exports.codeGenerator = function () {
   codegen = {};
@@ -6,7 +6,7 @@ exports.codeGenerator = function () {
   codegen.basicExpression = require('./basicExpression');
   codegen.variable = cg.variable;
   codegen.selfExpression = cg.selfExpression;
-  codegen.statements = require('../../lib/statements').statements;
+  codegen.statements = require('../../../lib/statements').statements;
   codegen.block = cg.block;
   codegen.parameters = cg.parameters;
   codegen.identifier = cg.identifier;

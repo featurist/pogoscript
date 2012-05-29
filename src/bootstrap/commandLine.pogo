@@ -1,5 +1,5 @@
 fs = require 'fs'
-ms = require '../lib/memorystream'
+ms = require '../../lib/memorystream'
 parser = require './parser'
 parse = parser.parse
 uglify = require 'uglify-js'
