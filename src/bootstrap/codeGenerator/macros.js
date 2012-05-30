@@ -49,6 +49,10 @@ exports.macros = function (cg) {
     return cg.operator('instanceof', arguments);
   });
 
+  macros.addMacro(['::'], function (name, arguments) {
+    return cg.operator('instanceof', arguments);
+  });
+
   var matchMultiOperator = function (name) {
     var firstOp = name[0];
 
