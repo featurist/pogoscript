@@ -1,26 +1,39 @@
 require './class'
 _ = require 'underscore'
 
-derive (term) from (ancestor term) =
-    term.location () = ancestor term.location ()
-    term
+term = exports.term = class {
+    set location (new location) =
+        self._location = new location
 
-exports.term = class {
-    location () = nil
+    location () =
+        self._location
+
+    constructor (members) =
+        if (members)
+            for @(member) in (members)
+                if (members.has own property (member))
+                    self.(member) = members.(member)
 
     clone (rewrite (): nil) =
-        clone object (term) =
-            rewritten term = rewrite (term)
+        clone object (original term) =
+            rewritten term = if (original term <: term)
+                rewrite (original term)
+            else
+                nil
 
             if (!rewritten term)
-                t = Object.create (Object.get prototype of (term))
+                t = Object.create (Object.get prototype of (original term))
 
-                for @(member) in (term)
-                    if (term.has own property (member))
-                        t.(member) = clone subterm (term.(member))
+                for @(member) in (original term)
+                    if (original term.has own property (member))
+                        t.(member) = clone subterm (original term.(member))
 
                 t
             else
+                if (!(rewritten term <: term))
+                    throw (new (Error "rewritten term not an instance of term"))
+
+                rewritten term.is derived from (original term)
                 rewritten term
             
         clone array (terms) =
@@ -37,5 +50,6 @@ exports.term = class {
         
         clone subterm (self)
 
-    is derived from (ancestor term) = nil
+    is derived from (ancestor term) =
+        self.set location (ancestor term.location ())
 }

@@ -98,18 +98,62 @@ describe 'terms'
 
         it "can rewrite an object while being cloned"
             t = new (term)
-            t.a = {name = "jack"}
+            t.a = new (term {name = "jack"})
 
             clone = t.clone (
-                rewrite (term):
-                    if (term.name)
-                        {name = "jill"}
+                rewrite (old term):
+                    if (old term.name)
+                        new term = new (term)
+                        new term.name = "jill"
+                        new term
             )
             
             (clone) should contain fields {
                 a = {name = "jill"}
             }
+
+        it "throws an exception when the new term is not an instance of 'term'"
+            t = new (term)
+            t.a = new (term {name = "jack"})
+
+            @{t.clone (
+                rewrite (old term):
+                    if (old term.name)
+                        {name = "jill"}
+            )}.should.throw "rewritten term not an instance of term"
             
+        it 'copies the location when a term is rewritten'
+            t = new (term)
+            t.set location {first line = 1, last line = 1, first column = 20, last column = 30}
+            
+            clone = t.clone (
+                rewrite (old term): 
+                    t = new (term)
+                    t.rewritten = true
+                    t
+            )
+
+            (clone) should contain fields {
+                rewritten = true
+            }
+            (clone.location ()) should contain fields {
+                first line = 1
+                last line = 1
+                first column = 20
+                last column = 30
+            }
+
+    describe 'location'
+        it 'can set location'
+            t = new (term)
+            t.set location {first line = 1, last line = 2, first column = 20, last column = 30}
+
+            (t.location ()) should contain fields {
+                first line = 1
+                last line = 2
+                first column = 20
+                last column = 30
+            }
 
 describe 'old terms'
     it 'subterms'
