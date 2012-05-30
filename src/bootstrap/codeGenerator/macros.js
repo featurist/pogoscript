@@ -45,8 +45,29 @@ exports.macros = function (cg) {
     return cg.operator('in', arguments);
   });
 
+  var constructorType = function (constructor) {
+    if (constructor.isVariable && constructor.variable.length == 1) {
+      var constructorName = constructor.variable[0];
+
+      switch (constructorName) {
+        case "String":
+          return "string";
+        case "Number":
+          return "number";
+        case "Boolean":
+          return "boolean";
+      }
+    }
+  };
+
   macros.addMacro(['::'], function (name, arguments) {
-    return cg.operator('instanceof', arguments);
+    var type = constructorType(arguments[1]);
+
+    if (type) {
+      return cg.typeof (arguments[0], type);
+    } else {
+      return cg.operator('instanceof', arguments);
+    }
   });
 
   var matchMultiOperator = function (name) {

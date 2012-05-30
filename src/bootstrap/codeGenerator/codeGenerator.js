@@ -45,6 +45,7 @@ exports.codeGenerator = function () {
   codegen.Scope = cg.Scope;
   codegen.createMacroDirectory = require('./macroDirectory').createMacroDirectory;
   codegen.boolean = cg.boolean;
+  codegen.typeof = require('../../../lib/typeof').typeof;
   codegen.tryStatement = cg.tryStatement;
   codegen.ifCases = cg.ifCases;
   codegen.nil = cg.nil;
