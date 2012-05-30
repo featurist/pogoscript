@@ -1,5 +1,5 @@
 constructor (members) =
-  if (members <: Function)
+  if (members :: Function)
     =>
       members.call (self)
       undefined

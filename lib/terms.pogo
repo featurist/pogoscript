@@ -16,7 +16,7 @@ term = exports.term = class {
 
     clone (rewrite (): nil) =
         clone object (original term) =
-            rewritten term = if (original term <: term)
+            rewritten term = if (original term :: term)
                 rewrite (original term)
             else
                 nil
@@ -30,7 +30,7 @@ term = exports.term = class {
 
                 t
             else
-                if (!(rewritten term <: term))
+                if (!(rewritten term :: term))
                     throw (new (Error "rewritten term not an instance of term"))
 
                 rewritten term.is derived from (original term)

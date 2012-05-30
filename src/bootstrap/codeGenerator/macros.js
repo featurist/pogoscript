@@ -45,10 +45,6 @@ exports.macros = function (cg) {
     return cg.operator('in', arguments);
   });
 
-  macros.addMacro(['<:'], function (name, arguments) {
-    return cg.operator('instanceof', arguments);
-  });
-
   macros.addMacro(['::'], function (name, arguments) {
     return cg.operator('instanceof', arguments);
   });

@@ -254,9 +254,9 @@ describe 'macros'
                 ]
             }
         
-    describe '<:'
+    describe '::'
         it 'generates instanceof'
-            (expression 'a <: b') should contain fields {
+            (expression 'a :: b') should contain fields {
                 is operator
                 operator 'instanceof'
                 operator arguments [
