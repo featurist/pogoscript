@@ -263,6 +263,25 @@ finally
 
 <pre><code>r/.*\.jpg/i.test 'geographe.jpg'</code></pre>
 
+<h1 id='nil'>Nil</h1>
+
+<p><code>nil</code> is the same as <code>undefined</code>, good for providing default values.</p>
+
+<pre><code>this function does nothing () = nil
+
+render (title: nil) = ...</code></pre>
+
+<h1 id='nil'>Instance of</h1>
+
+<p>You can check the type of something by using the <code>::</code> operator, all of these expressions are true:</p>
+
+<pre><code>[] :: Array
+{} :: Object
+@{} :: Function
+"stuff" :: String
+9.8 :: Number
+false :: Boolean</code></pre>
+
           </div>
 
         </div>
