@@ -4,9 +4,9 @@ var assert = require('assert');
 var _ = require('underscore');
 require('cupoftea');
 
-var shouldContainFields = require('../../test/containsFields.js').containsFields;
+var shouldContainFields = require('./containsFields.js').containsFields;
 
-spec('code generator', function () {
+describe('code generator', function () {
   var generatesExpression = function (term, expectedGeneratedCode, print) {
     var stream = new MemoryStream();
     term.generateJavaScript(stream, new cg.Scope());
@@ -45,116 +45,116 @@ spec('code generator', function () {
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
-  spec('concatName', function () {
-    spec('one identifier', function () {
+  describe('concatName', function () {
+    it('one identifier', function () {
       assert.equal(cg.concatName(['one']), 'one');
     });
     
-    spec('two identifiers', function () {
+    it('two identifiers', function () {
       assert.equal(cg.concatName(['one', 'two']), 'oneTwo');
     });
     
-    spec('explicit case', function () {
+    it('explicit case', function () {
       assert.equal(cg.concatName(['One', 'Two']), 'OneTwo');
     });
     
-    spec('underscores', function () {
+    it('underscores', function () {
       assert.equal(cg.concatName(['_one', '_two']), '_one_two');
     });
     
-    spec('operators', function () {
+    it('operators', function () {
       assert.equal(cg.concatName(['+*']), '$2b$2a');
     });
     
-    spec('escapes reserved words when escape is true', function () {
+    it('escapes reserved words when escape is true', function () {
       assert.equal(cg.concatName(['class'], {escape: true}), '$class');
     });
     
-    spec("doesn't escape reserved words when escape isn't true", function () {
+    it("doesn't escape reserved words when escape isn't true", function () {
       assert.equal(cg.concatName(['class']), 'class');
     });
   });
   
-  spec('variable', function () {
-    spec('with one identifier', function () {
+  describe('variable', function () {
+    it('with one identifier', function () {
       generatesExpression(cg.variable(['one']), 'one');
     });
     
-    spec('with two identifiers', function () {
+    it('with two identifiers', function () {
       generatesExpression(cg.variable(['one', 'two']), 'oneTwo');
     });
     
-    spec('with capitalised word', function () {
+    it('with capitalised word', function () {
       generatesExpression(cg.variable(['Stack']), 'Stack');
     });
     
-    spec('escapes reserved word', function () {
+    it('escapes reserved word', function () {
       generatesExpression(cg.variable(['class']), '$class');
     });
     
-    spec("doesn't escape already escaped reserved word", function () {
+    it("doesn't escape already escaped reserved word", function () {
       generatesExpression(cg.variable(['$class']), '$class');
     });
   });
   
-  spec('function call', function () {
-    spec('with no arguments', function () {
+  describe('function call', function () {
+    it('with no arguments', function () {
       var f = cg.functionCall(cg.variable(['f']), []);
       
       generatesExpression(f, 'f()');
     });
     
-    spec('with two arguments', function () {
+    it('with two arguments', function () {
       var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.variable(['b'])]);
       
       generatesExpression(f, 'f(a,b)');
     });
     
-    spec('splats', function () {
-      spec('just splat', function () {
+    describe('splats', function () {
+      it('just splat', function () {
         var f = cg.functionCall(cg.variable(['f']), [cg.variable(['b']), cg.splat()]);
       
         generatesExpression(f, 'f.apply(null,b)');
       });
       
-      spec('splat with field reference method call', function () {
+      it('splat with field reference method call', function () {
         var f = cg.functionCall(cg.indexer(cg.variable(['f']), cg.variable(['g'])), [cg.variable(['b']), cg.splat()]);
       
         generatesExpression(f, 'f[g].apply(f,b)');
       });
       
-      spec('args before', function () {
+      it('args before', function () {
         var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.variable(['b']), cg.splat()]);
       
         generatesExpression(f, 'f.apply(null,[a].concat(b))');
       });
       
-      spec('args after', function () {
+      it('args after', function () {
         var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.splat(), cg.variable(['b'])]);
       
         generatesExpression(f, 'f.apply(null,a.concat([b]))');
       });
       
-      spec('two splats', function () {
+      it('two splats', function () {
         var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.variable(['b']), cg.splat(), cg.variable(['c']), cg.variable(['d']), cg.splat(), cg.variable(['e'])]);
       
         generatesExpression(f, 'f.apply(null,[a].concat(b).concat([c]).concat(d).concat([e]))');
       });
 
-      spec('splat with optional args', function () {
+      it('splat with optional args', function () {
         var f = cg.functionCall(cg.variable(['f']), [cg.variable(['b']), cg.splat()], [cg.hashEntry(['port'], cg.variable(['p']))]);
       
         generatesExpression(f, 'f.apply(null,b.concat([{port:p}]))');
       });
     });
     
-    spec('with no arguments and an optional argument', function () {
+    it('with no arguments and an optional argument', function () {
       var f = cg.functionCall(cg.variable(['f']), [], [cg.hashEntry(['port'], cg.variable(['p']))]);
       
       generatesExpression(f, 'f({port:p})');
     });
     
-    spec('with an argument and two optional arguments', function () {
+    it('with an argument and two optional arguments', function () {
       var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a'])],
         [
           cg.hashEntry(['port'], cg.variable(['p'])),
@@ -166,102 +166,102 @@ spec('code generator', function () {
     });
   });
   
-  spec('string', function() {
-    spec('normal', function() {
+  describe('string', function() {
+    it('normal', function() {
       var s = cg.string("a string");
       
       generatesExpression(s, "'a string'");
     });
     
-    spec('with newline', function() {
+    it('with newline', function() {
       var s = cg.string("one\ntwo");
       
       generatesExpression(s, "'one\\ntwo'");
     });
     
-    spec('with escaped single quote', function() {
+    it('with escaped single quote', function() {
       var s = cg.string("his name was 'Sue'. weird");
       
       generatesExpression(s, "'his name was \\'Sue\\'. weird'");
     });
   });
   
-  spec('regexps', function () {
-    spec('simple', function () {
+  describe('regexps', function () {
+    it('simple', function () {
       var r = cg.regExp({pattern: 'abc'});
     
       generatesExpression(r, "/abc/");
     });
     
-    spec('with options', function () {
+    it('with options', function () {
       var r = cg.regExp({pattern: 'abc', options: 'gim'});
     
       generatesExpression(r, "/abc/gim");
     });
     
-    spec('containing /', function () {
+    it('containing /', function () {
       var r = cg.regExp({pattern: 'https://', options: 'gim'});
     
       generatesExpression(r, "/https:\\/\\//gim");
     });
   });
 
-  spec('interpolated strings', function () {
-    spec('one string', function () {
+  describe('interpolated strings', function () {
+    it('one string', function () {
       var s = cg.interpolatedString([cg.string("a string")]);
 
       generatesExpression(s, "'a string'");
     });
 
-    spec('two strings', function () {
+    it('two strings', function () {
       var s = cg.interpolatedString([cg.string("a "), cg.string("string")]);
 
       generatesExpression(s, "'a string'");
     });
 
-    spec('two expressions', function () {
+    it('two expressions', function () {
       var s = cg.interpolatedString([cg.variable(['x']), cg.variable(['y'])]);
 
       generatesExpression(s, "x+''+y");
     });
 
-    spec('expression in string', function () {
+    it('expression in string', function () {
       var s = cg.interpolatedString([cg.string("before "), cg.variable(['x']), cg.string(' after')]);
 
       generatesExpression(s, "'before '+x+' after'");
     });
   });
   
-  spec('operators', function () {
-    spec('two argument operator', function() {
+  describe('operators', function () {
+    it('two argument operator', function() {
       var s = cg.operator('*', [cg.variable(['a']), cg.integer(8)]);
       generatesExpression(s, "(a*8)");
     });
 
-    spec('multiple argument operator', function() {
+    it('multiple argument operator', function() {
       var s = cg.operator('*', [cg.variable(['a']), cg.integer(8), cg.variable(['b'])]);
       generatesExpression(s, "(a*8*b)");
     });
 
-    spec('unary operator', function() {
+    it('unary operator', function() {
       var s = cg.operator('-', [cg.variable(['a'])]);
       generatesExpression(s, "(-a)");
     });
 
-    spec('unary alpha operator generates spaces around operator', function() {
+    it('unary alpha operator generates spaces around operator', function() {
       var s = cg.operator('instanceof', [cg.variable(['a'])]);
       generatesExpression(s, "(instanceof a)");
     });
 
-    spec('alpha operator generates spaces around operator', function() {
+    it('alpha operator generates spaces around operator', function() {
       var s = cg.operator('instanceof', [cg.variable(['a']), cg.variable(['b'])]);
       generatesExpression(s, "(a instanceof b)");
     });
   })
   
-  spec('block', function () {
-    spec('scopify', function () {
-      spec('without parameters', function () {
+  describe('block', function () {
+    describe('scopify', function () {
+      it('without parameters', function () {
         var b = cg.block([], cg.statements([cg.variable(['a'])]));
         
         var scopifiedBlock = b.scopify();
@@ -274,43 +274,43 @@ spec('code generator', function () {
         });
       });
       
-      spec('with parameters', function () {
+      it('with parameters', function () {
         var b = cg.block([cg.parameters([cg.variable(['a'])])], cg.statements([cg.variable(['a'])]));
         assert.equal(b.scopify(), b);
       });
     });
     
-    spec('with no parameters', function () {
+    it('with no parameters', function () {
       var b = cg.block([], cg.statements([cg.variable(['x'])]));
       
       generatesExpression(b, 'function(){return x;}');
     });
     
-    spec('with no statements', function () {
+    it('with no statements', function () {
       var b = cg.block([], cg.statements([]));
       
       generatesExpression(b, 'function(){}');
     });
     
-    spec('declares its parameters', function () {
+    it('declares its parameters', function () {
       var b = cg.block([cg.variable(['x'])], cg.statements([cg.definition(cg.variable(['x']), cg.integer(8))]));
       
       generatesExpression(b, 'function(x){return x=8;}');
     });
     
-    spec('with two parameters', function () {
+    it('with two parameters', function () {
       var b = cg.block([cg.variable(['x']), cg.variable(['y'])], cg.statements([cg.variable(['x'])]));
       
       generatesExpression(b, 'function(x,y){return x;}');
     });
     
-    spec('with two parameters and two statements', function () {
+    it('with two parameters and two statements', function () {
       var b = cg.block([cg.variable(['x']), cg.variable(['y'])], cg.statements([cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]), cg.variable(['x'])]));
       
       generatesExpression(b, 'function(x,y){y(x);return x;}');
     });
     
-    spec('block with new context', function () {
+    it('block with new context', function () {
       var b = cg.block(
         [
           cg.variable(['x']),
@@ -327,7 +327,7 @@ spec('code generator', function () {
       generatesExpression(b, 'function(x,y){var self;self=this;y(x);return x;}');
     });
     
-    spec('with a parameter and two optional parameters', function () {
+    it('with a parameter and two optional parameters', function () {
       var b;
       var s = cg.statements([
         cg.definition(cg.variable(['port']), cg.integer(1)),
@@ -351,7 +351,7 @@ spec('code generator', function () {
       generatesStatements(s, "var port;port=1;function(x,y,gen1_options){var port,start;port=(gen1_options&&gen1_options.hasOwnProperty('port')&&gen1_options.port!==void 0)?gen1_options.port:80;start=(gen1_options&&gen1_options.hasOwnProperty('start')&&gen1_options.start!==void 0)?gen1_options.start:undefined;y(x);return x;};");
     });
     
-    spec('with splat parameters', function () {
+    it('with splat parameters', function () {
       var s = cg.statements([
         cg.definition(cg.variable(['y']), cg.integer(1)),
         cg.block(
@@ -372,44 +372,44 @@ spec('code generator', function () {
     });
   });
   
-  spec('statements', function () {
-    spec('with no statements', function () {
+  describe('statements', function () {
+    it('with no statements', function () {
       var st = cg.statements([]);
       
       generatesStatements(st, '');
     });
     
-    spec('with two statements', function () {
+    it('with two statements', function () {
       var st = cg.statements([cg.variable(['one']), cg.functionCall(cg.variable(['two']), [])]);
       
       generatesStatements(st, 'one;two();');
     });
     
-    spec('with two statements and a definition', function () {
+    it('with two statements and a definition', function () {
       var st = cg.statements([cg.definition(cg.variable(['one']), cg.integer(9)), cg.functionCall(cg.variable(['two']), [])]);
       
       generatesStatements(st, 'var one;one=9;two();');
     });
     
-    spec('returning a definition', function () {
+    it('returning a definition', function () {
       var st = cg.statements([cg.definition(cg.variable(['one']), cg.integer(9))]);
       
       generatesStatementsReturn(st, 'var one;return one=9;');
     });
 
-    spec("when global is true, doesn't generate 'vars' for variables", function () {
+    it("when global is true, doesn't generate 'vars' for variables", function () {
       var st = cg.statements([cg.definition(cg.variable(['one']), cg.integer(9))]);
       
       generatesStatements(st, 'one=9;', true);
     });
     
-    spec('chained definitions', function () {
+    it('chained definitions', function () {
       var st = cg.statements([cg.definition(cg.variable(['one']), cg.definition(cg.variable(['two']), cg.integer(9)))]);
       
       generatesStatementsReturn(st, 'var one,two;return one=two=9;');
     });
     
-    spec('with two definitions of the same variable', function () {
+    it('with two definitions of the same variable', function () {
       var st = cg.statements([
         cg.definition(cg.variable(['x']), cg.integer(1)),
         cg.definition(cg.variable(['x']), cg.integer(2)),
@@ -420,59 +420,59 @@ spec('code generator', function () {
     });
   });
   
-  spec('definition', function () {
-    spec('as expression', function () {
+  describe('definition', function () {
+    it('as expression', function () {
       var d = cg.definition(cg.variable(['one']), cg.integer(9));
       
       generatesExpression(d, 'one=9');
     });
     
-    spec('as hash entry', function () {
+    it('as hash entry', function () {
       var d = cg.hash([cg.definition(cg.variable(['one']), cg.integer(9)).hashEntry()]);
       
       generatesExpression(d, '{one:9}');
     });
     
-    spec('of field', function () {
+    it('of field', function () {
       var d = cg.definition(cg.fieldReference(cg.variable(['object']), ['field']), cg.integer(9));
       
       generatesExpression(d, 'object.field=9');
     });
     
-    spec('of reserved word field', function () {
+    it('of reserved word field', function () {
       var d = cg.definition(cg.fieldReference(cg.variable(['object']), ['class']), cg.integer(9));
       
       generatesExpression(d, 'object.class=9');
     });
     
-    spec('of index', function () {
+    it('of index', function () {
       var d = cg.definition(cg.indexer(cg.variable(['array']), cg.integer(1)), cg.integer(9));
       
       generatesExpression(d, 'array[1]=9');
     });
   });
   
-  spec('new operator', function() {
-    spec('gnerates js new for function call', function() {
+  describe('new operator', function() {
+    it('gnerates js new for function call', function() {
       var n = cg.newOperator(cg.functionCall(cg.variable(['Stack']), [cg.integer(8)]));
     
       generatesExpression(n, 'new Stack(8)');
     });
     
-    spec('gnerates js new for variable', function() {
+    it('gnerates js new for variable', function() {
       var n = cg.newOperator(cg.variable(['Stack']));
     
       generatesExpression(n, 'new Stack()');
     });
   });
   
-  spec('for each', function() {
+  it('for each', function() {
     var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.variable(['item'])]))]);
     
     generatesStatements(f, 'var gen1_items,gen2_i;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){var gen3_forResult;gen3_forResult=void 0;if((function(gen2_i){var item;item=gen1_items[gen2_i];item;}(gen2_i))){return gen3_forResult;}}');
   });
   
-  spec('for in', function() {
+  it('for in', function() {
     var f = cg.forIn(
       cg.variable(['item']),
       cg.variable(['items']),
@@ -482,7 +482,7 @@ spec('code generator', function () {
     generatesReturnExpression(f, 'for(var item in items){(function(item){item;}(item));}');
   });
   
-  spec('for', function() {
+  it('for', function() {
     var f = cg.forStatement(
       cg.definition(cg.variable(['i']), cg.integer(0)),
       cg.operator('<', [cg.variable(['i']), cg.integer(10)]),
@@ -493,69 +493,69 @@ spec('code generator', function () {
     generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){var gen1_forResult;gen1_forResult=void 0;if((function(i){i;}(i))){return gen1_forResult;}}');
   });
   
-  spec('while', function() {
+  it('while', function() {
     var w = cg.whileStatement(cg.variable(['c']), cg.statements([cg.variable(['s'])]));
     
     generatesStatement(w, 'while(c){s;}');
   });
   
-  spec('method call', function () {
-    spec('method call', function () {
+  describe('method call', function () {
+    it('method call', function () {
       var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff'])]);
       
       generatesExpression(m, 'console.log(stuff)');
     });
 
-    spec('methods allow reserved words as names', function () {
+    it('methods allow reserved words as names', function () {
       var m = cg.methodCall(cg.variable(['console']), ['class'], [cg.variable(['stuff'])]);
       
       generatesExpression(m, 'console.class(stuff)');
     });
 
-    spec('method call with optional argument', function () {
+    it('method call with optional argument', function () {
       var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff'])], [cg.hashEntry(['port'], cg.integer(45))]);
       
       generatesExpression(m, 'console.log(stuff,{port:45})');
     });
 
-    spec('splats', function () {
-      spec('just splat', function () {
+    describe('splats', function () {
+      it('just splat', function () {
         var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()])]);
       
         generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,b);');
       });
       
-      spec('splat call as expression', function () {
+      it('splat call as expression', function () {
         var f = cg.statements([cg.functionCall(cg.variable(['f']), [cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()])])]);
       
         generatesStatements(f, 'var gen1_o;gen1_o=o;f(gen1_o.m.apply(gen1_o,b));');
       });
       
-      spec('splat call as expression for return', function () {
+      it('splat call as expression for return', function () {
         var f = cg.statements([cg.functionCall(cg.variable(['f']), [cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()])])]);
       
         generatesStatementsReturn(f, 'var gen1_o;gen1_o=o;return f(gen1_o.m.apply(gen1_o,b));');
       });
       
-      spec('args before', function () {
+      it('args before', function () {
         var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.variable(['b']), cg.splat()])]);
       
         generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,[a].concat(b));');
       });
       
-      spec('args after', function () {
+      it('args after', function () {
         var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.splat(), cg.variable(['b'])])]);
       
         generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,a.concat([b]));');
       });
       
-      spec('two splats', function () {
+      it('two splats', function () {
         var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.variable(['b']), cg.splat(), cg.variable(['c']), cg.variable(['d']), cg.splat(), cg.variable(['e'])])]);
       
         generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,[a].concat(b).concat([c]).concat(d).concat([e]));');
       });
 
-      spec('splat with optional args', function () {
+      it('splat with optional args', function () {
         var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()], [cg.hashEntry(['port'], cg.variable(['p']))])]);
       
         generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,b.concat([{port:p}]));');
@@ -563,81 +563,81 @@ spec('code generator', function () {
     });
   });
   
-  spec('indexer', function () {
+  it('indexer', function () {
     var m = cg.indexer(cg.variable(['array']), cg.variable(['stuff']));
     
     generatesExpression(m, 'array[stuff]');
   });
   
-  spec('field reference', function () {
-    spec('normal', function () {
+  describe('field reference', function () {
+    it('normal', function () {
       var m = cg.fieldReference(cg.variable(['obj']), ['field', 'name']);
     
       generatesExpression(m, 'obj.fieldName');
     });
     
-    spec('reserved words are allowed', function () {
+    it('reserved words are allowed', function () {
       var m = cg.fieldReference(cg.variable(['obj']), ['class']);
     
       generatesExpression(m, 'obj.class');
     });
   });
   
-  spec('return', function () {
-    spec('as statement', function () {
+  describe('return', function () {
+    it('as statement', function () {
       var m = cg.returnStatement(cg.variable(['a']));
       generatesStatement(m, 'return a;');
     });
     
-    spec('as return', function () {
+    it('as return', function () {
       var m = cg.returnStatement(cg.variable(['a']));
       generatesReturnExpression(m, 'return a;');
     });
     
-    spec('return void', function () {
+    it('return void', function () {
       var m = cg.returnStatement();
       generatesReturnExpression(m, 'return;');
     });
   });
   
-  spec('throw', function () {
-    spec('as statement', function () {
+  describe('throw', function () {
+    it('as statement', function () {
       var m = cg.throwStatement(cg.variable(['a']));
       generatesStatement(m, 'throw a;');
     });
     
-    spec('as return', function () {
+    it('as return', function () {
       var m = cg.throwStatement(cg.variable(['a']));
       generatesReturnExpression(m, 'throw a;');
     });
   });
 
-  spec('break', function () {
-    spec('as statement', function () {
+  describe('break', function () {
+    it('as statement', function () {
       var m = cg.breakStatement(cg.variable(['a']));
       generatesStatement(m, 'break;');
     });
     
-    spec('as return', function () {
+    it('as return', function () {
       var m = cg.breakStatement(cg.variable(['a']));
       generatesReturnExpression(m, 'break;');
     });
   });
 
-  spec('continue', function () {
-    spec('as statement', function () {
+  describe('continue', function () {
+    it('as statement', function () {
       var m = cg.continueStatement(cg.variable(['a']));
       generatesStatement(m, 'continue;');
     });
     
-    spec('as return', function () {
+    it('as return', function () {
       var m = cg.continueStatement(cg.variable(['a']));
       generatesReturnExpression(m, 'continue;');
     });
   });
   
-  spec('if', function () {
-    spec('if statement', function () {
+  describe('if', function () {
+    it('if statement', function () {
       var m = cg.statements([cg.ifCases([[
         cg.variable(['obj']),
         cg.statements([cg.variable(['stuff'])])
@@ -646,7 +646,7 @@ spec('code generator', function () {
       generatesStatements(m, 'if(obj){stuff;}');
     });
   
-    spec('if else if else statement', function () {
+    it('if else if else statement', function () {
       var m = cg.statements([cg.ifCases([[
           cg.variable(['x', 'ok']),
           cg.statements([cg.variable(['x'])])
@@ -661,13 +661,13 @@ spec('code generator', function () {
       generatesStatements(m, 'if(xOk){x;}else if(yOk){y;}else{otherStuff;}');
     });
   
-    spec('if expression', function () {
+    it('if expression', function () {
       var m = cg.ifCases([[cg.variable(['obj']), cg.statements([cg.variable(['stuff'])])]]);
     
       generatesExpression(m, '(function(){if(obj){return stuff;}})()');
     });
   
-    spec('if else statement', function () {
+    it('if else statement', function () {
       var m = cg.statements([cg.ifCases([[
           cg.variable(['obj']),
           cg.statements([cg.variable(['stuff'])])
@@ -678,15 +678,15 @@ spec('code generator', function () {
       generatesStatements(m, 'if(obj){stuff;}else{otherStuff;}');
     });
   
-    spec('if else expression', function () {
+    it('if else expression', function () {
       var m = cg.ifCases([[cg.variable(['obj']), cg.statements([cg.variable(['stuff'])])]], cg.statements([cg.variable(['other', 'stuff'])]));
     
       generatesExpression(m, '(function(){if(obj){return stuff;}else{return otherStuff;}})()');
     });
   });
 
-  spec('try', function () {
-    spec('try catch', function () {
+  describe('try', function () {
+    it('try catch', function () {
       var t = cg.tryStatement(
         cg.statements([cg.variable(['a'])]),
         cg.block(
@@ -698,7 +698,7 @@ spec('code generator', function () {
       generatesStatement(t, 'try{a;}catch(ex){b;}');
     });
 
-    spec("try catch is never returned", function () {
+    it("try catch is never returned", function () {
       var t = cg.tryStatement(
         cg.statements([cg.variable(['a'])]),
         cg.block(
@@ -711,7 +711,7 @@ spec('code generator', function () {
       generatesReturnExpression(t, 'try{return a;}catch(ex){return b;}finally{return c;}');
     });
 
-    spec('try catch finally', function () {
+    it('try catch finally', function () {
       var t = cg.tryStatement(
         cg.statements([cg.variable(['a'])]),
         cg.block(
@@ -724,7 +724,7 @@ spec('code generator', function () {
       generatesStatement(t, 'try{a;}catch(ex){b;}finally{c;}');
     });
 
-    spec('try finally', function () {
+    it('try finally', function () {
       var t = cg.tryStatement(
         cg.statements([cg.variable(['a'])]),
         undefined,
@@ -734,7 +734,7 @@ spec('code generator', function () {
       generatesStatement(t, 'try{a;}finally{b;}');
     });
 
-    spec('try catch finally as an expression', function () {
+    it('try catch finally as an expression', function () {
       var t = cg.tryStatement(
         cg.statements([cg.variable(['a'])]),
         cg.block(
@@ -748,30 +748,30 @@ spec('code generator', function () {
     });
   });
   
-  spec('list', function() {
-    spec('with one element', function() {
+  describe('list', function() {
+    it('with one element', function() {
       var l = cg.list([cg.variable(['stuff'])]);
       generatesExpression(l, '[stuff]');
     });
     
-    spec('with two elements', function() {
+    it('with two elements', function() {
       var l = cg.list([cg.variable(['stuff']), cg.variable(['more', 'stuff'])]);
       generatesExpression(l, '[stuff,moreStuff]');
     });
     
-    spec('with no elements', function() {
+    it('with no elements', function() {
       var l = cg.list([]);
       generatesExpression(l, '[]');
     });
   });
   
-  spec('hash', function() {
-    spec('with one item', function() {
+  describe('hash', function() {
+    it('with one item', function() {
       var h = cg.hash([cg.hashEntry(['street', 'address'], cg.variable(['address']))]);
       generatesExpression(h, '{streetAddress:address}');
     });
     
-    spec('with two items, one with string field', function() {
+    it('with two items, one with string field', function() {
       var h = cg.hash([
         cg.hashEntry(['street', 'address'], cg.variable(['address'])),
         cg.hashEntry(cg.string('Content-Type'), cg.string('text/plain'))
@@ -779,7 +779,7 @@ spec('code generator', function () {
       generatesExpression(h, "{streetAddress:address,'Content-Type':'text/plain'}");
     });
     
-    spec('with true item', function() {
+    it('with true item', function() {
       var h = cg.hash([
         cg.hashEntry(['street', 'address'], cg.boolean(true))
       ]);
@@ -787,8 +787,8 @@ spec('code generator', function () {
     });
   });
   
-  spec('symbol scope', function () {
-    spec('variable defined in outer scope, assigned to in inner scope', function () {
+  describe('symbol scope', function () {
+    it('variable defined in outer scope, assigned to in inner scope', function () {
       var s = cg.statements([
         cg.definition(cg.variable(['x']), cg.integer(1)),
         cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
@@ -801,22 +801,22 @@ spec('code generator', function () {
     });
   });
   
-  spec('scope', function () {
-    spec('places scope contents inside a function which is called immediately', function () {
+  describe('scope', function () {
+    it('places scope contents inside a function which is called immediately', function () {
       var s = cg.scope([cg.definition(cg.variable(['a']), cg.integer(8)), cg.variable(['a'])]);
       
       generatesExpression(s, '(function(){var a;a=8;return a;})()');
     });
 
-    spec('if there is only one statement, it just generates that statement', function () {
+    it('if there is only one statement, it just generates that statement', function () {
       var s = cg.scope([cg.variable(['a'])]);
       
       generatesExpression(s, 'a');
     });
   });
   
-  spec('module', function () {
-    spec('module should be wrapped in function', function () {
+  describe('module', function () {
+    it('module should be wrapped in function', function () {
       var s = cg.module(cg.statements([
         cg.definition(cg.variable(['x']), cg.integer(1)),
         cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
@@ -828,8 +828,8 @@ spec('code generator', function () {
       generatesExpression(s, '(function(){var self,x;self=this;x=1;f(function(){x=2;return x;});}).call(this);');
     });
 
-    spec('when not in scope (inScope = false)', function () {
-      spec('module should not be wrapped in function', function () {
+    describe('when not in scope (inScope = false)', function () {
+      it('module should not be wrapped in function', function () {
         var s = cg.module(cg.statements([
           cg.definition(cg.variable(['x']), cg.integer(1)),
           cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
@@ -843,7 +843,7 @@ spec('code generator', function () {
         generatesExpression(s, 'var x;x=1;f(function(){x=2;return x;});');
       });
 
-      spec("when global, variables should not be declared with 'var'", function () {
+      it("when global, variables should not be declared with 'var'", function () {
         var s = cg.module(cg.statements([
           cg.definition(cg.variable(['x']), cg.integer(1)),
           cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
@@ -858,7 +858,7 @@ spec('code generator', function () {
         generatesExpression(s, 'x=1;f(function(){x=2;return x;});');
       });
 
-      spec("when global and return result, last statement should be returned", function () {
+      it("when global and return result, last statement should be returned", function () {
         var s = cg.module(cg.statements([
           cg.definition(cg.variable(['x']), cg.integer(1)),
           cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
@@ -876,35 +876,35 @@ spec('code generator', function () {
     });
   });
   
-  spec('macro directory', function() {
-    spec('one macro', function() {
+  describe('macro directory', function() {
+    it('one macro', function() {
       var md = cg.createMacroDirectory();
       md.addMacro(['one'], 1);
       assert.equal(md.findMacro(['one']), 1);
     });
     
-    spec("longer name doesn't find macro with shorter name", function() {
+    it("longer name doesn't find macro with shorter name", function() {
       var md = cg.createMacroDirectory();
       md.addMacro(['one'], 1);
       assert.equal(md.findMacro(['one', 'two']), undefined);
     });
     
-    spec('finds correct macro among two', function() {
+    it('finds correct macro among two', function() {
       var md = cg.createMacroDirectory();
       md.addMacro(['one'], 1);
       md.addMacro(['one', 'two'], 2);
       assert.equal(md.findMacro(['one', 'two']), 2);
     });
     
-    spec('adding same macro overwrites previous', function() {
+    it('adding same macro overwrites previous', function() {
       var md = cg.createMacroDirectory();
       md.addMacro(['one', 'two'], 2);
       md.addMacro(['one', 'two'], 3);
       assert.equal(md.findMacro(['one', 'two']), 3);
     });
     
-    spec('wild card macros', function() {
-      spec('wild card macro with further name requirement', function () {
+    describe('wild card macros', function() {
+      it('wild card macro with further name requirement', function () {
         var md = cg.createMacroDirectory();
 
         var macro = {};
@@ -922,7 +922,7 @@ spec('code generator', function () {
         assert.equal(md.findMacro(['one', 'two', 'four']), undefined);
       });
       
-      spec('wild card macro with exact name', function () {
+      it('wild card macro with exact name', function () {
         var md = cg.createMacroDirectory();
 
         var macro = {};
@@ -936,7 +936,7 @@ spec('code generator', function () {
         assert.equal(md.findMacro(['one', 'two']), macro);
       });
       
-      spec('normal macros have priority over wild card macros', function () {
+      it('normal macros have priority over wild card macros', function () {
         var md = cg.createMacroDirectory();
 
         var macro = {};
@@ -956,7 +956,7 @@ spec('code generator', function () {
       });
     });
     
-    spec('finds macro for invocation', function () {
+    it('finds macro for invocation', function () {
        var macros = cg.createMacroDirectory();
        
        macros.addMacro(['one', 'two'], function (name, args, optionalArgs) {
@@ -972,7 +972,7 @@ spec('code generator', function () {
        });
     });
     
-    spec('makes functionCall for invocation when no macro found', function () {
+    it('makes functionCall for invocation when no macro found', function () {
        var macros = cg.createMacroDirectory();
        
        var inv = macros.invocation(['one', 'two'], ['args'], ['optionalArgs']);
@@ -985,7 +985,7 @@ spec('code generator', function () {
        });
     });
     
-    spec('makes variable for invocation when no macro found and no args given', function () {
+    it('makes variable for invocation when no macro found and no args given', function () {
        var macros = cg.createMacroDirectory();
        
        var inv = macros.invocation(['one', 'two']);
@@ -997,7 +997,7 @@ spec('code generator', function () {
     });
   });
   
-  spec('roll', function () {
+  it('roll', function () {
     var list = [1, "a", "b", 3, "4", "5"];
     
     var collapsedList = cg.collapse(list, function (item) {
@@ -1013,8 +1013,8 @@ spec('code generator', function () {
     shouldContainFields(collapsedList, [1, '~ab', 3, '~45']);
   });
   
-  spec('parseSplatParameters', function () {
-    spec('no splat', function () {
+  describe('parseSplatParameters', function () {
+    it('no splat', function () {
       var splat = cg.parseSplatParameters(cg, [cg.variable(['a'])]);
       shouldContainFields(splat, {
         firstParameters: [{variable: ['a']}],
@@ -1023,7 +1023,7 @@ spec('code generator', function () {
       });
     });
     
-    spec('only splat', function () {
+    it('only splat', function () {
       var splat = cg.parseSplatParameters(cg, [
         cg.variable(['a']),
         cg.splat()
@@ -1036,7 +1036,7 @@ spec('code generator', function () {
       });
     });
     
-    spec('splat start', function () {
+    it('splat start', function () {
       var splat = cg.parseSplatParameters(cg, [
         cg.variable(['a']),
         cg.splat(),
@@ -1050,7 +1050,7 @@ spec('code generator', function () {
       });
     });
     
-    spec('splat end', function () {
+    it('splat end', function () {
       var splat = cg.parseSplatParameters(cg, [
         cg.variable(['a']),
         cg.variable(['b']),
@@ -1064,7 +1064,7 @@ spec('code generator', function () {
       });
     });
     
-    spec('splat middle', function () {
+    it('splat middle', function () {
       var splat = cg.parseSplatParameters(cg, [
         cg.variable(['a']),
         cg.variable(['b']),
@@ -1079,7 +1079,7 @@ spec('code generator', function () {
       });
     });
     
-    spec('two splats', function () {
+    it('two splats', function () {
       var secondSplat = cg.splat();
       secondSplat.secondSplat = true;
       
