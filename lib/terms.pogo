@@ -1,5 +1,6 @@
 require './class'
 _ = require 'underscore'
+util = require 'util'
 
 term = exports.term = class {
     constructor (members) =
@@ -60,9 +61,11 @@ term = exports.term = class {
                 clone subterm (term)
 
         clone subterm (subterm) =
-            if (_.(subterm) is array)
+            if (subterm :: Array)
                 clone array (subterm)
-            else if (_.(subterm) is object)
+            else if (subterm :: Function)
+                subterm
+            else if (subterm :: Object)
                 clone object (subterm)
             else
                 subterm
@@ -102,4 +105,46 @@ term = exports.term = class {
                 walk children (child)
 
         walk children (self)
+
+    generate java script return (buffer, scope) =
+        buffer.write 'return '
+        self.generate java script (buffer, scope)
+        buffer.write ';'
+    
+    generate java script statement (buffer, scope) =
+        self.generate java script (buffer, scope)
+        buffer.write ';'
+
+    definitions () = []
+
+    definition name (scope) = nil
+
+    arguments () = self
+
+    inspect term () =
+        util.inspect (self, false, 20)
+
+    show (desc) =
+        if (desc)
+            console.log (desc, self.inspect term ())
+        else
+            console.log (self.inspect term ())
+
+    hash entry () =
+        self.cg.errors.add term (self) with message 'cannot be used as a hash entry'
+
+    hash entry field () =
+        self.cg.errors.add term (self) with message 'cannot be used as a field name'
+
+    blockify (parameters, optional parameters) =
+        b = self.cg.block (parameters, self.cg.statements [self])
+        b.optional parameters = optional parameters
+        b
+
+    scopify () = self
+
+    parameter () =
+        this.cg.errors.add term (self) with message 'this cannot be used as a parameter'
+
+    subterms () = nil
 }

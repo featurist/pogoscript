@@ -22,7 +22,8 @@
         "mogo": "bin/mogo"
     },
     "devDependencies": {
-        "mocha": "0.14.1"
+        "mocha": "0.14.1",
+        "should": ""
     },
     "main": "src/bootstrap/commandLine.js",
     "dependencies": {
