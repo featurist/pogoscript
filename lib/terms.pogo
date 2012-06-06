@@ -34,9 +34,9 @@ term = exports.term = class {
                 last column = _.max (_.map (locations on last line) @(location) @{location.last column})
             }
 
-    clone (rewrite (): nil) =
-        clone object (original term) =
-            rewritten term = if (original term :: term)
+    clone (rewrite (subterm): nil, limit (subterm): false) =
+        clone object (original term, allow rewrite) =
+            rewritten term = if ((original term :: term) && allow rewrite)
                 rewrite (original term)
             else
                 nil
@@ -46,7 +46,7 @@ term = exports.term = class {
 
                 for @(member) in (original term)
                     if (original term.has own property (member))
-                        t.(member) = clone subterm (original term.(member))
+                        t.(member) = clone subterm (original term.(member), allow rewrite)
 
                 t
             else
@@ -56,21 +56,21 @@ term = exports.term = class {
                 rewritten term.is derived from (original term)
                 rewritten term
             
-        clone array (terms) =
+        clone array (terms, allow rewrite) =
             _.map (terms) @(term)
-                clone subterm (term)
+                clone subterm (term, allow rewrite)
 
-        clone subterm (subterm) =
+        clone subterm (subterm, allow rewrite) =
             if (subterm :: Array)
-                clone array (subterm)
+                clone array (subterm, allow rewrite)
             else if (subterm :: Function)
                 subterm
             else if (subterm :: Object)
-                clone object (subterm)
+                clone object (subterm, allow rewrite && !limit (subterm))
             else
                 subterm
         
-        clone subterm (self)
+        clone subterm (self, true)
 
     is derived from (ancestor term) =
         self.set location (ancestor term.location ())

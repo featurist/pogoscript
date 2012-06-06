@@ -119,6 +119,33 @@ describe 'terms'
                 a = {name = "jill"}
             }
 
+        it "doesn't rewrite beyond rewrite limit"
+            t = new (term {
+                a = new (term {name = "jack"})
+                b = new (term {
+                    is limit
+                    c = new (term {name = "jack"})
+                })
+                d = new (term {name = "jason"})
+            })
+
+            clone = t.clone (
+                rewrite (old term):
+                    if (old term.name)
+                        new (term {name = "jill"})
+
+                limit (t):
+                    t.is limit
+            )
+            
+            (clone) should contain fields {
+                a = {name = "jill"}
+                b = {
+                    c = {name = "jack"}
+                }
+                d = {name = "jill"}
+            }
+
         it "throws an exception when the new term is not an instance of 'term'"
             t = new (term)
             t.a = new (term {name = "jack"})
