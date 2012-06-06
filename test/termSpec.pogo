@@ -234,6 +234,28 @@ describe 'terms'
 
             (t.children ()) should only have [a, b]
 
+    describe 'walk descendants'
+        it "walks descendants, children, children's children, etc"
+            b = new (term)
+            c = new (term)
+            d = new (term)
+            a = new (term {
+                c = c
+                d = [d]
+            })
+
+            t = new (term {
+                a = a
+                b = b
+            })
+
+            descendants = []
+
+            t.walk descendants @(subterm)
+                descendants.push (subterm)
+
+            (descendants) should only have [a, b, c, d]
+
 describe 'old terms'
     it 'subterms'
         term = cg.term =>
@@ -394,7 +416,7 @@ describe 'old terms'
         it 'walks all terms depth first'
             leaf terms = []
         
-            root.walk each subterm @(term)
+            root.walk descendants @(term)
                 if (term.name)
                     leaf terms.push (term.name)
 
@@ -405,7 +427,7 @@ describe 'old terms'
             
             leaf terms = []
             
-            term.walk each subterm @(term)
+            term.walk descendants @(term)
                 leaf terms.push (term)
             
             (leaf terms) should contain fields [{name 'a'}]

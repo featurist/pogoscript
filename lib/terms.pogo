@@ -2,6 +2,12 @@ require './class'
 _ = require 'underscore'
 
 term = exports.term = class {
+    constructor (members) =
+        if (members)
+            for @(member) in (members)
+                if (members.has own property (member))
+                    self.(member) = members.(member)
+
     set location (new location) =
         self._location = new location
 
@@ -26,12 +32,6 @@ term = exports.term = class {
                 first column = _.min (_.map (locations on first line) @(location) @{location.first column})
                 last column = _.max (_.map (locations on last line) @(location) @{location.last column})
             }
-
-    constructor (members) =
-        if (members)
-            for @(member) in (members)
-                if (members.has own property (member))
-                    self.(member) = members.(member)
 
     clone (rewrite (): nil) =
         clone object (original term) =
@@ -94,4 +94,12 @@ term = exports.term = class {
         add members in object (self)
 
         children
+
+    walk descendants (walker) =
+        walk children (term) =
+            for each @(child) in (term.children ())
+                walker (child)
+                walk children (child)
+
+        walk children (self)
 }

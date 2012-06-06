@@ -38,7 +38,7 @@ exports.errors = function (cg) {
           return [];
         };
       
-        this.walkEachSubterm = function () {};
+        this.walkDescendants = function () {};
 
         this.printError = function(sourceFile) {
           sourceFile.printLocation(this.terms[0].location());
