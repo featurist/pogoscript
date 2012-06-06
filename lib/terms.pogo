@@ -6,7 +6,26 @@ term = exports.term = class {
         self._location = new location
 
     location () =
-        self._location
+        if (self._location)
+            self._location
+        else
+            children = self.children ()
+
+            locations = _.map (children) @(child)
+                child.location ()
+
+            first line = _.min (_.map (locations) @(location) @{location.first line})
+            last line = _.max (_.map (locations) @(location) @{location.last line})
+
+            locations on first line = _.filter (locations) @(location) @{location.first line == first line}
+            locations on last line = _.filter (locations) @(location) @{location.last line == last line}
+
+            {
+                first line = first line
+                last line = last line
+                first column = _.min (_.map (locations on first line) @(location) @{location.first column})
+                last column = _.max (_.map (locations on last line) @(location) @{location.last column})
+            }
 
     constructor (members) =
         if (members)
@@ -52,4 +71,27 @@ term = exports.term = class {
 
     is derived from (ancestor term) =
         self.set location (ancestor term.location ())
+
+    children () =
+        children = []
+
+        add member (member) =
+            if (member :: term)
+                children.push (member)
+            else if (member :: Array)
+                for each @(item) in (member)
+                    add member (item)
+            else if (member :: Object)
+                add members in object (member)
+
+        add members in object (object) =
+            for @(property) in (object)
+                if (object.has own property (property))
+                    member = object.(property)
+
+                    add member (member)
+
+        add members in object (self)
+
+        children
 }

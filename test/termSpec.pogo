@@ -1,6 +1,7 @@
 cg = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 require './assertions'
 term = require '../lib/terms'.term
+_ = require 'underscore'
 
 terms (subterms) ... =
     cg.term =>
@@ -14,6 +15,12 @@ branch (left, right) =
         self.right = right
         
         self.subterms 'left' 'right'
+
+(actual list) should only have (expected list) =
+    actual list.length.should.equal (expected list.length)
+
+    for each @(item) in (expected list)
+        _.include(actual list, item).should.be
 
 leaf (name) =
     cg.term =>
@@ -154,6 +161,78 @@ describe 'terms'
                 first column = 20
                 last column = 30
             }
+
+        it 'can compute location from children, first column is from first line, last column is from last line'
+            left = new (term)
+            left.set location {first line = 1, last line = 2, first column = 20, last column = 30}
+
+            right = new (term)
+            right.set location {first line = 2, last line = 4, first column = 30, last column = 10}
+
+            t = new (term {
+                left = left
+                right = right
+            })
+
+            (t.location ()) should contain fields {
+                first line = 1
+                last line = 4
+                first column = 20
+                last column = 10
+            }
+
+        it 'can compute location from children, smallest first column, largest last column when on same line'
+            left = new (term)
+            left.set location {first line = 1, last line = 2, first column = 20, last column = 30}
+
+            right = new (term)
+            right.set location {first line = 1, last line = 2, first column = 10, last column = 40}
+
+            t = new (term {
+                left = left
+                right = right
+            })
+
+            (t.location ()) should contain fields {
+                first line = 1
+                last line = 2
+                first column = 10
+                last column = 40
+            }
+
+    describe 'children'
+        it 'returns immediate subterms'
+            a = new (term)
+            b = new (term)
+
+            t = new (term {
+                a = a
+                b = b
+            })
+
+            (t.children ()) should only have [a, b]
+
+    describe 'children'
+        it 'returns terms in arrays'
+            a = new (term)
+            b = new (term)
+
+            t = new (term {
+                array = [a, b]
+            })
+
+            (t.children ()) should only have [a, b]
+
+    describe 'children'
+        it 'returns terms in objects'
+            a = new (term)
+            b = new (term)
+
+            t = new (term {
+                array = {a = a, b = b}
+            })
+
+            (t.children ()) should only have [a, b]
 
 describe 'old terms'
     it 'subterms'
