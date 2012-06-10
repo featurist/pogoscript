@@ -45,6 +45,7 @@ module.exports (cg) =
         
         write sub statements for all sub terms (statement, buffer, scope) =
           self.write sub statements (statement, buffer, scope)
+
           statement.walk descendants @(subterm)
             self.write sub statements (subterm, buffer, scope)
           not below @(subterm) if
@@ -54,7 +55,12 @@ module.exports (cg) =
           self.generate statements (self.statements, buffer, scope, global)
 
         blockify (parameters, optionalParameters) =
-          b = self.cg.block (parameters, self)
+          statements = if (self.is expression statements)
+            self.cg.statements ([self])
+          else
+            self
+
+          b = self.cg.block (parameters, statements)
           b.optional parameters = optional parameters
           b
 
