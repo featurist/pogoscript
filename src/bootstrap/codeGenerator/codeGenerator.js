@@ -3,6 +3,7 @@ var cg = require('../../../lib/codeGenerator');
 exports.codeGenerator = function () {
   codegen = {};
   
+  codegen.termPrototype = require('../../../lib/terms').termPrototype(codegen);
   codegen.basicExpression = require('./basicExpression');
   codegen.variable = cg.variable;
   codegen.selfExpression = cg.selfExpression;

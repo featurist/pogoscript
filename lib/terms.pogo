@@ -148,3 +148,5 @@ term = exports.term = class {
 
     subterms () = nil
 }
+
+exports.term prototype (cg) = new (term {cg = cg})

@@ -215,7 +215,7 @@ describe 'complex expression'
     it 'string key'
       hash entry = cg.complex expression [[string 'port']].definition (cg.variable ['a']).hash entry ()
       
-      (hashEntry) should contain fields {
+      (hash entry) should contain fields {
         is hash entry
         field { string 'port'}
         value {variable ['a']}
@@ -224,7 +224,7 @@ describe 'complex expression'
     it 'identifier key'
       hash entry = cg.complex expression [[id 'port']].definition (cg.variable ['a']).hash entry ()
       
-      (hashEntry) should contain fields {
+      (hash entry) should contain fields {
         is hash entry
         field ['port']
         value {variable ['a']}
@@ -233,19 +233,19 @@ describe 'complex expression'
     it "field's value can be on a new indented line"
       hash entry = cg.complex expression [[id 'port']].definition (cg.block ([], cg.statements [cg.variable ['a']])).hash entry ()
       
-      (hashEntry) should contain fields {
+      (hash entry) should contain fields {
         is hash entry
         field ['port']
         value {
           is scope
-          statements [variable ['a']]
+          statements [{variable ['a']}]
         }
       }
       
     it 'can define a method as a hash key'
       hash entry = cg.complex expression [[id 'name', variable 'name']].definition (cg.variable ['name']).hash entry ()
       
-      (hashEntry) should contain fields {
+      (hash entry) should contain fields {
         is hash entry
         field ['name']
         value {
