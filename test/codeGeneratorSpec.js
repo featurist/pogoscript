@@ -478,9 +478,9 @@ describe('code generator', function () {
     });
     
     it('if constructor call has splat args, then generates function', function() {
-      var n = cg.newOperator(cg.functionCall(cg.variable(['Stack']), [cg.variable(['args']), cg.splat()]));
+      var n = cg.statements([cg.newOperator(cg.functionCall(cg.variable(['Stack']), [cg.variable(['args']), cg.splat()]))]);
     
-      generatesExpression(n, 'new function(){Stack.apply(this,args);}');
+      generatesStatements(n, 'var gen1_c;gen1_c=function(){Stack.apply(this,args);};gen1_c.prototype=Stack.prototype;new gen1_c();');
     });
   });
   
