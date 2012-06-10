@@ -11,4 +11,4 @@ subdirs:
 test : test_all
 
 test_all : test/*Spec.pogo
-	mogo test/*Spec.*
+	mocha test/*Spec.*
