@@ -471,10 +471,16 @@ describe('code generator', function () {
       generatesExpression(n, 'new Stack(8)');
     });
     
-    it('gnerates js new for variable', function() {
+    it('new variable becomes new function call', function() {
       var n = cg.newOperator(cg.variable(['Stack']));
     
       generatesExpression(n, 'new Stack()');
+    });
+    
+    it('if constructor call has splat args, then generates function', function() {
+      var n = cg.newOperator(cg.functionCall(cg.variable(['Stack']), [cg.variable(['args']), cg.splat()]));
+    
+      generatesExpression(n, 'new function(){Stack.apply(this,args);}');
     });
   });
   
