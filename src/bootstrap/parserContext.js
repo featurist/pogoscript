@@ -94,11 +94,15 @@
                 self = this;
                 gen2_items = self.actualCharacters;
                 for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
-                    (function(gen3_i) {
+                    var gen4_forResult;
+                    gen4_forResult = void 0;
+                    if (function(gen3_i) {
                         var mapping;
                         mapping = gen2_items[gen3_i];
                         s = s.replace(mapping[0], mapping[1]);
-                    })(gen3_i);
+                    }(gen3_i)) {
+                        return gen4_forResult;
+                    }
                 }
                 return s;
             };
