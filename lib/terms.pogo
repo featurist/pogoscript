@@ -4,9 +4,9 @@ util = require 'util'
 
 module.exports (cg) =
     term = class {
-        constructor (members) =
-            self.cg = cg
+        cg = cg
 
+        constructor (members) =
             if (members)
                 for @(member) in (members)
                     if (members.has own property (member))

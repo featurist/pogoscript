@@ -87,4 +87,4 @@ module.exports (cg) =
           []
     }
 
-    statements (statements, expression: false) = new (statements term (statements, expression: expression))
+    statements (args, ...) = new (statements term (args, ...))
