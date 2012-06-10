@@ -7,7 +7,7 @@ var argv = require('optimist')
     .boolean('w').alias('w', 'watch')
     .argv;
 
-var commandLine = require('../src/bootstrap/commandLine');
+var commandLine = require('..');
 
 if (argv.lex) {
   for (var i in argv._) {

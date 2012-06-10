@@ -154,6 +154,3 @@ source location printer (filename: nil, source: nil) =
                 strings.push (s)
 
             strings.join ''
-
-require.extensions.'.pogo' (module, filename) =
-    exports.run file (filename) in module (module)
