@@ -409,6 +409,18 @@ describe('code generator', function () {
       generatesStatementsReturn(st, 'var one,two;return one=two=9;');
     });
     
+    it('generates sub statements', function () {
+      var st = cg.statements([cg.statements([cg.variable(['one']), cg.variable(['two'])], {expression: true})]);
+      
+      generatesStatementsReturn(st, 'one;return two;');
+    });
+    
+    it('generates sub statements, but not in blocks', function () {
+      var st = cg.statements([cg.block([], cg.statements([cg.statements([cg.variable(['one']), cg.variable(['two'])], {expression: true})]))]);
+      
+      generatesStatementsReturn(st, 'return function(){one;return two;};');
+    });
+    
     it('with two definitions of the same variable', function () {
       var st = cg.statements([
         cg.definition(cg.variable(['x']), cg.integer(1)),

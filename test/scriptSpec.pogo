@@ -168,7 +168,7 @@ describe 'script'
 
                  print (count to three ())' should output '''three'''
                 
-            it 'can be returned from'
+            it "returns in functions within for don't return from for"
                 'items = [[1, 2, 3], [1, 2], [1]]
                 
                  for each @(item) in (items)

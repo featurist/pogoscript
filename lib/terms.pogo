@@ -98,13 +98,16 @@ term = exports.term = class {
 
         children
 
-    walk descendants (walker) =
+    walk descendants (walker, limit (): false) =
         walk children (term) =
             for each @(child) in (term.children ())
                 walker (child)
-                walk children (child)
+                if (!limit (child))
+                    walk children (child)
 
         walk children (self)
+
+    walk descendants (walker) not below (limit) if = self.walk descendants (walker, limit: limit)
 
     generate java script return (buffer, scope) =
         buffer.write 'return '

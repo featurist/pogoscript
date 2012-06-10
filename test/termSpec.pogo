@@ -282,3 +282,27 @@ describe 'terms'
                 descendants.push (subterm)
 
             (descendants) should only have [a, b, c, d]
+
+        it "walks descendants, but not beyond the limit"
+            b = new (term)
+            c = new (term)
+            d = new (term)
+            a = new (term {
+                is a
+                c = c
+                d = [d]
+            })
+
+            t = new (term {
+                a = a
+                b = b
+            })
+
+            descendants = []
+
+            t.walk descendants @(subterm)
+                descendants.push (subterm)
+            not below @(subterm) if
+                subterm.is a
+
+            (descendants) should only have [a, b]
