@@ -101,7 +101,7 @@ exports.macros = function (cg) {
       _else = arguments[arguments.length - 1].body;
     }
 
-    return cg.ifCases(cases, _else);
+    return cg.ifExpression(cases, _else);
   };
 
   var matchIfMacro = function (name) {
