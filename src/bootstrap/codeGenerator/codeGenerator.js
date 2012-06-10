@@ -2,12 +2,15 @@ var cg = require('../../../lib/codeGenerator');
 
 exports.codeGenerator = function () {
   codegen = {};
+
+  term = require('../../../lib/terms')(codegen);
   
-  codegen.termPrototype = require('../../../lib/terms').termPrototype(codegen);
+  codegen.termClass = term.term;
+  codegen.termPrototype = term.termPrototype;
   codegen.basicExpression = require('./basicExpression');
   codegen.variable = cg.variable;
   codegen.selfExpression = cg.selfExpression;
-  codegen.statements = require('../../../lib/statements').statements;
+  codegen.statements = require('../../../lib/statements')(codegen);
   codegen.block = cg.block;
   codegen.parameters = cg.parameters;
   codegen.identifier = cg.identifier;

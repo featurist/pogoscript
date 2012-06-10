@@ -6,81 +6,85 @@ has scope (s) =
     console.log '---------------- NO SCOPE! -----------------'
     throw (new (Error('no scope')))
 
-exports.statements (statements, expression: false) =
-  self.term =>
-    self.is statements = true
-    self.statements = statements
-    self.is expression statements = expression
-    
-    self.generate statements (statements, buffer, scope, global) =
-      has scope (scope)
+module.exports (cg) =
+    statements term = class extending (cg.term class) {
+        constructor (statements, expression: false) =
+            self.is statements = true
+            self.statements = statements
+            self.is expression statements = expression
 
-      names defined = _(self.statements).chain ().reduce @(list, statement)
-        defs = statement.definitions(scope)
-        list.concat(defs)
-      [].uniq ().value ()
+        generate statements (statements, buffer, scope, global) =
+          has scope (scope)
 
-      if (names defined.length > 0)
-        _(names defined).each @(name)
-          scope.define (name)
+          names defined = _(self.statements).chain ().reduce @(list, statement)
+            defs = statement.definitions(scope)
+            list.concat(defs)
+          [].uniq ().value ()
 
-        if (!global)
-          buffer.write ('var ')
+          if (names defined.length > 0)
+            _(names defined).each @(name)
+              scope.define (name)
 
-          codegen utils.write to buffer with delimiter (names defined, ',', buffer) @(item)
-            buffer.write (item)
+            if (!global)
+              buffer.write ('var ')
 
-          buffer.write (';')
+              codegen utils.write to buffer with delimiter (names defined, ',', buffer) @(item)
+                buffer.write (item)
 
-      _(statements).each @(statement)
-        self.write sub statements for all sub terms (statement, buffer, scope)
-        statement.generate java script statement (buffer, scope)
-    
-    self.write sub statements (subterm, buffer, scope) =
-      if (subterm.is expression statements)
-        statements = subterm
-        if (statements.statements.length > 0)
-          statements.generate statements (statements.statements.slice (0, statements.statements.length - 1), buffer, scope)
-    
-    self.write sub statements for all sub terms (statement, buffer, scope) =
-      self.write sub statements (statement, buffer, scope)
-      statement.walk descendants @(subterm)
-        self.write sub statements (subterm, buffer, scope)
-      not below @(subterm) if
-        subterm.is statements && !subterm.is expression statements
+              buffer.write (';')
 
-    self.generate java script statements (buffer, scope, global) =
-      self.generate statements (self.statements, buffer, scope, global)
+          _(statements).each @(statement)
+            self.write sub statements for all sub terms (statement, buffer, scope)
+            statement.generate java script statement (buffer, scope)
+        
+        write sub statements (subterm, buffer, scope) =
+          if (subterm.is expression statements)
+            statements = subterm
+            if (statements.statements.length > 0)
+              statements.generate statements (statements.statements.slice (0, statements.statements.length - 1), buffer, scope)
+        
+        write sub statements for all sub terms (statement, buffer, scope) =
+          self.write sub statements (statement, buffer, scope)
+          statement.walk descendants @(subterm)
+            self.write sub statements (subterm, buffer, scope)
+          not below @(subterm) if
+            subterm.is statements && !subterm.is expression statements
 
-    self.blockify (parameters, optionalParameters) =
-      b = self.cg.block (parameters, self)
-      b.optional parameters = optional parameters
-      b
+        generate java script statements (buffer, scope, global) =
+          self.generate statements (self.statements, buffer, scope, global)
 
-    self.scopify () =
-      self.cg.function call (self.cg.block([], self), [])
+        blockify (parameters, optionalParameters) =
+          b = self.cg.block (parameters, self)
+          b.optional parameters = optional parameters
+          b
 
-    self.generate java script statements return (buffer, scope, global) =
-      if (self.statements.length > 0)
-        self.generate statements (self.statements.slice (0, self.statements.length - 1), buffer, scope, global)
-        return statement = self.statements.(self.statements.length - 1)
-        self.write sub statements for all sub terms(return statement, buffer, scope)
-        return statement.generate java script return (buffer, scope)
+        scopify () =
+          self.cg.function call (self.cg.block([], self), [])
 
-    self.generate java script (buffer, scope) =
-      if (self.statements.length > 0)
-        self.statements.(self.statements.length - 1).generate java script (buffer, scope)
+        generate java script statements return (buffer, scope, global) =
+          if (self.statements.length > 0)
+            self.generate statements (self.statements.slice (0, self.statements.length - 1), buffer, scope, global)
+            return statement = self.statements.(self.statements.length - 1)
+            self.write sub statements for all sub terms(return statement, buffer, scope)
+            return statement.generate java script return (buffer, scope)
 
-    self.generate java script statement (buffer, scope) =
-      if (self.statements.length > 0)
-        self.statements.(self.statements.length - 1).generate java script statement (buffer, scope)
+        generate java script (buffer, scope) =
+          if (self.statements.length > 0)
+            self.statements.(self.statements.length - 1).generate java script (buffer, scope)
 
-    self.generate java script return (buffer, scope) =
-      if (self.statements.length > 0)
-        self.statements.(self.statements.length - 1).generate java script return (buffer, scope)
+        generate java script statement (buffer, scope) =
+          if (self.statements.length > 0)
+            self.statements.(self.statements.length - 1).generate java script statement (buffer, scope)
 
-    self.definitions (scope) =
-      _(statements).reduce @(list, statement)
-        defs = statement.definitions(scope)
-        list.concat (defs)
-      []
+        generate java script return (buffer, scope) =
+          if (self.statements.length > 0)
+            self.statements.(self.statements.length - 1).generate java script return (buffer, scope)
+
+        definitions (scope) =
+          _(self.statements).reduce @(list, statement)
+            defs = statement.definitions(scope)
+            list.concat (defs)
+          []
+    }
+
+    statements (statements, expression: false) = new (statements term (statements, expression: expression))
