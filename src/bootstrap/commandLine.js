@@ -63,12 +63,16 @@
         tokens = parser.lex(source);
         gen2_items = tokens;
         for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
-            (function(gen3_i) {
+            var gen4_forResult;
+            gen4_forResult = void 0;
+            if (function(gen3_i) {
                 var token, text;
                 token = gen2_items[gen3_i];
                 text = token[1] && "'" + token[1] + "'" || "";
                 console.log("<" + token[0] + "> " + text);
-            })(gen3_i);
+            }(gen3_i)) {
+                return gen4_forResult;
+            }
         }
     };
     jsFilenameFromPogoFilename = function(pogo) {
@@ -95,13 +99,13 @@
         exports.runFileInModule(fullFilename, module);
         return module.loaded = true;
     };
-    exports.compile = function(pogo, gen4_options) {
+    exports.compile = function(pogo, gen5_options) {
         var filename, inScope, ugly, global, returnResult, self, moduleTerm, code;
-        filename = gen4_options && gen4_options.hasOwnProperty("filename") && gen4_options.filename !== void 0 ? gen4_options.filename : void 0;
-        inScope = gen4_options && gen4_options.hasOwnProperty("inScope") && gen4_options.inScope !== void 0 ? gen4_options.inScope : true;
-        ugly = gen4_options && gen4_options.hasOwnProperty("ugly") && gen4_options.ugly !== void 0 ? gen4_options.ugly : false;
-        global = gen4_options && gen4_options.hasOwnProperty("global") && gen4_options.global !== void 0 ? gen4_options.global : false;
-        returnResult = gen4_options && gen4_options.hasOwnProperty("returnResult") && gen4_options.returnResult !== void 0 ? gen4_options.returnResult : false;
+        filename = gen5_options && gen5_options.hasOwnProperty("filename") && gen5_options.filename !== void 0 ? gen5_options.filename : void 0;
+        inScope = gen5_options && gen5_options.hasOwnProperty("inScope") && gen5_options.inScope !== void 0 ? gen5_options.inScope : true;
+        ugly = gen5_options && gen5_options.hasOwnProperty("ugly") && gen5_options.ugly !== void 0 ? gen5_options.ugly : false;
+        global = gen5_options && gen5_options.hasOwnProperty("global") && gen5_options.global !== void 0 ? gen5_options.global : false;
+        returnResult = gen5_options && gen5_options.hasOwnProperty("returnResult") && gen5_options.returnResult !== void 0 ? gen5_options.returnResult : false;
         self = this;
         moduleTerm = parse(pogo);
         moduleTerm.inScope = inScope;
@@ -121,10 +125,10 @@
             return code;
         }
     };
-    exports.evaluate = function(pogo, gen5_options) {
+    exports.evaluate = function(pogo, gen6_options) {
         var definitions, global, self, js, definitionNames, parameters, runScript, definitionValues;
-        definitions = gen5_options && gen5_options.hasOwnProperty("definitions") && gen5_options.definitions !== void 0 ? gen5_options.definitions : {};
-        global = gen5_options && gen5_options.hasOwnProperty("global") && gen5_options.global !== void 0 ? gen5_options.global : false;
+        definitions = gen6_options && gen6_options.hasOwnProperty("definitions") && gen6_options.definitions !== void 0 ? gen6_options.definitions : {};
+        global = gen6_options && gen6_options.hasOwnProperty("global") && gen6_options.global !== void 0 ? gen6_options.global : false;
         self = this;
         js = exports.compile(pogo, {
             ugly: true,
@@ -167,19 +171,19 @@
             return console.log(ex.message);
         }
     };
-    compileFromFile = function(filename, gen6_options) {
+    compileFromFile = function(filename, gen7_options) {
         var ugly, contents;
-        ugly = gen6_options && gen6_options.hasOwnProperty("ugly") && gen6_options.ugly !== void 0 ? gen6_options.ugly : false;
+        ugly = gen7_options && gen7_options.hasOwnProperty("ugly") && gen7_options.ugly !== void 0 ? gen7_options.ugly : false;
         contents = fs.readFileSync(filename, "utf-8");
         return exports.compile(contents, {
             filename: filename,
             ugly: ugly
         });
     };
-    sourceLocationPrinter = function(gen7_options) {
+    sourceLocationPrinter = function(gen8_options) {
         var filename, source;
-        filename = gen7_options && gen7_options.hasOwnProperty("filename") && gen7_options.filename !== void 0 ? gen7_options.filename : void 0;
-        source = gen7_options && gen7_options.hasOwnProperty("source") && gen7_options.source !== void 0 ? gen7_options.source : void 0;
+        filename = gen8_options && gen8_options.hasOwnProperty("filename") && gen8_options.filename !== void 0 ? gen8_options.filename : void 0;
+        source = gen8_options && gen8_options.hasOwnProperty("source") && gen8_options.source !== void 0 ? gen8_options.source : void 0;
         return object(function() {
             var self;
             self = this;
@@ -189,22 +193,26 @@
                 lines = source.split(/\n/);
                 return lines.slice(range.from - 1, range.to);
             };
-            self.printLinesInRange = function(gen8_options) {
-                var prefix, from, to, self, gen9_items, gen10_i;
-                prefix = gen8_options && gen8_options.hasOwnProperty("prefix") && gen8_options.prefix !== void 0 ? gen8_options.prefix : "";
-                from = gen8_options && gen8_options.hasOwnProperty("from") && gen8_options.from !== void 0 ? gen8_options.from : void 0;
-                to = gen8_options && gen8_options.hasOwnProperty("to") && gen8_options.to !== void 0 ? gen8_options.to : void 0;
+            self.printLinesInRange = function(gen9_options) {
+                var prefix, from, to, self, gen10_items, gen11_i;
+                prefix = gen9_options && gen9_options.hasOwnProperty("prefix") && gen9_options.prefix !== void 0 ? gen9_options.prefix : "";
+                from = gen9_options && gen9_options.hasOwnProperty("from") && gen9_options.from !== void 0 ? gen9_options.from : void 0;
+                to = gen9_options && gen9_options.hasOwnProperty("to") && gen9_options.to !== void 0 ? gen9_options.to : void 0;
                 self = this;
-                gen9_items = self.linesInRange({
+                gen10_items = self.linesInRange({
                     from: from,
                     to: to
                 });
-                for (gen10_i = 0; gen10_i < gen9_items.length; gen10_i++) {
-                    (function(gen10_i) {
+                for (gen11_i = 0; gen11_i < gen10_items.length; gen11_i++) {
+                    var gen12_forResult;
+                    gen12_forResult = void 0;
+                    if (function(gen11_i) {
                         var line;
-                        line = gen9_items[gen10_i];
+                        line = gen10_items[gen11_i];
                         process.stderr.write(prefix + line + "\n");
-                    })(gen10_i);
+                    }(gen11_i)) {
+                        return gen12_forResult;
+                    }
                 }
             };
             self.printLocation = function(location) {
@@ -233,17 +241,16 @@
                 self = this;
                 strings = [];
                 for (i = 0; i < n; i = i + 1) {
-                    (function(i) {
+                    var gen13_forResult;
+                    gen13_forResult = void 0;
+                    if (function(i) {
                         strings.push(s);
-                    })(i);
+                    }(i)) {
+                        return gen13_forResult;
+                    }
                 }
                 return strings.join("");
             };
         });
-    };
-    require.extensions[".pogo"] = function(module, filename) {
-        var self;
-        self = this;
-        return exports.runFileInModule(filename, module);
     };
 })).call(this);
