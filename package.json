@@ -25,7 +25,6 @@
         "mocha": "0.14.1",
         "should": ""
     },
-    "main": "src/bootstrap/commandLine.js",
     "dependencies": {
         "underscore": "1.3.1",
         "optimist": "0.3.1",
