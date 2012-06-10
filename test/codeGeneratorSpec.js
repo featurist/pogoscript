@@ -494,15 +494,28 @@ describe('code generator', function () {
     generatesReturnExpression(f, 'for(var item in items){(function(item){item;}(item));}');
   });
   
-  it('for', function() {
-    var f = cg.forStatement(
-      cg.definition(cg.variable(['i']), cg.integer(0)),
-      cg.operator('<', [cg.variable(['i']), cg.integer(10)]),
-      cg.definition(cg.variable(['i']), cg.operator('+', [cg.variable(['i']), cg.integer(1)])),
-      cg.statements([cg.variable(['i'])])
-    );
-    
-    generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){var gen1_forResult;gen1_forResult=void 0;if((function(i){i;}(i))){return gen1_forResult;}}');
+  describe('for', function() {
+    it('for', function() {
+      var f = cg.forStatement(
+        cg.definition(cg.variable(['i']), cg.integer(0)),
+        cg.operator('<', [cg.variable(['i']), cg.integer(10)]),
+        cg.definition(cg.variable(['i']), cg.operator('+', [cg.variable(['i']), cg.integer(1)])),
+        cg.statements([cg.variable(['i'])])
+      );
+      
+      generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){var gen1_forResult;gen1_forResult=void 0;if((function(i){i;}(i))){return gen1_forResult;}}');
+    });
+
+    it('rewrites return for returning from scope', function() {
+      var f = cg.forStatement(
+        cg.definition(cg.variable(['i']), cg.integer(0)),
+        cg.operator('<', [cg.variable(['i']), cg.integer(10)]),
+        cg.definition(cg.variable(['i']), cg.operator('+', [cg.variable(['i']), cg.integer(1)])),
+        cg.statements([cg.returnStatement(cg.variable(['i']))])
+      );
+      
+      generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){var gen1_forResult;gen1_forResult=void 0;if((function(i){gen1_forResult=i;return true;}(i))){return gen1_forResult;}}');
+    });
   });
   
   it('while', function() {
