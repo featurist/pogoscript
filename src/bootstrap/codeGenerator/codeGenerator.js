@@ -4,18 +4,22 @@ exports.codeGenerator = function () {
   codegen = {};
 
   term = require('../../../lib/terms')(codegen);
+
+  var importTerm = function (name) {
+    codegen[name] = require('../../../lib/' + name)(codegen);
+  };
   
   codegen.termClass = term.term;
   codegen.termPrototype = term.termPrototype;
   codegen.basicExpression = require('./basicExpression');
   codegen.variable = cg.variable;
   codegen.selfExpression = cg.selfExpression;
-  codegen.statements = require('../../../lib/statements')(codegen);
+  importTerm('statements');
   codegen.block = cg.block;
   codegen.parameters = cg.parameters;
-  codegen.identifier = require('../../../lib/identifier')(codegen);
-  codegen.integer = require('../../../lib/integer')(codegen);
-  codegen.float = cg.float;
+  importTerm('identifier');
+  importTerm('integer');
+  importTerm('float');
   codegen.normaliseString = cg.normaliseString;
   codegen.unindent = cg.unindent;
   codegen.normaliseInterpolatedString = cg.normaliseInterpolatedString;
@@ -48,10 +52,10 @@ exports.codeGenerator = function () {
   codegen.scope = cg.scope;
   codegen.Scope = cg.Scope;
   codegen.createMacroDirectory = require('./macroDirectory').createMacroDirectory;
-  codegen.boolean = cg.boolean;
+  importTerm('boolean');
   codegen.typeof = require('../../../lib/typeof').typeof;
   codegen.tryStatement = cg.tryStatement;
-  codegen.ifExpression = require('../../../lib/ifExpression')(codegen);
+  importTerm('ifExpression');
   codegen.nil = cg.nil;
   codegen.continueStatement = cg.continueStatement;
   codegen.breakStatement = cg.breakStatement;

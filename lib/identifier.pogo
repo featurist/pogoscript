@@ -1,11 +1,9 @@
-module.exports (cg) =
-    identifier = class extending (cg.term class) {
-        constructor (name) =
-            self.is identifier = true
-            self.identifier = name
+terms = require './terms'
 
-        arguments () = nil
-    }
+module.exports = terms.term {
+    constructor (name) =
+        self.is identifier = true
+        self.identifier = name
 
-    @(args, ...)
-        new (identifier (args, ...))
+    arguments () = nil
+}

@@ -162,3 +162,9 @@ module.exports (cg) =
         term = term
         term prototype = term prototype
     }
+
+module.exports.term (members, base class (cg): cg.term class) =
+    with code gen (cg) =
+        term subclass = class extending (base class (cg), members)
+
+        constructor (args, ...) = new (term subclass (args, ...))
