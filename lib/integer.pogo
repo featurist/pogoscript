@@ -1,6 +1,4 @@
-terms = require './terms'
-
-module.exports = terms.term {
+module.exports (cg) = cg.term {
     constructor (value) =
         self.is integer = true
         self.integer = value

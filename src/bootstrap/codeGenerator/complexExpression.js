@@ -2,7 +2,7 @@ var _ = require('underscore');
 
 module.exports = function (listOfTerminals) {
   var cg = this;
-  return cg.term(function () {
+  return cg.oldTerm(function () {
     this.isComplexExpression = true;
     this.basicExpressions = _(listOfTerminals).map(function (terminals) {
       return cg.basicExpression(terminals);

@@ -2,7 +2,7 @@ var _ = require('underscore');
 
 module.exports = function (complexExpression) {
   var cg = this;
-  return cg.term(function () {
+  return cg.oldTerm(function () {
     this.arguments = [complexExpression];
     this.name = [];
 

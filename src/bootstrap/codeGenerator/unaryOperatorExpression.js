@@ -7,7 +7,7 @@
         expression = gen1_options && gen1_options.hasOwnProperty("expression") && gen1_options.expression !== void 0 ? gen1_options.expression : void 0;
         self = this;
         cg = self;
-        return cg.term(function() {
+        return cg.oldTerm(function() {
             var self;
             self = this;
             self.operator = operator;

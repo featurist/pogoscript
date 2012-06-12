@@ -1,7 +1,6 @@
 codegen utils = require "./codegenUtils"
-terms = require './terms'
 
-module.exports = terms.term {
+module.exports (cg) = cg.term {
     constructor (cases, _else) =
         self.is if expression = true 
         self.cases = cases

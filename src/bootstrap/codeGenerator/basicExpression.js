@@ -2,7 +2,7 @@ var _ = require('underscore');
 
 module.exports = function (terminals) {
   var cg = this;
-  return cg.term(function () {
+  return cg.oldTerm(function () {
     this.terminals = terminals;
     this.subterms('terminals');
     

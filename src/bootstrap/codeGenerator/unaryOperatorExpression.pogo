@@ -1,6 +1,6 @@
 exports.new unary operator expression (operator: nil, expression: nil) =
     cg = self
-    cg.term =>
+    cg.old term =>
         self.operator = operator
         self.expr = expression
 

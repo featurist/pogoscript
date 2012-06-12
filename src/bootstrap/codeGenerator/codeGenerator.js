@@ -3,13 +3,15 @@ var cg = require('../../../lib/codeGenerator');
 exports.codeGenerator = function () {
   codegen = {};
 
-  term = require('../../../lib/terms')(codegen);
+  terms = require('../../../lib/terms')
+  term = terms(codegen);
 
   var importTerm = function (name) {
     codegen[name] = require('../../../lib/' + name)(codegen);
   };
   
   codegen.termClass = term.term;
+  codegen.term = terms.term;
   codegen.termPrototype = term.termPrototype;
   codegen.basicExpression = require('./basicExpression');
   codegen.variable = cg.variable;
@@ -72,7 +74,7 @@ exports.codeGenerator = function () {
   codegen.generatedVariable = cg.generatedVariable;
   codegen.optional = cg.optional;
   codegen.postIncrement = cg.postIncrement;
-  codegen.term = cg.term;
+  codegen.oldTerm = cg.oldTerm;
   codegen.errors = require('./errors').errors(codegen);
   codegen.macros = require('./macros').macros(codegen);
   codegen.thisiscodegen = true;

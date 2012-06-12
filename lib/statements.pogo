@@ -1,13 +1,12 @@
 _ = require 'underscore'
 codegen utils = require('./codegenUtils')
-terms = require './terms'
 
 has scope (s) =
   if (!s)
     console.log '---------------- NO SCOPE! -----------------'
     throw (new (Error('no scope')))
 
-module.exports = terms.term {
+module.exports (cg) = cg.term {
     constructor (statements, expression: false) =
         self.is statements = true
         self.statements = statements

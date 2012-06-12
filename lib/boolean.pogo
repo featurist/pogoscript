@@ -1,6 +1,4 @@
-terms = require './terms'
-
-module.exports = terms.term {
+module.exports (cg) = cg.term {
     constructor (value) =
         self.boolean = value
         self.is boolean = true
