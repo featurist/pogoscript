@@ -1,6 +1,4 @@
-window = window || global
-
-window.$class (prototype) =
+global.$class (prototype) =
   constructor (args, ...) = =>
     prototype.constructor.apply (self, args)
     nil
@@ -8,7 +6,7 @@ window.$class (prototype) =
   constructor.prototype = prototype
   constructor
 
-window.class extending (base constructor, prototype members) =
+global.class extending (base constructor, prototype members) =
   prototype constructor () = =>
     for @(field) in (prototype members)
       if (prototype members.has own property (field))
