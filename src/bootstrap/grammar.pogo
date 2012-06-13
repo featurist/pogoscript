@@ -146,8 +146,8 @@ exports.grammar = {
             ['( statement )', '$$ = $2;']
         ]
         interpolated_string [
-            ['start_interpolated_string interpolated_string_components end_interpolated_string', '$$ = yy.terms.interpolatedString(yy.compressInterpolatedStringComponents(yy.unindentStringComponentsBy($2, @$.first_column + 1)), @$.first_column);']
-            ['start_interpolated_string end_interpolated_string', '$$ = yy.terms.interpolatedString([], @$.first_column);']
+            ['start_interpolated_string interpolated_string_components end_interpolated_string', '$$ = yy.terms.interpolatedString(yy.normaliseStringComponentsUnindentingBy($2, @$.first_column + 1));']
+            ['start_interpolated_string end_interpolated_string', '$$ = yy.terms.interpolatedString([]);']
         ]
         interpolated_string_components [
             ['interpolated_string_components interpolated_string_component', '$1.push($2); $$ = $1;']

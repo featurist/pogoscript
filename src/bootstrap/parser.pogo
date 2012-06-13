@@ -3,7 +3,7 @@ terms = require './codeGenerator/codeGenerator'.code generator ()
 ms = require '../../lib/memorystream'
 create parser context = require './parserContext'.create parser context
 create dynamic lexer = require './dynamicLexer'.create dynamic lexer
-grammar = require './grammar.pogo'.grammar
+grammar = require './grammar'.grammar
 
 parser = new (jison parser (grammar))
 jison lexer = parser.lexer

@@ -1,3 +1,4 @@
+_ = require 'underscore'
 create indent stack = require './indentStack'.create indent stack
 create interpolation = require './interpolation'.create interpolation
 
@@ -101,8 +102,28 @@ exports.create parser context =
             compressed components
 
         self.unindent string components (components) by (columns) =
-            for each @(component) in (components)
+            _.map (components) @(component)
                 if (component.is string)
-                    component.string = self.unindent (component.string) by (columns)
+                    self.terms.string (self.unindent (component.string) by (columns))
+                else
+                    component
 
-            components
+        self.separate expression components (components) with strings =
+            separated components = []
+            last component was expression = false
+
+            for each @(component) in (components)
+                if (last component was expression && !component.is string)
+                    separated components.push (self.terms.string '')
+
+                separated components.push (component)
+                last component was expression = !component.is string
+
+            separated components
+
+        self.normalise string components (components) unindenting by (indent columns) =
+            self.separate expression components (
+                self.compress interpolated string components (
+                    self.unindent string components (components) by (indent columns)
+                )
+            ) with strings

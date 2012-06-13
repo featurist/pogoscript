@@ -213,18 +213,6 @@ describe('code generator', function () {
       generatesExpression(s, "'a string'");
     });
 
-    it('two strings', function () {
-      var s = cg.interpolatedString([cg.string("a "), cg.string("string")]);
-
-      generatesExpression(s, "'a string'");
-    });
-
-    it('two expressions', function () {
-      var s = cg.interpolatedString([cg.variable(['x']), cg.variable(['y'])]);
-
-      generatesExpression(s, "x+''+y");
-    });
-
     it('expression in string', function () {
       var s = cg.interpolatedString([cg.string("before "), cg.variable(['x']), cg.string(' after')]);
 

@@ -1,6 +1,7 @@
 ((function() {
-    var self, createIndentStack, createInterpolation;
+    var self, _, createIndentStack, createInterpolation;
     self = this;
+    _ = require("underscore");
     createIndentStack = require("./indentStack").createIndentStack;
     createInterpolation = require("./interpolation").createInterpolation;
     exports.createParserContext = createParserContext = function(gen1_options) {
@@ -133,9 +134,22 @@
                 }
                 return compressedComponents;
             };
-            return self.unindentStringComponentsBy = function(components, columns) {
-                var self, gen8_items, gen9_i;
+            self.unindentStringComponentsBy = function(components, columns) {
+                var self;
                 self = this;
+                return _.map(components, function(component) {
+                    if (component.isString) {
+                        return self.terms.string(self.unindentBy(component.string, columns));
+                    } else {
+                        return component;
+                    }
+                });
+            };
+            self.separateExpressionComponentsWithStrings = function(components) {
+                var self, separatedComponents, lastComponentWasExpression, gen8_items, gen9_i;
+                self = this;
+                separatedComponents = [];
+                lastComponentWasExpression = false;
                 gen8_items = components;
                 for (gen9_i = 0; gen9_i < gen8_items.length; gen9_i++) {
                     var gen10_forResult;
@@ -143,14 +157,21 @@
                     if (function(gen9_i) {
                         var component;
                         component = gen8_items[gen9_i];
-                        if (component.isString) {
-                            component.string = self.unindentBy(component.string, columns);
+                        if (lastComponentWasExpression && !component.isString) {
+                            separatedComponents.push(self.terms.string(""));
                         }
+                        separatedComponents.push(component);
+                        lastComponentWasExpression = !component.isString;
                     }(gen9_i)) {
                         return gen10_forResult;
                     }
                 }
-                return components;
+                return separatedComponents;
+            };
+            return self.normaliseStringComponentsUnindentingBy = function(components, indentColumns) {
+                var self;
+                self = this;
+                return self.separateExpressionComponentsWithStrings(self.compressInterpolatedStringComponents(self.unindentStringComponentsBy(components, indentColumns)));
             };
         });
     };
