@@ -68,7 +68,7 @@
                 };
                 return term;
             };
-            self.unindent = function(columns, string) {
+            self.unindentBy = function(string, columns) {
                 var self, r;
                 self = this;
                 r = new RegExp("\\n {" + columns + "}", "g");
@@ -89,7 +89,7 @@
                 };
             };
             self.actualCharacters = [ [ /\\\\/g, "\\" ], [ /\\b/g, "\b" ], [ /\\f/g, "\f" ], [ /\\n/g, "\n" ], [ /\\0/g, "\0" ], [ /\\r/g, "\r" ], [ /\\t/g, "\t" ], [ /\\v/g, "" ], [ /\\'/g, "'" ], [ /\\"/g, '"' ] ];
-            return self.normaliseInterpolatedString = function(s) {
+            self.normaliseInterpolatedString = function(s) {
                 var self, gen2_items, gen3_i;
                 self = this;
                 gen2_items = self.actualCharacters;
@@ -105,6 +105,52 @@
                     }
                 }
                 return s;
+            };
+            self.compressInterpolatedStringComponents = function(components) {
+                var self, compressedComponents, lastString, gen5_items, gen6_i;
+                self = this;
+                compressedComponents = [];
+                lastString = void 0;
+                gen5_items = components;
+                for (gen6_i = 0; gen6_i < gen5_items.length; gen6_i++) {
+                    var gen7_forResult;
+                    gen7_forResult = void 0;
+                    if (function(gen6_i) {
+                        var component;
+                        component = gen5_items[gen6_i];
+                        if (!lastString && component.isString) {
+                            lastString = component;
+                            compressedComponents.push(lastString);
+                        } else if (lastString && component.isString) {
+                            lastString.string = lastString.string + component.string;
+                        } else {
+                            lastString = void 0;
+                            compressedComponents.push(component);
+                        }
+                    }(gen6_i)) {
+                        return gen7_forResult;
+                    }
+                }
+                return compressedComponents;
+            };
+            return self.unindentStringComponentsBy = function(components, columns) {
+                var self, gen8_items, gen9_i;
+                self = this;
+                gen8_items = components;
+                for (gen9_i = 0; gen9_i < gen8_items.length; gen9_i++) {
+                    var gen10_forResult;
+                    gen10_forResult = void 0;
+                    if (function(gen9_i) {
+                        var component;
+                        component = gen8_items[gen9_i];
+                        if (component.isString) {
+                            component.string = self.unindentBy(component.string, columns);
+                        }
+                    }(gen9_i)) {
+                        return gen10_forResult;
+                    }
+                }
+                return components;
             };
         });
     };

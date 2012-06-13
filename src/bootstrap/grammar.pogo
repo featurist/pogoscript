@@ -129,8 +129,8 @@ exports.grammar = {
             ['float', '$$ = yy.loc(yy.terms.float(parseFloat(yytext)), @$);']
             ['integer', '$$ = yy.loc(yy.terms.integer(parseInt(yytext)), @$);']
             ['identifier', '$$ = yy.loc(yy.terms.identifier(yytext), @$);']
-            ['string', '$$ = yy.loc(yy.terms.string(yy.unindent(@$.first_column + 1, yy.normaliseString(yytext))), @$);']
-            ['reg_exp', '$$ = yy.loc(yy.terms.regExp(yy.parseRegExp(yy.unindent(@$.first_column + 2, yytext))), @$);']
+            ['string', '$$ = yy.loc(yy.terms.string(yy.unindentBy(yy.normaliseString(yytext), @$.first_column + 1)), @$);']
+            ['reg_exp', '$$ = yy.loc(yy.terms.regExp(yy.parseRegExp(yy.unindentBy(yytext, @$.first_column + 2))), @$);']
             ['interpolated_string', '$$ = yy.loc($1, @$);']
             ['...', '$$ = yy.loc(yy.terms.splat(), @$);']
         ]
@@ -146,7 +146,7 @@ exports.grammar = {
             ['( statement )', '$$ = $2;']
         ]
         interpolated_string [
-            ['start_interpolated_string interpolated_string_components end_interpolated_string', '$$ = yy.terms.interpolatedString($2, @$.first_column);']
+            ['start_interpolated_string interpolated_string_components end_interpolated_string', '$$ = yy.terms.interpolatedString(yy.compressInterpolatedStringComponents(yy.unindentStringComponentsBy($2, @$.first_column + 1)), @$.first_column);']
             ['start_interpolated_string end_interpolated_string', '$$ = yy.terms.interpolatedString([], @$.first_column);']
         ]
         interpolated_string_components [

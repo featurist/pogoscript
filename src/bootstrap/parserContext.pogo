@@ -49,7 +49,7 @@ exports.create parser context =
 
           term
 
-        self.unindent (columns, string) =
+        self.unindent (string) by (columns) =
           r = new (RegExp "\\n {#(columns)}" 'g')
 
           string.replace (r, "\n")
@@ -83,3 +83,26 @@ exports.create parser context =
             s = s.replace (mapping.0, mapping.1)
 
           s
+
+        self.compress interpolated string components (components) =
+            compressed components = []
+            last string = nil
+
+            for each @(component) in (components)
+                if (!last string && component.is string)
+                    last string = component
+                    compressed components.push (last string)
+                else if (last string && component.is string)
+                    last string.string = last string.string + component.string
+                else
+                    last string = nil
+                    compressed components.push (component)
+
+            compressed components
+
+        self.unindent string components (components) by (columns) =
+            for each @(component) in (components)
+                if (component.is string)
+                    component.string = self.unindent (component.string) by (columns)
+
+            components

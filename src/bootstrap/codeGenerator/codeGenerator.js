@@ -59,7 +59,7 @@ exports.codeGenerator = function () {
   codegen.typeof = require('../../../lib/typeof').typeof;
   codegen.tryStatement = cg.tryStatement;
   importTerm('ifExpression');
-  codegen.nil = cg.nil;
+  importTerm('nil');
   codegen.continueStatement = cg.continueStatement;
   codegen.breakStatement = cg.breakStatement;
   codegen.throwStatement = cg.throwStatement;
