@@ -1,76 +1,120 @@
 _ = require 'underscore'
 codegen utils = require "./codegenUtils"
 
-module.exports (cg) = cg.term {
-    constructor (parameters, body, return last statement: true, redefines self: false) =
-        self.body = body
-        self.is block = true
-        self.return last statement = return last statement
-        self.parameters = parameters
-        self.optional parameters = []
-        self.redefines self = redefines self
-  
-    blockify (parameters, optional parameters) =
-        self.parameters = parameters
-        self.optional parameters = optional parameters
-        self
-  
-    scopify () =
-        if ((self.parameters.length == 0) && (self.optional parameters.length == 0))
-            self.cg.scope (self.body.statements)
+module.exports (terms) =
+    optional parameters (optional parameters, next) =
+        if (optional parameters.length > 0)
+            {
+                options = terms.generated variable ['options']
+                
+                parameters () =
+                    next.parameters ().concat [self.options]
+
+                statements () =
+                    optional statements = _.map(optional parameters) @(parm)
+                        terms.definition (terms.variable (parm.field, shadow: true), optional (self.options, parm.field, parm.value))
+                    
+                    optional statements.concat (next.statements ())
+                
+                has optionals = true
+            }
         else
+            next
+
+    optional = terms.term {
+        constructor (options, name, default value) =
+            self.options = options
+            self.name = name
+            self.default value = default value
+      
+        proper default value () =
+            if (self.default value == nil)
+                self.cg.variable ['undefined']
+            else
+                self.default value
+
+        generate java script (buffer, scope) =
+            buffer.write ('(')
+            self.options.generate java script (buffer, scope)
+            buffer.write ('&&')
+            self.options.generate java script (buffer, scope)
+            buffer.write (".hasOwnProperty('" + codegen utils.concat name (self.name) + "')&&")
+            self.options.generate java script (buffer, scope)
+            buffer.write ("." + codegen utils.concat name (self.name) + "!==void 0)?")
+            self.options.generate java script (buffer, scope)
+            buffer.write ('.' + codegen utils.concat name (self.name) + ':')
+            self.proper default value ().generate java script (buffer, scope)
+    }
+
+    terms.term {
+        constructor (parameters, body, return last statement: true, redefines self: false) =
+            self.body = body
+            self.is block = true
+            self.return last statement = return last statement
+            self.parameters = parameters
+            self.optional parameters = []
+            self.redefines self = redefines self
+      
+        blockify (parameters, optional parameters) =
+            self.parameters = parameters
+            self.optional parameters = optional parameters
             self
-  
-    parameter transforms () =
-        if (self._parameter transforms)
-            return (self._parameter transforms)
+      
+        scopify () =
+            if ((self.parameters.length == 0) && (self.optional parameters.length == 0))
+                self.cg.scope (self.body.statements)
+            else
+                self
+      
+        parameter transforms () =
+            if (self._parameter transforms)
+                return (self._parameter transforms)
 
-        optionals = optional parameters (
-            self.cg
-            self.optionalParameters
-            self parameter (
-                self.cg
-                self.redefines self
-                block parameters (self)
+            optionals = optional parameters (
+                self.optionalParameters
+                self parameter (
+                    self.cg
+                    self.redefines self
+                    block parameters (self)
+                )
             )
-        )
-    
-        splat = splat parameters (
-            self.cg
-            optionals
-        )
-    
-        if (optionals.has optionals && splat.has splat)
-            self.cg.errors.add terms (self.optional parameters) with message 'cannot have splat parameters with optional parameters'
-    
-        self._parameter transforms = splat
-  
-    transformed statements () =
-        self.cg.statements (self.parameterTransforms ().statements ())
-  
-    transformed parameters () =
-        self.parameter transforms ().parameters ()
-  
-    declare parameters (scope, parameters) =
-        for each @(parameter) in (parameters)
-            scope.define (parameter.variable name (scope))
+        
+            splat = splat parameters (
+                self.cg
+                optionals
+            )
+        
+            if (optionals.has optionals && splat.has splat)
+                self.cg.errors.add terms (self.optional parameters) with message 'cannot have splat parameters with optional parameters'
+        
+            self._parameter transforms = splat
+      
+        transformed statements () =
+            self.cg.statements (self.parameterTransforms ().statements ())
+      
+        transformed parameters () =
+            self.parameter transforms ().parameters ()
+      
+        declare parameters (scope, parameters) =
+            for each @(parameter) in (parameters)
+                scope.define (parameter.variable name (scope))
 
-    generate java script (buffer, scope) =
-        buffer.write ('function(')
-        parameters = self.transformed parameters ()
-        codegen utils.write to buffer with delimiter (parameters, ',', buffer, scope)
-        buffer.write ('){')
-        body = self.transformed statements ()
-        body scope = scope.sub scope ()
-        self.declare parameters (body scope, parameters)
+        generate java script (buffer, scope) =
+            buffer.write ('function(')
+            parameters = self.transformed parameters ()
+            codegen utils.write to buffer with delimiter (parameters, ',', buffer, scope)
+            buffer.write ('){')
+            body = self.transformed statements ()
+            body scope = scope.sub scope ()
+            self.declare parameters (body scope, parameters)
 
-        if (self.return last statement)
-            body.generate java script statements return (buffer, bodyScope)
-        else
-            body.generate java script statements (buffer, body scope)
+            if (self.return last statement)
+                body.generate java script statements return (buffer, bodyScope)
+            else
+                body.generate java script statements (buffer, body scope)
 
-        buffer.write ('}')
-}
+            buffer.write ('}')
+    }
 
 block parameters (block) = {
     parameters () =
@@ -79,25 +123,6 @@ block parameters (block) = {
     statements () =
       block.body.statements
 }
-
-optional parameters (cg, optional parameters, next) =
-    if (optional parameters.length > 0)
-        {
-            options = cg.generated variable ['options']
-            
-            parameters () =
-                next.parameters ().concat [self.options]
-
-            statements () =
-                optional statements = _.map(optional parameters) @(parm)
-                    cg.definition (cg.variable (parm.field, shadow: true), cg.optional (self.options, parm.field, parm.value))
-                
-                optional statements.concat (next.statements ())
-            
-            has optionals = true
-        }
-    else
-        next
 
 self parameter (cg, redefines self, next) =
     if (redefines self)
