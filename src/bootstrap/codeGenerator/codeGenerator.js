@@ -19,7 +19,7 @@ exports.codeGenerator = function () {
   importTerm('statements');
   importTerm('closure');
   codegen.block = codegen.closure;
-  codegen.parameters = cg.parameters;
+  importTerm('parameters');
   importTerm('identifier');
   importTerm('integer');
   importTerm('float');
