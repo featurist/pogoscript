@@ -29,7 +29,7 @@ exports.codeGenerator = function () {
   importTerm('string');
   importTerm('interpolatedString');
   codegen.normaliseRegExp = cg.normaliseRegExp;
-  codegen.regExp = cg.regExp;
+  importTerm('regExp');
   codegen.parseRegExp = cg.parseRegExp;
   codegen.module = cg.module;
   codegen.interpolation = cg.interpolation;
