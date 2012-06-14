@@ -27,7 +27,7 @@ exports.codeGenerator = function () {
   codegen.unindent = cg.unindent;
   codegen.normaliseInterpolatedString = cg.normaliseInterpolatedString;
   codegen.string = cg.string;
-  codegen.interpolatedString = cg.interpolatedString;
+  importTerm('interpolatedString');
   codegen.normaliseRegExp = cg.normaliseRegExp;
   codegen.regExp = cg.regExp;
   codegen.parseRegExp = cg.parseRegExp;
