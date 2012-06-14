@@ -14,8 +14,8 @@ exports.codeGenerator = function () {
   codegen.term = terms.term;
   codegen.termPrototype = term.termPrototype;
   codegen.basicExpression = require('./basicExpression');
-  codegen.variable = cg.variable;
-  codegen.selfExpression = cg.selfExpression;
+  importTerm('variable');
+  importTerm('selfExpression');
   importTerm('statements');
   importTerm('closure');
   codegen.block = codegen.closure;
