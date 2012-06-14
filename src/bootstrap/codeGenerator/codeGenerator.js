@@ -31,13 +31,13 @@ exports.codeGenerator = function () {
   codegen.normaliseRegExp = cg.normaliseRegExp;
   importTerm('regExp');
   codegen.parseRegExp = cg.parseRegExp;
-  codegen.module = cg.module;
+  importTerm('module');
   codegen.interpolation = cg.interpolation;
   codegen.list = cg.list;
   codegen.normaliseArguments = cg.normaliseArguments;
   codegen.argumentList = cg.argumentList;
   codegen.subExpression = cg.subExpression;
-  codegen.fieldReference = cg.fieldReference;
+  importTerm('fieldReference');
   codegen.hash = cg.hash;
   importTerm('asyncArgument');
   codegen.complexExpression = require('./complexExpression');
@@ -53,7 +53,7 @@ exports.codeGenerator = function () {
   codegen.definition = cg.definition;
   importTerm('functionCall');
   codegen.scope = cg.scope;
-  codegen.Scope = cg.Scope;
+  codegen.Scope = require('../../../lib/scope').Scope;
   codegen.createMacroDirectory = require('./macroDirectory').createMacroDirectory;
   importTerm('boolean');
   codegen.typeof = require('../../../lib/typeof').typeof;
