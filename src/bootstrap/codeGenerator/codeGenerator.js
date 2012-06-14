@@ -45,13 +45,13 @@ exports.codeGenerator = function () {
   codegen.newUnaryOperatorExpression = require('./unaryOperatorExpression').newUnaryOperatorExpression;
   codegen.operator = cg.operator;
   codegen.splat = cg.splat;
-  codegen.javascript = cg.javascript;
+  importTerm('javascript');
   codegen.hashEntry = cg.hashEntry;
   codegen.concatName = cg.concatName;
   codegen.parseSplatParameters = cg.parseSplatParameters;
   codegen.collapse = cg.collapse;
   codegen.definition = cg.definition;
-  codegen.functionCall = cg.functionCall;
+  importTerm('functionCall');
   codegen.scope = cg.scope;
   codegen.Scope = cg.Scope;
   codegen.createMacroDirectory = require('./macroDirectory').createMacroDirectory;
