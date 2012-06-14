@@ -39,7 +39,7 @@ exports.codeGenerator = function () {
   codegen.subExpression = cg.subExpression;
   codegen.fieldReference = cg.fieldReference;
   codegen.hash = cg.hash;
-  codegen.asyncArgument = cg.asyncArgument;
+  importTerm('asyncArgument');
   codegen.complexExpression = require('./complexExpression');
   codegen.operatorExpression = require('./operatorExpression');
   codegen.newUnaryOperatorExpression = require('./unaryOperatorExpression').newUnaryOperatorExpression;
