@@ -45,36 +45,6 @@ describe('code generator', function () {
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
-  describe('concatName', function () {
-    it('one identifier', function () {
-      assert.equal(cg.concatName(['one']), 'one');
-    });
-    
-    it('two identifiers', function () {
-      assert.equal(cg.concatName(['one', 'two']), 'oneTwo');
-    });
-    
-    it('explicit case', function () {
-      assert.equal(cg.concatName(['One', 'Two']), 'OneTwo');
-    });
-    
-    it('underscores', function () {
-      assert.equal(cg.concatName(['_one', '_two']), '_one_two');
-    });
-    
-    it('operators', function () {
-      assert.equal(cg.concatName(['+*']), '$2b$2a');
-    });
-    
-    it('escapes reserved words when escape is true', function () {
-      assert.equal(cg.concatName(['class'], {escape: true}), '$class');
-    });
-    
-    it("doesn't escape reserved words when escape isn't true", function () {
-      assert.equal(cg.concatName(['class']), 'class');
-    });
-  });
-  
   describe('variable', function () {
     it('with one identifier', function () {
       generatesExpression(cg.variable(['one']), 'one');

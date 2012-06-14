@@ -1,5 +1,6 @@
 var _ = require('underscore');
 var errors = require('./errors.js');
+var codegenUtils = require('../../../lib/codegenUtils');
 
 exports.macros = function (cg) {
   var macros = cg.createMacroDirectory();
@@ -105,7 +106,7 @@ exports.macros = function (cg) {
   };
 
   var matchIfMacro = function (name) {
-    if (/^if(ElseIf)*(Else)?$/.test(cg.concatName(name))) {
+    if (/^if(ElseIf)*(Else)?$/.test(codegenUtils.concatName(name))) {
       return createIfExpression;
     }
   };

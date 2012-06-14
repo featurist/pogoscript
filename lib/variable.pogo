@@ -1,3 +1,5 @@
+codegen utils = require './codegenUtils'
+
 module.exports (terms) = terms.term {
     constructor (name, shadow: false) =
         self.variable = name
@@ -5,7 +7,7 @@ module.exports (terms) = terms.term {
         self.shadow = shadow
 
     variable name () =
-        self.cg.concat name (self.variable, escape: true)
+        codegen utils.concat name (self.variable, escape: true)
   
     generate java script (buffer, scope) =
         buffer.write (this.variable name ())
