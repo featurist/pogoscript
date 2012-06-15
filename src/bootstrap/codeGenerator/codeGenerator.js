@@ -46,7 +46,7 @@ exports.codeGenerator = function () {
   codegen.operator = cg.operator;
   codegen.splat = cg.splat;
   importTerm('javascript');
-  codegen.hashEntry = cg.hashEntry;
+  importTerm('hashEntry');
   codegen.concatName = cg.concatName;
   codegen.parseSplatParameters = cg.parseSplatParameters;
   codegen.collapse = cg.collapse;
