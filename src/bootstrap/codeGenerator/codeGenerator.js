@@ -70,7 +70,7 @@ exports.codeGenerator = function () {
   codegen.forStatement = cg.forStatement;
   codegen.forIn = cg.forIn;
   codegen.forEach = cg.forEach;
-  codegen.newOperator = cg.newOperator;
+  importTerm('newOperator');
   codegen.loc = loc;
   codegen.generatedVariable = cg.generatedVariable;
   codegen.optional = cg.optional;
