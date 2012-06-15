@@ -69,7 +69,7 @@ exports.codeGenerator = function () {
   codegen.whileStatement = cg.whileStatement;
   codegen.forStatement = cg.forStatement;
   codegen.forIn = cg.forIn;
-  codegen.forEach = cg.forEach;
+  importTerm('forEach');
   importTerm('newOperator');
   codegen.loc = loc;
   importTerm('generatedVariable');
