@@ -33,7 +33,7 @@ exports.codeGenerator = function () {
   codegen.parseRegExp = cg.parseRegExp;
   importTerm('module');
   codegen.interpolation = cg.interpolation;
-  codegen.list = cg.list;
+  importTerm('list');
   codegen.normaliseArguments = cg.normaliseArguments;
   codegen.argumentList = cg.argumentList;
   codegen.subExpression = cg.subExpression;
@@ -50,7 +50,6 @@ exports.codeGenerator = function () {
   codegen.concatName = cg.concatName;
   codegen.parseSplatParameters = cg.parseSplatParameters;
   codegen.collapse = cg.collapse;
-  codegen.definition = cg.definition;
   importTerm('definition');
   importTerm('functionCall');
   codegen.scope = cg.scope;
