@@ -176,6 +176,78 @@ describe 'terms'
                 first column = 20
                 last column = 30
             }
+            
+        it 'passes path of terms to limit'
+            c = new (term)
+            b = new (term {
+                c = c
+            })
+            a = new (term {
+                b = b
+            })
+
+            y = new (term)
+            x = new (term {
+                y = y
+            })
+
+            t = new (term {
+                a = a
+                x = x
+            })
+
+            paths = []
+
+            clone = t.clone (
+                limit (old term, term path): 
+                    paths.push (term path.slice ())
+                    false
+            )
+
+            (paths) should only have [
+                []
+                [t]
+                [t, a]
+                [t, a, b]
+                [t, x]
+                [t, x, y]
+            ]
+            
+        it 'passes path of terms to rewrite'
+            c = new (term)
+            b = new (term {
+                c = c
+            })
+            a = new (term {
+                b = b
+            })
+
+            y = new (term)
+            x = new (term {
+                y = y
+            })
+
+            t = new (term {
+                a = a
+                x = x
+            })
+
+            paths = []
+
+            clone = t.clone (
+                rewrite (old term, term path): 
+                    paths.push (term path.slice ())
+                    nil
+            )
+
+            (paths) should only have [
+                []
+                [t]
+                [t, a]
+                [t, a, b]
+                [t, x]
+                [t, x, y]
+            ]
 
     describe 'location'
         it 'can set location'

@@ -697,7 +697,7 @@ describe('code generator', function () {
         cg.statements([cg.variable(['c'])])
       );
 
-      generatesReturnExpression(t, 'try{return a;}catch(ex){return b;}finally{return c;}');
+      generatesReturnExpression(t, 'try{return a;}catch(ex){return b;}finally{c;}');
     });
 
     it('try catch finally', function () {
@@ -733,7 +733,7 @@ describe('code generator', function () {
         cg.statements([cg.variable(['c'])])
       );
 
-      generatesExpression(t, '(function(){try{return a;}catch(ex){return b;}finally{return c;}})()');
+      generatesExpression(t, '(function(){try{return a;}catch(ex){return b;}finally{c;}})()');
     });
   });
   

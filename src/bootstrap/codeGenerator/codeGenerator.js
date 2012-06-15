@@ -51,6 +51,7 @@ exports.codeGenerator = function () {
   codegen.parseSplatParameters = cg.parseSplatParameters;
   codegen.collapse = cg.collapse;
   codegen.definition = cg.definition;
+  importTerm('definition');
   importTerm('functionCall');
   codegen.scope = cg.scope;
   codegen.Scope = require('../../../lib/scope').Scope;

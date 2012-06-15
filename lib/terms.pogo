@@ -38,42 +38,50 @@ module.exports (cg) =
                 }
 
         clone (rewrite (subterm): nil, limit (subterm): false) =
-            clone object (original term, allow rewrite) =
-                rewritten term = if ((original term :: term) && allow rewrite)
-                    rewrite (original term)
-                else
-                    nil
+            clone object (original term, allow rewrite, path) =
+                try
+                    path.push (original term)
+                    rewritten term = if ((original term :: term) && allow rewrite)
+                        rewrite (original term, path)
+                    else
+                        nil
 
-                if (!rewritten term)
-                    t = Object.create (Object.get prototype of (original term))
+                    if (!rewritten term)
+                        t = Object.create (Object.get prototype of (original term))
 
-                    for @(member) in (original term)
-                        if (original term.has own property (member))
-                            t.(member) = clone subterm (original term.(member), allow rewrite)
+                        for @(member) in (original term)
+                            if (original term.has own property (member))
+                                t.(member) = clone subterm (original term.(member), allow rewrite, path)
 
-                    t
-                else
-                    if (!(rewritten term :: term))
-                        throw (new (Error "rewritten term not an instance of term"))
+                        t
+                    else
+                        if (!(rewritten term :: term))
+                            throw (new (Error "rewritten term not an instance of term"))
 
-                    rewritten term.is derived from (original term)
-                    rewritten term
+                        rewritten term.is derived from (original term)
+                        rewritten term
+                finally
+                    path.pop ()
                 
-            clone array (terms, allow rewrite) =
-                _.map (terms) @(term)
-                    clone subterm (term, allow rewrite)
+            clone array (terms, allow rewrite, path) =
+                try
+                    path.push (terms)
+                    _.map (terms) @(term)
+                        clone subterm (term, allow rewrite, path)
+                finally
+                    path.pop ()
 
-            clone subterm (subterm, allow rewrite) =
+            clone subterm (subterm, allow rewrite, path) =
                 if (subterm :: Array)
-                    clone array (subterm, allow rewrite)
+                    clone array (subterm, allow rewrite, path)
                 else if (subterm :: Function)
                     subterm
                 else if (subterm :: Object)
-                    clone object (subterm, allow rewrite && !limit (subterm))
+                    clone object (subterm, allow rewrite && !limit (subterm, path), path)
                 else
                     subterm
             
-            clone subterm (self, true)
+            clone subterm (self, true, [])
 
         is derived from (ancestor term) =
             self.set location (ancestor term.location ())
