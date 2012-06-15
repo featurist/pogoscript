@@ -38,7 +38,7 @@ exports.codeGenerator = function () {
   codegen.argumentList = cg.argumentList;
   codegen.subExpression = cg.subExpression;
   importTerm('fieldReference');
-  codegen.hash = cg.hash;
+  importTerm('hash');
   importTerm('asyncArgument');
   codegen.complexExpression = require('./complexExpression');
   codegen.operatorExpression = require('./operatorExpression');
