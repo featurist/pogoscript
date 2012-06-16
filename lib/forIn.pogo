@@ -23,5 +23,5 @@ module.exports (terms) = terms.term {
       if (indexName)
         defs.push(indexName)
 
-      defs.concat(stmts.definitions(scope))
+      defs.concat(self.statements.definitions(scope))
 }
