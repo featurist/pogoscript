@@ -63,7 +63,7 @@ exports.codeGenerator = function () {
   importTerm('nil');
   codegen.continueStatement = cg.continueStatement;
   codegen.breakStatement = cg.breakStatement;
-  codegen.throwStatement = cg.throwStatement;
+  importTerm('throwStatement');
   importTerm('returnStatement');
   importTerm('methodCall');
   importTerm('indexer');
