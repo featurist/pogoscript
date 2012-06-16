@@ -39,29 +39,32 @@ module.exports (cg) =
 
         clone (rewrite (subterm): nil, limit (subterm): false) =
             clone object (original term, allow rewrite, path) =
-                try
-                    path.push (original term)
-                    rewritten term = if ((original term :: term) && allow rewrite)
-                        rewrite (original term, path)
-                    else
-                        nil
+                if (original term.dont clone)
+                    original term
+                else
+                    try
+                        path.push (original term)
+                        rewritten term = if ((original term :: term) && allow rewrite)
+                            rewrite (original term, path)
+                        else
+                            nil
 
-                    if (!rewritten term)
-                        t = Object.create (Object.get prototype of (original term))
+                        if (!rewritten term)
+                            t = Object.create (Object.get prototype of (original term))
 
-                        for @(member) in (original term)
-                            if (original term.has own property (member))
-                                t.(member) = clone subterm (original term.(member), allow rewrite, path)
+                            for @(member) in (original term)
+                                if (original term.has own property (member))
+                                    t.(member) = clone subterm (original term.(member), allow rewrite, path)
 
-                        t
-                    else
-                        if (!(rewritten term :: term))
-                            throw (new (Error "rewritten term not an instance of term"))
+                            t
+                        else
+                            if (!(rewritten term :: term))
+                                throw (new (Error "rewritten term not an instance of term"))
 
-                        rewritten term.is derived from (original term)
-                        rewritten term
-                finally
-                    path.pop ()
+                            rewritten term.is derived from (original term)
+                            rewritten term
+                    finally
+                        path.pop ()
                 
             clone array (terms, allow rewrite, path) =
                 try
@@ -161,6 +164,8 @@ module.exports (cg) =
             this.cg.errors.add term (self) with message 'this cannot be used as a parameter'
 
         subterms () = nil
+
+        expand macros () = nil
     }
 
     term prototype = new (term)
