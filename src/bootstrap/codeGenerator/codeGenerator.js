@@ -61,7 +61,7 @@ exports.codeGenerator = function () {
   codegen.tryStatement = codegen.tryExpression;
   importTerm('ifExpression');
   importTerm('nil');
-  codegen.continueStatement = cg.continueStatement;
+  importTerm('continueStatement');
   importTerm('breakStatement');
   importTerm('throwStatement');
   importTerm('returnStatement');
