@@ -34,3 +34,11 @@ describe 'for'
                                                   7
                                                   8
                                                   9'
+        
+    describe 'for in'
+        it "iterates over object's fields"
+            script.'object = {a = 1, b = 2}
+
+                    for @(field) in (object)
+                        print (field)' should output "'a'
+                                                      'b'"

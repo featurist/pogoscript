@@ -11,7 +11,18 @@ module.exports (terms) = terms.term {
         buffer.write(' in ')
         self.collection.generate java script(buffer, scope)
         buffer.write('){')
-        self.cg.sub expression(self.cg.function call(self.cg.block([self.iterator], self.statements, return last statement: false), [self.iterator])).generate java script statement(buffer, scope)
+
+        self.cg.sub expression(
+            self.cg.function call(
+                self.cg.block(
+                    [self.iterator]
+                    self.statements
+                    return last statement: false
+                )
+                [self.iterator]
+            )
+        ).generate java script statement(buffer, scope)
+
         buffer.write('}')
 
     generate java script statement (args, ...) = self.generate java script (args, ...)
