@@ -57,7 +57,8 @@ exports.codeGenerator = function () {
   codegen.createMacroDirectory = require('./macroDirectory').createMacroDirectory;
   importTerm('boolean');
   codegen.typeof = require('../../../lib/typeof').typeof;
-  codegen.tryStatement = cg.tryStatement;
+  importTerm('tryExpression');
+  codegen.tryStatement = codegen.tryExpression;
   importTerm('ifExpression');
   importTerm('nil');
   codegen.continueStatement = cg.continueStatement;
