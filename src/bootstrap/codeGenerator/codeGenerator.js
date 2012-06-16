@@ -35,7 +35,7 @@ exports.codeGenerator = function () {
   codegen.interpolation = cg.interpolation;
   importTerm('list');
   codegen.normaliseArguments = cg.normaliseArguments;
-  codegen.argumentList = cg.argumentList;
+  importTerm('argumentList');
   importTerm('subExpression');
   importTerm('fieldReference');
   importTerm('hash');
