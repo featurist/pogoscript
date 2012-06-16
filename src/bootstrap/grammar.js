@@ -25,7 +25,7 @@
             expression: [ [ "expression = expression", "$$ = $1.definition($3.expression());" ], [ "operator_expression", "$$ = $1;" ] ],
             operator_with_newline: [ [ "operator ,", "$$ = $1" ], [ "operator", "$$ = $1" ] ],
             operator_expression: [ [ "operator_expression operator_with_newline unary_operator_expression", "$1.addOperatorExpression($2, $3); $$ = $1;" ], [ "unary_operator_expression", "$$ = yy.terms.operatorExpression($1);" ] ],
-            unary_operator_expression: [ [ "object_operation", "$$ = $1;" ], [ "unary_operator object_operation", "$$ = yy.terms.newUnaryOperatorExpression({operator: $1, expression: $2.expression()});" ] ],
+            unary_operator_expression: [ [ "object_operation", "$$ = $1;" ], [ "unary_operator object_operation", "$$ = yy.terms.unaryOperatorExpression($1, $2.expression());" ] ],
             object_reference_with_newline: [ [ ". ,", "$$ = $1" ], [ ".", "$$ = $1" ] ],
             object_operation: [ [ "object_operation object_reference_with_newline complex_expression", "$$ = $3.objectOperation($1.expression());" ], [ "complex_expression", "$$ = $1;" ] ],
             complex_expression: [ [ "basic_expression_list", "$$ = yy.terms.complexExpression($1);" ] ],

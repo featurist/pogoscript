@@ -43,7 +43,7 @@ exports.codeGenerator = function () {
   importTerm('asyncArgument');
   codegen.complexExpression = require('./complexExpression');
   codegen.operatorExpression = require('./operatorExpression');
-  codegen.newUnaryOperatorExpression = require('./unaryOperatorExpression').newUnaryOperatorExpression;
+  importTerm('unaryOperatorExpression');
   importTerm('operator');
   importTerm('splat');
   importTerm('javascript');

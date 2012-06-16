@@ -95,7 +95,7 @@ exports.grammar = {
         ]
         unary_operator_expression [
             ['object_operation', '$$ = $1;']
-            ['unary_operator object_operation', '$$ = yy.terms.newUnaryOperatorExpression({operator: $1, expression: $2.expression()});']
+            ['unary_operator object_operation', '$$ = yy.terms.unaryOperatorExpression($1, $2.expression());']
         ]
         object_reference_with_newline [
             ['. ,', '$$ = $1']

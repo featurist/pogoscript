@@ -3,7 +3,7 @@ require './assertions.pogo'
 
 describe 'unary operator expression'
     it 'as expression'
-        op expr = cg.new unary operator expression (operator: '%%', expression: {variable ['a']})
+        op expr = cg.unary operator expression ('%%', {variable ['a']})
 
         (op expr.expression ()) should contain fields {
             is method call
@@ -13,7 +13,7 @@ describe 'unary operator expression'
         }
     
     it 'as expression with macro'
-        op expr = cg.new unary operator expression (operator: '!', expression: {variable ['a']})
+        op expr = cg.unary operator expression ('!', {variable ['a']})
         
         (op expr.expression ()) should contain fields {
             is operator
@@ -22,7 +22,7 @@ describe 'unary operator expression'
         }
 
     it 'as hash entry will be semantic failure'
-        op expr = cg.new unary operator expression (operator: '%', expression: {variable ['a']})
+        op expr = cg.unary operator expression ('%', {variable ['a']})
         
         (op expr.hash entry ()) should contain fields {
           is semantic failure
