@@ -66,7 +66,8 @@ exports.codeGenerator = function () {
   codegen.returnStatement = cg.returnStatement;
   importTerm('methodCall');
   importTerm('indexer');
-  codegen.whileStatement = cg.whileStatement;
+  importTerm('whileExpression');
+  codegen.whileStatement = codegen.whileExpression;
   importTerm('forExpression');
   codegen.forStatement = codegen.forExpression;
   importTerm('forIn');
