@@ -199,9 +199,9 @@ module.exports = function (listOfTerminals) {
             expression: function () {
               return cg.definition(cg.variable(self.head().name()), source.blockify(self.parameters(), self.optionalParameters()));
             },
-            hashEntry: function () {
+            hashEntry: function (isOptionalArgument) {
               var block = source.blockify(self.parameters(), self.optionalParameters());
-              block.redefinesSelf = true;
+              block.redefinesSelf = !isOptionalArgument;
 
               return cg.hashEntry(self.head().name(), block);
             }

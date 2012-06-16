@@ -243,7 +243,7 @@ describe 'complex expression'
       }
       
     it 'can define a method as a hash key'
-      hash entry = cg.complex expression [[id 'name', variable 'name']].definition (cg.variable ['name']).hash entry ()
+      hash entry = cg.complex expression [[id 'name', variable 'name']].definition (cg.variable ['name']).hash entry (true)
       
       (hash entry) should contain fields {
         is hash entry
@@ -259,7 +259,7 @@ describe 'complex expression'
 
             parameters [{variable ['name']}]
 
-            redefines self
+            redefines self = false
         }
       }
 
