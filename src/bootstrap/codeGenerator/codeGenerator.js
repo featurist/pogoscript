@@ -64,7 +64,7 @@ exports.codeGenerator = function () {
   codegen.continueStatement = cg.continueStatement;
   codegen.breakStatement = cg.breakStatement;
   codegen.throwStatement = cg.throwStatement;
-  codegen.returnStatement = cg.returnStatement;
+  importTerm('returnStatement');
   importTerm('methodCall');
   importTerm('indexer');
   importTerm('whileExpression');
