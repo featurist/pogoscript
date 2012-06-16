@@ -52,8 +52,8 @@ exports.codeGenerator = function () {
   codegen.collapse = cg.collapse;
   importTerm('definition');
   importTerm('functionCall');
-  codegen.scope = cg.scope;
-  codegen.Scope = require('../../../lib/scope').Scope;
+  importTerm('scope');
+  codegen.SymbolScope = require('../../../lib/symbolScope').SymbolScope;
   codegen.createMacroDirectory = require('./macroDirectory').createMacroDirectory;
   importTerm('boolean');
   codegen.typeof = require('../../../lib/typeof').typeof;

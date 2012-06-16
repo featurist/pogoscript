@@ -9,7 +9,7 @@ var shouldContainFields = require('./containsFields.js').containsFields;
 describe('code generator', function () {
   var generatesExpression = function (term, expectedGeneratedCode, print) {
     var stream = new MemoryStream();
-    term.generateJavaScript(stream, new cg.Scope());
+    term.generateJavaScript(stream, new cg.SymbolScope());
     var code = stream.toString();
     if (print) {
       console.log(code);
@@ -19,7 +19,7 @@ describe('code generator', function () {
   
   var generatesReturnExpression = function(term, expectedGeneratedCode, print) {
     var stream = new MemoryStream();
-    term.generateJavaScriptReturn(stream, new cg.Scope());
+    term.generateJavaScriptReturn(stream, new cg.SymbolScope());
     if (print)
         console.log(stream.toString());
     assert.equal(stream.toString(), expectedGeneratedCode);
@@ -27,13 +27,13 @@ describe('code generator', function () {
   
   var generatesStatement = function(term, expectedGeneratedCode) {
     var stream = new MemoryStream();
-    term.generateJavaScriptStatement(stream, new cg.Scope());
+    term.generateJavaScriptStatement(stream, new cg.SymbolScope());
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
   var generatesStatements = function(term, expectedGeneratedCode, global, print) {
     var stream = new MemoryStream();
-    term.generateJavaScriptStatements(stream, new cg.Scope(), global);
+    term.generateJavaScriptStatements(stream, new cg.SymbolScope(), global);
     if (print)
         console.log(stream.toString())
     assert.equal(stream.toString(), expectedGeneratedCode);
@@ -41,7 +41,7 @@ describe('code generator', function () {
   
   var generatesStatementsReturn = function(term, expectedGeneratedCode) {
     var stream = new MemoryStream();
-    term.generateJavaScriptStatementsReturn(stream, new cg.Scope());
+    term.generateJavaScriptStatementsReturn(stream, new cg.SymbolScope());
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   

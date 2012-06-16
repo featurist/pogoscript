@@ -1,27 +1,12 @@
-UniqueNames () = =>
-    unique = 0
-  
-    self.generate name (name) =
-        unique = unique + 1
-        'gen' + unique + '_' + name
-
-    nil
-
-Scope = exports.Scope (parent scope, unique names) = =>
-    unique names = unique names || new (UniqueNames)
-  
-    variables = {}
-  
-    self.define (name) =
-        variables.(name) = true
-  
-    self.generate variable (name) =
-        unique names.generate name (name)
-  
-    self.is defined (name) =
-        variables.has own property (name) || (parent scope && parent scope.is defined (name))
-  
-    self.sub scope () =
-        new (Scope (self, unique names))
-
-    nil
+module.exports (terms) = terms.term {
+    constructor (stmts, always generate function: false) =
+        self.is scope = true
+        self.statements = stmts
+        self.always generate function = always generate function
+    
+    generate java script (buffer, scope) =
+        if ((self.statements.length == 1) && !self.always generate function)
+            self.statements.0.generate java script (buffer, scope)
+        else
+            self.cg.function call (self.cg.sub expression (self.cg.block ([], self.cg.statements (self.statements))), []).generate java script (buffer, scope)
+}
