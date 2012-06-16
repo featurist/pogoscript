@@ -3,7 +3,7 @@ var errors = require('./errors.js');
 var codegenUtils = require('../../../lib/codegenUtils');
 
 exports.macros = function (cg) {
-  var macros = cg.createMacroDirectory();
+  var macros = cg.macroDirectory();
 
   var createOperator = function(name, arguments) {
     return cg.operator(name[0], arguments);
