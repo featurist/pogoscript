@@ -11,11 +11,10 @@ module.exports (terms) = terms.term {
     scoped body () =
         loop statements = []
         for result variable = self.cg.generated variable ['for', 'result']
-        cg = self.cg
         statements = self.statements.clone (
             rewrite (term):
                 if (term.is return)
-                    cg.statements ([cg.definition (for result variable, term.expression), cg.return statement (cg.boolean (true))], expression: true)
+                    self.cg.statements ([self.cg.definition (for result variable, term.expression), self.cg.return statement (self.cg.boolean (true))], expression: true)
 
             limit (term, path):
                 if (term.is statements)
