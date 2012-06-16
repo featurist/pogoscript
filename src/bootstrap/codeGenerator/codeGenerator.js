@@ -14,6 +14,7 @@ exports.codeGenerator = function () {
   codegen.term = terms.term;
   codegen.termPrototype = term.termPrototype;
   codegen.basicExpression = require('./basicExpression');
+  importTerm('splatArguments');
   importTerm('variable');
   importTerm('selfExpression');
   importTerm('statements');

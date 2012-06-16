@@ -7,7 +7,7 @@ module.exports (terms) = terms.term {
         self.function = fun
         self.function arguments = args
         self.optional arguments = optionalArgs
-        self.splatted arguments = codegen utils.splatted arguments (self.cg, args, optional args)
+        self.splatted arguments = self.cg.splat arguments (args, optional args)
         self.pass this to apply = false
 
     has splat arguments () =

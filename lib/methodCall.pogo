@@ -19,7 +19,7 @@ module.exports (terms) =
     }
 
     method call (object, name, args, optional args) =
-        splatted args = codegen utils.splatted arguments (terms, args, optional args)
+        splatted args = terms.splat arguments (args, optional args)
   
         if (splatted args)
             object var = terms.generated variable ['o']

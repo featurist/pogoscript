@@ -78,49 +78,6 @@ escape reserved word (word) =
     else
         word
 
-exports.splatted arguments (cg, args, optional args) =
-  splat args = []
-  previous args = []
-  found splat = false
-  
-  i = 0
-  while (i < args.length)
-    current = args.(i)
-    next = args.(i + 1)
-    if (next && next.is splat)
-      found splat = true
-      if (previous args.length > 0)
-        splat args.push (cg.list (previous args))
-        previous args = []
-
-      splat args.push (current)
-      i = i + 1
-    else if (current.is splat)
-      cg.errors.add term (current) with message 'splat keyword with no argument to splat'
-    else
-      previous args.push (current)
-
-    i = i + 1
-  
-  if (optional args && (optional args.length > 0))
-    previous args.push (cg.hash (optional args))
-  
-  if (previous args.length > 0)
-    splat args.push (cg.list (previous args))
-  
-  if (found splat)
-    cg.old term =>
-      self.generate java script (buffer, scope) =
-        for (i = 0, i < splat args.length, i = i + 1)
-          splatted argument = splat args.(i)
-
-          if (i == 0)
-            splatted argument.generate java script (buffer, scope)
-          else
-            buffer.write ('.concat(')
-            splatted argument.generate java script (buffer, scope)
-            buffer.write (')')
-
 exports.args and optional args (cg, args, optional args) =
   a = args.slice ()
 
