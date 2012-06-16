@@ -69,7 +69,7 @@ exports.codeGenerator = function () {
   codegen.whileStatement = cg.whileStatement;
   importTerm('forExpression');
   codegen.forStatement = codegen.forExpression;
-  codegen.forIn = cg.forIn;
+  importTerm('forIn');
   importTerm('forEach');
   importTerm('newOperator');
   codegen.loc = loc;
