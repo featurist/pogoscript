@@ -36,7 +36,7 @@ exports.codeGenerator = function () {
   importTerm('list');
   codegen.normaliseArguments = cg.normaliseArguments;
   codegen.argumentList = cg.argumentList;
-  codegen.subExpression = cg.subExpression;
+  importTerm('subExpression');
   importTerm('fieldReference');
   importTerm('hash');
   importTerm('asyncArgument');
