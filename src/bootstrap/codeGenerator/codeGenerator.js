@@ -43,7 +43,7 @@ exports.codeGenerator = function () {
   codegen.complexExpression = require('./complexExpression');
   codegen.operatorExpression = require('./operatorExpression');
   codegen.newUnaryOperatorExpression = require('./unaryOperatorExpression').newUnaryOperatorExpression;
-  codegen.operator = cg.operator;
+  importTerm('operator');
   codegen.splat = cg.splat;
   importTerm('javascript');
   importTerm('hashEntry');
