@@ -44,7 +44,7 @@ exports.codeGenerator = function () {
   codegen.operatorExpression = require('./operatorExpression');
   codegen.newUnaryOperatorExpression = require('./unaryOperatorExpression').newUnaryOperatorExpression;
   importTerm('operator');
-  codegen.splat = cg.splat;
+  importTerm('splat');
   importTerm('javascript');
   importTerm('hashEntry');
   codegen.concatName = cg.concatName;
