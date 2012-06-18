@@ -1,1 +1,1 @@
-module.exports (cg) = nil () = cg.javascript 'void 0'
+module.exports (cg) = nil term () = cg.javascript 'void 0'
