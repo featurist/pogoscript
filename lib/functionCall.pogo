@@ -39,4 +39,12 @@ module.exports (terms) = terms.term {
             buffer.write ('(')
             codegen utils.write to buffer with delimiter (args, ',', buffer, scope)
             buffer.write (')')
+
+    expand macro (clone) =
+        if (self.function.is variable)
+            name = self.function.variable
+            macro = self.cg.macros.find macro (name)
+        
+            if (macro)
+                macro (name, clone (self.function arguments), clone (self.optional arguments))
 }

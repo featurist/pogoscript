@@ -21,21 +21,26 @@ module.exports (cg) =
             else
                 children = self.children ()
 
-                locations = _.map (children) @(child)
+                locations = _.filter (_.map (children) @(child)
                     child.location ()
+                ) @(location)
+                    location
 
-                first line = _.min (_.map (locations) @(location) @{location.first line})
-                last line = _.max (_.map (locations) @(location) @{location.last line})
+                if (locations.length > 0)
+                    first line = _.min (_.map (locations) @(location) @{location.first line})
+                    last line = _.max (_.map (locations) @(location) @{location.last line})
 
-                locations on first line = _.filter (locations) @(location) @{location.first line == first line}
-                locations on last line = _.filter (locations) @(location) @{location.last line == last line}
+                    locations on first line = _.filter (locations) @(location) @{location.first line == first line}
+                    locations on last line = _.filter (locations) @(location) @{location.last line == last line}
 
-                {
-                    first line = first line
-                    last line = last line
-                    first column = _.min (_.map (locations on first line) @(location) @{location.first column})
-                    last column = _.max (_.map (locations on last line) @(location) @{location.last column})
-                }
+                    {
+                        first line = first line
+                        last line = last line
+                        first column = _.min (_.map (locations on first line) @(location) @{location.first column})
+                        last column = _.max (_.map (locations on last line) @(location) @{location.last column})
+                    }
+                else
+                    nil
 
         clone (rewrite (subterm): nil, limit (subterm): false) =
             clone object (original term, allow rewrite, path) =
@@ -45,7 +50,9 @@ module.exports (cg) =
                     try
                         path.push (original term)
                         rewritten term = if ((original term :: term) && allow rewrite)
-                            rewrite (original term, path)
+                            rewrite (original term, path: path, clone (term):
+                                clone subterm (term, allow rewrite, path)
+                            )
                         else
                             nil
 
@@ -80,7 +87,7 @@ module.exports (cg) =
                 else if (subterm :: Function)
                     subterm
                 else if (subterm :: Object)
-                    clone object (subterm, allow rewrite && !limit (subterm, path), path)
+                    clone object (subterm, allow rewrite && !limit (subterm, path: path), path)
                 else
                     subterm
             
@@ -165,7 +172,12 @@ module.exports (cg) =
 
         subterms () = nil
 
-        expand macros () = nil
+        expand macro () = nil
+
+        expand macros () =
+            self.clone (
+                rewrite (term, clone: nil): term.expand macro (clone)
+            )
     }
 
     term prototype = new (term)

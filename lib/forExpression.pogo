@@ -16,7 +16,7 @@ module.exports (terms) = terms.term {
                 if (term.is return)
                     self.cg.statements ([self.cg.definition (for result variable, term.expression), self.cg.return statement (self.cg.boolean (true))], expression: true)
 
-            limit (term, path):
+            limit (term, path: path):
                 if (term.is statements)
                     if (path.length > 0)
                         path.(path.length - 1).is closure

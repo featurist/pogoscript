@@ -59,16 +59,6 @@ module.exports (terms) =
                         find matching wild macro (wild macros, name)
         
             find macro in tree (self.name tree root, name, 0, [])
-    
-        invocation (name, arguments, optional arguments) =
-            macro = self.find macro (name)
-        
-            if (macro)
-                macro (name, arguments, optional arguments)
-            else if (arguments)
-                terms.function call (terms.variable (name), arguments, optional arguments)
-            else
-                terms.variable (name)
     }
 
     create macro directory (args, ...) = new (macro directory (args, ...))

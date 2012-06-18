@@ -77,7 +77,11 @@ exports.compile (pogo, filename: nil, in scope: true, ugly: false, global: false
     module term.global = global
     module term.return result = return result
 
-    code = generate code (module term)
+    macro expanded module = module term.clone (
+        rewrite (term): term.expand macros ()
+    )
+
+    code = generate code (macro expanded module)
 
     if (!ugly)
         code = beautify (code)
@@ -109,14 +113,14 @@ exports.repl () =
     interface.prompt ()
 
     interface.on 'line' @(line)
-        evalute repl line (line)
+        evaluate repl line (line)
         interface.prompt ()
 
     interface.on 'close'
         process.stdout.write "\n"
         process.exit 0
 
-evalute repl line (line) =
+evaluate repl line (line) =
     try
         result = exports.evaluate (line, global: true)
         console.log ' =>' (util.inspect (result, undefined, undefined, true))

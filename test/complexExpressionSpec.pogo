@@ -89,16 +89,6 @@ describe 'complex expression'
         optional arguments [{field ['port'], value {integer 80}}]
       }
 
-    it 'finds macro with arguments'
-      expression [[id 'if', variable 'x', block]] should contain fields {
-        is if expression
-      }
-
-    it 'finds macro with no arguments'
-      expression [[id 'nil']] should contain fields {
-        source 'void 0'
-      }
-
     it 'with name and optional args is function call with optional args'
       expression [[id 'a', id 'variable'], [id 'port', int 80]] should contain fields {
         is function call

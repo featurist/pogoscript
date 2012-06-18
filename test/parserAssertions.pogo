@@ -19,5 +19,8 @@ global.expression (source) =
 
 global.statements (source) =
     term = parse (source)
-    assume (term) is module with statements @(statements)
+
+    expanded term = term.expand macros ()
+
+    assume (expanded term) is module with statements @(statements)
         statements

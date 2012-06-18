@@ -2,36 +2,13 @@ cg = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 require './assertions'
 term = (require '../lib/terms') {}.term
 _ = require 'underscore'
-
-terms (subterms) ... =
-    cg.term =>
-        self.terms = subterms
-        
-        self.subterms 'terms'
-        
-branch (left, right) =
-    cg.term =>
-        self.left = left
-        self.right = right
-        
-        self.subterms 'left' 'right'
+assert = require 'assert'
 
 (actual list) should only have (expected list) =
     actual list.length.should.equal (expected list.length)
 
     for each @(item) in (expected list)
         _.include(actual list, item).should.be
-
-leaf (name) =
-    cg.term =>
-        self.name = name
-
-location (fl, ll, fc, lc) = {
-    first_line = fl
-    last_line = ll
-    first_column = fc
-    last_column = lc
-}
 
 /* terms:
   
@@ -103,6 +80,15 @@ describe 'terms'
                 a = {name = "jack"}
             }
 
+        it "doesn't clone objects that have 'dont clone' field"
+            t = new (term)
+            t.a = {name = "jack"}
+            t.dont clone = true
+
+            clone = t.clone ()
+            
+            clone.should.equal (t)
+
         it "can rewrite an object while being cloned"
             t = new (term)
             t.a = new (term {name = "jack"})
@@ -117,6 +103,34 @@ describe 'terms'
             
             (clone) should contain fields {
                 a = {name = "jill"}
+            }
+
+        it "rewrite is passed the clone function, which can be used to clone further members"
+            t = new (term)
+            t.a = new (term {
+                name = "jack"
+                b = new (term {
+                    name = "john"
+                })
+            })
+
+            clone = t.clone (
+                rewrite (old term, clone: nil):
+                    if (old term.name)
+                        new term = new (term)
+                        new term.name = "jill"
+                        
+                        if (old term.b)
+                            new term.b = clone (old term.b)
+
+                        new term
+            )
+            
+            (clone) should contain fields {
+                a = {
+                    name = "jill"
+                    b = {name = "jill"}
+                }
             }
 
         it "doesn't rewrite beyond rewrite limit"
@@ -199,8 +213,8 @@ describe 'terms'
             paths = []
 
             clone = t.clone (
-                limit (old term, term path): 
-                    paths.push (term path.slice ())
+                limit (old term, path: nil): 
+                    paths.push (path.slice ())
                     false
             )
 
@@ -235,8 +249,8 @@ describe 'terms'
             paths = []
 
             clone = t.clone (
-                rewrite (old term, term path): 
-                    paths.push (term path.slice ())
+                rewrite (old term, path: nil): 
+                    paths.push (path.slice ())
                     nil
             )
 
@@ -279,6 +293,22 @@ describe 'terms'
                 first column = 20
                 last column = 10
             }
+
+        it 'if there are no children then the location is nil'
+            t = new (term)
+
+            assert.(t.location ()) strict equal (nil)
+
+        it 'if there are no children with locations then the location is nil'
+            left = new (term)
+            right = new (term)
+
+            t = new (term {
+                left = left
+                right = right
+            })
+
+            assert.(t.location ()) strict equal (nil)
 
         it 'can compute location from children, smallest first column, largest last column when on same line'
             left = new (term)

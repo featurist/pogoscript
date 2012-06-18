@@ -1,5 +1,5 @@
 ((function() {
-    var self, fs, ms, parser, parse, uglify, _, readline, util, Module, path, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluteReplLine, compileFromFile, sourceLocationPrinter;
+    var self, fs, ms, parser, parse, uglify, _, readline, util, Module, path, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluateReplLine, compileFromFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     ms = require("../../lib/memorystream");
@@ -100,7 +100,7 @@
         return module.loaded = true;
     };
     exports.compile = function(pogo, gen5_options) {
-        var filename, inScope, ugly, global, returnResult, self, moduleTerm, code;
+        var filename, inScope, ugly, global, returnResult, self, moduleTerm, macroExpandedModule, code;
         filename = gen5_options && gen5_options.hasOwnProperty("filename") && gen5_options.filename !== void 0 ? gen5_options.filename : void 0;
         inScope = gen5_options && gen5_options.hasOwnProperty("inScope") && gen5_options.inScope !== void 0 ? gen5_options.inScope : true;
         ugly = gen5_options && gen5_options.hasOwnProperty("ugly") && gen5_options.ugly !== void 0 ? gen5_options.ugly : false;
@@ -111,7 +111,12 @@
         moduleTerm.inScope = inScope;
         moduleTerm.global = global;
         moduleTerm.returnResult = returnResult;
-        code = generateCode(moduleTerm);
+        macroExpandedModule = moduleTerm.clone({
+            rewrite: function(term) {
+                return term.expandMacros();
+            }
+        });
+        code = generateCode(macroExpandedModule);
         if (!ugly) {
             code = beautify(code);
         }
@@ -152,7 +157,7 @@
         interface.setPrompt(prompt, prompt.length);
         interface.prompt();
         interface.on("line", function(line) {
-            evaluteReplLine(line);
+            evaluateReplLine(line);
             return interface.prompt();
         });
         return interface.on("close", function() {
@@ -160,7 +165,7 @@
             return process.exit(0);
         });
     };
-    evaluteReplLine = function(line) {
+    evaluateReplLine = function(line) {
         try {
             var result;
             result = exports.evaluate(line, {

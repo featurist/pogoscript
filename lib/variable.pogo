@@ -25,4 +25,11 @@ module.exports (terms) = terms.term {
   
     parameter () =
         self
+
+    expand macro () =
+        name = self.variable
+        macro = self.cg.macros.find macro (name)
+    
+        if (macro)
+            macro (name)
 }
