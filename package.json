@@ -14,7 +14,9 @@
         "url": "https://github.com/featurist/pogoscript.git"
     },
     "files": [
+        "index.js",
         "src",
+        "lib",
         "bin"
     ],
     "bin": {
