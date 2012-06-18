@@ -9,11 +9,12 @@ module.exports (terms) = terms.term {
         self.index variable = init.target
 
     scoped body () =
-        loop statements = []
+        contains return = false
         for result variable = self.cg.generated variable ['for', 'result']
         statements = self.statements.clone (
             rewrite (term):
                 if (term.is return)
+                    contains return = true
                     self.cg.statements ([self.cg.definition (for result variable, term.expression), self.cg.return statement (self.cg.boolean (true))], expression: true)
 
             limit (term, path: path):
@@ -22,19 +23,23 @@ module.exports (terms) = terms.term {
                         path.(path.length - 1).is closure
         )
 
-        loop statements.push (self.cg.definition (for result variable, self.cg.nil ()))
-        loop statements.push (
-            self.cg.if expression (
-                [[
-                    self.cg.sub expression (
-                        self.cg.function call (self.cg.block ([self.index variable], statements, return last statement: false), [self.index variable])
-                    )
-                    self.cg.statements ([self.cg.return statement (for result variable)])
-                ]]
+        if (contains return)
+            loop statements = []
+            loop statements.push (self.cg.definition (for result variable, self.cg.nil ()))
+            loop statements.push (
+                self.cg.if expression (
+                    [[
+                        self.cg.sub expression (
+                            self.cg.function call (self.cg.block ([self.index variable], statements, return last statement: false), [self.index variable])
+                        )
+                        self.cg.statements ([self.cg.return statement (for result variable)])
+                    ]]
+                )
             )
-        )
 
-        self.cg.statements (loop statements)
+            self.cg.statements (loop statements)
+        else
+            self.statements
   
     generate java script (buffer, scope) =
         buffer.write ('for(')

@@ -442,10 +442,18 @@ describe('code generator', function () {
     });
   });
   
-  it('for each', function() {
-    var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.variable(['item'])]))]);
-    
-    generatesStatements(f, 'var gen1_items,gen2_i;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){var gen3_forResult;gen3_forResult=void 0;if((function(gen2_i){var item;item=gen1_items[gen2_i];item;}(gen2_i))){return gen3_forResult;}}');
+  describe('for each', function() {
+    it('normal', function() {
+      var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.variable(['item'])]))]);
+      
+      generatesStatements(f, 'var gen1_items,gen2_i;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){var item;item=gen1_items[gen2_i];item;}');
+    });
+
+    it('containing a return', function() {
+      var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.returnStatement(cg.variable(['item']))]))]);
+      
+      generatesStatements(f, 'var gen1_items,gen2_i;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){var gen3_forResult;gen3_forResult=void 0;if((function(gen2_i){var item;item=gen1_items[gen2_i];gen3_forResult=item;return true;}(gen2_i))){return gen3_forResult;}}');
+    });
   });
   
   it('for in', function() {
@@ -467,7 +475,7 @@ describe('code generator', function () {
         cg.statements([cg.variable(['i'])])
       );
       
-      generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){var gen1_forResult;gen1_forResult=void 0;if((function(i){i;}(i))){return gen1_forResult;}}');
+      generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){i;}');
     });
 
     it('rewrites return for returning from scope', function() {
