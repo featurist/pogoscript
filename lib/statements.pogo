@@ -1,54 +1,68 @@
 _ = require 'underscore'
 codegen utils = require('./codegenUtils')
 
-has scope (s) =
-    if (!s)
-        console.log '---------------- NO SCOPE! -----------------'
-        throw (new (Error('no scope')))
-
 module.exports (cg) = cg.term {
     constructor (statements, expression: false) =
         self.is statements = true
         self.statements = statements
         self.is expression statements = expression
 
-    generate statements (statements, buffer, scope, global) =
-        has scope (scope)
+    generate statements (statements, buffer, scope, global, generate return) =
+        serialised statements = self.serialise statements (statements)
+        declared variables = self.find declared variables (scope)
 
-        names defined = _(self.statements).chain ().reduce @(list, statement)
-            defs = statement.definitions(scope)
-            list.concat(defs)
-        [].uniq ().value ()
+        self.generate variable declarations (declared variables, buffer, scope, global)
 
-        if (names defined.length > 0)
-            _(names defined).each @(name)
+        for (s = 0, s < serialised statements.length, s = s + 1)
+            statement = serialised statements.(s)
+            if ((s == (serialised statements.length - 1)) && generate return)
+                statement.generate java script return (buffer, scope)
+            else
+                statement.generate java script statement (buffer, scope)
+
+    generate variable declarations (variables, buffer, scope, global) =
+        if (variables.length > 0)
+            _(variables).each @(name)
                 scope.define (name)
 
             if (!global)
                 buffer.write ('var ')
 
-                codegen utils.write to buffer with delimiter (names defined, ',', buffer) @(item)
-                    buffer.write (item)
+                codegen utils.write to buffer with delimiter (variables, ',', buffer) @(variable)
+                    buffer.write (variable)
 
                 buffer.write (';')
+        
 
-        _(statements).each @(statement)
-            self.write sub statements for all sub terms (statement, buffer, scope)
-            statement.generate java script statement (buffer, scope)
-    
-    write sub statements (subterm, buffer, scope) =
-        if (subterm.is expression statements)
-            statements = subterm
-            if (statements.statements.length > 0)
-                statements.generate statements (statements.statements.slice (0, statements.statements.length - 1), buffer, scope)
-    
-    write sub statements for all sub terms (statement, buffer, scope) =
-        self.write sub statements (statement, buffer, scope)
+    find declared variables (scope) =
+        declared variables = []
 
-        statement.walk descendants @(subterm)
-            self.write sub statements (subterm, buffer, scope)
-        not below @(subterm) if
-            subterm.is statements && !subterm.is expression statements
+        self.walk descendants @(subterm)
+            subterm.declare variables (declared variables, scope)
+        not below @(subterm, path) if
+            subterm.is statements && path.(path.length - 1).is closure
+
+        _.uniq (declared variables)
+
+    serialise statements (statements) =
+        serialised statements = []
+
+        for each @(statement) in (statements)
+            statement.serialise sub statements (serialised statements)
+
+            statement.walk descendants @(subterm)
+                subterm.serialise sub statements (serialised statements)
+            not below @(subterm) if
+                subterm.is statements
+
+            serialised statements.push (statement)
+
+        serialised statements
+    
+    serialise sub statements (statements) =
+        if (self.is expression statements)
+            first statements = self.statements.slice (0, self.statements.length - 1)
+            statements.push (first statements, ...)
 
     generate java script statements (buffer, scope, global) =
         self.generate statements (self.statements, buffer, scope, global)
@@ -68,10 +82,7 @@ module.exports (cg) = cg.term {
 
     generate java script statements return (buffer, scope, global) =
         if (self.statements.length > 0)
-            self.generate statements (self.statements.slice (0, self.statements.length - 1), buffer, scope, global)
-            return statement = self.statements.(self.statements.length - 1)
-            self.write sub statements for all sub terms(return statement, buffer, scope)
-            return statement.generate java script return (buffer, scope)
+            self.generate statements (self.statements, buffer, scope, global, true)
 
     generate java script (buffer, scope) =
         if (self.statements.length > 0)

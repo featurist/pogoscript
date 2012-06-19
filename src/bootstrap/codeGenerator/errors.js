@@ -34,10 +34,6 @@ exports.errors = function (cg) {
         this.generateJavaScriptStatement = this.generateJavaScript;
         this.generateJavaScriptHashEntry = this.generateJavaScript;
       
-        this.definitions = function (scope) {
-          return [];
-        };
-      
         this.walkDescendants = function () {};
 
         this.printError = function(sourceFile) {

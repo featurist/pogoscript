@@ -4,14 +4,13 @@ module.exports (terms) = terms.term {
         self.initialization = init
         self.test = test
         self.increment = incr
-        self.statements = stmts
-      
         self.index variable = init.target
+        self.statements = self.scoped body (stmts)
 
-    scoped body () =
+    scoped body (statements) =
         contains return = false
         for result variable = self.cg.generated variable ['for', 'result']
-        statements = self.statements.clone (
+        rewritten statements = statements.clone (
             rewrite (term):
                 if (term.is return)
                     contains return = true
@@ -30,7 +29,7 @@ module.exports (terms) = terms.term {
                 self.cg.if expression (
                     [[
                         self.cg.sub expression (
-                            self.cg.function call (self.cg.block ([self.index variable], statements, return last statement: false), [self.index variable])
+                            self.cg.function call (self.cg.block ([self.index variable], rewritten statements, return last statement: false), [self.index variable])
                         )
                         self.cg.statements ([self.cg.return statement (for result variable)])
                     ]]
@@ -39,7 +38,7 @@ module.exports (terms) = terms.term {
 
             self.cg.statements (loop statements)
         else
-            self.statements
+            statements
   
     generate java script (buffer, scope) =
         buffer.write ('for(')
@@ -49,17 +48,12 @@ module.exports (terms) = terms.term {
         buffer.write (';')
         self.increment.generate java script (buffer, scope)
         buffer.write ('){')
-        self.scoped body ().generate java script statements (buffer, scope)
+        self.statements.generate java script statements (buffer, scope)
         buffer.write ('}')
 
     generate java script statement (args, ...) = self.generate java script (args, ...)
     generate java script return (args, ...) = self.generate java script (args, ...)
-  
-    definitions (scope) =
-        defs = []
-        index name = self.index variable.definition name (scope)
-        if (index name)
-            defs.push (index name)
 
-        defs
+    declare variables (variables, scope) =
+        self.index variable.declare variable (variables, scope)
 }

@@ -408,3 +408,65 @@ describe 'terms'
                 subterm.is a
 
             (descendants) should only have [a, b]
+
+        it "passes the path to the term to limit"
+            b = new (term {is b = true})
+            c = new (term {is c = true})
+            d = new (term {is d = true})
+            a = new (term {
+                is a
+                c = c
+                d = [d]
+            })
+
+            t = new (term {
+                a = a
+                b = b
+            })
+
+            descendants = []
+            paths = []
+
+            t.walk descendants @(subterm)
+                nil
+            not below @(subterm, path) if
+                paths.push (path.slice ().concat [subterm])
+                false
+
+            (paths) should contain fields [
+                [t, a]
+                [t, a, c]
+                [t, a, d]
+                [t, b]
+            ]
+
+        it "passes the path to the term to the walker"
+            b = new (term {is b = true})
+            c = new (term {is c = true})
+            d = new (term {is d = true})
+            a = new (term {
+                is a
+                c = c
+                d = [d]
+            })
+
+            t = new (term {
+                a = a
+                b = b
+            })
+
+            descendants = []
+            paths = []
+
+            t.walk descendants @(subterm, path)
+                paths.push (path.slice ().concat [subterm])
+                nil
+            not below @(subterm, path) if
+                false
+
+            (paths) should contain fields [
+                [t, a]
+                [t, a, c]
+                [t, a, d]
+                [t, b]
+            ]

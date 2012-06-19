@@ -15,12 +15,6 @@ module.exports (terms) = terms.term {
         buffer.write ('=')
         self.source.generate java script (buffer, scope)
   
-    definitions (scope) =
-        defs = []
-        t = self.target.definition name (scope)
-        if (t)
-            defs.push (t)
-
-        s = self.source.definitions (scope)
-        defs.concat (s)
+    declare variables (variables, scope) =
+        self.target.declare variable (variables, scope)
 }

@@ -6,7 +6,7 @@ module.exports (terms) = terms.term {
         self.statements = stmts
   
     generate java script (buffer, scope) =
-        buffer.write ('for(var ')
+        buffer.write ('for(')
         self.iterator.generate java script (buffer, scope)
         buffer.write (' in ')
         self.collection.generate java script (buffer, scope)
@@ -27,12 +27,7 @@ module.exports (terms) = terms.term {
 
     generate java script statement (args, ...) = self.generate java script (args, ...)
     generate java script return (args, ...) = self.generate java script (args, ...)
-  
-    definitions (scope) =
-      defs = []
-      index name = self.iterator.definition name (scope)
-      if (indexName)
-        defs.push (indexName)
 
-      defs.concat (self.statements.definitions (scope))
+    declare variables (variables, scope) =
+        self.iterator.declare variable (variables, scope)
 }

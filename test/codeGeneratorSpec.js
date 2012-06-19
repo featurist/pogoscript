@@ -446,24 +446,24 @@ describe('code generator', function () {
     it('normal', function() {
       var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.variable(['item'])]))]);
       
-      generatesStatements(f, 'var gen1_items,gen2_i;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){var item;item=gen1_items[gen2_i];item;}');
+      generatesStatements(f, 'var gen1_items,gen2_i,item;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){item=gen1_items[gen2_i];item;}');
     });
 
     it('containing a return', function() {
       var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.returnStatement(cg.variable(['item']))]))]);
       
-      generatesStatements(f, 'var gen1_items,gen2_i;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){var gen3_forResult;gen3_forResult=void 0;if((function(gen2_i){var item;item=gen1_items[gen2_i];gen3_forResult=item;return true;}(gen2_i))){return gen3_forResult;}}');
+      generatesStatements(f, 'var gen1_items,gen2_i,gen3_forResult;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){gen3_forResult=void 0;if((function(gen2_i){var item;item=gen1_items[gen2_i];gen3_forResult=item;return true;}(gen2_i))){return gen3_forResult;}}');
     });
   });
   
   it('for in', function() {
-    var f = cg.forIn(
+    var f = cg.statements([cg.forIn(
       cg.variable(['item']),
       cg.variable(['items']),
       cg.statements([cg.variable(['item'])])
-    );
+    )]);
     
-    generatesReturnExpression(f, 'for(var item in items){(function(item){item;}(item));}');
+    generatesStatements(f, 'var item;for(item in items){(function(item){item;}(item));}');
   });
   
   describe('for', function() {

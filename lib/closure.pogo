@@ -72,7 +72,7 @@ module.exports (terms) =
                 return (self._parameter transforms)
 
             optionals = optional parameters (
-                self.optionalParameters
+                self.optional parameters
                 self parameter (
                     self.cg
                     self.redefines self
@@ -91,7 +91,7 @@ module.exports (terms) =
             self._parameter transforms = splat
       
         transformed statements () =
-            self.cg.statements (self.parameterTransforms ().statements ())
+            self.cg.statements (self.parameter transforms ().statements ())
       
         transformed parameters () =
             self.parameter transforms ().parameters ()
@@ -110,7 +110,7 @@ module.exports (terms) =
             self.declare parameters (body scope, parameters)
 
             if (self.return last statement)
-                body.generate java script statements return (buffer, bodyScope)
+                body.generate java script statements return (buffer, body scope)
             else
                 body.generate java script statements (buffer, body scope)
 

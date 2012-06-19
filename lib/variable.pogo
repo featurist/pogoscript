@@ -19,10 +19,6 @@ module.exports (terms) = terms.term {
   
     generate java script parameter (args, ...) = self.generate java script (args, ...)
   
-    definition name (scope) =
-        if (self.shadow || !scope.is defined (self.variable name()))
-            this.variable name ()
-  
     parameter () =
         self
 
@@ -32,4 +28,9 @@ module.exports (terms) = terms.term {
     
         if (macro)
             macro (name)
+
+    declare variable (variables, scope) =
+        name = self.variable name ()
+        if (self.shadow || !scope.is defined (name))
+            variables.push (name)
 }

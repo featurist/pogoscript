@@ -120,11 +120,17 @@ module.exports (cg) =
             children
 
         walk descendants (walker, limit (): false) =
+            path = []
+
             walk children (term) =
-                for each @(child) in (term.children ())
-                    walker (child)
-                    if (!limit (child))
-                        walk children (child)
+                try
+                    path.push (term)
+                    for each @(child) in (term.children ())
+                        walker (child, path)
+                        if (!limit (child, path))
+                            walk children (child)
+                finally
+                    path.pop ()
 
             walk children (self)
 
@@ -138,10 +144,6 @@ module.exports (cg) =
         generate java script statement (buffer, scope) =
             self.generate java script (buffer, scope)
             buffer.write ';'
-
-        definitions () = []
-
-        definition name (scope) = nil
 
         arguments () = self
 
@@ -178,6 +180,11 @@ module.exports (cg) =
             self.clone (
                 rewrite (term, clone: nil): term.expand macro (clone)
             )
+
+        serialise sub statements () = nil
+
+        declare variables () = nil
+        declare variable () = nil
     }
 
     term prototype = new (term)
