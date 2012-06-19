@@ -95,41 +95,29 @@
                 self = this;
                 gen2_items = self.actualCharacters;
                 for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
-                    var gen4_forResult;
-                    gen4_forResult = void 0;
-                    if (function(gen3_i) {
-                        var mapping;
-                        mapping = gen2_items[gen3_i];
-                        s = s.replace(mapping[0], mapping[1]);
-                    }(gen3_i)) {
-                        return gen4_forResult;
-                    }
+                    var mapping;
+                    mapping = gen2_items[gen3_i];
+                    s = s.replace(mapping[0], mapping[1]);
                 }
                 return s;
             };
             self.compressInterpolatedStringComponents = function(components) {
-                var self, compressedComponents, lastString, gen5_items, gen6_i;
+                var self, compressedComponents, lastString, gen4_items, gen5_i;
                 self = this;
                 compressedComponents = [];
                 lastString = void 0;
-                gen5_items = components;
-                for (gen6_i = 0; gen6_i < gen5_items.length; gen6_i++) {
-                    var gen7_forResult;
-                    gen7_forResult = void 0;
-                    if (function(gen6_i) {
-                        var component;
-                        component = gen5_items[gen6_i];
-                        if (!lastString && component.isString) {
-                            lastString = component;
-                            compressedComponents.push(lastString);
-                        } else if (lastString && component.isString) {
-                            lastString.string = lastString.string + component.string;
-                        } else {
-                            lastString = void 0;
-                            compressedComponents.push(component);
-                        }
-                    }(gen6_i)) {
-                        return gen7_forResult;
+                gen4_items = components;
+                for (gen5_i = 0; gen5_i < gen4_items.length; gen5_i++) {
+                    var component;
+                    component = gen4_items[gen5_i];
+                    if (!lastString && component.isString) {
+                        lastString = component;
+                        compressedComponents.push(lastString);
+                    } else if (lastString && component.isString) {
+                        lastString.string = lastString.string + component.string;
+                    } else {
+                        lastString = void 0;
+                        compressedComponents.push(component);
                     }
                 }
                 return compressedComponents;
@@ -146,25 +134,19 @@
                 });
             };
             self.separateExpressionComponentsWithStrings = function(components) {
-                var self, separatedComponents, lastComponentWasExpression, gen8_items, gen9_i;
+                var self, separatedComponents, lastComponentWasExpression, gen6_items, gen7_i;
                 self = this;
                 separatedComponents = [];
                 lastComponentWasExpression = false;
-                gen8_items = components;
-                for (gen9_i = 0; gen9_i < gen8_items.length; gen9_i++) {
-                    var gen10_forResult;
-                    gen10_forResult = void 0;
-                    if (function(gen9_i) {
-                        var component;
-                        component = gen8_items[gen9_i];
-                        if (lastComponentWasExpression && !component.isString) {
-                            separatedComponents.push(self.terms.string(""));
-                        }
-                        separatedComponents.push(component);
-                        lastComponentWasExpression = !component.isString;
-                    }(gen9_i)) {
-                        return gen10_forResult;
+                gen6_items = components;
+                for (gen7_i = 0; gen7_i < gen6_items.length; gen7_i++) {
+                    var component;
+                    component = gen6_items[gen7_i];
+                    if (lastComponentWasExpression && !component.isString) {
+                        separatedComponents.push(self.terms.string(""));
                     }
+                    separatedComponents.push(component);
+                    lastComponentWasExpression = !component.isString;
                 }
                 return separatedComponents;
             };
