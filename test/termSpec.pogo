@@ -1,6 +1,6 @@
 cg = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 require './assertions'
-term = (require '../lib/terms') {}.term
+Term = (require '../lib/terms') {}.Term
 _ = require 'underscore'
 assert = require 'assert'
 
@@ -35,14 +35,14 @@ assert = require 'assert'
 describe 'terms'
     describe 'cloning'
         it 'creates a new object'
-            t = new (term)
+            t = new (Term)
 
             new term = t.clone ()
 
             new term.should.not.equal (t)
 
         it 'copies all members when cloning'
-            t = new (term)
+            t = new (Term)
             t.a = 1
             t.b = "b"
 
@@ -53,7 +53,7 @@ describe 'terms'
             }
 
         it 'arrays are also cloned'
-            t = new (term)
+            t = new (Term)
             t.array = [1]
 
             clone = t.clone ()
@@ -64,14 +64,14 @@ describe 'terms'
             }
 
         it "an object's prototype is also copied"
-            t = new (term)
+            t = new (Term)
             t.a = 'a'
 
             clone = t.clone ()
             Object.get prototype of (clone).should.equal (Object.get prototype of (t))
 
         it "clones sub-objects"
-            t = new (term)
+            t = new (Term)
             t.a = {name = "jack"}
 
             clone = t.clone ()
@@ -81,7 +81,7 @@ describe 'terms'
             }
 
         it "doesn't clone objects that have 'dont clone' field"
-            t = new (term)
+            t = new (Term)
             t.a = {name = "jack"}
             t.dont clone = true
 
@@ -90,13 +90,13 @@ describe 'terms'
             clone.should.equal (t)
 
         it "can rewrite an object while being cloned"
-            t = new (term)
-            t.a = new (term {name = "jack"})
+            t = new (Term)
+            t.a = new (Term {name = "jack"})
 
             clone = t.clone (
                 rewrite (old term):
                     if (old term.name)
-                        new term = new (term)
+                        new term = new (Term)
                         new term.name = "jill"
                         new term
             )
@@ -106,10 +106,10 @@ describe 'terms'
             }
 
         it "rewrite is passed the clone function, which can be used to clone further members"
-            t = new (term)
-            t.a = new (term {
+            t = new (Term)
+            t.a = new (Term {
                 name = "jack"
-                b = new (term {
+                b = new (Term {
                     name = "john"
                 })
             })
@@ -117,7 +117,7 @@ describe 'terms'
             clone = t.clone (
                 rewrite (old term, clone: nil):
                     if (old term.name)
-                        new term = new (term)
+                        new term = new (Term)
                         new term.name = "jill"
                         
                         if (old term.b)
@@ -134,19 +134,19 @@ describe 'terms'
             }
 
         it "doesn't rewrite beyond rewrite limit"
-            t = new (term {
-                a = new (term {name = "jack"})
-                b = new (term {
+            t = new (Term {
+                a = new (Term {name = "jack"})
+                b = new (Term {
                     is limit
-                    c = new (term {name = "jack"})
+                    c = new (Term {name = "jack"})
                 })
-                d = new (term {name = "jason"})
+                d = new (Term {name = "jason"})
             })
 
             clone = t.clone (
                 rewrite (old term):
                     if (old term.name)
-                        new (term {name = "jill"})
+                        new (Term {name = "jill"})
 
                 limit (t):
                     t.is limit
@@ -161,22 +161,22 @@ describe 'terms'
             }
 
         it "throws an exception when the new term is not an instance of 'term'"
-            t = new (term)
-            t.a = new (term {name = "jack"})
+            t = new (Term)
+            t.a = new (Term {name = "jack"})
 
             @{t.clone (
                 rewrite (old term):
                     if (old term.name)
                         {name = "jill"}
-            )}.should.throw "rewritten term not an instance of term"
+            )}.should.throw "rewritten node not an instance of Node"
             
         it 'copies the location when a term is rewritten'
-            t = new (term)
+            t = new (Term)
             t.set location {first line = 1, last line = 1, first column = 20, last column = 30}
             
             clone = t.clone (
                 rewrite (old term): 
-                    t = new (term)
+                    t = new (Term)
                     t.rewritten = true
                     t
             )
@@ -192,20 +192,20 @@ describe 'terms'
             }
             
         it 'passes path of terms to limit'
-            c = new (term)
-            b = new (term {
+            c = new (Term)
+            b = new (Term {
                 c = c
             })
-            a = new (term {
+            a = new (Term {
                 b = b
             })
 
-            y = new (term)
-            x = new (term {
+            y = new (Term)
+            x = new (Term {
                 y = y
             })
 
-            t = new (term {
+            t = new (Term {
                 a = a
                 x = x
             })
@@ -228,20 +228,20 @@ describe 'terms'
             ]
             
         it 'passes path of terms to rewrite'
-            c = new (term)
-            b = new (term {
+            c = new (Term)
+            b = new (Term {
                 c = c
             })
-            a = new (term {
+            a = new (Term {
                 b = b
             })
 
-            y = new (term)
-            x = new (term {
+            y = new (Term)
+            x = new (Term {
                 y = y
             })
 
-            t = new (term {
+            t = new (Term {
                 a = a
                 x = x
             })
@@ -265,7 +265,7 @@ describe 'terms'
 
     describe 'location'
         it 'can set location'
-            t = new (term)
+            t = new (Term)
             t.set location {first line = 1, last line = 2, first column = 20, last column = 30}
 
             (t.location ()) should contain fields {
@@ -276,13 +276,13 @@ describe 'terms'
             }
 
         it 'can compute location from children, first column is from first line, last column is from last line'
-            left = new (term)
+            left = new (Term)
             left.set location {first line = 1, last line = 2, first column = 20, last column = 30}
 
-            right = new (term)
+            right = new (Term)
             right.set location {first line = 2, last line = 4, first column = 30, last column = 10}
 
-            t = new (term {
+            t = new (Term {
                 left = left
                 right = right
             })
@@ -295,15 +295,15 @@ describe 'terms'
             }
 
         it 'if there are no children then the location is nil'
-            t = new (term)
+            t = new (Term)
 
             assert.(t.location ()) strict equal (nil)
 
         it 'if there are no children with locations then the location is nil'
-            left = new (term)
-            right = new (term)
+            left = new (Term)
+            right = new (Term)
 
-            t = new (term {
+            t = new (Term {
                 left = left
                 right = right
             })
@@ -311,13 +311,13 @@ describe 'terms'
             assert.(t.location ()) strict equal (nil)
 
         it 'can compute location from children, smallest first column, largest last column when on same line'
-            left = new (term)
+            left = new (Term)
             left.set location {first line = 1, last line = 2, first column = 20, last column = 30}
 
-            right = new (term)
+            right = new (Term)
             right.set location {first line = 1, last line = 2, first column = 10, last column = 40}
 
-            t = new (term {
+            t = new (Term {
                 left = left
                 right = right
             })
@@ -331,10 +331,10 @@ describe 'terms'
 
     describe 'children'
         it 'returns immediate subterms'
-            a = new (term)
-            b = new (term)
+            a = new (Term)
+            b = new (Term)
 
-            t = new (term {
+            t = new (Term {
                 a = a
                 b = b
             })
@@ -343,10 +343,10 @@ describe 'terms'
 
     describe 'children'
         it 'returns terms in arrays'
-            a = new (term)
-            b = new (term)
+            a = new (Term)
+            b = new (Term)
 
-            t = new (term {
+            t = new (Term {
                 array = [a, b]
             })
 
@@ -354,10 +354,10 @@ describe 'terms'
 
     describe 'children'
         it 'returns terms in objects'
-            a = new (term)
-            b = new (term)
+            a = new (Term)
+            b = new (Term)
 
-            t = new (term {
+            t = new (Term {
                 array = {a = a, b = b}
             })
 
@@ -365,15 +365,15 @@ describe 'terms'
 
     describe 'walk descendants'
         it "walks descendants, children, children's children, etc"
-            b = new (term)
-            c = new (term)
-            d = new (term)
-            a = new (term {
+            b = new (Term)
+            c = new (Term)
+            d = new (Term)
+            a = new (Term {
                 c = c
                 d = [d]
             })
 
-            t = new (term {
+            t = new (Term {
                 a = a
                 b = b
             })
@@ -386,16 +386,16 @@ describe 'terms'
             (descendants) should only have [a, b, c, d]
 
         it "walks descendants, but not beyond the limit"
-            b = new (term)
-            c = new (term)
-            d = new (term)
-            a = new (term {
+            b = new (Term)
+            c = new (Term)
+            d = new (Term)
+            a = new (Term {
                 is a
                 c = c
                 d = [d]
             })
 
-            t = new (term {
+            t = new (Term {
                 a = a
                 b = b
             })
@@ -410,16 +410,16 @@ describe 'terms'
             (descendants) should only have [a, b]
 
         it "passes the path to the term to limit"
-            b = new (term {is b = true})
-            c = new (term {is c = true})
-            d = new (term {is d = true})
-            a = new (term {
+            b = new (Term {is b = true})
+            c = new (Term {is c = true})
+            d = new (Term {is d = true})
+            a = new (Term {
                 is a
                 c = c
                 d = [d]
             })
 
-            t = new (term {
+            t = new (Term {
                 a = a
                 b = b
             })
@@ -441,16 +441,16 @@ describe 'terms'
             ]
 
         it "passes the path to the term to the walker"
-            b = new (term {is b = true})
-            c = new (term {is c = true})
-            d = new (term {is d = true})
-            a = new (term {
+            b = new (Term {is b = true})
+            c = new (Term {is c = true})
+            d = new (Term {is d = true})
+            a = new (Term {
                 is a
                 c = c
                 d = [d]
             })
 
-            t = new (term {
+            t = new (Term {
                 a = a
                 b = b
             })

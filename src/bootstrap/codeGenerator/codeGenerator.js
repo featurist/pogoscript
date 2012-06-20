@@ -3,15 +3,13 @@ var cg = require('../../../lib/codeGenerator');
 exports.codeGenerator = function () {
   codegen = {};
 
-  terms = require('../../../lib/terms')
-  term = terms(codegen);
+  var term = require('../../../lib/terms')(codegen);
 
   var importTerm = function (name) {
     codegen[name] = require('../../../lib/' + name)(codegen);
   };
   
-  codegen.termClass = term.term;
-  codegen.term = terms.term;
+  codegen.term = term.term;
   codegen.termPrototype = term.termPrototype;
   codegen.basicExpression = require('./basicExpression');
   importTerm('splatArguments');

@@ -11,12 +11,6 @@ describe 'functions'
              print (succ (1))' should output '2'
         
         describe 'functions with no arguments'
-            it 'a function can be defined to have no parameters with the exclamation mark "!"'
-                'say hi! =
-                    print "hi"
-            
-                 say hi!' should output "'hi'"
-             
             it 'a function can be defined to have no parameters with empty parens "()"'
                 'say hi () =
                     print "hi"

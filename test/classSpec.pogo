@@ -34,6 +34,24 @@ describe 'class'
     
     d.a method ().should.equal 'method result'
   
+  it 'a derived class can be derived again'
+    base = class {
+      a method () =
+        'method result'
+    }
+    
+    derived = class extending (base) {
+      constructor () = nil
+    }
+
+    derived derived = class extending (derived) {
+      constructor () = nil
+    }
+    
+    d = new (derived derived)
+    
+    d.a method ().should.equal 'method result'
+  
   it 'allows derived class to override method'
     base = class {
       a method () =

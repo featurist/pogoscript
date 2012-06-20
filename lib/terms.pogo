@@ -3,7 +3,7 @@ _ = require 'underscore'
 util = require 'util'
 
 module.exports (cg) =
-    term = class {
+    Node = class {
         cg = cg
 
         constructor (members) =
@@ -43,41 +43,41 @@ module.exports (cg) =
                     nil
 
         clone (rewrite (subterm): nil, limit (subterm): false) =
-            clone object (original term, allow rewrite, path) =
-                if (original term.dont clone)
-                    original term
+            clone object (original node, allow rewrite, path) =
+                if (original node.dont clone)
+                    original node
                 else
                     try
-                        path.push (original term)
-                        rewritten term = if ((original term :: term) && allow rewrite)
-                            rewrite (original term, path: path, clone (term):
-                                clone subterm (term, allow rewrite, path)
+                        path.push (original node)
+                        rewritten node = if ((original node :: Node) && allow rewrite)
+                            rewrite (original node, path: path, clone (node):
+                                clone subterm (node, allow rewrite, path)
                             )
                         else
                             nil
 
-                        if (!rewritten term)
-                            t = Object.create (Object.get prototype of (original term))
+                        if (!rewritten node)
+                            t = Object.create (Object.get prototype of (original node))
 
-                            for @(member) in (original term)
-                                if (original term.has own property (member))
-                                    t.(member) = clone subterm (original term.(member), allow rewrite, path)
+                            for @(member) in (original node)
+                                if (original node.has own property (member))
+                                    t.(member) = clone subterm (original node.(member), allow rewrite, path)
 
                             t
                         else
-                            if (!(rewritten term :: term))
-                                throw (new (Error "rewritten term not an instance of term"))
+                            if (!(rewritten node :: Node))
+                                throw (new (Error "rewritten node not an instance of Node"))
 
-                            rewritten term.is derived from (original term)
-                            rewritten term
+                            rewritten node.is derived from (original node)
+                            rewritten node
                     finally
                         path.pop ()
                 
             clone array (terms, allow rewrite, path) =
                 try
                     path.push (terms)
-                    _.map (terms) @(term)
-                        clone subterm (term, allow rewrite, path)
+                    _.map (terms) @(node)
+                        clone subterm (node, allow rewrite, path)
                 finally
                     path.pop ()
 
@@ -93,14 +93,14 @@ module.exports (cg) =
             
             clone subterm (self, true, [])
 
-        is derived from (ancestor term) =
-            self.set location (ancestor term.location ())
+        is derived from (ancestor node) =
+            self.set location (ancestor node.location ())
 
         children () =
             children = []
 
             add member (member) =
-                if (member :: term)
+                if (member :: Node)
                     children.push (member)
                 else if (member :: Array)
                     for each @(item) in (member)
@@ -122,10 +122,10 @@ module.exports (cg) =
         walk descendants (walker, limit (): false) =
             path = []
 
-            walk children (term) =
+            walk children (node) =
                 try
-                    path.push (term)
-                    for each @(child) in (term.children ())
+                    path.push (node)
+                    for each @(child) in (node.children ())
                         walker (child, path)
                         if (!limit (child, path))
                             walk children (child)
@@ -135,7 +135,9 @@ module.exports (cg) =
             walk children (self)
 
         walk descendants (walker) not below (limit) if = self.walk descendants (walker, limit: limit)
+    }
 
+    Term = class extending (Node) {
         generate java script return (buffer, scope) =
             buffer.write 'return '
             self.generate java script (buffer, scope)
@@ -187,15 +189,17 @@ module.exports (cg) =
         declare variable () = nil
     }
 
-    term prototype = new (term)
+    term prototype = new (Term)
+
+    term (members) =
+        term constructor = class extending (Term, members)
+
+        @(args, ...)
+            new (term constructor (args, ...))
 
     {
+        Node = Node
+        Term = Term
         term = term
         term prototype = term prototype
     }
-
-module.exports.term (members) =
-    term constructor = class extending (this.term class, members)
-
-    @(args, ...)
-        new (term constructor (args, ...))
