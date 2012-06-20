@@ -1,2 +1,2 @@
 all:
-	pogo -c *.pogo
+	pogo -cs *.pogo
