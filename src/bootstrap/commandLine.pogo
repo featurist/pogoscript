@@ -31,15 +31,26 @@ when (filename) changes (act) =
         
         act ()
 
+exports.show compiling file (filename, options) =
+    console.log "compiling #(filename) => #(js filename from pogo filename (filename))"
+    compile file (filename, options)
+
 exports.watch file (filename, options) =
     compile () =
-        console.log "compiling #(filename) => #(js filename from pogo filename (filename))"
-        compile file (filename, options)
+        self.show compiling file (filename, options)
 
     compile ()
 
     when (filename) changes
         compile ()
+
+exports.compile file if stale (filename, options) =
+    js filename = js filename from pogo filename (filename)
+    js file = if (path.exists sync (js filename))
+        fs.stat sync (js filename)
+    
+    if (!js file || (fs.stat sync (filename).mtime > js file.mtime))
+        self.show compiling file (filename, options)
 
 exports.lex file (filename) =
     source = fs.read file sync (filename) 'utf-8'

@@ -44,17 +44,35 @@
             return act();
         });
     };
+    exports.showCompilingFile = function(filename, options) {
+        var self;
+        self = this;
+        console.log("compiling " + filename + " => " + jsFilenameFromPogoFilename(filename));
+        return compileFile(filename, options);
+    };
     exports.watchFile = function(filename, options) {
         var self, compile;
         self = this;
         compile = function() {
-            console.log("compiling " + filename + " => " + jsFilenameFromPogoFilename(filename));
-            return compileFile(filename, options);
+            return self.showCompilingFile(filename, options);
         };
         compile();
         return whenChanges(filename, function() {
             return compile();
         });
+    };
+    exports.compileFileIfStale = function(filename, options) {
+        var self, jsFilename, jsFile;
+        self = this;
+        jsFilename = jsFilenameFromPogoFilename(filename);
+        jsFile = function() {
+            if (path.existsSync(jsFilename)) {
+                return fs.statSync(jsFilename);
+            }
+        }();
+        if (!jsFile || fs.statSync(filename).mtime > jsFile.mtime) {
+            return self.showCompilingFile(filename, options);
+        }
     };
     exports.lexFile = function(filename) {
         var self, source, tokens, gen2_items, gen3_i;

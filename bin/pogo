@@ -5,6 +5,7 @@ var argv = require('optimist')
     .boolean('u').alias('u', 'ugly')
     .boolean('l').alias('l', 'lex')
     .boolean('w').alias('w', 'watch')
+    .boolean('s').alias('s', 'if-stale')
     .argv;
 
 var commandLine = require('..');
@@ -17,6 +18,8 @@ if (argv.lex) {
   for (var i in argv._) {
     if (argv.watch) {
       commandLine.watchFile(argv._[i], {ugly: argv.ugly});
+    } else if (argv.s) {
+      commandLine.compileFileIfStale(argv._[i], {ugly: argv.ugly});
     } else {
       commandLine.compileFile(argv._[i], {ugly: argv.ugly});
     }
