@@ -65,6 +65,10 @@ describe('code generator', function () {
     it("doesn't escape already escaped reserved word", function () {
       generatesExpression(cg.variable(['$class']), '$class');
     });
+    
+    it("generates a semi-colon when as a statement", function () {
+      generatesStatement(cg.variable(['asdf']), 'asdf;');
+    });
   });
   
   describe('function call', function () {
