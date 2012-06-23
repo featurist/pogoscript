@@ -1,28 +1,9 @@
 script = require './scriptAssertions.pogo'
 assert = require 'assert'
-path = require 'path'
 
 should output = script.should output
 with args should output = script.with args should output
 
-describe 'pogo command'
-    it "`process.argv` contains 'pogo', the name of the
-         script executed, and the arguments from the command line" @(done)
-    
-        'console.log (process.argv)' with args ['one', 'two'] should output "[ 'pogo',
-                                                                               '#(path.resolve '343111c34d666435dd7e88265c816cbfdbe68cd3.pogo')',
-                                                                               'one',
-                                                                               'two' ]" (done)
-
-    it "`__filename` should be the name of the script" @(done)
-        'console.log (__filename)' with args [] should output (path.resolve "5be55a44c52f14d048d19c020fd913199ae2e61c.pogo") (done)
-
-    it "`__dirname` should be the name of the script" @(done)
-        'console.log (__dirname)' with args [] should output (path.resolve ".") (done)
-    
-    it "runs script files even if they don't use the .pogo extension" @(done)
-        'console.log "hi"' with args [] should output 'hi' (script filename: 'ascript')
-            done!
 
 describe 'script'
     describe 'integers'
