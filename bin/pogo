@@ -1,31 +1,32 @@
 #!/usr/bin/env node
 
-var argv = require('optimist')
-    .boolean('c').alias('c', 'compile')
-    .boolean('u').alias('u', 'ugly')
-    .boolean('l').alias('l', 'lex')
-    .boolean('w').alias('w', 'watch')
-    .boolean('s').alias('s', 'if-stale')
-    .argv;
+var cli = require('../lib/optionParser.js').createParser();
+
+cli.option('-c, --compile compile each file');
+cli.option("-u, --ugly don't prettify when compiling");
+cli.option("-l, --lex tokenise each file");
+cli.option("-w, --watch watch and compile files when they change");
+cli.option("-s, --if-stale only compile files if they are out of date");
+options = cli.parse(process.argv.slice(2));
 
 var commandLine = require('..');
 
-if (argv.lex) {
-  for (var i in argv._) {
-    commandLine.lexFile(argv._[i]);
+if (options.lex) {
+  for (var i in options._) {
+    commandLine.lexFile(options._[i]);
   }
-} else if (argv.compile) {
-  for (var i in argv._) {
-    if (argv.watch) {
-      commandLine.watchFile(argv._[i], {ugly: argv.ugly});
-    } else if (argv.s) {
-      commandLine.compileFileIfStale(argv._[i], {ugly: argv.ugly});
+} else if (options.compile) {
+  for (var i in options._) {
+    if (options.watch) {
+      commandLine.watchFile(options._[i], {ugly: options.ugly});
+    } else if (options['if-stale']) {
+      commandLine.compileFileIfStale(options._[i], {ugly: options.ugly});
     } else {
-      commandLine.compileFile(argv._[i], {ugly: argv.ugly});
+      commandLine.compileFile(options._[i], {ugly: options.ugly});
     }
   }
-} else if (argv._.length === 0) {
+} else if (options._.length === 0) {
   commandLine.repl();
 } else {
-  commandLine.runMain(argv._[0]);
+  commandLine.runMain(options._[0]);
 }

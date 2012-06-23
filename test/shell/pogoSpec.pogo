@@ -23,7 +23,9 @@ describe 'pogo command'
         'console.log "hi"' with args [] should output 'hi' (script filename: 'ascript', done)
     
     it "script can take same switches as pogo script, like --compile" @(done)
-        'console.log (process.argv)' with args ['--compile'] should output "[ '--compile' ]" (done)
+        'console.log (process.argv)' with args ['--compile'] should output "[ 'pogo',
+                                                                              '#(path.resolve '343111c34d666435dd7e88265c816cbfdbe68cd3.pogo')',
+                                                                              '--compile' ]" (done)
 
 pogo =
     __dirname + "/../../bin/pogo"
