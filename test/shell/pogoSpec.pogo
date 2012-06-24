@@ -3,6 +3,7 @@ fs = require 'fs'
 script = require '../scriptAssertions.pogo'
 with args should output = script.with args should output
 child process = require 'child_process'
+net = require 'net'
 
 describe 'pogo command'
     it "`process.argv` contains 'pogo', the name of the
@@ -34,19 +35,25 @@ on success callback for (callback) =
     @(on success, always do)
         @(error, args, ...)
             if (error)
-                callback
+                callback (error)
             else
                 on success (args, ...)
 
 write file (filename, content, done) =
     fs.write file ("#(__dirname)/#(filename)", content, done)
 
-run (command, done) =
-    command = if (r/^pogo /.test (command))
+expand pogo command (command) =
+    if (r/^pogo /.test (command))
         command.replace r/^pogo/ (pogo)
     else
         command
+    
+spawn (command, args, done) =
+    process = child process.spawn (expand pogo command (command), args, {cwd = __dirname, custom fds = [0, 1, 2]})
+    done (nil, process)
 
+run (command, done) =
+    command = expand pogo command (command)
     child process.exec (command, {cwd = __dirname}, done)
 
 
@@ -140,3 +147,17 @@ describe 'pogo --compile --if-stale'
                     )
                 )
         )
+
+describe 'debugging'
+    describe '--debug'
+        it 'starts remote debugging' @(done)
+            on success = on success callback for (done)
+
+            write file "toDebug.pogo" "console.log 'bug!'" (on success
+                run 'pogo --debug toDebug.pogo' (on success @(stdout, stderr)
+                    stderr.should.equal "debugger listening on port 5858\n"
+                    stdout.should.equal "bug!\n"
+
+                    done ()
+                )
+            )

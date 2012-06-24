@@ -7,11 +7,15 @@ cli.option("-u, --ugly don't prettify when compiling");
 cli.option("-l, --lex tokenise each file");
 cli.option("-w, --watch watch and compile files when they change");
 cli.option("-s, --if-stale only compile files if they are out of date");
+cli.option("--debug run the node debugger");
+cli.option("--debug-brk run the node debugger, breaking on the first line");
 options = cli.parse(process.argv.slice(2));
 
 var commandLine = require('..');
 
-if (options.lex) {
+if (options.debug || options['debug-brk'] || options._[0] == 'debug') {
+  require('../lib/debugPogo').debugPogo();
+} else if (options.lex) {
   for (var i in options._) {
     commandLine.lexFile(options._[i]);
   }
