@@ -23,7 +23,7 @@ if (options.debug || options['debug-brk'] || options._[0] == 'debug') {
   for (var i in options._) {
     if (options.watch) {
       commandLine.watchFile(options._[i], {ugly: options.ugly});
-    } else if (options['if-stale']) {
+    } else if (options.ifStale) {
       commandLine.compileFileIfStale(options._[i], {ugly: options.ugly});
     } else {
       commandLine.compileFile(options._[i], {ugly: options.ugly});

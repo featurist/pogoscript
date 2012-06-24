@@ -2,7 +2,6 @@ var cg = require('../src/bootstrap/codeGenerator/codeGenerator').codeGenerator()
 var MemoryStream = require('../lib/memorystream').MemoryStream;
 var assert = require('assert');
 var _ = require('underscore');
-require('cupoftea');
 
 var shouldContainFields = require('./containsFields.js').containsFields;
 
