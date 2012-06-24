@@ -172,6 +172,28 @@ npm will track the latest changes when you `git pull`
 
     pogo helloWorld.pogo
 
+## Debugging a Script
+
+All the regular `node` [debugging invocations](http://nodejs.org/api/debugger.html) work:
+
+To invoke the node debugger:
+
+	pogo debug helloWorld.pogo
+
+To allow remote debugging, e.g. with [node-inspector](https://github.com/dannycoates/node-inspector):
+
+	pogo --debug helloWorld.pogo
+
+If you want to break on the first line:
+
+	pogo --debug-brk helloWorld.pogo
+
+You can also put breakpoints in your source code, just put `debugger` on its own line:
+
+	some function ()
+	debugger
+	some other function ()
+
 ## Compiling a Script
 
     pogo -c helloWorld.pogo
