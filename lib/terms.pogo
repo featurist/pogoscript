@@ -136,8 +136,26 @@ module.exports (cg) =
 
         walk descendants (walker) not below if (limit) = self.walk descendants (walker, limit: limit)
 
-        reduce with reduced children into (reducer, limit (term): false) =
+        reduce with reduced children into (reducer, limit (term): false, cache name: nil) =
             path = []
+
+            caching reducer =
+                if (cache name)
+                    @(node, reduced children)
+                        if (node.has own property 'reductionCache')
+                            if (node.reduction cache.has own property (cache name))
+                                node.reduction cache.(cache name)
+                        else
+                            reduced value = reducer (node, reduced children)
+
+                            if (!node.has own property 'reductionCache')
+                                node.reduction cache = {}
+
+                            node.reduction cache.(cache name) = reduced value
+
+                            reduced value
+                else
+                    reducer
 
             map reduce children (node) =
                 try
@@ -147,7 +165,7 @@ module.exports (cg) =
                         if (!limit (child, path))
                             mapped children.push (map reduce children (child))
 
-                    reducer (node, mapped children)
+                    caching reducer (node, mapped children)
                 finally
                     path.pop ()
 

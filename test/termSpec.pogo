@@ -471,7 +471,7 @@ describe 'terms'
                 [t, b]
             ]
 
-    describe 'map reduce'
+    describe 'reduce'
         it 'can be used to count total number of terms'
             t = new (Term {
                 name = 't'
@@ -495,3 +495,38 @@ describe 'terms'
                 1 + sum of (terms)
 
             total term count.should.equal 6
+
+        it 'reductions are cached, when given a cache name'
+            t = new (Term {
+                name = 't'
+                a = new (Term {
+                    name = 'a'
+                    b = new (Term {name = 'b'})
+                })
+                x = [
+                    new (Term {
+                        name = 'u'
+                        y = new (Term {name = 'y'})
+                    })
+                    new (Term {name = 'z'})
+                ]
+            })
+
+            sum of (array) =
+                sum = _.reduce (array) @(sum, i) @{ sum + i } (0)
+
+            reduction count = 0
+
+            total term count = t.reduce @(term) with reduced children @(terms) into
+                reduction count = reduction count + 1
+                1 + sum of (terms)
+            (cache name: 'term count')
+
+            first reduction count = reduction count
+
+            total term count = t.reduce @(term) with reduced children @(terms) into
+                reduction count = reduction count + 1
+                1 + sum of (terms)
+            (cache name: 'term count')
+
+            reduction count.should.equal (first reduction count)
