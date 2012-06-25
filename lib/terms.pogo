@@ -134,7 +134,24 @@ module.exports (cg) =
 
             walk children (self)
 
-        walk descendants (walker) not below (limit) if = self.walk descendants (walker, limit: limit)
+        walk descendants (walker) not below if (limit) = self.walk descendants (walker, limit: limit)
+
+        reduce with reduced children into (reducer, limit (term): false) =
+            path = []
+
+            map reduce children (node) =
+                try
+                    path.push (node)
+                    mapped children = []
+                    for each @(child) in (node.children ())
+                        if (!limit (child, path))
+                            mapped children.push (map reduce children (child))
+
+                    reducer (node, mapped children)
+                finally
+                    path.pop ()
+
+            map reduce children (self)
     }
 
     Term = class extending (Node) {

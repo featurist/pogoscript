@@ -470,3 +470,28 @@ describe 'terms'
                 [t, a, d]
                 [t, b]
             ]
+
+    describe 'map reduce'
+        it 'can be used to count total number of terms'
+            t = new (Term {
+                name = 't'
+                a = new (Term {
+                    name = 'a'
+                    b = new (Term {name = 'b'})
+                })
+                x = [
+                    new (Term {
+                        name = 'u'
+                        y = new (Term {name = 'y'})
+                    })
+                    new (Term {name = 'z'})
+                ]
+            })
+
+            sum of (array) =
+                sum = _.reduce (array) @(sum, i) @{ sum + i } (0)
+
+            total term count = t.reduce @(term) with reduced children @(terms) into
+                1 + sum of (terms)
+
+            total term count.should.equal 6
