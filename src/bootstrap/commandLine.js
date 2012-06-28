@@ -1,5 +1,5 @@
 ((function() {
-    var self, fs, ms, parser, parse, uglify, _, readline, util, Module, path, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, evaluateReplLine, compileFromFile, sourceLocationPrinter;
+    var self, fs, ms, parser, parse, uglify, _, Module, path, repl, vm, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, compileFromFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     ms = require("../../lib/memorystream");
@@ -7,10 +7,10 @@
     parse = parser.parse;
     uglify = require("uglify-js");
     _ = require("underscore");
-    readline = require("readline");
-    util = require("util");
     Module = require("module");
     path = require("path");
+    repl = require("repl");
+    vm = require("vm");
     generateCode = function(term) {
         var memoryStream;
         memoryStream = new ms.MemoryStream;
@@ -66,7 +66,7 @@
         self = this;
         jsFilename = jsFilenameFromPogoFilename(filename);
         jsFile = function() {
-            if (path.existsSync(jsFilename)) {
+            if (fs.existsSync(jsFilename)) {
                 return fs.statSync(jsFilename);
             }
         }();
@@ -75,13 +75,12 @@
         }
     };
     exports.lexFile = function(filename) {
-        var self, source, tokens, gen2_items, gen3_i;
+        var self, source, tokens, gen2_items, gen3_i, token, text;
         self = this;
         source = fs.readFileSync(filename, "utf-8");
         tokens = parser.lex(source);
         gen2_items = tokens;
         for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
-            var token, text;
             token = gen2_items[gen3_i];
             text = token[1] && "'" + token[1] + "'" || "";
             console.log("<" + token[0] + "> " + text);
@@ -162,31 +161,30 @@
         return runScript.apply(undefined, definitionValues);
     };
     exports.repl = function() {
-        var self, interface, prompt;
+        var self, compilePogo, evalPogo;
         self = this;
-        interface = readline.createInterface(process.stdin, process.stdout);
-        prompt = "λ ";
-        interface.setPrompt(prompt, prompt.length);
-        interface.prompt();
-        interface.on("line", function(line) {
-            evaluateReplLine(line);
-            return interface.prompt();
-        });
-        return interface.on("close", function() {
-            process.stdout.write("\n");
-            return process.exit(0);
-        });
-    };
-    evaluateReplLine = function(line) {
-        try {
-            var result;
-            result = exports.evaluate(line, {
-                global: true
+        compilePogo = function(source, filename) {
+            return exports.compile(source, {
+                filename: filename,
+                ugly: true,
+                inScope: false,
+                global: true,
+                returnResult: false
             });
-            return console.log(" =>", util.inspect(result, undefined, undefined, true));
-        } catch (ex) {
-            return console.log(ex.message);
-        }
+        };
+        evalPogo = function(source, context, filename, callback) {
+            var js, result;
+            js = compilePogo(source, filename);
+            try {
+                result = vm.runInContext(js, context, filename);
+                return callback(void 0, result);
+            } catch (error) {
+                return callback(error);
+            }
+        };
+        return repl.start({
+            eval: evalPogo
+        });
     };
     compileFromFile = function(filename, gen6_options) {
         var ugly, contents;
@@ -211,7 +209,7 @@
                 return lines.slice(range.from - 1, range.to);
             };
             self.printLinesInRange = function(gen8_options) {
-                var prefix, from, to, self, gen9_items, gen10_i;
+                var prefix, from, to, self, gen9_items, gen10_i, line;
                 prefix = gen8_options && gen8_options.hasOwnProperty("prefix") && gen8_options.prefix !== void 0 ? gen8_options.prefix : "";
                 from = gen8_options && gen8_options.hasOwnProperty("from") && gen8_options.from !== void 0 ? gen8_options.from : void 0;
                 to = gen8_options && gen8_options.hasOwnProperty("to") && gen8_options.to !== void 0 ? gen8_options.to : void 0;
@@ -221,17 +219,15 @@
                     to: to
                 });
                 for (gen10_i = 0; gen10_i < gen9_items.length; gen10_i++) {
-                    var line;
                     line = gen9_items[gen10_i];
                     process.stderr.write(prefix + line + "\n");
                 }
             };
             self.printLocation = function(location) {
-                var self;
+                var self, spaces, markers;
                 self = this;
                 process.stderr.write(filename + ":" + location.firstLine + "\n");
                 if (location.firstLine === location.lastLine) {
-                    var spaces, markers;
                     self.printLinesInRange({
                         from: location.firstLine,
                         to: location.lastLine

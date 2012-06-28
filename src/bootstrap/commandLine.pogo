@@ -4,10 +4,10 @@ parser = require './parser'
 parse = parser.parse
 uglify = require 'uglify-js'
 _ = require 'underscore'
-readline = require 'readline'
-util = require 'util'
 Module = require 'module'
 path = require 'path'
+repl = require 'repl'
+vm = require 'vm'
 
 generate code (term) =
     memory stream = new (ms.MemoryStream)
@@ -46,7 +46,7 @@ exports.watch file (filename, options) =
 
 exports.compile file if stale (filename, options) =
     js filename = js filename from pogo filename (filename)
-    js file = if (path.exists sync (js filename))
+    js file = if (fs.exists sync (js filename))
         fs.stat sync (js filename)
 
     if (!js file || (fs.stat sync (filename).mtime > js file.mtime))
@@ -117,26 +117,27 @@ exports.evaluate (pogo, definitions: {}, global: false) =
     run script.apply (undefined) (definition values)
 
 exports.repl () =
-    interface = readline.create interface (process.stdin, process.stdout)
-    prompt = 'λ '
+    compile pogo (source, filename) =
+        exports.compile (
+            source
+            filename: filename
+            ugly: true
+            in scope: false
+            global: true
+            return result: false
+        )
 
-    interface.set prompt (prompt, prompt.length)
-    interface.prompt ()
+    eval pogo (source, context, filename, callback) =
+        js = compile pogo (source, filename)
+        try
+            result = vm.run (js) in context (context) (filename)
+            callback (nil, result)
+        catch @(error)
+            callback (error)
 
-    interface.on 'line' @(line)
-        evaluate repl line (line)
-        interface.prompt ()
-
-    interface.on 'close'
-        process.stdout.write "\n"
-        process.exit 0
-
-evaluate repl line (line) =
-    try
-        result = exports.evaluate (line, global: true)
-        console.log ' =>' (util.inspect (result, undefined, undefined, true))
-    catch @(ex)
-        console.log (ex.message)
+    repl.start (
+        eval: eval pogo
+    )
 
 compile from file (filename, ugly: false) =
     contents = fs.read file sync (filename) 'utf-8'
