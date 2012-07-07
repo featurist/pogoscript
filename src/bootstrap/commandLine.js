@@ -1,5 +1,5 @@
 ((function() {
-    var self, fs, ms, parser, parse, uglify, _, Module, path, repl, vm, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, compileFromFile, sourceLocationPrinter;
+    var self, fs, ms, parser, parse, uglify, _, Module, path, repl, vm, versions, runningOnNodeOrHigher, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, compileFromFile, sourceLocationPrinter;
     self = this;
     fs = require("fs");
     ms = require("../../lib/memorystream");
@@ -11,6 +11,10 @@
     path = require("path");
     repl = require("repl");
     vm = require("vm");
+    versions = require("../../lib/versions");
+    runningOnNodeOrHigher = function(version) {
+        return !versions.isLessThan(process.version, version);
+    };
     generateCode = function(term) {
         var memoryStream;
         memoryStream = new ms.MemoryStream;
@@ -182,9 +186,13 @@
                 return callback(error);
             }
         };
-        return repl.start({
-            eval: evalPogo
-        });
+        if (runningOnNodeOrHigher("v0.8.0")) {
+            return repl.start({
+                eval: evalPogo
+            });
+        } else {
+            return repl.start(undefined, undefined, evalPogo);
+        }
     };
     compileFromFile = function(filename, gen6_options) {
         var ugly, contents;

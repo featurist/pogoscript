@@ -8,6 +8,10 @@ Module = require 'module'
 path = require 'path'
 repl = require 'repl'
 vm = require 'vm'
+versions = require '../../lib/versions'
+
+running on node (version) or higher =
+    !versions.(process.version) is less than (version)
 
 generate code (term) =
     memory stream = new (ms.MemoryStream)
@@ -135,9 +139,12 @@ exports.repl () =
         catch @(error)
             callback (error)
 
-    repl.start (
-        eval: eval pogo
-    )
+    if (running on node 'v0.8.0' or higher)
+        repl.start (
+            eval: eval pogo
+        )
+    else
+        repl.start (undefined, undefined, eval pogo)
 
 compile from file (filename, ugly: false) =
     contents = fs.read file sync (filename) 'utf-8'
