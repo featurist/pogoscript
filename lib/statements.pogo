@@ -20,7 +20,7 @@ module.exports (terms) = terms.term {
             else
                 statement.generate java script statement (buffer, scope)
 
-    rewrite async callbacks (statements) =
+    rewrite async callbacks () =
         statements = self.serialise statements (self.statements)
 
         for (n = 0, n < statements.length, n = n + 1)

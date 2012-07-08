@@ -115,6 +115,11 @@ module.exports (terms) =
                 body.generate java script statements (buffer, body scope)
 
             buffer.write ('}')
+
+        expand macro (clone) =
+            c = clone ()
+            c.body = c.body.rewrite async callbacks ()
+            c
     }
 
 block parameters (block) = {

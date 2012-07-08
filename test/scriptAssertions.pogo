@@ -58,6 +58,31 @@ exports.evaluate script (script) =
 exports.(script) should output (expected output) =
     assert.equal (chomp (exports.evaluate script (script)), chomp (expected output))
 
+exports.evaluate async script (script, done) =
+    printed items = []
+    
+    print (arg) =
+        printed items.push (arg)
+
+    return printed output () =
+        done (
+            nil
+            _.map (printed items) @(item)
+                util.inspect (item)
+            .join "\n"
+        )
+    
+    command line.evaluate (script, definitions: {print = print, done = return printed output})
+    
+
+exports.async (script) should output (expected output, done) =
+    exports.evaluate async script (script) @(error, result)
+        try
+            assert.equal (chomp (result), chomp (expected output))
+            done ()
+        catch @(ex)
+            done (ex)
+
 exports.(script) should throw (expected error) =
     failed = false
     
