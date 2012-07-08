@@ -1,5 +1,5 @@
 express = require 'express'
-require '../bootstrap/runtime.pogo'
+require '../bootstrap/runtime'
 
 web server (methods, port: 3000) =
     app = express.create server ()

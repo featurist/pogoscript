@@ -1,5 +1,5 @@
-require './assertions.pogo'
-require './parserAssertions.pogo'
+require './assertions'
+require './parserAssertions'
 
 loc = {
     first line 1

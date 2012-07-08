@@ -1,4 +1,4 @@
-script = require './scriptAssertions.pogo'
+script = require './scriptAssertions'
 
 describe 'for'
     it 'can be returned from'

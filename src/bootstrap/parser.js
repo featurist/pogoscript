@@ -31,7 +31,7 @@
     };
     self.errors = terms.errors;
     self.lex = function(source) {
-        var self, tokens, tokenIndex, lexer, parserContext;
+        var self, tokens, tokenIndex, lexer, parserContext, token, text, lexerToken;
         self = this;
         tokens = [];
         tokenIndex = undefined;
@@ -46,7 +46,6 @@
         jisonLexer.yy = parserContext;
         tokenIndex = lexer.lex();
         while (tokenIndex !== 1) {
-            var token, text, lexerToken;
             token = function() {
                 if (typeof tokenIndex === "number") {
                     return parser.terminals_[tokenIndex];

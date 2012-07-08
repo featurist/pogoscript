@@ -1,5 +1,5 @@
 cg = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
-require './assertions.pogo'
+require './assertions'
 
 expression (expression) =
     cg.operator expression (complex expression (expression))

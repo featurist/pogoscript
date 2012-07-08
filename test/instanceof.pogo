@@ -1,4 +1,4 @@
-script = require './scriptAssertions.pogo'
+script = require './scriptAssertions'
 
 describe 'instanceof operator (::)'
     describe 'Array'

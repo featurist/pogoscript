@@ -1,4 +1,4 @@
-script = require './scriptAssertions.pogo'
+script = require './scriptAssertions'
 
 describe 'new'
     it 'can construct with arguments'

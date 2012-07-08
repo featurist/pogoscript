@@ -1,4 +1,4 @@
-script = require './scriptAssertions.pogo'
+script = require './scriptAssertions'
 
 should output = script.should output
 

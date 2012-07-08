@@ -1,6 +1,6 @@
 path = require 'path'
 fs = require 'fs'
-script = require '../scriptAssertions.pogo'
+script = require '../scriptAssertions'
 with args should output = script.with args should output
 child process = require 'child_process'
 net = require 'net'

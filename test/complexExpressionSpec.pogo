@@ -1,5 +1,5 @@
 cg = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
-require './assertions.pogo'
+require './assertions'
 
 int (n) =
   cg.integer (n)

@@ -1,4 +1,4 @@
-versions = require '../lib/versions.pogo'
+versions = require '../lib/versions'
 
 describe 'comparing versions'
     it 'returns true when "v0.3.1" is less than "v0.4.11"'

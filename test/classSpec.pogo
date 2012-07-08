@@ -1,4 +1,4 @@
-require '../lib/class.pogo'
+require '../lib/class'
 
 describe 'class'
   it 'can create constructors that can be used in new'

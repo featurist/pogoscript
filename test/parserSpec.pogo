@@ -1,7 +1,7 @@
-require './assertions.pogo'
+require './assertions'
 
-parser = require '../src/bootstrap/parser.pogo'
-require './parserAssertions.pogo'
+parser = require '../src/bootstrap/parser'
+require './parserAssertions'
 
 describe 'parser'
     describe 'terminals'
