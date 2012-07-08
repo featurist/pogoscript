@@ -358,15 +358,25 @@ describe 'parser'
             }
 
         it 'function call with no argument'
-            (expression 'delete everything!') should contain fields {
+            (expression 'delete everything ()') should contain fields {
                 function {variable ['delete', 'everything']}
                 function arguments []
             }
 
-        it 'function call with no argument using empty parens'
-            (expression 'delete everything ()') should contain fields {
-                function {variable ['delete', 'everything']}
-                function arguments []
+        it 'async function call with no arguments'
+            (expression 'delete everything!') should contain fields {
+                is statements
+                statements [
+                    {
+                        is definition
+                        target { is variable, name ['async', 'result'] }
+                        source {
+                            function {variable ['delete', 'everything']}
+                            function arguments []
+                        }
+                    }
+                    { is variable, name ['async', 'result'] }
+                ]
             }
 
         it 'function call with block with parameters'
