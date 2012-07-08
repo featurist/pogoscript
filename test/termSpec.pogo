@@ -133,6 +133,30 @@ describe 'terms'
                 }
             }
 
+        it "rewrite is passed the clone function, which can be used to clone the original node"
+            t = new (Term)
+            t.a = new (Term {
+                name = "jack"
+                b = new (Term {
+                    name = "john"
+                })
+            })
+
+            clone = t.clone (
+                rewrite (old term, clone: nil):
+                    if (old term.name)
+                        new term = clone ()
+                        new term.name = 'jill'
+                        new term
+            )
+            
+            (clone) should contain fields {
+                a = {
+                    name = "jill"
+                    b = {name = "jill"}
+                }
+            }
+
         it "doesn't rewrite beyond rewrite limit"
             t = new (Term {
                 a = new (Term {name = "jack"})

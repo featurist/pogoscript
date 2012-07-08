@@ -58,12 +58,19 @@ module.exports (cg) =
                 else
                     try
                         path.push (original node)
-                        rewritten node = if ((original node :: Node) && allow rewrite)
-                            rewrite (original node, path: path, clone (node):
-                                clone subterm (node, allow rewrite, path)
-                            )
-                        else
-                            nil
+                        rewritten node =
+                            if ((original node :: Node) && allow rewrite)
+                                rewrite (
+                                    original node
+                                    path: path
+                                    clone (node):
+                                        if (node)
+                                            clone subterm (node, allow rewrite, path)
+                                        else
+                                            clone object (original node, allow rewrite, path)
+                                )
+                            else
+                                nil
 
                         if (!rewritten node)
                             clone object (original node, allow rewrite, path)
