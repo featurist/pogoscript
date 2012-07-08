@@ -12,3 +12,12 @@ describe 'async'
                x = f ()!
                print (x)
                done ()' should output ("'result'", done)
+
+    it 'can make one async call as argument to another function' @(done)
+        async 'f (callback) =
+                   set timeout
+                       callback (nil, "result")
+                   0
+       
+               print (f ()!)
+               done ()' should output ("'result'", done)
