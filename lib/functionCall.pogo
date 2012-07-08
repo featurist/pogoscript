@@ -1,14 +1,15 @@
 codegen utils = require './codegenUtils'
 
 module.exports (terms) = terms.term {
-    constructor (fun, args, optional args) =
+    constructor (fun, args, optional args, async: false) =
         self.is function call = true
 
         self.function = fun
         self.function arguments = args
-        self.optional arguments = optionalArgs
+        self.optional arguments = optional args
         self.splatted arguments = self.cg.splat arguments (args, optional args)
         self.pass this to apply = false
+        self.is async = async
 
     has splat arguments () =
         self.splatted arguments
@@ -41,10 +42,22 @@ module.exports (terms) = terms.term {
             buffer.write (')')
 
     expand macro (clone) =
-        if (self.function.is variable)
+        if (self.is async)
+            statements = []
+            fun call = terms.function call (self.function, self.function arguments, self.optional arguments)
+            async result = terms.generated variable (['async', 'result'])
+            statements.push (terms.definition (async result, fun call, async: true))
+            statements.push (async result)
+            terms.statements (statements, expression: true)
+        else if (self.function.is variable)
             name = self.function.variable
             macro = self.cg.macros.find macro (name)
         
             if (macro)
                 macro (name, clone (self.function arguments), clone (self.optional arguments))
+
+    make async call with result (variable, statements) =
+        fc = self.clone ()
+        fc.function arguments.push (terms.closure ([terms.generated variable ['error'], variable], terms.statements (statements)))
+        fc
 }

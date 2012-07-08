@@ -5,7 +5,8 @@ module.exports (terms) = terms.term {
         self.name = name
         self.is variable = true
         self.gen var = nil
-        self.dont clone = true
+
+    dont clone = true
 
     generated name (scope) =
         if (!self.gen var)

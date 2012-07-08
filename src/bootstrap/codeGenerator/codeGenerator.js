@@ -1,7 +1,7 @@
 var cg = require('../../../lib/codeGenerator');
 
 exports.codeGenerator = function () {
-  codegen = {};
+  var codegen = {};
 
   var term = require('../../../lib/terms')(codegen);
 

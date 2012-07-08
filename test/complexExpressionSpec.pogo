@@ -57,16 +57,27 @@ describe 'complex expression'
     it 'all arguments is function call, first argument is function'
       expression [[variable 'z', int 9]] should contain fields {
         is function call
+        is async = false
         function {variable ['z']}
         function arguments [{integer 9}]
       }
 
-    it 'one argument and async argument is function call'
-      expression [[variable 'z', async argument]] should contain fields {
-        is function call
-        function {variable ['z']}
-        function arguments []
-      }
+    describe 'async functions'
+        it 'one argument and async argument is async function call'
+          expression [[variable 'z', async argument]] should contain fields {
+            is function call
+            is async
+            function {variable ['z']}
+            function arguments []
+          }
+
+        it 'name and async argument is function call'
+          expression [[id 'z', async argument]] should contain fields {
+            is function call
+            is async
+            function {variable ['z']}
+            function arguments []
+          }
 
     it 'with name is variable'
       expression [[id 'a', id 'variable']] should contain fields {
@@ -77,6 +88,7 @@ describe 'complex expression'
     it 'with name and argument is function call'
       expression [[id 'a', id 'variable', int 10]] should contain fields {
         is function call
+        is async = false
         function {is variable, variable ['a', 'variable']}
         function arguments [{integer 10}]
       }
@@ -84,6 +96,7 @@ describe 'complex expression'
     it 'hash entries as arguments are optional'
       expression [[id 'a', int 10, cg.hash entry ['port'] (int 80)]] should contain fields {
         is function call
+        is async = false
         function {is variable, variable ['a']}
         function arguments [{integer 10}]
         optional arguments [{field ['port'], value {integer 80}}]
@@ -92,6 +105,7 @@ describe 'complex expression'
     it 'with name and optional args is function call with optional args'
       expression [[id 'a', id 'variable'], [id 'port', int 80]] should contain fields {
         is function call
+        is async = false
         function {is variable, variable ['a', 'variable']}
         function arguments []
         optional arguments [{field ['port'], value {integer 80}}]
@@ -100,6 +114,7 @@ describe 'complex expression'
     it 'with block after optional arguments'
       expression [[id 'a', id 'variable'], [id 'port', int 80, block]] should contain fields {
         is function call
+        is async = false
         function {is variable, variable ['a', 'variable']}
         function arguments [
             {
@@ -145,6 +160,20 @@ describe 'complex expression'
     it 'index call with arguments'
       expression (variable 'a') [[variable 'z', int 10]] should contain fields {
         is function call
+        is async = false
+        function {
+          is indexer
+          object {variable ['a']}
+          indexer {variable ['z']}
+        }
+        
+        function arguments [{integer 10}]
+      }
+
+    it 'async index call with arguments'
+      expression (variable 'a') [[variable 'z', int 10, async argument]] should contain fields {
+        is function call
+        is async
         function {
           is indexer
           object {variable ['a']}
@@ -157,6 +186,7 @@ describe 'complex expression'
     it 'async index call with no arguments'
       expression (variable 'a') [[variable 'z', async argument]] should contain fields {
         is function call
+        is async
         function {
           is indexer
           object {variable ['a']}
@@ -169,6 +199,7 @@ describe 'complex expression'
     it 'index call with no arguments'
       expression (variable 'a') [[variable 'z', cg.argument list []]] should contain fields {
         is function call
+        is async = false
         function {
           is indexer
           object {variable ['a']}

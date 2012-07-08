@@ -222,6 +222,8 @@ module.exports (cg) =
 
         declare variables () = nil
         declare variable () = nil
+
+        make async with statements (statements) = nil
     }
 
     term prototype = new (Term)

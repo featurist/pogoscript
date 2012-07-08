@@ -38,6 +38,10 @@ module.exports = function (listOfTerminals) {
         }));
       }
     };
+
+    this.hasAsyncArgument = function () {
+      
+    };
     
     this.tailBlock = function () {
       if (this._hasTailBlock) {
@@ -85,7 +89,7 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return cg.functionCall(cg.variable(head.name()), this.arguments(), this.optionalArguments());
+          return cg.functionCall(cg.variable(head.name()), this.arguments(), this.optionalArguments(), {async: head.hasAsyncArgument()});
         } else {
           return cg.variable(head.name());
         }
@@ -93,23 +97,25 @@ module.exports = function (listOfTerminals) {
         if (!this.hasTail() && this.arguments().length === 1 && !head.hasAsyncArgument()) {
           return this.arguments()[0];
         } else {
-          return cg.functionCall(this.arguments()[0], this.arguments().slice(1));
+          return cg.functionCall(this.arguments()[0], this.arguments().slice(1), void 0, {async: head.hasAsyncArgument()});
         }
       }
     };
     
     this.objectOperationExpression = function (object) {
-      if (this.head().hasName()) {
+      var head = this.head();
+
+      if (head.hasName()) {
         if (this.hasArguments()) {
-          return cg.methodCall(object, this.head().name(), this.arguments(), this.optionalArguments());
+          return cg.methodCall(object, head.name(), this.arguments(), this.optionalArguments());
         } else {
-          return cg.fieldReference(object, this.head().name());
+          return cg.fieldReference(object, head.name());
         }
       } else {
-        if (!this.hasTail() && !this.head().isCall() && !this.head().hasAsyncArgument()) {
+        if (!this.hasTail() && !head.isCall() && !head.hasAsyncArgument()) {
           return cg.indexer(object, this.arguments()[0]);
         } else {
-          return cg.functionCall(cg.indexer(object, this.arguments()[0]), this.arguments().slice(1));
+          return cg.functionCall(cg.indexer(object, this.arguments()[0]), this.arguments().slice(1), void 0, {async: head.hasAsyncArgument()});
         }
       }
     };

@@ -1,7 +1,7 @@
 _ = require 'underscore'
 codegen utils = require('./codegenUtils')
 
-module.exports (cg) = cg.term {
+module.exports (terms) = terms.term {
     constructor (statements, expression: false) =
         self.is statements = true
         self.statements = statements
@@ -19,6 +19,21 @@ module.exports (cg) = cg.term {
                 statement.generate java script return (buffer, scope)
             else
                 statement.generate java script statement (buffer, scope)
+
+    rewrite async callbacks (statements) =
+        statements = self.serialise statements (self.statements)
+
+        for (n = 0, n < statements.length, n = n + 1)
+            statement = statements.(n)
+            async statement = statement.make async with statements
+                statements.slice (n + 1)
+
+            if (async statement)
+                first statements = statements.slice (0, n)
+                first statements.push (async statement)
+                return (terms.statements (first statements))
+
+        self
 
     generate variable declarations (variables, buffer, scope, global) =
         if (variables.length > 0)
@@ -48,14 +63,13 @@ module.exports (cg) = cg.term {
         serialised statements = []
 
         for each @(statement) in (statements)
-            statement.serialise sub statements (serialised statements)
-
-            statement.walk descendants @(subterm)
-                subterm.serialise sub statements (serialised statements)
-            not below @(subterm) if
-                subterm.is statements
-
-            serialised statements.push (statement)
+            serialised statements.push (statement.clone (
+                rewrite (term):
+                    term.serialise sub statements (serialised statements)
+                    
+                limit (term):
+                    term.is statements && !term.is expression statements
+            ))
 
         serialised statements
     
@@ -63,6 +77,8 @@ module.exports (cg) = cg.term {
         if (self.is expression statements)
             first statements = self.statements.slice (0, self.statements.length - 1)
             statements.push (first statements, ...)
+
+            self.statements.(self.statements.length - 1)
 
     generate java script statements (buffer, scope, global) =
         self.generate statements (self.statements, buffer, scope, global)

@@ -1,8 +1,9 @@
 module.exports (terms) = terms.term {
-    constructor (target, source) =
+    constructor (target, source, async: false) =
         self.is definition = true
         self.target = target
         self.source = source
+        self.is async = async
 
     expression () =
         self
@@ -17,4 +18,9 @@ module.exports (terms) = terms.term {
   
     declare variables (variables, scope) =
         self.target.declare variable (variables, scope)
+
+    make async with statements (get remaining statements) =
+        if (self.is async)
+            statements = get remaining statements ()
+            self.source.make async call with result (self.target, statements)
 }

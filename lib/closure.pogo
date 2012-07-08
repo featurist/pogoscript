@@ -48,13 +48,13 @@ module.exports (terms) =
 
     terms.term {
         constructor (parameters, body, return last statement: true, redefines self: false) =
-            self.body = body
             self.is block = true
             self.is closure = true
-            self.return last statement = return last statement
             self.parameters = parameters
-            self.optional parameters = []
+            self.body = body
+            self.return last statement = return last statement
             self.redefines self = redefines self
+            self.optional parameters = []
 
         blockify (parameters, optional parameters) =
             self.parameters = parameters
