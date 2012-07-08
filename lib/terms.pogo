@@ -43,7 +43,16 @@ module.exports (cg) =
                     nil
 
         clone (rewrite (subterm): nil, limit (subterm): false) =
-            clone object (original node, allow rewrite, path) =
+            clone object (node, allow rewrite, path) =
+                t = Object.create (Object.get prototype of (node))
+
+                for @(member) in (node)
+                    if (node.has own property (member))
+                        t.(member) = clone subterm (node.(member), allow rewrite, path)
+
+                t
+
+            clone node (original node, allow rewrite, path) =
                 if (original node.dont clone)
                     original node
                 else
@@ -57,13 +66,7 @@ module.exports (cg) =
                             nil
 
                         if (!rewritten node)
-                            t = Object.create (Object.get prototype of (original node))
-
-                            for @(member) in (original node)
-                                if (original node.has own property (member))
-                                    t.(member) = clone subterm (original node.(member), allow rewrite, path)
-
-                            t
+                            clone object (original node, allow rewrite, path)
                         else
                             if (!(rewritten node :: Node))
                                 throw (new (Error "rewritten node not an instance of Node"))
@@ -87,7 +90,7 @@ module.exports (cg) =
                 else if (subterm :: Function)
                     subterm
                 else if (subterm :: Object)
-                    clone object (subterm, allow rewrite && !limit (subterm, path: path), path)
+                    clone node (subterm, allow rewrite && !limit (subterm, path: path), path)
                 else
                     subterm
             

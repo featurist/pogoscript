@@ -4,7 +4,6 @@ assert = require 'assert'
 should output = script.should output
 with args should output = script.with args should output
 
-
 describe 'script'
     describe 'integers'
         it 'can denote an integer literally'

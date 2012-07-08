@@ -823,7 +823,7 @@ describe('code generator', function () {
           cg.definition(cg.variable(['x']), cg.integer(2)),
           cg.variable(['x'])
         ]))])
-      ]));
+      ])).expandMacros();
       
       generatesExpression(s, '(function(){var self,x;self=this;x=1;f(function(){x=2;return x;});}).call(this);');
     });

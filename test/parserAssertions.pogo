@@ -19,6 +19,7 @@ global.expression (source) =
 
 global.statements (source) =
     term = parse (source)
+    term.in scope = false
 
     expanded term = term.expand macros ()
 

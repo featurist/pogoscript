@@ -92,9 +92,7 @@ exports.compile (pogo, filename: nil, in scope: true, ugly: false, global: false
     module term.global = global
     module term.return result = return result
 
-    macro expanded module = module term.clone (
-        rewrite (term): term.expand macros ()
-    )
+    macro expanded module = module term.expand macros ()
 
     code = generate code (macro expanded module)
 

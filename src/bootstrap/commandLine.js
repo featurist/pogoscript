@@ -126,11 +126,7 @@
         moduleTerm.inScope = inScope;
         moduleTerm.global = global;
         moduleTerm.returnResult = returnResult;
-        macroExpandedModule = moduleTerm.clone({
-            rewrite: function(term) {
-                return term.expandMacros();
-            }
-        });
+        macroExpandedModule = moduleTerm.expandMacros();
         code = generateCode(macroExpandedModule);
         if (!ugly) {
             code = beautify(code);

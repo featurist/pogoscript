@@ -5,15 +5,16 @@ module.exports (terms) = terms.term {
         self.in scope = true
         self.global = false
         self.return result = false
-  
+
     generate java script (buffer, scope, global) =
-        if (self.in scope)
-            b = self.cg.block ([], self.statements, return last statement: false, redefines self: true)
-            self.cg.method call (self.cg.sub expression (b), ['call'], [self.cg.variable (['this'])]).generate java script (buffer, new (self.cg.Symbol Scope))
-            buffer.write (';')
+        if (self.return result)
+            self.statements.generate java script statements return (buffer, new (terms.Symbol Scope), self.global)
         else
-            if (self.return result)
-                self.statements.generate java script statements return (buffer, new (self.cg.Symbol Scope), self.global)
-            else
-                self.statements.generate java script statements (buffer, new (self.cg.Symbol Scope), self.global)
+            self.statements.generate java script statements (buffer, new (terms.Symbol Scope), self.global)
+
+    expand macro () =
+        if (self.in scope)
+            b = terms.closure ([], self.statements, return last statement: false, redefines self: true)
+            call = terms.method call (terms.sub expression (b), ['call'], [terms.variable (['this'])])
+            terms.module (terms.statements [call].expand macros ())
 }
