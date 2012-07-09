@@ -485,6 +485,7 @@ describe 'complex expression'
           is block
           parameters []
           body {statements [{variable ['y']}]}
+          is async = true
         }
       }
     

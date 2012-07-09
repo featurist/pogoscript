@@ -40,7 +40,7 @@ module.exports = function (listOfTerminals) {
     };
 
     this.hasAsyncArgument = function () {
-      
+      return this.head().hasAsyncArgument();
     };
     
     this.tailBlock = function () {
@@ -89,15 +89,15 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return cg.functionCall(cg.variable(head.name()), this.arguments(), this.optionalArguments(), {async: head.hasAsyncArgument()});
+          return cg.functionCall(cg.variable(head.name()), this.arguments(), this.optionalArguments(), {async: this.hasAsyncArgument()});
         } else {
           return cg.variable(head.name());
         }
       } else {
-        if (!this.hasTail() && this.arguments().length === 1 && !head.hasAsyncArgument()) {
+        if (!this.hasTail() && this.arguments().length === 1 && !this.hasAsyncArgument()) {
           return this.arguments()[0];
         } else {
-          return cg.functionCall(this.arguments()[0], this.arguments().slice(1), void 0, {async: head.hasAsyncArgument()});
+          return cg.functionCall(this.arguments()[0], this.arguments().slice(1), void 0, {async: this.hasAsyncArgument()});
         }
       }
     };
@@ -112,10 +112,10 @@ module.exports = function (listOfTerminals) {
           return cg.fieldReference(object, head.name());
         }
       } else {
-        if (!this.hasTail() && !head.isCall() && !head.hasAsyncArgument()) {
+        if (!this.hasTail() && !head.isCall() && !this.hasAsyncArgument()) {
           return cg.indexer(object, this.arguments()[0]);
         } else {
-          return cg.functionCall(cg.indexer(object, this.arguments()[0]), this.arguments().slice(1), void 0, {async: head.hasAsyncArgument()});
+          return cg.functionCall(cg.indexer(object, this.arguments()[0]), this.arguments().slice(1), void 0, {async: this.hasAsyncArgument()});
         }
       }
     };
@@ -167,7 +167,7 @@ module.exports = function (listOfTerminals) {
               return cg.definition(cg.fieldReference(object, self.head().name()), source.scopify());
             }
           } else {
-            if (!self.hasTail() && self.arguments().length === 1 && !self.head().hasAsyncArgument()) {
+            if (!self.hasTail() && self.arguments().length === 1 && !self.hasAsyncArgument()) {
               return cg.definition(cg.indexer(object, self.arguments()[0]), source.scopify());
             } else {
               var block = source.blockify(self.parameters({skipFirstParameter: true}), self.optionalParameters());
@@ -203,7 +203,7 @@ module.exports = function (listOfTerminals) {
         if (self.hasParameters()) {
           return {
             expression: function () {
-              return cg.definition(cg.variable(self.head().name()), source.blockify(self.parameters(), self.optionalParameters()));
+              return cg.definition(cg.variable(self.head().name()), source.blockify(self.parameters(), self.optionalParameters(), {async: self.hasAsyncArgument()}));
             },
             hashEntry: function (isOptionalArgument) {
               var block = source.blockify(self.parameters(), self.optionalParameters());
