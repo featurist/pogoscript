@@ -26,9 +26,10 @@ describe 'async'
         async 'as (f) =
                    set timeout
                        f (nil, 4)
-                   1000
+                   0
                
                fn ()! =
                    as ()!
                
-               console.log (fn ()!)' should output ("4", done)
+               print (fn ()!)
+               done ()' should output ("4", done)

@@ -120,7 +120,15 @@ module.exports (terms) =
 
         expand macro (clone) =
             c = clone ()
-            c.body = c.body.rewrite async callbacks ()
+
+            if (self.is async)
+                callback = terms.generated variable ['callback']
+                c.is async = false
+                c.parameters.push (callback)
+                c.body = c.body.rewrite async callbacks (callback function: callback)
+            else
+                c.body = c.body.rewrite async callbacks (return last statement: true)
+
             c
     }
 

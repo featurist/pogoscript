@@ -32,6 +32,7 @@ describe('code generator', function () {
   
   var generatesStatements = function(term, expectedGeneratedCode, global, print) {
     var stream = new MemoryStream();
+    term = term.expandMacros().rewriteAsyncCallbacks();
     term.generateJavaScriptStatements(stream, new cg.SymbolScope(), global);
     if (print)
         console.log(stream.toString())
@@ -39,6 +40,8 @@ describe('code generator', function () {
   };
   
   var generatesStatementsReturn = function(term, expectedGeneratedCode) {
+    console.log('rewriting async');
+    term = term.expandMacros().rewriteAsyncCallbacks();
     var stream = new MemoryStream();
     term.generateJavaScriptStatementsReturn(stream, new cg.SymbolScope());
     assert.equal(stream.toString(), expectedGeneratedCode);
@@ -478,7 +481,7 @@ describe('code generator', function () {
         cg.statements([cg.variable(['i'])])
       );
       
-      generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){i;}');
+      generatesExpression(f, 'for(i=0;(i<10);i=(i+1)){i;}');
     });
 
     it('rewrites return for returning from scope', function() {
@@ -489,7 +492,7 @@ describe('code generator', function () {
         cg.statements([cg.returnStatement(cg.variable(['i']))])
       );
       
-      generatesReturnExpression(f, 'for(i=0;(i<10);i=(i+1)){var gen1_forResult;gen1_forResult=void 0;if((function(i){gen1_forResult=i;return true;}(i))){return gen1_forResult;}}');
+      generatesExpression(f, 'for(i=0;(i<10);i=(i+1)){var gen1_forResult;gen1_forResult=void 0;if((function(i){gen1_forResult=i;return true;}(i))){return gen1_forResult;}}');
     });
   });
   

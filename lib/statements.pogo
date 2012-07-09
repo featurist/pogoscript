@@ -8,20 +8,27 @@ module.exports (terms) = terms.term {
         self.is expression statements = expression
 
     generate statements (statements, buffer, scope, global, generate return) =
-        serialised statements = self.serialise statements (statements)
         declared variables = self.find declared variables (scope)
 
         self.generate variable declarations (declared variables, buffer, scope, global)
 
-        for (s = 0, s < serialised statements.length, s = s + 1)
-            statement = serialised statements.(s)
-            if ((s == (serialised statements.length - 1)) && generate return)
+        for (s = 0, s < statements.length, s = s + 1)
+            statement = statements.(s)
+            if ((s == (statements.length - 1)) && generate return)
                 statement.generate java script return (buffer, scope)
             else
                 statement.generate java script statement (buffer, scope)
 
-    rewrite async callbacks () =
-        statements = self.serialise statements (self.statements)
+    rewrite async callbacks (return last statement: false, callback function: nil) =
+        return term (term) =
+            if (return last statement)
+                terms.return statement (term)
+            else if (callback function)
+                terms.function call (callback function, [terms.nil (), term])
+            else
+                term
+
+        statements = self._serialise statements (self.statements, return term)
 
         for (n = 0, n < statements.length, n = n + 1)
             statement = statements.(n)
@@ -59,7 +66,7 @@ module.exports (terms) = terms.term {
 
         _.uniq (declared variables)
 
-    serialise statements (statements) =
+    _serialise statements (statements, return term) =
         serialised statements = []
 
         for (n = 0, n < statements.length, n = n + 1)
@@ -74,7 +81,7 @@ module.exports (terms) = terms.term {
                 )
 
             if (n == (statements.length - 1))
-                serialised statements.push (terms.return statement (rewritten statement))
+                serialised statements.push (return term (rewritten statement))
             else
                 serialised statements.push (rewritten statement)
 
