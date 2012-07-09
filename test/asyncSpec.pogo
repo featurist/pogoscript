@@ -21,3 +21,14 @@ describe 'async'
        
                print (f ()!)
                done ()' should output ("'result'", done)
+
+    it "an async function returns its result in a callback" @(done)
+        async 'as (f) =
+                   set timeout
+                       f (nil, 4)
+                   1000
+               
+               fn ()! =
+                   as ()!
+               
+               console.log (fn ()!)' should output ("4", done)

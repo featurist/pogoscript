@@ -13,7 +13,7 @@ describe 'statements'
                     terms.closure (
                         [terms.generated variable ['error'], terms.generated variable ['async', 'result']]
                         terms.statements [
-                            terms.generated variable ['async', 'result']
+                            terms.return statement (terms.generated variable ['async', 'result'])
                         ]
                     )
                 ])
@@ -35,10 +35,27 @@ describe 'statements'
                     terms.closure (
                         [terms.generated variable ['error'], terms.generated variable ['async', 'result']]
                         terms.statements [
-                            terms.function call (terms.variable ['b'], [terms.generated variable ['async', 'result']])
+                            terms.return statement (terms.function call (terms.variable ['b'], [terms.generated variable ['async', 'result']]))
                         ]
                     )
                 ])
+            ]
+
+            (callback statements) should contain fields (expected statements)
+
+        it 'returns last statement'
+            statements = terms.statements [
+                terms.variable ['one']
+                terms.variable ['two']
+                terms.variable ['three']
+            ]
+
+            callback statements = statements.expand macros ().rewrite async callbacks ()
+
+            expected statements = terms.statements [
+                terms.variable ['one']
+                terms.variable ['two']
+                terms.return statement (terms.variable ['three'])
             ]
 
             (callback statements) should contain fields (expected statements)

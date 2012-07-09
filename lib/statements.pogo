@@ -33,7 +33,7 @@ module.exports (terms) = terms.term {
                 first statements.push (async statement)
                 return (terms.statements (first statements))
 
-        self
+        terms.statements (statements)
 
     generate variable declarations (variables, buffer, scope, global) =
         if (variables.length > 0)
@@ -62,14 +62,21 @@ module.exports (terms) = terms.term {
     serialise statements (statements) =
         serialised statements = []
 
-        for each @(statement) in (statements)
-            serialised statements.push (statement.clone (
-                rewrite (term):
-                    term.serialise sub statements (serialised statements)
-                    
-                limit (term):
-                    term.is statements && !term.is expression statements
-            ))
+        for (n = 0, n < statements.length, n = n + 1)
+            statement = statements.(n)
+            rewritten statement = 
+                statement.clone (
+                    rewrite (term):
+                        term.serialise sub statements (serialised statements)
+                        
+                    limit (term):
+                        term.is statements && !term.is expression statements
+                )
+
+            if (n == (statements.length - 1))
+                serialised statements.push (terms.return statement (rewritten statement))
+            else
+                serialised statements.push (rewritten statement)
 
         serialised statements
     
