@@ -68,8 +68,10 @@ capitalise (s) =
     s.0.to upper case () + s.substring (1)
 
 reserved words = {
-  class
-  function
+    class
+    function
+    else
+    case
 }
 
 escape reserved word (word) =
