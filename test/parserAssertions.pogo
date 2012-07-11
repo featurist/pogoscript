@@ -21,7 +21,5 @@ global.statements (source) =
     term = parse (source)
     term.in scope = false
 
-    expanded term = term.expand macros ()
-
-    assume (expanded term) is module with statements @(statements)
+    assume (term) is module with statements @(statements)
         statements
