@@ -16,6 +16,7 @@ exports.codeGenerator = function () {
   importTerm('variable');
   importTerm('selfExpression');
   importTerm('statements');
+  importTerm('subStatements');
   importTerm('closure');
   codegen.block = codegen.closure;
   importTerm('parameters');

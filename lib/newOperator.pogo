@@ -24,6 +24,6 @@ module.exports (terms) =
             statements.push (terms.definition (constructor variable, constructor))
             statements.push (terms.definition (terms.field reference (constructor variable, ['prototype']), terms.field reference (fn.function, ['prototype'])))
             statements.push (terms.new operator (constructor variable))
-            terms.statements (statements, expression: true)
+            terms.sub statements (statements)
         else
             new operator term (fn)

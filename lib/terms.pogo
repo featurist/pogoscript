@@ -194,14 +194,14 @@ module.exports (cg) =
 
         arguments () = self
 
-        inspect term () =
-            util.inspect (self, false, 20)
+        inspect term (depth: 20) =
+            util.inspect (self, false, depth)
 
-        show (desc) =
+        show (desc, depth: 20) =
             if (desc)
-                console.log (desc, self.inspect term ())
+                console.log (desc, self.inspect term (depth: depth))
             else
-                console.log (self.inspect term ())
+                console.log (self.inspect term (depth: depth))
 
         hash entry () =
             self.cg.errors.add term (self) with message 'cannot be used as a hash entry'

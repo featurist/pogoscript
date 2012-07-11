@@ -12,9 +12,9 @@ module.exports (terms) = terms.term {
         for result variable = self.cg.generated variable ['for', 'result']
         rewritten statements = statements.clone (
             rewrite (term):
-                if (term.is return)
+                if (term.is return && !term.is implicit)
                     contains return = true
-                    self.cg.statements ([self.cg.definition (for result variable, term.expression), self.cg.return statement (self.cg.boolean (true))], expression: true)
+                    terms.sub statements [self.cg.definition (for result variable, term.expression), self.cg.return statement (self.cg.boolean (true))]
 
             limit (term, path: path):
                 if (term.is statements)

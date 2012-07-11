@@ -48,13 +48,13 @@ module.exports (terms) = terms.term {
             async result = terms.generated variable (['async', 'result'])
             statements.push (terms.definition (async result, fun call, async: true))
             statements.push (async result)
-            terms.statements (statements, expression: true)
+            terms.sub statements (statements)
         else if (self.function.is variable)
             name = self.function.variable
             macro = self.cg.macros.find macro (name)
         
             if (macro)
-                macro (name, clone (self.function arguments), clone (self.optional arguments))
+                macro (name, self.function arguments, self.optional arguments).expand macros ()
 
     make async call with result (variable, statements) =
         fc = self.clone ()

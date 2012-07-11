@@ -219,15 +219,5 @@ exports.macros = function (cg) {
     return cg.nil();
   });
   
-  /*
-  macros.addMacro(['stuff'], function () {
-    return cg.statements([
-        cg.definition(cg.generatedVariable(['asdf']), cg.float(2.2)),
-        cg.functionCall(cg.variable(['f']), [cg.integer(1)]),
-        cg.functionCall(cg.variable(['g']), [cg.integer(2)])
-    ], {expression: true});
-  });
-  */
-  
   return macros;
 };

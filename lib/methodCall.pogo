@@ -23,13 +23,13 @@ module.exports (terms) =
   
         if (splatted args)
             object var = terms.generated variable ['o']
-            terms.statements ([
+            terms.sub statements [
               terms.definition (objectVar, object)
               terms.methodCall (
                 terms.field reference (objectVar, name)
                 ['apply']
                 [object var, splatted args]
               )
-            ], expression: true)
+            ]
         else
             method call term (object, name, args, optional args)

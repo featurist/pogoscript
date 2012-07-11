@@ -82,7 +82,7 @@ describe 'closure'
             expected closure = terms.closure (
                 []
                 terms.statements [
-                    terms.return statement (terms.variable ['a'])
+                    terms.return statement (terms.variable ['a'], implicit: true)
                 ]
             )
 
@@ -105,9 +105,9 @@ describe 'closure'
                 terms.statements [
                     terms.if expression (
                         [
-                            [terms.variable ['condition'], terms.return statement (terms.variable ['true'])]
+                            [terms.variable ['condition'], terms.return statement (terms.variable ['true'], implicit: true)]
                         ]
-                        terms.return statement (terms.variable ['false'])
+                        terms.return statement (terms.variable ['false'], implicit: true)
                     )
                 ]
             )

@@ -374,13 +374,13 @@ describe('code generator', function () {
     });
     
     it('generates sub statements', function () {
-      var st = cg.statements([cg.statements([cg.variable(['one']), cg.variable(['two'])], {expression: true})]);
+      var st = cg.statements([cg.subStatements([cg.variable(['one']), cg.variable(['two'])])]);
       
       generatesStatementsReturn(st, 'one;return two;');
     });
     
     it('generates sub statements, but not in blocks', function () {
-      var st = cg.statements([cg.block([], cg.statements([cg.statements([cg.variable(['one']), cg.variable(['two'])], {expression: true})]))]);
+      var st = cg.statements([cg.block([], cg.statements([cg.subStatements([cg.variable(['one']), cg.variable(['two'])])]))]);
       
       generatesStatementsReturn(st, 'return function(){one;return two;};');
     });
@@ -532,12 +532,6 @@ describe('code generator', function () {
         var f = cg.statements([cg.functionCall(cg.variable(['f']), [cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()])])]);
       
         generatesStatements(f, 'var gen1_o;gen1_o=o;f(gen1_o.m.apply(gen1_o,b));');
-      });
-      
-      it('splat call as expression for return', function () {
-        var f = cg.statements([cg.functionCall(cg.variable(['f']), [cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()])])]);
-      
-        generatesStatementsReturn(f, 'var gen1_o;gen1_o=o;return f(gen1_o.m.apply(gen1_o,b));');
       });
       
       it('args before', function () {

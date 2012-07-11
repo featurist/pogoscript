@@ -21,7 +21,7 @@ module.exports (terms) =
         test = terms.operator('<', [index var, terms.field reference(items var, ['length'])])
         incr = post increment(index var)
 
-        terms.statements([
+        terms.sub statements [
             terms.definition(items var, collection)
             terms.for statement(init, test, incr, statements with item assignment)
-        ], expression: true)
+        ]

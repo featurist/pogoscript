@@ -2,10 +2,9 @@ _ = require 'underscore'
 codegen utils = require('./codegenUtils')
 
 module.exports (terms) = terms.term {
-    constructor (statements, expression: false) =
+    constructor (statements) =
         self.is statements = true
         self.statements = statements
-        self.is expression statements = expression
 
     generate statements (statements, buffer, scope, global, generate return) =
         declared variables = self.find declared variables (scope)
@@ -22,7 +21,7 @@ module.exports (terms) = terms.term {
     rewrite async callbacks (return last statement: false, callback function: nil) =
         return term (term) =
             if (return last statement)
-                terms.return statement (term)
+                terms.return statement (term, implicit: true)
             else if (callback function)
                 terms.function call (callback function, [terms.nil (), term])
             else
@@ -62,13 +61,6 @@ module.exports (terms) = terms.term {
                 serialised statements.push (rewritten statement)
 
         serialised statements
-    
-    serialise sub statements (statements) =
-        if (self.is expression statements)
-            first statements = self.statements.slice (0, self.statements.length - 1)
-            statements.push (first statements, ...)
-
-            self.statements.(self.statements.length - 1)
 
     generate variable declarations (variables, buffer, scope, global) =
         if (variables.length > 0)
