@@ -33,4 +33,12 @@ module.exports (cg) = cg.term {
 
     generate java script return (buffer, scope) =
         self.generate java script statement (buffer, scope, true)
+
+    return result (return term) =
+        for each @(_case) in (self.cases)
+            _case.1 = return term (_case.1)
+
+        self._else = return term (self._else)
+
+        self
 }

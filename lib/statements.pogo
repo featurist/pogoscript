@@ -42,6 +42,34 @@ module.exports (terms) = terms.term {
 
         terms.statements (statements)
 
+    _serialise statements (statements, return term) =
+        serialised statements = []
+
+        for (n = 0, n < statements.length, n = n + 1)
+            statement = statements.(n)
+            rewritten statement = 
+                statement.clone (
+                    rewrite (term):
+                        term.serialise sub statements (serialised statements)
+                        
+                    limit (term):
+                        term.is statements && !term.is expression statements
+                )
+
+            if (n == (statements.length - 1))
+                serialised statements.push (rewritten statement.return result (return term))
+            else
+                serialised statements.push (rewritten statement)
+
+        serialised statements
+    
+    serialise sub statements (statements) =
+        if (self.is expression statements)
+            first statements = self.statements.slice (0, self.statements.length - 1)
+            statements.push (first statements, ...)
+
+            self.statements.(self.statements.length - 1)
+
     generate variable declarations (variables, buffer, scope, global) =
         if (variables.length > 0)
             _(variables).each @(name)
@@ -65,34 +93,6 @@ module.exports (terms) = terms.term {
             subterm.is statements && path.(path.length - 1).is closure
 
         _.uniq (declared variables)
-
-    _serialise statements (statements, return term) =
-        serialised statements = []
-
-        for (n = 0, n < statements.length, n = n + 1)
-            statement = statements.(n)
-            rewritten statement = 
-                statement.clone (
-                    rewrite (term):
-                        term.serialise sub statements (serialised statements)
-                        
-                    limit (term):
-                        term.is statements && !term.is expression statements
-                )
-
-            if (n == (statements.length - 1))
-                serialised statements.push (return term (rewritten statement))
-            else
-                serialised statements.push (rewritten statement)
-
-        serialised statements
-    
-    serialise sub statements (statements) =
-        if (self.is expression statements)
-            first statements = self.statements.slice (0, self.statements.length - 1)
-            statements.push (first statements, ...)
-
-            self.statements.(self.statements.length - 1)
 
     generate java script statements (buffer, scope, global) =
         self.generate statements (self.statements, buffer, scope, global)

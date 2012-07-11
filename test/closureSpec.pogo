@@ -73,16 +73,43 @@ describe 'closure'
 
             (callback closure) should contain fields (expected closure)
 
-    it 'returns last statement'
-        closure = terms.closure ([], terms.statements [terms.variable ['a']])
+    describe 'returning last statement'
+        it 'returns simple expressions'
+            closure = terms.closure ([], terms.statements [terms.variable ['a']])
 
-        expanded closure = closure.expand macros ()
+            expanded closure = closure.expand macros ()
 
-        expected closure = terms.closure (
-            []
-            terms.statements [
-                terms.return statement (terms.variable ['a'])
-            ]
-        )
+            expected closure = terms.closure (
+                []
+                terms.statements [
+                    terms.return statement (terms.variable ['a'])
+                ]
+            )
 
-        (expanded closure) should contain fields (expected closure)
+            (expanded closure) should contain fields (expected closure)
+
+        it 'if expressions return themselves'
+            closure = terms.closure ([], terms.statements [
+                terms.if expression (
+                    [
+                        [terms.variable ['condition'], terms.variable ['true']]
+                    ]
+                    terms.variable ['false']
+                )
+            ])
+
+            expanded closure = closure.expand macros ()
+
+            expected closure = terms.closure (
+                []
+                terms.statements [
+                    terms.if expression (
+                        [
+                            [terms.variable ['condition'], terms.return statement (terms.variable ['true'])]
+                        ]
+                        terms.return statement (terms.variable ['false'])
+                    )
+                ]
+            )
+
+            (expanded closure) should contain fields (expected closure)
