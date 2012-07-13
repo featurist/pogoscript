@@ -144,11 +144,8 @@ describe 'parser'
                         variable ['abc']
                     }
                     source {
-                        is scope
-                        statements [{
-                            is variable
-                            variable ['stuff']
-                        }]
+                        is variable
+                        variable ['stuff']
                     }
                 }
 
@@ -271,10 +268,7 @@ describe 'parser'
                     entries [
                         {
                             field ['height']
-                            value {
-                                is scope
-                                statements [{integer 80}]
-                            }
+                            value {integer 80}
                         }
                     ]
                 }

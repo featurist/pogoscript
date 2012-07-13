@@ -213,11 +213,8 @@ describe('code generator', function () {
         
         var scopifiedBlock = b.scopify();
         shouldContainFields(scopifiedBlock, {
-          isScope: true,
-          statements: [{
-            isVariable: true,
-            variable: ['a']
-          }]
+          isVariable: true,
+          variable: ['a']
         });
       });
       

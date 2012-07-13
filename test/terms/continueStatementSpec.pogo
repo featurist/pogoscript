@@ -12,7 +12,7 @@ describe 'continue statement'
                 ]
             )
 
-        expanded closure = closure.expand macros ()
+        expanded closure = closure.rewrite ()
 
         (expanded closure) should contain fields (
             terms.closure (

@@ -257,10 +257,7 @@ describe 'complex expression'
       (hash entry) should contain fields {
         is hash entry
         field ['port']
-        value {
-          is scope
-          statements [{variable ['a']}]
-        }
+        value {variable ['a']}
       }
       
     it 'can define a method as a hash key'
@@ -526,10 +523,7 @@ describe 'complex expression'
           variable ['function']
         }
         
-        source {
-          is scope
-          statements [{variable ['y']}]
-        }
+        source {variable ['y']}
       }
 
     describe 'parameter'
