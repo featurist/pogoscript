@@ -11,9 +11,9 @@ constructor (members) =
 
 global.object (members) =
     c = constructor (members)
-    new (c!)
+    new (c ())
 
 global.object extending (base, members) =
   c = constructor (members)
   c.prototype = base
-  new (c!)
+  new (c ())

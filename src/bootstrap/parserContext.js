@@ -1,5 +1,5 @@
 ((function() {
-    var self, _, createIndentStack, createInterpolation;
+    var self, _, createIndentStack, createInterpolation, createParserContext;
     self = this;
     _ = require("underscore");
     createIndentStack = require("./indentStack").createIndentStack;
@@ -91,24 +91,22 @@
             };
             self.actualCharacters = [ [ /\\\\/g, "\\" ], [ /\\b/g, "\b" ], [ /\\f/g, "\f" ], [ /\\n/g, "\n" ], [ /\\0/g, "\0" ], [ /\\r/g, "\r" ], [ /\\t/g, "\t" ], [ /\\v/g, "" ], [ /\\'/g, "'" ], [ /\\"/g, '"' ] ];
             self.normaliseInterpolatedString = function(s) {
-                var self, gen2_items, gen3_i;
+                var self, gen2_items, gen3_i, mapping;
                 self = this;
                 gen2_items = self.actualCharacters;
-                for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
-                    var mapping;
+                for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
                     mapping = gen2_items[gen3_i];
                     s = s.replace(mapping[0], mapping[1]);
                 }
                 return s;
             };
             self.compressInterpolatedStringComponents = function(components) {
-                var self, compressedComponents, lastString, gen4_items, gen5_i;
+                var self, compressedComponents, lastString, gen4_items, gen5_i, component;
                 self = this;
                 compressedComponents = [];
                 lastString = void 0;
                 gen4_items = components;
-                for (gen5_i = 0; gen5_i < gen4_items.length; gen5_i++) {
-                    var component;
+                for (gen5_i = 0; gen5_i < gen4_items.length; ++gen5_i) {
                     component = gen4_items[gen5_i];
                     if (!lastString && component.isString) {
                         lastString = component;
@@ -134,13 +132,12 @@
                 });
             };
             self.separateExpressionComponentsWithStrings = function(components) {
-                var self, separatedComponents, lastComponentWasExpression, gen6_items, gen7_i;
+                var self, separatedComponents, lastComponentWasExpression, gen6_items, gen7_i, component;
                 self = this;
                 separatedComponents = [];
                 lastComponentWasExpression = false;
                 gen6_items = components;
-                for (gen7_i = 0; gen7_i < gen6_items.length; gen7_i++) {
-                    var component;
+                for (gen7_i = 0; gen7_i < gen6_items.length; ++gen7_i) {
                     component = gen6_items[gen7_i];
                     if (lastComponentWasExpression && !component.isString) {
                         separatedComponents.push(self.terms.string(""));

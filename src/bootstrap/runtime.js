@@ -13,7 +13,7 @@
             return function() {
                 var self, member;
                 self = this;
-                for (var member in members) {
+                for (member in members) {
                     (function(member) {
                         if (members.hasOwnProperty(member)) {
                             self[member] = members[member];

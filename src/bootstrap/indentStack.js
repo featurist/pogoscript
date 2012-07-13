@@ -30,13 +30,12 @@
                 return self.indents[0];
             };
             self.setIndentation = function(text) {
-                var self;
+                var self, current;
                 self = this;
                 if (self.hasNewLine(text)) {
                     self.indents.unshift("bracket");
                     return self.indents.unshift(self.indentation(text));
                 } else {
-                    var current;
                     current = self.currentIndentation();
                     self.indents.unshift("bracket");
                     return self.indents.unshift(current);
@@ -67,10 +66,9 @@
                 return tokens;
             };
             return self.tokensForNewLine = function(text) {
-                var self;
+                var self, currentIndentation, indentation, tokens;
                 self = this;
                 if (self.hasNewLine(text)) {
-                    var currentIndentation, indentation;
                     currentIndentation = self.currentIndentation();
                     indentation = self.indentation(text);
                     if (currentIndentation === indentation) {
@@ -79,7 +77,6 @@
                         self.indents.unshift(indentation);
                         return [ "@{" ];
                     } else {
-                        var tokens;
                         tokens = [];
                         while (self.indents[0] > indentation) {
                             tokens.push("}");
