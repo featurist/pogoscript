@@ -3,7 +3,17 @@ module.exports (terms) = terms.term {
         self.is for in = true
         self.iterator = iterator
         self.collection = collection
-        self.statements = stmts
+        self.statements =
+            terms.sub expression (
+                terms.function call (
+                    terms.block (
+                        [iterator]
+                        stmts
+                        return last statement: false
+                    )
+                    [iterator]
+                )
+            )
   
     generate java script (buffer, scope) =
         buffer.write ('for(')
@@ -12,21 +22,11 @@ module.exports (terms) = terms.term {
         self.collection.generate java script (buffer, scope)
         buffer.write ('){')
 
-        self.cg.sub expression (
-            self.cg.function call (
-                self.cg.block (
-                    [self.iterator]
-                    self.statements
-                    return last statement: false
-                )
-                [self.iterator]
-            )
-        ).generate java script statement (buffer, scope)
+        self.statements.generate java script statement (buffer, scope)
 
         buffer.write ('}')
 
     generate java script statement (args, ...) = self.generate java script (args, ...)
-    generate java script return (args, ...) = self.generate java script (args, ...)
 
     declare variables (variables, scope) =
         self.iterator.declare variable (variables, scope)

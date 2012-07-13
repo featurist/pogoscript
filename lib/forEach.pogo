@@ -1,13 +1,4 @@
 module.exports (terms) =
-    post increment = terms.term {
-        constructor (expr) =
-            self.expression = expr
-
-        generate java script (buffer, scope) =
-            self.expression.generate java script(buffer, scope)
-            buffer.write('++')
-    }
-
     for each (collection, item variable, stmts) =
         items var = terms.generated variable ['items']
         index var = terms.generated variable ['i']
@@ -19,7 +10,7 @@ module.exports (terms) =
 
         init = terms.definition(indexVar, terms.integer(0))
         test = terms.operator('<', [index var, terms.field reference(items var, ['length'])])
-        incr = post increment(index var)
+        incr = terms.increment(index var)
 
         terms.sub statements [
             terms.definition(items var, collection)

@@ -15,7 +15,8 @@ running on node (version) or higher =
 
 generate code (term) =
     memory stream = new (ms.MemoryStream)
-    term.generate java script (memory stream)
+    term.generate java script module (memory stream)
+
     memory stream.to string ()
 
 beautify (code) =

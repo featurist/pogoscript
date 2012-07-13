@@ -9,7 +9,6 @@ module.exports (terms) =
             if (self.function call.is variable)
                 self.cg.function call (self.function call, []).generate java script (buffer, scope)
             else if (self.function call.is function call && self.function call.has splat arguments ())
-                self.function call.pass this to apply = true
                 self.cg.block ([], self.cg.statements ([self.function call]), return last statement: false).generate java script (buffer, scope)
             else
                 self.function call.generate java script (buffer, scope)

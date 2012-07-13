@@ -111,10 +111,7 @@ module.exports (terms) =
             body scope = scope.sub scope ()
             self.declare parameters (body scope, parameters)
 
-            if (self.return last statement)
-                body.generate java script statements return (buffer, body scope)
-            else
-                body.generate java script statements (buffer, body scope)
+            body.generate java script statements (buffer, body scope)
 
             buffer.write ('}')
 
@@ -127,7 +124,7 @@ module.exports (terms) =
                 c.parameters.push (callback)
                 c.body = c.body.rewrite async callbacks (callback function: callback)
             else
-                c.body = c.body.rewrite async callbacks (return last statement: true)
+                c.body = c.body.rewrite async callbacks (return last statement: self.return last statement)
 
             c
     }

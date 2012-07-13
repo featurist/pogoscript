@@ -56,9 +56,9 @@ exports.codeGenerator = function () {
   codegen.SymbolScope = require('../../../lib/symbolScope').SymbolScope;
   importTerm('macroDirectory');
   importTerm('boolean');
+  importTerm('increment');
   codegen.typeof = require('../../../lib/typeof').typeof;
   importTerm('tryExpression');
-  codegen.tryStatement = codegen.tryExpression;
   importTerm('ifExpression');
   importTerm('nil');
   importTerm('continueStatement');

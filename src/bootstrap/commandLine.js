@@ -18,7 +18,7 @@
     generateCode = function(term) {
         var memoryStream;
         memoryStream = new ms.MemoryStream;
-        term.generateJavaScript(memoryStream);
+        term.generateJavaScriptModule(memoryStream);
         return memoryStream.toString();
     };
     beautify = function(code) {

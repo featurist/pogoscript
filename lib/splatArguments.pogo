@@ -1,3 +1,5 @@
+_ = require 'underscore'
+
 module.exports (terms) =
     splat arguments term = terms.term {
         constructor (splat arguments) =
@@ -46,4 +48,10 @@ module.exports (terms) =
             splat args.push (terms.list (previous args))
         
         if (found splat)
-            splat arguments term (splat args)
+            concat (initial, last) =
+                if (initial.length > 0)
+                    terms.method call (concat (_.initial (initial), _.last (initial)), ['concat'], [last])
+                else
+                    last
+
+            concat (_.initial (splat args), _.last (splat args))

@@ -183,11 +183,6 @@ module.exports (cg) =
     }
 
     Term = class extending (Node) {
-        generate java script return (buffer, scope) =
-            buffer.write 'return '
-            self.generate java script (buffer, scope)
-            buffer.write ';'
-        
         generate java script statement (buffer, scope) =
             self.generate java script (buffer, scope)
             buffer.write ';'

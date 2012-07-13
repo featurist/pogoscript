@@ -6,9 +6,11 @@ module.exports (terms) = terms.term {
 
     generate java script statement (buffer, scope) =
         if (self.expression)
-            self.expression.generate java script return (buffer, scope)
+            buffer.write ('return ')
+            self.expression.generate java script (buffer, scope)
+            buffer.write (';')
         else
             buffer.write ('return;')
-
-    generate java script return (args, ...) = self.generate java script statement (args, ...)
+    
+    return result () = self
 }

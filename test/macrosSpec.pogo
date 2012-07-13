@@ -1,5 +1,6 @@
 require './assertions'
 require './parserAssertions'
+terms = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 
 loc = {
     first line 1
@@ -11,7 +12,7 @@ loc = {
 describe 'macros'
     describe 'if'
         it 'if'
-            (expression 'if (true) @{a}') should contain fields {
+            (macro expression 'if (true) @{a}') should contain fields {
                 is if expression
                 cases [[
                     {variable ['true']}
@@ -20,7 +21,7 @@ describe 'macros'
             }
         
         it 'if else'
-            (expression 'if (true) @{a} else @{b}') should contain fields {
+            (macro expression 'if (true) @{a} else @{b}') should contain fields {
                 is if expression
                 _else {statements [{variable ['b']}]}
                 cases [[
@@ -30,7 +31,7 @@ describe 'macros'
             }
         
         it 'if else if'
-            (expression 'if (true) @{a} else if (false) @{b}') should contain fields {
+            (macro expression 'if (true) @{a} else if (false) @{b}') should contain fields {
                 is if expression
                 _else = undefined
                 cases [
@@ -46,7 +47,7 @@ describe 'macros'
             }
                 
         it 'if else if else'
-            (expression 'if (true) @{a} else if (false) @{b} else @{c}') should contain fields {
+            (macro expression 'if (true) @{a} else if (false) @{b} else @{c}') should contain fields {
                 is if expression
                 _else {statements [{variable ['c']}]}
                 cases [
@@ -62,7 +63,7 @@ describe 'macros'
             }
 
     it 'for'
-        (expression 'for (n = 0, n < 10, n = n + 1) @{a}') should contain fields {
+        (macro expression 'for (n = 0, n < 10, n = n + 1) @{a}') should contain fields {
             is for
             initialization {
                 is definition
@@ -89,23 +90,150 @@ describe 'macros'
                     ]
                 }
             }
+            statements {
+                is statements
+                statements [
+                    {variable ['a']}
+                ]
+            }
         }
+
+    it 'for with return in body'
+        (macro expression 'for (n = 0, n < 10, n = n + 1) @{return (a)}') should contain fields {
+            is for
+            initialization {
+                is definition
+                source {integer 0}
+                target {variable ['n']}
+            }
+            test {
+                is operator
+                operator '<'
+                operator arguments [
+                    {variable ['n']}
+                    {integer 10}
+                ]
+            }
+            increment {
+                is definition
+                target {variable ['n']}
+                source {
+                    is operator
+                    operator '+'
+                    operator arguments [
+                        {variable ['n']}
+                        {integer 1}
+                    ]
+                }
+            }
+            statements {
+                is statements
+                statements [
+                    {
+                        is definition
+                        source {}
+                        target {is variable, name ['for', 'result']}
+                    }
+                    {
+                        is if expression
+                        cases [
+                            [
+                                {
+                                    is sub expression
+                                    expression {
+                                        is function call
+                                        function {
+                                            is closure
+                                            parameters [{variable ['n']}]
+                                            body {
+                                                is statements
+                                                statements [
+                                                    {
+                                                        is sub statements
+                                                        statements [
+                                                            {
+                                                                is definition
+                                                                target {is variable, name ['for', 'result']}
+                                                                source {variable ['a']}
+                                                            }
+                                                            {is return, expression {boolean = true}}
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                        function arguments [{variable ['n']}]
+                                    }
+                                }
+                                {
+                                    is statements
+                                    statements [
+                                        {is return, expression {is variable, name ['for', 'result']}}
+                                    ]
+                                }
+                            ]
+                        ]
+                    }
+                ]
+            }
+        }
+
+    describe 'for each'
+        it 'generates for'
+            (macro statements 'for each @(item) in (items) @{item}') should contain fields {
+                statements [
+                    terms.definition (terms.generated variable ['items'], terms.variable ['items'])
+                    terms.for expression (
+                        terms.definition (terms.generated variable ['i'], terms.integer 0)
+                        terms.operator (
+                            '<'
+                            [
+                                terms.generated variable ['i']
+                                terms.field reference (terms.generated variable ['items'], ['length'])
+                            ]
+                        )
+                        terms.increment (terms.generated variable ['i'])
+                        terms.statements [
+                            terms.definition (
+                                terms.variable ['item']
+                                terms.indexer (
+                                    terms.generated variable ['items']
+                                    terms.generated variable ['i']
+                                )
+                            )
+                            terms.variable ['item']
+                        ]
+                    )
+                ]
+            }
     
     describe 'for @(item) in (items) @{}'
         it 'generates for (var item in items) {}'
-            (expression 'for @(item) in (items) @{item}') should contain fields {
+            (macro expression 'for @(item) in (items) @{item}') should contain fields {
                 is for in
                 iterator {variable ['item']}
                 collection {variable ['items']}
                 statements {
-                    statements [
-                        {variable ['item']}
-                    ]
+                    is sub expression
+                    expression {
+                        is function call
+                        function {
+                            is closure
+                            parameters [{variable ['item']}]
+                            body {
+                                is statements
+                                statements [
+                                    {variable ['item']}
+                                ]
+                            }
+                        }
+                        function arguments [{variable ['item']}]
+                    }
                 }
             }
 
     it 'while'
-        (expression 'while (n < 10) @{n}') should contain fields {
+        (macro expression 'while (n < 10) @{n}') should contain fields {
             is while
             test {
                 is operator
@@ -124,28 +252,25 @@ describe 'macros'
 
     describe 'try'
         it 'try catch'
-            (expression 'try @{a} catch @(ex) @{b}') should contain fields {
-                is try statement
+            (macro expression 'try @{a} catch @(ex) @{b}') should contain fields {
+                is try expression
                 body {
                     statements [
                         {variable ['a']}
                     ]
                 }
                 catch body {
-                    is block
-                    parameters [{variable ['ex']}]
-                    body {
-                        statements [
-                            {variable ['b']}
-                        ]
-                    }
+                    statements [
+                        {variable ['b']}
+                    ]
                 }
-                finally body = undefined
+                catch parameter {variable ['ex']}
+                finally body = nil
             }
 
         it 'try finally'
-            (expression 'try @{a} finally @{b}') should contain fields {
-                is try statement
+            (macro expression 'try @{a} finally @{b}') should contain fields {
+                is try expression
                 body {
                     statements [
                         {variable ['a']}
@@ -160,22 +285,19 @@ describe 'macros'
             }
 
         it 'try catch finally'
-            (expression 'try @{a} catch @(ex) @{b} finally @{c}') should contain fields {
-                is try statement
+            (macro expression 'try @{a} catch @(ex) @{b} finally @{c}') should contain fields {
+                is try expression
                 body {
                     statements [
                         {variable ['a']}
                     ]
                 }
                 catch body {
-                    is block
-                    parameters [{variable ['ex']}]
-                    body {
-                        statements [
-                            {variable ['b']}
-                        ]
-                    }
+                    statements [
+                        {variable ['b']}
+                    ]
                 }
+                catch parameter {variable ['ex']}
                 finally body {
                     statements [
                         {variable ['c']}
@@ -185,7 +307,7 @@ describe 'macros'
 
     describe 'new'
         it 'constructor with arguments'
-            (expression 'new (Date 2011 2 21)') should contain fields {
+            (macro expression 'new (Date 2011 2 21)') should contain fields {
                 is new operator
                 function call {
                     is function call
@@ -198,21 +320,50 @@ describe 'macros'
                 }
             }
 
-        it 'constructor without arguments'
-            (expression 'new (Date)') should contain fields {
+        it 'constructor without arguments, just variable'
+            (macro expression 'new (Date)') should contain fields {
                 is new operator
                 function call {variable ['Date']}
             }
 
-        it 'constructor without arguments, just variable'
-            (expression 'new (Date)') should contain fields {
-                is new operator
-                function call {variable ['Date']}
-            }
+        it 'with splat arguments'
+            (macro statements ('new (Stack (args, ...))')) should contain fields (
+                terms.statements [
+                    terms.definition (
+                        terms.generated variable ['c']
+                        terms.closure (
+                            []
+                            terms.statements [
+                                terms.function call (
+                                    terms.variable ['Stack']
+                                    [
+                                        terms.variable ['args']
+                                        terms.splat ()
+                                    ]
+                                    nil
+                                    pass this to apply: true
+                                )
+                            ]
+                            return last statement: false
+                        )
+                    )
+                    terms.definition (
+                        terms.field reference (
+                            terms.generated variable ['c']
+                            ['prototype']
+                        )
+                        terms.field reference (
+                            terms.variable ['Stack']
+                            ['prototype']
+                        )
+                    )
+                    terms.new operator (terms.generated variable ['c'])
+                ]
+            )
 
     describe 'multi argument operators'
         it 'a + b'
-            (expression 'a + b') should contain fields {
+            (macro expression 'a + b') should contain fields {
                 is operator
                 operator '+'
                 operator arguments [
@@ -222,7 +373,7 @@ describe 'macros'
             }
 
         it 'a + b + c'
-            (expression 'a + b + c') should contain fields {
+            (macro expression 'a + b + c') should contain fields {
                 is operator
                 operator '+'
                 operator arguments [
@@ -234,7 +385,7 @@ describe 'macros'
     
     describe '=='
         it 'generates ==='
-            (expression 'a == b') should contain fields {
+            (macro expression 'a == b') should contain fields {
                 is operator
                 operator '==='
                 operator arguments [
@@ -245,7 +396,7 @@ describe 'macros'
     
     describe '!='
         it 'generates !=='
-            (expression 'a != b') should contain fields {
+            (macro expression 'a != b') should contain fields {
                 is operator
                 operator '!=='
                 operator arguments [
@@ -256,7 +407,7 @@ describe 'macros'
         
     describe '::'
         it 'generates instanceof'
-            (expression 'a :: b') should contain fields {
+            (macro expression 'a :: b') should contain fields {
                 is operator
                 operator 'instanceof'
                 operator arguments [
@@ -267,7 +418,7 @@ describe 'macros'
         
     describe 'in'
         it 'generates in'
-            (expression '(a) in (b)') should contain fields {
+            (macro expression '(a) in (b)') should contain fields {
                 is operator
                 operator 'in'
                 operator arguments [
@@ -278,20 +429,20 @@ describe 'macros'
     
     describe 'break'
         it 'generates break statement'
-            (expression 'break') should contain fields {
+            (macro expression 'break') should contain fields {
                 is break
             }
     
     describe 'return'
         it 'generates void return statement'
-            (expression 'return') should contain fields {
+            (macro expression 'return') should contain fields {
                 is return
                 expression = undefined
             }
     
     describe 'nil'
         it 'generates void 0'
-            (expression 'nil') should contain fields {
+            (macro expression 'nil') should contain fields {
                 is java script
                 source = 'void 0'
             }
@@ -299,7 +450,7 @@ describe 'macros'
     describe 'JavaScript operators'
         it generates unary (op) =
             it "generates unary #(op)"
-                (expression "#(op) a") should contain fields {
+                (macro expression "#(op) a") should contain fields {
                     is operator
                     operator (op)
                     operator arguments [
@@ -309,7 +460,7 @@ describe 'macros'
         
         it generates binary (op) =
             it "generates binary #(op)"
-                (expression "a #(op) b") should contain fields {
+                (macro expression "a #(op) b") should contain fields {
                     is operator
                     operator (op)
                     operator arguments [

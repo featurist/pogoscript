@@ -92,9 +92,12 @@ describe 'closure'
             closure = terms.closure ([], terms.statements [
                 terms.if expression (
                     [
-                        [terms.variable ['condition'], terms.variable ['true']]
+                        [
+                            terms.variable ['condition']
+                            terms.statements [terms.variable ['true']]
+                        ]
                     ]
-                    terms.variable ['false']
+                    terms.statements [terms.variable ['false']]
                 )
             ])
 
@@ -105,11 +108,33 @@ describe 'closure'
                 terms.statements [
                     terms.if expression (
                         [
-                            [terms.variable ['condition'], terms.return statement (terms.variable ['true'], implicit: true)]
+                            [
+                                terms.variable ['condition']
+                                terms.statements [
+                                    terms.return statement (terms.variable ['true'], implicit: true)
+                                ]
+                            ]
                         ]
-                        terms.return statement (terms.variable ['false'], implicit: true)
+                        terms.statements [
+                            terms.return statement (terms.variable ['false'], implicit: true)
+                        ]
                     )
                 ]
+            )
+
+            (expanded closure) should contain fields (expected closure)
+
+        it "doesn't return last statement if closure is told not to"
+            closure = terms.closure ([], terms.statements [terms.variable ['a']], return last statement: false)
+
+            expanded closure = closure.expand macros ()
+
+            expected closure = terms.closure (
+                []
+                terms.statements [
+                    terms.variable ['a']
+                ]
+                return last statement: false
             )
 
             (expanded closure) should contain fields (expected closure)

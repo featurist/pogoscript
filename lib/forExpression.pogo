@@ -5,14 +5,19 @@ module.exports (terms) = terms.term {
         self.test = test
         self.increment = incr
         self.index variable = init.target
-        self.statements = self.scoped body (stmts)
+        self.statements = stmts
 
-    scoped body (statements) =
+    expand macro (clone) =
+        c = clone ()
+        c.statements = clone (self.scoped body ())
+        c
+
+    scoped body () =
         contains return = false
         for result variable = self.cg.generated variable ['for', 'result']
-        rewritten statements = statements.clone (
+        rewritten statements = self.statements.clone (
             rewrite (term):
-                if (term.is return && !term.is implicit)
+                if (term.is return)
                     contains return = true
                     terms.sub statements [self.cg.definition (for result variable, term.expression), self.cg.return statement (self.cg.boolean (true))]
 
@@ -38,7 +43,7 @@ module.exports (terms) = terms.term {
 
             self.cg.statements (loop statements)
         else
-            statements
+            self.statements
   
     generate java script (buffer, scope) =
         buffer.write ('for(')
@@ -52,8 +57,9 @@ module.exports (terms) = terms.term {
         buffer.write ('}')
 
     generate java script statement (args, ...) = self.generate java script (args, ...)
-    generate java script return (args, ...) = self.generate java script (args, ...)
 
     declare variables (variables, scope) =
         self.index variable.declare variable (variables, scope)
+
+    return result () = self
 }

@@ -5,5 +5,5 @@ module.exports (terms) = terms.term {
     generate java script statement (buffer, scope) =
       buffer.write ('continue;')
 
-    generate java script return (args, ...) = self.generate java script statement (args, ...)
+    return result () = self
 }

@@ -2,21 +2,18 @@ _ = require 'underscore'
 codegen utils = require('./codegenUtils')
 
 module.exports (terms) = terms.term {
-    constructor (statements) =
+    constructor (statements, global: false) =
         self.is statements = true
         self.statements = statements
+        self.global = global
 
-    generate statements (statements, buffer, scope, global, generate return) =
+    generate statements (statements, buffer, scope) =
         declared variables = self.find declared variables (scope)
-
-        self.generate variable declarations (declared variables, buffer, scope, global)
+        self.generate variable declarations (declared variables, buffer, scope)
 
         for (s = 0, s < statements.length, s = s + 1)
             statement = statements.(s)
-            if ((s == (statements.length - 1)) && generate return)
-                statement.generate java script return (buffer, scope)
-            else
-                statement.generate java script statement (buffer, scope)
+            statement.generate java script statement (buffer, scope)
 
     rewrite async callbacks (return last statement: false, callback function: nil) =
         return term (term) =
@@ -27,7 +24,7 @@ module.exports (terms) = terms.term {
             else
                 term
 
-        statements = self._serialise statements (self.statements, return term)
+        statements = self.serialise statements (self.statements, return term)
 
         for (n = 0, n < statements.length, n = n + 1)
             statement = statements.(n)
@@ -39,35 +36,43 @@ module.exports (terms) = terms.term {
                 first statements.push (async statement)
                 return (terms.statements (first statements))
 
-        terms.statements (statements)
+        terms.statements (statements, global: self.global)
 
-    _serialise statements (statements, return term) =
+    serialise statements (statements, return term) =
         serialised statements = []
 
         for (n = 0, n < statements.length, n = n + 1)
             statement = statements.(n)
             rewritten statement = 
                 statement.clone (
-                    rewrite (term):
-                        term.serialise sub statements (serialised statements)
+                    rewrite (term, clone: nil):
+                        term.serialise sub statements (serialised statements, clone)
                         
                     limit (term):
-                        term.is statements && !term.is expression statements
+                        term.is closure
                 )
 
-            if (n == (statements.length - 1))
-                serialised statements.push (rewritten statement.return result (return term))
-            else
-                serialised statements.push (rewritten statement)
+            serialised statements.push (rewritten statement)
+
+        if (return term)
+            serialised statements.(serialised statements.length - 1) =
+                serialised statements.(serialised statements.length - 1).return result (return term)
 
         serialised statements
 
-    generate variable declarations (variables, buffer, scope, global) =
+    return last statement (return term) =
+        self.statements.(self.statements.length - 1) =
+            self.statements.(self.statements.length - 1).return result (return term)
+
+    serialise sub statements (serialised statements, clone) =
+        terms.statements (self.serialise statements (self.statements))
+
+    generate variable declarations (variables, buffer, scope) =
         if (variables.length > 0)
             _(variables).each @(name)
                 scope.define (name)
 
-            if (!global)
+            if (!self.global)
                 buffer.write ('var ')
 
                 codegen utils.write to buffer with delimiter (variables, ',', buffer) @(variable)
@@ -86,8 +91,8 @@ module.exports (terms) = terms.term {
 
         _.uniq (declared variables)
 
-    generate java script statements (buffer, scope, global) =
-        self.generate statements (self.statements, buffer, scope, global)
+    generate java script statements (buffer, scope) =
+        self.generate statements (self.statements, buffer, scope)
 
     blockify (parameters, optionalParameters, async: false) =
         statements = if (self.is expression statements)
@@ -102,10 +107,6 @@ module.exports (terms) = terms.term {
     scopify () =
         self.cg.function call (self.cg.block([], self), [])
 
-    generate java script statements return (buffer, scope, global) =
-        if (self.statements.length > 0)
-            self.generate statements (self.statements, buffer, scope, global, true)
-
     generate java script (buffer, scope) =
         if (self.statements.length > 0)
             self.statements.(self.statements.length - 1).generate java script (buffer, scope)
@@ -113,10 +114,6 @@ module.exports (terms) = terms.term {
     generate java script statement (buffer, scope) =
         if (self.statements.length > 0)
             self.statements.(self.statements.length - 1).generate java script statement (buffer, scope)
-
-    generate java script return (buffer, scope) =
-        if (self.statements.length > 0)
-            self.statements.(self.statements.length - 1).generate java script return (buffer, scope)
 
     definitions (scope) =
         _(self.statements).reduce @(list, statement)

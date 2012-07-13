@@ -16,14 +16,6 @@ describe('code generator', function () {
     assert.equal(code, expectedGeneratedCode);
   };
   
-  var generatesReturnExpression = function(term, expectedGeneratedCode, print) {
-    var stream = new MemoryStream();
-    term.generateJavaScriptReturn(stream, new cg.SymbolScope());
-    if (print)
-        console.log(stream.toString());
-    assert.equal(stream.toString(), expectedGeneratedCode);
-  };
-  
   var generatesStatement = function(term, expectedGeneratedCode) {
     var stream = new MemoryStream();
     term.generateJavaScriptStatement(stream, new cg.SymbolScope());
@@ -32,18 +24,9 @@ describe('code generator', function () {
   
   var generatesStatements = function(term, expectedGeneratedCode, global, print) {
     var stream = new MemoryStream();
-    term = term.expandMacros().rewriteAsyncCallbacks();
     term.generateJavaScriptStatements(stream, new cg.SymbolScope(), global);
     if (print)
         console.log(stream.toString())
-    assert.equal(stream.toString(), expectedGeneratedCode);
-  };
-  
-  var generatesStatementsReturn = function(term, expectedGeneratedCode) {
-    console.log('rewriting async');
-    term = term.expandMacros().rewriteAsyncCallbacks();
-    var stream = new MemoryStream();
-    term.generateJavaScriptStatementsReturn(stream, new cg.SymbolScope());
     assert.equal(stream.toString(), expectedGeneratedCode);
   };
   
@@ -247,7 +230,7 @@ describe('code generator', function () {
     it('with no parameters', function () {
       var b = cg.block([], cg.statements([cg.variable(['x'])]));
       
-      generatesExpression(b, 'function(){return x;}');
+      generatesExpression(b, 'function(){x;}');
     });
     
     it('with no statements', function () {
@@ -259,19 +242,19 @@ describe('code generator', function () {
     it('declares its parameters', function () {
       var b = cg.block([cg.variable(['x'])], cg.statements([cg.definition(cg.variable(['x']), cg.integer(8))]));
       
-      generatesExpression(b, 'function(x){return x=8;}');
+      generatesExpression(b, 'function(x){x=8;}');
     });
     
     it('with two parameters', function () {
       var b = cg.block([cg.variable(['x']), cg.variable(['y'])], cg.statements([cg.variable(['x'])]));
       
-      generatesExpression(b, 'function(x,y){return x;}');
+      generatesExpression(b, 'function(x,y){x;}');
     });
     
     it('with two parameters and two statements', function () {
       var b = cg.block([cg.variable(['x']), cg.variable(['y'])], cg.statements([cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]), cg.variable(['x'])]));
       
-      generatesExpression(b, 'function(x,y){y(x);return x;}');
+      generatesExpression(b, 'function(x,y){y(x);x;}');
     });
     
     it('block with new context', function () {
@@ -288,7 +271,7 @@ describe('code generator', function () {
       
       b.redefinesSelf = true;
       
-      generatesExpression(b, 'function(x,y){var self;self=this;y(x);return x;}');
+      generatesExpression(b, 'function(x,y){var self;self=this;y(x);x;}');
     });
     
     it('with a parameter and two optional parameters', function () {
@@ -312,7 +295,7 @@ describe('code generator', function () {
         cg.hashEntry(['start'])
       ];
       
-      generatesStatements(s, "var port;port=1;function(x,y,gen1_options){var port,start;port=(gen1_options&&gen1_options.hasOwnProperty('port')&&gen1_options.port!==void 0)?gen1_options.port:80;start=(gen1_options&&gen1_options.hasOwnProperty('start')&&gen1_options.start!==void 0)?gen1_options.start:undefined;y(x);return x;};");
+      generatesStatements(s, "var port;port=1;function(x,y,gen1_options){var port,start;port=(gen1_options&&gen1_options.hasOwnProperty('port')&&gen1_options.port!==void 0)?gen1_options.port:80;start=(gen1_options&&gen1_options.hasOwnProperty('start')&&gen1_options.start!==void 0)?gen1_options.start:undefined;y(x);x;};");
     });
     
     it('with splat parameters', function () {
@@ -332,7 +315,7 @@ describe('code generator', function () {
         )
       ]);
 
-      generatesStatements(s, "var y;y=1;function(x){var y,z;y=Array.prototype.slice.call(arguments, 1, arguments.length - 1);z=arguments[arguments.length - 1];y(x);return z;};");
+      generatesStatements(s, "var y;y=1;function(x){var y,z;y=Array.prototype.slice.call(arguments, 1, arguments.length - 1);z=arguments[arguments.length - 1];y(x);z;};");
     });
   });
   
@@ -355,34 +338,10 @@ describe('code generator', function () {
       generatesStatements(st, 'var one;one=9;two();');
     });
     
-    it('returning a definition', function () {
-      var st = cg.statements([cg.definition(cg.variable(['one']), cg.integer(9))]);
-      
-      generatesStatementsReturn(st, 'var one;return one=9;');
-    });
-
-    it("when global is true, doesn't generate 'vars' for variables", function () {
-      var st = cg.statements([cg.definition(cg.variable(['one']), cg.integer(9))]);
-      
-      generatesStatements(st, 'one=9;', true);
-    });
-    
     it('chained definitions', function () {
       var st = cg.statements([cg.definition(cg.variable(['one']), cg.definition(cg.variable(['two']), cg.integer(9)))]);
       
-      generatesStatementsReturn(st, 'var one,two;return one=two=9;');
-    });
-    
-    it('generates sub statements', function () {
-      var st = cg.statements([cg.subStatements([cg.variable(['one']), cg.variable(['two'])])]);
-      
-      generatesStatementsReturn(st, 'one;return two;');
-    });
-    
-    it('generates sub statements, but not in blocks', function () {
-      var st = cg.statements([cg.block([], cg.statements([cg.subStatements([cg.variable(['one']), cg.variable(['two'])])]))]);
-      
-      generatesStatementsReturn(st, 'return function(){one;return two;};');
+      generatesStatements(st, 'var one,two;one=two=9;');
     });
     
     it('with two definitions of the same variable', function () {
@@ -440,26 +399,6 @@ describe('code generator', function () {
     
       generatesExpression(n, 'new Stack()');
     });
-    
-    it('if constructor call has splat args, then generates function', function() {
-      var n = cg.statements([cg.newOperator(cg.functionCall(cg.variable(['Stack']), [cg.variable(['args']), cg.splat()]))]);
-    
-      generatesStatements(n, 'var gen1_c;gen1_c=function(){Stack.apply(this,args);};gen1_c.prototype=Stack.prototype;new gen1_c();');
-    });
-  });
-  
-  describe('for each', function() {
-    it('normal', function() {
-      var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.variable(['item'])]))]);
-      
-      generatesStatements(f, 'var gen1_items,gen2_i,item;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){item=gen1_items[gen2_i];item;}');
-    });
-
-    it('containing a return', function() {
-      var f = cg.statements([cg.forEach(cg.variable(['items']), cg.variable(['item']), cg.statements([cg.returnStatement(cg.variable(['item']))]))]);
-      
-      generatesStatements(f, 'var gen1_items,gen2_i,gen3_forResult;gen1_items=items;for(gen2_i=0;(gen2_i<gen1_items.length);gen2_i++){gen3_forResult=void 0;if((function(gen2_i){var item;item=gen1_items[gen2_i];gen3_forResult=item;return true;}(gen2_i))){return gen3_forResult;}}');
-    });
   });
   
   it('for in', function() {
@@ -482,17 +421,6 @@ describe('code generator', function () {
       );
       
       generatesExpression(f, 'for(i=0;(i<10);i=(i+1)){i;}');
-    });
-
-    it('rewrites return for returning from scope', function() {
-      var f = cg.forStatement(
-        cg.definition(cg.variable(['i']), cg.integer(0)),
-        cg.operator('<', [cg.variable(['i']), cg.integer(10)]),
-        cg.definition(cg.variable(['i']), cg.operator('+', [cg.variable(['i']), cg.integer(1)])),
-        cg.statements([cg.returnStatement(cg.variable(['i']))])
-      );
-      
-      generatesExpression(f, 'for(i=0;(i<10);i=(i+1)){var gen1_forResult;gen1_forResult=void 0;if((function(i){gen1_forResult=i;return true;}(i))){return gen1_forResult;}}');
     });
   });
   
@@ -520,44 +448,6 @@ describe('code generator', function () {
       
       generatesExpression(m, 'console.log(stuff,{port:45})');
     });
-
-    describe('splats', function () {
-      it('just splat', function () {
-        var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()])]);
-      
-        generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,b);');
-      });
-      
-      it('splat call as expression', function () {
-        var f = cg.statements([cg.functionCall(cg.variable(['f']), [cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()])])]);
-      
-        generatesStatements(f, 'var gen1_o;gen1_o=o;f(gen1_o.m.apply(gen1_o,b));');
-      });
-      
-      it('args before', function () {
-        var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.variable(['b']), cg.splat()])]);
-      
-        generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,[a].concat(b));');
-      });
-      
-      it('args after', function () {
-        var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.splat(), cg.variable(['b'])])]);
-      
-        generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,a.concat([b]));');
-      });
-      
-      it('two splats', function () {
-        var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['a']), cg.variable(['b']), cg.splat(), cg.variable(['c']), cg.variable(['d']), cg.splat(), cg.variable(['e'])])]);
-      
-        generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,[a].concat(b).concat([c]).concat(d).concat([e]));');
-      });
-
-      it('splat with optional args', function () {
-        var f = cg.statements([cg.methodCall(cg.variable(['o']), ['m'], [cg.variable(['b']), cg.splat()], [cg.hashEntry(['port'], cg.variable(['p']))])]);
-      
-        generatesStatements(f, 'var gen1_o;gen1_o=o;gen1_o.m.apply(gen1_o,b.concat([{port:p}]));');
-      });
-    });
   });
   
   it('indexer', function () {
@@ -577,59 +467,6 @@ describe('code generator', function () {
       var m = cg.fieldReference(cg.variable(['obj']), ['class']);
     
       generatesExpression(m, 'obj.class');
-    });
-  });
-  
-  describe('return', function () {
-    it('as statement', function () {
-      var m = cg.returnStatement(cg.variable(['a']));
-      generatesStatement(m, 'return a;');
-    });
-    
-    it('as return', function () {
-      var m = cg.returnStatement(cg.variable(['a']));
-      generatesReturnExpression(m, 'return a;');
-    });
-    
-    it('return void', function () {
-      var m = cg.returnStatement();
-      generatesReturnExpression(m, 'return;');
-    });
-  });
-  
-  describe('throw', function () {
-    it('as statement', function () {
-      var m = cg.throwStatement(cg.variable(['a']));
-      generatesStatement(m, 'throw a;');
-    });
-    
-    it('as return', function () {
-      var m = cg.throwStatement(cg.variable(['a']));
-      generatesReturnExpression(m, 'throw a;');
-    });
-  });
-
-  describe('break', function () {
-    it('as statement', function () {
-      var m = cg.breakStatement(cg.variable(['a']));
-      generatesStatement(m, 'break;');
-    });
-    
-    it('as return', function () {
-      var m = cg.breakStatement(cg.variable(['a']));
-      generatesReturnExpression(m, 'break;');
-    });
-  });
-
-  describe('continue', function () {
-    it('as statement', function () {
-      var m = cg.continueStatement(cg.variable(['a']));
-      generatesStatement(m, 'continue;');
-    });
-    
-    it('as return', function () {
-      var m = cg.continueStatement(cg.variable(['a']));
-      generatesReturnExpression(m, 'continue;');
     });
   });
   
@@ -684,64 +521,39 @@ describe('code generator', function () {
 
   describe('try', function () {
     it('try catch', function () {
-      var t = cg.tryStatement(
+      var t = cg.tryExpression(
         cg.statements([cg.variable(['a'])]),
-        cg.block(
-          [cg.variable(['ex'])],
-          cg.statements([cg.variable(['b'])])
-        )
+        {
+          catchBody: cg.statements([cg.variable(['b'])]),
+          catchParameter: cg.variable(['ex'])
+        }
       );
 
       generatesStatement(t, 'try{a;}catch(ex){b;}');
     });
 
-    it("try catch is never returned", function () {
-      var t = cg.tryStatement(
-        cg.statements([cg.variable(['a'])]),
-        cg.block(
-          [cg.variable(['ex'])],
-          cg.statements([cg.variable(['b'])])
-        ),
-        cg.statements([cg.variable(['c'])])
-      );
-
-      generatesReturnExpression(t, 'try{return a;}catch(ex){return b;}finally{c;}');
-    });
-
     it('try catch finally', function () {
-      var t = cg.tryStatement(
+      var t = cg.tryExpression(
         cg.statements([cg.variable(['a'])]),
-        cg.block(
-          [cg.variable(['ex'])],
-          cg.statements([cg.variable(['b'])])
-        ),
-        cg.statements([cg.variable(['c'])])
+        {
+          catchBody: cg.statements([cg.variable(['b'])]),
+          catchParameter: cg.variable(['ex']),
+          finallyBody: cg.statements([cg.variable(['c'])])
+        }
       );
 
       generatesStatement(t, 'try{a;}catch(ex){b;}finally{c;}');
     });
 
     it('try finally', function () {
-      var t = cg.tryStatement(
+      var t = cg.tryExpression(
         cg.statements([cg.variable(['a'])]),
-        undefined,
-        cg.statements([cg.variable(['b'])])
+        {
+          finallyBody: cg.statements([cg.variable(['b'])])
+        }
       );
 
       generatesStatement(t, 'try{a;}finally{b;}');
-    });
-
-    it('try catch finally as an expression', function () {
-      var t = cg.tryStatement(
-        cg.statements([cg.variable(['a'])]),
-        cg.block(
-          [cg.variable(['ex'])],
-          cg.statements([cg.variable(['b'])])
-        ),
-        cg.statements([cg.variable(['c'])])
-      );
-
-      generatesExpression(t, '(function(){try{return a;}catch(ex){return b;}finally{c;}})()');
     });
   });
   
@@ -794,7 +606,7 @@ describe('code generator', function () {
         ]))])
       ]);
       
-      generatesStatements(s, 'var x;x=1;f(function(){x=2;return x;});');
+      generatesStatements(s, 'var x;x=1;f(function(){x=2;x;});');
     });
   });
   
@@ -802,74 +614,13 @@ describe('code generator', function () {
     it('places scope contents inside a function which is called immediately', function () {
       var s = cg.scope([cg.definition(cg.variable(['a']), cg.integer(8)), cg.variable(['a'])]);
       
-      generatesExpression(s, '(function(){var a;a=8;return a;})()');
+      generatesExpression(s, '(function(){var a;a=8;a;})()');
     });
 
     it('if there is only one statement, it just generates that statement', function () {
       var s = cg.scope([cg.variable(['a'])]);
       
       generatesExpression(s, 'a');
-    });
-  });
-  
-  describe('module', function () {
-    it('module should be wrapped in function', function () {
-      var s = cg.module(cg.statements([
-        cg.definition(cg.variable(['x']), cg.integer(1)),
-        cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
-          cg.definition(cg.variable(['x']), cg.integer(2)),
-          cg.variable(['x'])
-        ]))])
-      ])).expandMacros();
-      
-      generatesExpression(s, '(function(){var self,x;self=this;x=1;f(function(){x=2;return x;});}).call(this);');
-    });
-
-    describe('when not in scope (inScope = false)', function () {
-      it('module should not be wrapped in function', function () {
-        var s = cg.module(cg.statements([
-          cg.definition(cg.variable(['x']), cg.integer(1)),
-          cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
-            cg.definition(cg.variable(['x']), cg.integer(2)),
-            cg.variable(['x'])
-          ]))])
-        ]));
-
-        s.inScope = false;
-        
-        generatesExpression(s, 'var x;x=1;f(function(){x=2;return x;});');
-      });
-
-      it("when global, variables should not be declared with 'var'", function () {
-        var s = cg.module(cg.statements([
-          cg.definition(cg.variable(['x']), cg.integer(1)),
-          cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
-            cg.definition(cg.variable(['x']), cg.integer(2)),
-            cg.variable(['x'])
-          ]))])
-        ]));
-
-        s.inScope = false;
-        s.global = true;
-        
-        generatesExpression(s, 'x=1;f(function(){x=2;return x;});');
-      });
-
-      it("when global and return result, last statement should be returned", function () {
-        var s = cg.module(cg.statements([
-          cg.definition(cg.variable(['x']), cg.integer(1)),
-          cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
-            cg.definition(cg.variable(['x']), cg.integer(2)),
-            cg.variable(['x'])
-          ]))])
-        ]));
-
-        s.inScope = false;
-        s.global = true;
-        s.returnResult = true;
-        
-        generatesExpression(s, 'x=1;return f(function(){x=2;return x;});');
-      });
     });
   });
 });

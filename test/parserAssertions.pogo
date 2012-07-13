@@ -5,7 +5,7 @@ assume (term) is module with statements (action) =
     if (term.is module)
         action (term.statements)
     else
-        throw (new (Error ('expected module, but found ' + term)))
+        throw (new (Error ('expected module, but found ' + term.inspect term ())))
 
 assume (statements) has just one statement (action) =
     if (statements.statements.length == 1)
@@ -17,9 +17,22 @@ global.expression (source) =
     assume (statements (source)) has just one statement @(statement)
         statement
 
-global.statements (source) =
+global.macro expression (source) =
+    assume (statements (source, expand macros: true)) has just one statement @(statement)
+        statement
+
+global.macro statements (source, print: false) =
+    stmts = statements (source, expand macros: true)
+    if (print)
+        stmts.show ()
+
+    stmts
+
+global.statements (source, expand macros: false) =
     term = parse (source)
     term.in scope = false
 
-    assume (term) is module with statements @(statements)
-        statements
+    if (expand macros)
+        term.expand macros ().statements
+    else
+        term.statements
