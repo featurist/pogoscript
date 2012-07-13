@@ -25,3 +25,33 @@ describe 'for in'
                 )
             )
         )
+
+    it 'never returns'
+        for in expression =
+            terms.closure (
+                []
+                terms.statements [
+                    terms.for in (
+                        terms.variable ['i']
+                        terms.variable ['items']
+                        terms.statements [
+                            terms.variable ['i']
+                        ]
+                    )
+                ]
+            )
+
+        (for in expression.rewrite ()) should contain fields (
+            terms.closure (
+                []
+                terms.statements [
+                    terms.for in (
+                        terms.variable ['i']
+                        terms.variable ['items']
+                        terms.statements [
+                            terms.variable ['i']
+                        ]
+                    )
+                ]
+            )
+        )

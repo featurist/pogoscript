@@ -30,4 +30,6 @@ module.exports (terms) = terms.term {
 
     declare variables (variables, scope) =
         self.iterator.declare variable (variables, scope)
+
+    return result (return term) = self
 }
