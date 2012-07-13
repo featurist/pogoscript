@@ -223,6 +223,15 @@ module.exports (cg) =
                 rewrite (term, clone: nil): term.expand macro (clone)
             )
 
+        rewrite statements () = nil
+
+        rewrite all statements () =
+            self.clone (
+                rewrite (term, clone: nil): term.rewrite statements (clone)
+            )
+
+        rewrite () = self.expand macros ().rewrite all statements ()
+
         serialise sub statements () = nil
 
         declare variables () = nil

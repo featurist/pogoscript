@@ -115,7 +115,7 @@ module.exports (terms) =
 
             buffer.write ('}')
 
-        expand macro (clone) =
+        rewrite statements (clone) =
             c = clone ()
 
             if (self.is async)

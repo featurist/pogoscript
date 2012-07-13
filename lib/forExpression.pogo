@@ -9,10 +9,10 @@ module.exports (terms) = terms.term {
 
     expand macro (clone) =
         c = clone ()
-        c.statements = clone (self.scoped body ())
+        c.statements = clone (c._scoped body ())
         c
 
-    scoped body () =
+    _scoped body () =
         contains return = false
         for result variable = self.cg.generated variable ['for', 'result']
         rewritten statements = self.statements.clone (

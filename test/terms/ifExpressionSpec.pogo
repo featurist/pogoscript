@@ -33,7 +33,7 @@ describe 'if expression term'
                     ]
                 )
 
-            returning if expression = expression.expand macros ()
+            returning if expression = expression.rewrite ()
 
             expected if expression = 
                 terms.closure (
@@ -103,7 +103,7 @@ describe 'if expression term'
                     return last statement: false
                 )
 
-            returning if expression = expression.expand macros ()
+            returning if expression = expression.rewrite ()
 
             expected if expression = 
                 terms.closure (
@@ -136,3 +136,57 @@ describe 'if expression term'
                 )
 
             (returning if expression) should contain fields (expected if expression)
+
+    describe 'as expression'
+        it 'puts itself in a scope and returns'
+            if expression =
+                terms.closure (
+                    []
+                    terms.statements [
+                        terms.list [
+                            terms.if expression (
+                                [
+                                    [
+                                        terms.variable ['condition']
+                                        terms.statements [
+                                            terms.variable ['a']
+                                        ]
+                                    ]
+                                ]
+                            )
+                        ]
+                    ]
+                )
+            
+            rewritten if expression = if expression.rewrite ()
+
+            (rewritten if expression) should contain fields (
+                terms.closure (
+                    []
+                    terms.statements [
+                        terms.return statement (
+                            terms.list [
+                                terms.function call (
+                                    terms.closure (
+                                        []
+                                        terms.statements [
+                                            terms.if expression (
+                                                [
+                                                    [
+                                                        terms.variable ['condition']
+                                                        terms.statements [
+                                                            terms.return statement (terms.variable ['a'])
+                                                        ]
+                                                    ]
+                                                ]
+                                            )
+                                        ]
+                                    )
+                                    []
+                                )
+                            ]
+                            implicit: true
+                        )
+                    ]
+                )
+            )

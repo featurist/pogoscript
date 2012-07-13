@@ -495,12 +495,6 @@ describe('code generator', function () {
       generatesStatements(m, 'if(xOk){x;}else if(yOk){y;}else{otherStuff;}');
     });
   
-    it('if expression', function () {
-      var m = cg.ifExpression([[cg.variable(['obj']), cg.statements([cg.variable(['stuff'])])]]);
-    
-      generatesExpression(m, '(function(){if(obj){return stuff;}})()');
-    });
-  
     it('if else statement', function () {
       var m = cg.statements([cg.ifExpression([[
           cg.variable(['obj']),
@@ -510,12 +504,6 @@ describe('code generator', function () {
       )]);
     
       generatesStatements(m, 'if(obj){stuff;}else{otherStuff;}');
-    });
-  
-    it('if else expression', function () {
-      var m = cg.ifExpression([[cg.variable(['obj']), cg.statements([cg.variable(['stuff'])])]], cg.statements([cg.variable(['other', 'stuff'])]));
-    
-      generatesExpression(m, '(function(){if(obj){return stuff;}else{return otherStuff;}})()');
     });
   });
 

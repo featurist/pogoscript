@@ -45,8 +45,8 @@ module.exports (terms) = terms.term {
             statement = statements.(n)
             rewritten statement = 
                 statement.clone (
-                    rewrite (term, clone: nil):
-                        term.serialise sub statements (serialised statements, clone)
+                    rewrite (term, clone: nil, path: nil):
+                        term.serialise sub statements (serialised statements, clone, path.length == 1)
                         
                     limit (term):
                         term.is closure

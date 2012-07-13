@@ -115,7 +115,7 @@
         return module.loaded = true;
     };
     exports.compile = function(pogo, gen4_options) {
-        var filename, inScope, ugly, global, returnResult, self, moduleTerm, macroExpandedModule, code;
+        var filename, inScope, ugly, global, returnResult, self, moduleTerm, rewrittenModule, code;
         filename = gen4_options && gen4_options.hasOwnProperty("filename") && gen4_options.filename !== void 0 ? gen4_options.filename : void 0;
         inScope = gen4_options && gen4_options.hasOwnProperty("inScope") && gen4_options.inScope !== void 0 ? gen4_options.inScope : true;
         ugly = gen4_options && gen4_options.hasOwnProperty("ugly") && gen4_options.ugly !== void 0 ? gen4_options.ugly : false;
@@ -126,8 +126,8 @@
         moduleTerm.inScope = inScope;
         moduleTerm.global = global;
         moduleTerm.returnResult = returnResult;
-        macroExpandedModule = moduleTerm.expandMacros();
-        code = generateCode(macroExpandedModule);
+        rewrittenModule = moduleTerm.rewrite();
+        code = generateCode(rewrittenModule);
         if (!ugly) {
             code = beautify(code);
         }

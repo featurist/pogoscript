@@ -6,7 +6,7 @@ describe 'closure'
         it 'calls callback for return value'
             closure = terms.closure ([], terms.statements [terms.variable ['a']], async: true)
 
-            expanded closure = closure.expand macros ()
+            rewritten closure = closure.rewrite ()
 
             expected closure = terms.closure (
                 [terms.generated variable ['callback']]
@@ -15,7 +15,7 @@ describe 'closure'
                 ]
             )
 
-            (expanded closure) should contain fields (expected closure)
+            (rewritten closure) should contain fields (expected closure)
 
         it 'an async function statement is rewritten, accepting zero remaining statements as a block'
             closure = terms.closure (
@@ -26,7 +26,7 @@ describe 'closure'
                 async: true
             )
 
-            callback closure = closure.expand macros ()
+            callback closure = closure.rewrite ()
 
             expected closure = terms.closure (
                 [terms.generated variable ['callback']]
@@ -55,7 +55,7 @@ describe 'closure'
                 async: true
             )
 
-            callback closure = closure.expand macros ()
+            callback closure = closure.rewrite ()
 
             expected closure = terms.closure (
                 [terms.generated variable ['callback']]
@@ -77,7 +77,7 @@ describe 'closure'
         it 'returns simple expressions'
             closure = terms.closure ([], terms.statements [terms.variable ['a']])
 
-            expanded closure = closure.expand macros ()
+            rewritten closure = closure.rewrite ()
 
             expected closure = terms.closure (
                 []
@@ -86,7 +86,7 @@ describe 'closure'
                 ]
             )
 
-            (expanded closure) should contain fields (expected closure)
+            (rewritten closure) should contain fields (expected closure)
 
         it 'if expressions return themselves'
             closure = terms.closure ([], terms.statements [
@@ -101,7 +101,7 @@ describe 'closure'
                 )
             ])
 
-            expanded closure = closure.expand macros ()
+            rewritten closure = closure.rewrite ()
 
             expected closure = terms.closure (
                 []
@@ -122,12 +122,12 @@ describe 'closure'
                 ]
             )
 
-            (expanded closure) should contain fields (expected closure)
+            (rewritten closure) should contain fields (expected closure)
 
         it "doesn't return last statement if closure is told not to"
             closure = terms.closure ([], terms.statements [terms.variable ['a']], return last statement: false)
 
-            expanded closure = closure.expand macros ()
+            rewritten closure = closure.rewrite ()
 
             expected closure = terms.closure (
                 []
@@ -137,4 +137,4 @@ describe 'closure'
                 return last statement: false
             )
 
-            (expanded closure) should contain fields (expected closure)
+            (rewritten closure) should contain fields (expected closure)

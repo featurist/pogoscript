@@ -22,7 +22,7 @@ describe 'try expression term'
                     ]
                 )
 
-            returning try expression = expression.expand macros ()
+            returning try expression = expression.rewrite ()
 
             expected try expression = 
                 terms.closure (
@@ -68,7 +68,7 @@ describe 'try expression term'
                     return last statement: false
                 )
 
-            returning try expression = expression.expand macros ()
+            returning try expression = expression.rewrite ()
 
             expected try expression = 
                 terms.closure (
