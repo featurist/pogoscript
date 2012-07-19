@@ -28,9 +28,6 @@ describe 'pogo command'
                                                                               '#(path.resolve '343111c34d666435dd7e88265c816cbfdbe68cd3.pogo')',
                                                                               '--compile' ]" (done)
 
-pogo =
-    __dirname + "/../../bin/pogo"
-
 on success callback for (callback) =
     @(on success, always do)
         @(error, args, ...)
@@ -44,6 +41,8 @@ write file (filename, content, done) =
 
 expand pogo command (command) =
     if (r/^pogo /.test (command))
+        pogo = __dirname + "/../../bin/pogo"
+
         command.replace r/^pogo/ (pogo)
     else
         command
@@ -55,7 +54,6 @@ spawn (command, args, done) =
 run (command, done) =
     command = expand pogo command (command)
     child process.exec (command, {cwd = __dirname}, done)
-
 
 describe 'pogo --compile'
     it 'can compile a script' @(done)

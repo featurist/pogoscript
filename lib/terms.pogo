@@ -192,7 +192,7 @@ module.exports (cg) =
         inspect term (depth: 20) =
             util.inspect (self, false, depth)
 
-        show (desc, depth: 20) =
+        show (desc: nil, depth: 20) =
             if (desc)
                 console.log (desc, self.inspect term (depth: depth))
             else

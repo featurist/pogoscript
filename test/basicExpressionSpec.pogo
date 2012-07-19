@@ -75,8 +75,12 @@ describe 'basic expression'
         }
       }]
      
-    it 'has async argument'
-      (cg.basic expression [id 'stuff', async argument].has async argument ()) should be truthy
+    describe 'having async argument'
+      it 'has async argument when at end'
+        (cg.basic expression [id 'stuff', async argument].has async argument ()) should be truthy
+
+      it 'has async argument when in middle'
+        (cg.basic expression [id 'stuff', async argument, id 'ok'].has async argument ()) should be truthy
 
   describe 'parameters'
     target (expression) has some parameters =

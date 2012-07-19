@@ -29,7 +29,7 @@ module.exports (terms) =
       
         proper default value () =
             if (self.default value == nil)
-                self.cg.variable ['undefined']
+                terms.variable ['undefined']
             else
                 self.default value
 
@@ -65,7 +65,7 @@ module.exports (terms) =
       
         scopify () =
             if ((self.parameters.length == 0) && (self.optional parameters.length == 0))
-                self.cg.scope (self.body.statements)
+                terms.scope (self.body.statements)
             else
                 self
       
@@ -76,24 +76,24 @@ module.exports (terms) =
             optionals = optional parameters (
                 self.optional parameters
                 self parameter (
-                    self.cg
+                    terms
                     self.redefines self
                     block parameters (self)
                 )
             )
         
             splat = splat parameters (
-                self.cg
+                terms
                 optionals
             )
         
             if (optionals.has optionals && splat.has splat)
-                self.cg.errors.add terms (self.optional parameters) with message 'cannot have splat parameters with optional parameters'
+                terms.errors.add terms (self.optional parameters) with message 'cannot have splat parameters with optional parameters'
         
             self._parameter transforms = splat
       
         transformed statements () =
-            self.cg.statements (self.parameter transforms ().statements ())
+            terms.statements (self.parameter transforms ().statements ())
       
         transformed parameters () =
             self.parameter transforms ().parameters ()
@@ -118,13 +118,11 @@ module.exports (terms) =
         rewrite statements (clone) =
             c = clone ()
 
-            if (self.is async)
-                callback = terms.generated variable ['callback']
-                c.is async = false
-                c.parameters.push (callback)
-                c.body = c.body.rewrite async callbacks (callback function: callback)
-            else
-                c.body = c.body.rewrite async callbacks (return last statement: self.return last statement)
+            async rewrite = c.body.rewrite async callbacks (return last statement: self.return last statement)
+            c.body = async rewrite.statements
+
+            if (async rewrite.callback function)
+                c.parameters.push (async rewrite.callback function)
 
             c
     }

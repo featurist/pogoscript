@@ -15,7 +15,7 @@ module.exports (terms) = terms.term {
             method call = clone (terms.method call (terms.sub expression (b), ['call'], [terms.variable (['this'])]))
             terms.module (terms.statements [method call])
         else
-            statements = clone ().statements.rewrite async callbacks (return last statement: self.return last statement)
+            statements = clone ().statements.rewrite async callbacks (return last statement: self.return last statement).statements
             statements.global = self.global
             statements
             terms.module (statements)

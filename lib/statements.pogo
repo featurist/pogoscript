@@ -16,29 +16,52 @@ module.exports (terms) = terms.term {
             statement.generate java script statement (buffer, scope)
 
     rewrite async callbacks (return last statement: false, callback function: nil) =
-        return term (term) =
-            if (return last statement)
-                terms.return statement (term, implicit: true)
-            else if (callback function)
-                terms.function call (callback function, [terms.nil (), term])
-            else
-                term
+        statements = self._serialise statements (self.statements)
 
-        statements = self.serialise statements (self.statements, return term)
+        made statements return = false
+        callback function = nil
+
+        statements with return (async: false) =
+            if (!made statements return)
+                console.log ("async", async)
+
+                if (async)
+                    callback function = terms.generated variable ['callback']
+
+                return term (term) =
+                    if (return last statement && async)
+                        terms.function call (callback function, [terms.nil (), term])
+                    else if (return last statement)
+                        terms.return statement (term, implicit: true)
+                    else
+                        term
+
+                if (statements.length > 0)
+                    statements.(statements.length - 1) =
+                        statements.(statements.length - 1).return result (return term)
+
+                made statements return = true
+
+            statements
 
         for (n = 0, n < statements.length, n = n + 1)
             statement = statements.(n)
             async statement = statement.make async with statements
-                statements.slice (n + 1)
+                statements with return (async: true).slice (n + 1)
 
             if (async statement)
                 first statements = statements.slice (0, n)
                 first statements.push (async statement)
-                return (terms.statements (first statements))
+                return {
+                    statements = (terms.statements (first statements))
+                    callback function = callback function
+                }
 
-        terms.statements (statements, global: self.global)
+        {
+            statements = terms.statements (statements with return (), global: self.global)
+        }
 
-    serialise statements (statements, return term) =
+    _serialise statements (statements) =
         serialised statements = []
 
         for (n = 0, n < statements.length, n = n + 1)
@@ -54,10 +77,6 @@ module.exports (terms) = terms.term {
 
             serialised statements.push (rewritten statement)
 
-        if (return term && (serialised statements.length > 0))
-            serialised statements.(serialised statements.length - 1) =
-                serialised statements.(serialised statements.length - 1).return result (return term)
-
         serialised statements
 
     return last statement (return term) =
@@ -66,7 +85,7 @@ module.exports (terms) = terms.term {
                 self.statements.(self.statements.length - 1).return result (return term)
 
     serialise sub statements (serialised statements, clone) =
-        terms.statements (self.serialise statements (self.statements))
+        terms.statements (self._serialise statements (self.statements))
 
     generate variable declarations (variables, buffer, scope) =
         if (variables.length > 0)

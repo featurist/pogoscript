@@ -28,7 +28,7 @@ module.exports = function (terminals) {
     
     this.hasAsyncArgument = function () {
       return this._hasAsyncArgument || (this._hasAsyncArgument =
-        this.terminals[this.terminals.length - 1].isAsyncArgument
+        _.any(this.terminals, function (t) { return t.isAsyncArgument; })
       );
     };
     
