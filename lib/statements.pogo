@@ -54,15 +54,16 @@ module.exports (terms) = terms.term {
 
             serialised statements.push (rewritten statement)
 
-        if (return term)
+        if (return term && (serialised statements.length > 0))
             serialised statements.(serialised statements.length - 1) =
                 serialised statements.(serialised statements.length - 1).return result (return term)
 
         serialised statements
 
     return last statement (return term) =
-        self.statements.(self.statements.length - 1) =
-            self.statements.(self.statements.length - 1).return result (return term)
+        if (self.statements.length > 0)
+            self.statements.(self.statements.length - 1) =
+                self.statements.(self.statements.length - 1).return result (return term)
 
     serialise sub statements (serialised statements, clone) =
         terms.statements (self.serialise statements (self.statements))
