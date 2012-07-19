@@ -13,7 +13,7 @@ options = cli.parse(process.argv.slice(2));
 
 var commandLine = require('..');
 
-if (options.debug || options['debug-brk'] || options._[0] == 'debug') {
+if (options.debug || options.debugBrk || options._[0] == 'debug') {
   require('../lib/debugPogo').debugPogo();
 } else if (options.lex) {
   for (var i in options._) {

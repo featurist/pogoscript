@@ -16,7 +16,7 @@ node arguments =
     if (options.debug)
         move '--debug' to head of (args)
 
-    if (options.'debug-brk')
+    if (options.debug brk)
         move '--debug-brk' to head of (args)
 
     if (options._.0 == 'debug')
