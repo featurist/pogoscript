@@ -44,14 +44,27 @@ module.exports (terms) = terms.term {
 
         for (n = 0, n < statements.length, n = n + 1)
             statement = statements.(n)
-            async statement = statement.make async with statements
-                error variable = terms.generated variable ['error']
+            async statement = statement.make async with statements @(error variable)
+                callback statements = statements with return (async: true).slice (n + 1)
+                catch error variable = terms.generated variable ['error']
                 [
-                    terms.try expression (
-                        terms.statements (statements with return (async: true).slice (n + 1))
-                        catch parameter: error variable
-                        catch body: terms.statements [
-                            terms.function call (callback function, [error variable])
+                    terms.if expression (
+                        [
+                            [
+                                error variable
+                                terms.statements [
+                                    terms.function call (callback function, [error variable])
+                                ]
+                            ]
+                        ]
+                        terms.statements [
+                            terms.try expression (
+                                terms.statements (callback statements)
+                                catch parameter: catch error variable
+                                catch body: terms.statements [
+                                    terms.function call (callback function, [catch error variable])
+                                ]
+                            )
                         ]
                     )
                 ]

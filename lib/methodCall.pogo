@@ -31,9 +31,9 @@ module.exports (terms) =
                     async result
                 ]
 
-        make async call with result (variable, statements) =
+        make async call with result (result variable, error variable, statements) =
             mc = self.clone ()
-            mc.method arguments.push (terms.closure ([terms.generated variable ['error'], variable], terms.statements (statements)))
+            mc.method arguments.push (terms.closure ([error variable, result variable], terms.statements (statements)))
             mc
     }
 

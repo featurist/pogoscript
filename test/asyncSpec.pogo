@@ -69,3 +69,15 @@ describe 'async'
                f(done)' should output ("") @(error)
             error.message.should.equal 'thing'
             done ()
+
+    it 'thrown exceptions are passed to the error argument of the callback' @(done)
+        async 'bad yield (callback) =
+                   process.next tick
+                       callback ("thing")
+
+               f () =
+                   bad yield!
+
+               f(done)' should output ("") @(error)
+            error.should.equal 'thing'
+            done ()

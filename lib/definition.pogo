@@ -21,6 +21,7 @@ module.exports (terms) = terms.term {
 
     make async with statements (get remaining statements) =
         if (self.is async)
-            statements = get remaining statements ()
-            self.source.make async call with result (self.target, statements)
+            error variable = terms.generated variable ['error']
+            statements = get remaining statements (error variable)
+            self.source.make async call with result (self.target, error variable, statements)
 }

@@ -60,8 +60,8 @@ module.exports (terms) = terms.term {
             if (macro)
                 clone (macro (name, self.function arguments, self.optional arguments))
 
-    make async call with result (variable, statements) =
+    make async call with result (result variable, error variable, statements) =
         fc = self.clone ()
-        fc.function arguments.push (terms.closure ([terms.generated variable ['error'], variable], terms.statements (statements)))
+        fc.function arguments.push (terms.closure ([error variable, result variable], terms.statements (statements)))
         fc
 }
