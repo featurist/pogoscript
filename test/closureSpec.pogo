@@ -6,13 +6,15 @@ describe 'closure'
         it 'calls callback for return value'
             closure = terms.closure ([], terms.statements [terms.variable ['a']], async: true)
 
+            debugger
             rewritten closure = closure.rewrite ()
 
             expected closure = terms.closure (
-                [terms.generated variable ['callback']]
+                []
                 terms.statements [
                     terms.function call (terms.generated variable ['callback'], [terms.nil (), terms.variable ['a']])
                 ]
+                async: true
             )
 
             (rewritten closure) should contain fields (expected closure)
@@ -29,17 +31,23 @@ describe 'closure'
             callback closure = closure.rewrite ()
 
             expected closure = terms.closure (
-                [terms.generated variable ['callback']]
+                []
                 terms.statements [
-                    terms.function call (terms.variable ['fn'], [
-                        terms.closure (
-                            [terms.generated variable ['error'], terms.generated variable ['async', 'result']]
-                            terms.statements [
-                                terms.function call (terms.generated variable ['callback'], [terms.nil (), terms.generated variable ['async', 'result']])
-                            ]
-                        )
-                    ])
+                    terms.function call (
+                        terms.variable ['fn']
+                        [
+                            terms.closure (
+                                [terms.generated variable ['error'], terms.generated variable ['async', 'result']]
+                                terms.statements [
+                                    terms.function call (terms.generated variable ['callback'], [terms.nil (), terms.generated variable ['async', 'result']])
+                                ]
+                            )
+                        ]
+                        nil
+                        async: true
+                    )
                 ]
+                async: true
             )
 
             (callback closure) should contain fields (expected closure)
@@ -58,17 +66,23 @@ describe 'closure'
             callback closure = closure.rewrite ()
 
             expected closure = terms.closure (
-                [terms.generated variable ['callback']]
+                []
                 terms.statements [
-                    terms.function call (terms.variable ['a'], [
-                        terms.closure (
-                            [terms.generated variable ['error'], terms.generated variable ['async', 'result']]
-                            terms.statements [
-                                terms.function call (terms.generated variable ['callback'], [terms.nil (), terms.function call (terms.variable ['b'], [terms.generated variable ['async', 'result']])])
-                            ]
-                        )
-                    ])
+                    terms.function call (
+                        terms.variable ['a']
+                        [
+                            terms.closure (
+                                [terms.generated variable ['error'], terms.generated variable ['async', 'result']]
+                                terms.statements [
+                                    terms.function call (terms.generated variable ['callback'], [terms.nil (), terms.function call (terms.variable ['b'], [terms.generated variable ['async', 'result']])])
+                                ]
+                            )
+                        ]
+                        nil
+                        async: true
+                    )
                 ]
+                async: true
             )
 
             (callback closure) should contain fields (expected closure)

@@ -107,7 +107,7 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return cg.methodCall(object, head.name(), this.arguments(), this.optionalArguments());
+          return cg.methodCall(object, head.name(), this.arguments(), this.optionalArguments(), {async: this.hasAsyncArgument()});
         } else {
           return cg.fieldReference(object, head.name());
         }

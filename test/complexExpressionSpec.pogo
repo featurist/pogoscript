@@ -139,6 +139,16 @@ describe 'complex expression'
         object {variable ['a']}
         name ['method']
         method arguments [{integer 10}]
+        is async = false
+      }
+  
+    it 'async method call'
+      expression (variable 'a') [[id 'method', int 10, async argument]] should contain fields {
+        is method call
+        object {variable ['a']}
+        name ['method']
+        method arguments [{integer 10}]
+        is async
       }
   
     it 'method call with optional arguments'
@@ -148,6 +158,7 @@ describe 'complex expression'
         name ['method']
         method arguments [{integer 10}]
         optional arguments [{field ['port'], value {integer 80}}]
+        is async = false
       }
 
     it 'index'

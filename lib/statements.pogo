@@ -15,7 +15,7 @@ module.exports (terms) = terms.term {
             statement = statements.(s)
             statement.generate java script statement (buffer, scope)
 
-    rewrite async callbacks (return last statement: false, callback function: nil) =
+    rewrite async callbacks (return last statement: false, force async: false) =
         statements = self._serialise statements (self.statements)
 
         made statements return = false
@@ -23,8 +23,6 @@ module.exports (terms) = terms.term {
 
         statements with return (async: false) =
             if (!made statements return)
-                console.log ("async", async)
-
                 if (async)
                     callback function = terms.generated variable ['callback']
 
@@ -58,7 +56,8 @@ module.exports (terms) = terms.term {
                 }
 
         {
-            statements = terms.statements (statements with return (), global: self.global)
+            statements = terms.statements (statements with return (async: force async), global: self.global)
+            callback function = callback function
         }
 
     _serialise statements (statements) =

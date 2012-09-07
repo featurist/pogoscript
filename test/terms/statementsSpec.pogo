@@ -13,7 +13,7 @@ describe 'statements term'
                 global: true
             )
 
-            rewritten statements = statements.rewrite async callbacks ()
+            rewritten statements = statements.rewrite ()
 
             (rewritten statements) should generate statements 'a=1;b=1;'
 
@@ -25,6 +25,6 @@ describe 'statements term'
                 ]
             )
 
-            rewritten statements = statements.rewrite async callbacks ()
+            rewritten statements = statements.rewrite ()
 
             (rewritten statements) should generate statements 'var a,b;a=1;b=1;'

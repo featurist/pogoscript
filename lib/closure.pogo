@@ -46,6 +46,17 @@ module.exports (terms) =
             self.proper default value ().generate java script (buffer, scope)
     }
 
+    async parameters (closure, next) = {
+        parameters () =
+            if (closure.is async)
+                next.parameters ().concat [closure.async callback function]
+            else
+                next.parameters ()
+
+        statements () =
+            next.statements ()
+    }
+
     terms.term {
         constructor (parameters, body, return last statement: true, redefines self: false, async: false) =
             self.is block = true
@@ -86,11 +97,16 @@ module.exports (terms) =
                 terms
                 optionals
             )
+
+            async = async parameters (
+                self
+                splat
+            )
         
             if (optionals.has optionals && splat.has splat)
                 terms.errors.add terms (self.optional parameters) with message 'cannot have splat parameters with optional parameters'
         
-            self._parameter transforms = splat
+            self._parameter transforms = async
       
         transformed statements () =
             terms.statements (self.parameter transforms ().statements ())
@@ -116,13 +132,15 @@ module.exports (terms) =
             buffer.write ('}')
 
         rewrite statements (clone) =
+            debugger
             c = clone ()
 
-            async rewrite = c.body.rewrite async callbacks (return last statement: self.return last statement)
+            async rewrite = c.body.rewrite async callbacks (return last statement: self.return last statement, force async: self.is async)
             c.body = async rewrite.statements
 
             if (async rewrite.callback function)
-                c.parameters.push (async rewrite.callback function)
+                c.is async = true
+                c.async callback function = async rewrite.callback function
 
             c
     }

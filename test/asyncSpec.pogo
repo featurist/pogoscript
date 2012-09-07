@@ -5,9 +5,8 @@ async should output = script.async should output
 describe 'async'
     it 'can make one async call in statements' @(done)
         async 'f (callback) =
-                   set timeout
+                   process.next tick
                        callback (nil, "result")
-                   0
        
                x = f ()!
                print (x)
@@ -15,21 +14,39 @@ describe 'async'
 
     it 'can make one async call as argument to another function' @(done)
         async 'f (callback) =
-                   set timeout
+                   process.next tick
                        callback (nil, "result")
-                   0
        
                print (f ()!)
                done ()' should output ("'result'", done)
 
     it "an async function returns its result in a callback" @(done)
         async 'as (f) =
-                   set timeout
+                   process.next tick
                        f (nil, 4)
-                   0
                
-               fn ()! =
+               fn () =
                    as ()!
                
                print (fn ()!)
                done ()' should output ("4", done)
+
+    it "an async function can be passed an async block, which in turn returns its result in a callback" @(done)
+        async 'tick (callback) =
+                   process.next tick
+                       callback ()
+               
+               async fun (block, callback) =
+                   block (callback)
+               
+               result = async fun!
+                   tick!
+                   "result"
+               
+               print (result)
+               done ()' should output ("'result'", done)
+
+    it "an async method call works in the same way as an async function call" @(done)
+        async 'process.next tick!
+               print "finished"
+               done ()' should output ("'finished'", done)
