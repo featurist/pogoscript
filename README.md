@@ -4,15 +4,9 @@ Pogoscript is a programming language that emphasises readability, is friendly to
 
 # Installation
 
-Pogoscript requires [node.js](http://nodejs.org/) and [npm](http://npmjs.org/) to be installed.
+Pogoscript requires [node.js](http://nodejs.org/) and [npm](http://npmjs.org/).
 
-As its still a little bit experimental pogoscript is not in npm yet, but you can still have npm install it for you from the git repo.
-
-    git clone https://github.com/featurist/pogoscript.git
-    cd pogoscript
-    npm link
-
-npm will track the latest changes when you `git pull`
+    npm install pogo
 
 # Usage
 
