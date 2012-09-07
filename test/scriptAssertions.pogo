@@ -64,9 +64,9 @@ exports.evaluate async script (script, done) =
     print (arg) =
         printed items.push (arg)
 
-    return printed output () =
+    return printed output (error) =
         done (
-            nil
+            error
             _.map (printed items) @(item)
                 util.inspect (item)
             .join "\n"
@@ -77,11 +77,14 @@ exports.evaluate async script (script, done) =
 
 exports.async (script) should output (expected output, done) =
     exports.evaluate async script (script) @(error, result)
-        try
-            assert.equal (chomp (result), chomp (expected output))
-            done ()
-        catch @(ex)
-            done (ex)
+        if (error)
+            done (error)
+        else
+            try
+                assert.equal (chomp (result), chomp (expected output))
+                done ()
+            catch @(ex)
+                done (ex)
 
 exports.(script) should throw (expected error) =
     failed = false

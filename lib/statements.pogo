@@ -45,7 +45,16 @@ module.exports (terms) = terms.term {
         for (n = 0, n < statements.length, n = n + 1)
             statement = statements.(n)
             async statement = statement.make async with statements
-                statements with return (async: true).slice (n + 1)
+                error variable = terms.generated variable ['error']
+                [
+                    terms.try expression (
+                        terms.statements (statements with return (async: true).slice (n + 1))
+                        catch parameter: error variable
+                        catch body: terms.statements [
+                            terms.function call (callback function, [error variable])
+                        ]
+                    )
+                ]
 
             if (async statement)
                 first statements = statements.slice (0, n)

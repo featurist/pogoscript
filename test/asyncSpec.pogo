@@ -60,3 +60,12 @@ describe 'async'
                print result
                    process.next tick!
                    "finished"' should output ("'finished'", done)
+
+    it 'thrown exceptions are passed to the error argument of the callback' @(done)
+        async 'f () =
+                   process.next tick!
+                   throw (new (Error "thing"))
+
+               f(done)' should output ("") @(error)
+            error.message.should.equal 'thing'
+            done ()

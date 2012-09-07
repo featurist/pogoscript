@@ -39,7 +39,18 @@ describe 'closure'
                             terms.closure (
                                 [terms.generated variable ['error'], terms.generated variable ['async', 'result']]
                                 terms.statements [
-                                    terms.function call (terms.generated variable ['callback'], [terms.nil (), terms.generated variable ['async', 'result']])
+                                    terms.try expression (
+                                        terms.statements [
+                                            terms.function call (terms.generated variable ['callback'], [terms.nil (), terms.generated variable ['async', 'result']])
+                                        ]
+                                        catch parameter: terms.generated variable ['error']
+                                        catch body: terms.statements [
+                                            terms.function call (
+                                                terms.generated variable ['callback']
+                                                [terms.generated variable ['error']]
+                                            )
+                                        ]
+                                    )
                                 ]
                             )
                         ]
@@ -74,7 +85,18 @@ describe 'closure'
                             terms.closure (
                                 [terms.generated variable ['error'], terms.generated variable ['async', 'result']]
                                 terms.statements [
-                                    terms.function call (terms.generated variable ['callback'], [terms.nil (), terms.function call (terms.variable ['b'], [terms.generated variable ['async', 'result']])])
+                                    terms.try expression (
+                                        terms.statements [
+                                            terms.function call (terms.generated variable ['callback'], [terms.nil (), terms.function call (terms.variable ['b'], [terms.generated variable ['async', 'result']])])
+                                        ]
+                                        catch parameter: terms.generated variable ['error']
+                                        catch body: terms.statements [
+                                            terms.function call (
+                                                terms.generated variable ['callback']
+                                                [terms.generated variable ['error']]
+                                            )
+                                        ]
+                                    )
                                 ]
                             )
                         ]
