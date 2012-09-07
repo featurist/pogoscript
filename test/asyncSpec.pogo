@@ -50,3 +50,13 @@ describe 'async'
         async 'process.next tick!
                print "finished"
                done ()' should output ("'finished'", done)
+
+    it "makes a block asynchronous if it contains async statements" @(done)
+        async 'print result (block) =
+                   block @(error, result)
+                       print (result)
+                       done ()
+
+               print result
+                   process.next tick!
+                   "finished"' should output ("'finished'", done)
