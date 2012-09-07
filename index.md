@@ -152,15 +152,9 @@ What about a multi-line control structure?
 
 # Installation
 
-Pogoscript requires [node.js](http://nodejs.org/) and [npm](http://npmjs.org/) to be installed.
+Pogoscript requires [node.js](http://nodejs.org/) and [npm](http://npmjs.org/).
 
-Its still a little bit experimental so pogoscript is not in npm yet, but you can still have npm install it for you from the git repo.
-
-    git clone https://github.com/featurist/pogoscript.git
-    cd pogoscript
-    npm link
-
-npm will track the latest changes when you `git pull`
+    npm install pogo
 
 # Usage
 
