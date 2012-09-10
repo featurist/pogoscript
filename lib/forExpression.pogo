@@ -61,5 +61,5 @@ module.exports (terms) = terms.term {
     declare variables (variables, scope) =
         self.index variable.declare variable (variables, scope)
 
-    return result () = self
+    rewrite result term into (return term) = self
 }

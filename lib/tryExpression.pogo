@@ -37,7 +37,7 @@ module.exports (terms) = terms.term {
         self.already called = true
         self.cg.scope ([self], always generate function: true).generate java script (buffer, symbol scope)
 
-    return result (return term) =
+    rewrite result term into (return term) =
         self.body.return last statement (return term)
 
         if (self.catch body)

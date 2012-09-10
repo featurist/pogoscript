@@ -29,7 +29,7 @@ module.exports (terms) = terms.term {
                     terms.closure (
                         []
                         terms.statements [
-                            self.return result @(term)
+                            self.rewrite result term @(term) into
                                 terms.return statement (term)
                         ]
                     )
@@ -37,7 +37,7 @@ module.exports (terms) = terms.term {
                 )
             )
 
-    return result (return term) =
+    rewrite result term into (return term) =
         for each @(_case) in (self.cases)
             _case.1.return last statement (return term)
 

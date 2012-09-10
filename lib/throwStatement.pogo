@@ -8,5 +8,5 @@ module.exports (terms) = terms.term {
         self.expression.generateJavaScript (buffer, scope)
         buffer.write (';')
 
-    return result () = self
+    rewrite result term into (return term) = self
 }

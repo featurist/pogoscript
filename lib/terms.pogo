@@ -239,7 +239,7 @@ module.exports (cg) =
 
         make async with statements (statements) = nil
 
-        return result (return term) = return term (self)
+        rewrite result term into (return term) = return term (self)
     }
 
     term prototype = new (Term)

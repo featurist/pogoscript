@@ -31,5 +31,5 @@ module.exports (terms) = terms.term {
     declare variables (variables, scope) =
         self.iterator.declare variable (variables, scope)
 
-    return result (return term) = self
+    rewrite result term into (return term) = self
 }

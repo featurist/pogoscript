@@ -5,5 +5,5 @@ module.exports (terms) = terms.term {
     generate java script statement (buffer, scope) =
         buffer.write ('break;')
 
-    return result () = self
+    rewrite result term into (return term) = self
 }

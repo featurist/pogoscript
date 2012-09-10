@@ -13,5 +13,5 @@ module.exports (terms) = terms.term {
   
     generate java script statement (args, ...) = self.generate java script (args, ...)
 
-    return result () = self
+    rewrite result term into (return term) = self
 }
