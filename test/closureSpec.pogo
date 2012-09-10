@@ -6,7 +6,6 @@ describe 'closure'
         it 'calls callback for return value'
             closure = terms.closure ([], terms.statements [terms.variable ['a']], async: true)
 
-            debugger
             rewritten closure = closure.rewrite ()
 
             expected closure = terms.closure (

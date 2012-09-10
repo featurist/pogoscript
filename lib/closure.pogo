@@ -132,15 +132,15 @@ module.exports (terms) =
             buffer.write ('}')
 
         rewrite statements (clone) =
-            debugger
             c = clone ()
 
-            async rewrite = c.body.rewrite async callbacks (return last statement: self.return last statement, force async: self.is async)
+            callback function = terms.generated variable ['callback']
+            async rewrite = c.body.rewrite async callbacks (return last statement: self.return last statement, force async: self.is async, callback function: callback function)
             c.body = async rewrite.statements
 
-            if (async rewrite.callback function)
+            if (async rewrite.is async)
                 c.is async = true
-                c.async callback function = async rewrite.callback function
+                c.async callback function = callback function
 
             c
     }

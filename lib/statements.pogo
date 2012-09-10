@@ -15,11 +15,14 @@ module.exports (terms) = terms.term {
             statement = statements.(s)
             statement.generate java script statement (buffer, scope)
 
-    rewrite async callbacks (return last statement: false, force async: false) =
+    rewrite async callbacks (
+        return last statement: false
+        force async: false
+        callback function: terms.generated variable ['callback']
+    ) =
         statements = self._serialise statements (self.statements)
 
         made statements return = false
-        callback function = terms.generated variable ['callback']
         detected async call = force async
 
         statements with return () =
@@ -56,12 +59,12 @@ module.exports (terms) = terms.term {
                 first statements.push (async statement)
                 return {
                     statements = (terms.statements (first statements))
-                    callback function = callback function
+                    is async = detected async call
                 }
 
         {
             statements = terms.statements (statements with return (), global: self.global)
-            callback function = detected async call && callback function
+            is async = detected async call
         }
 
     _wrap callback statements (callback statements, error variable: nil, callback function: nil) =
