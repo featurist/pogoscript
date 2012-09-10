@@ -84,7 +84,7 @@
         source = fs.readFileSync(filename, "utf-8");
         tokens = parser.lex(source);
         gen2_items = tokens;
-        for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
+        for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
             token = gen2_items[gen3_i];
             text = token[1] && "'" + token[1] + "'" || "";
             console.log("<" + token[0] + "> " + text);
@@ -115,7 +115,7 @@
         return module.loaded = true;
     };
     exports.compile = function(pogo, gen4_options) {
-        var filename, inScope, ugly, global, returnResult, self, moduleTerm, rewrittenModule, code;
+        var filename, inScope, ugly, global, returnResult, self, moduleTerm, code;
         filename = gen4_options && gen4_options.hasOwnProperty("filename") && gen4_options.filename !== void 0 ? gen4_options.filename : void 0;
         inScope = gen4_options && gen4_options.hasOwnProperty("inScope") && gen4_options.inScope !== void 0 ? gen4_options.inScope : true;
         ugly = gen4_options && gen4_options.hasOwnProperty("ugly") && gen4_options.ugly !== void 0 ? gen4_options.ugly : false;
@@ -126,8 +126,7 @@
         moduleTerm.inScope = inScope;
         moduleTerm.global = global;
         moduleTerm.returnResult = returnResult;
-        rewrittenModule = moduleTerm.rewrite();
-        code = generateCode(rewrittenModule);
+        code = generateCode(moduleTerm);
         if (!ugly) {
             code = beautify(code);
         }
@@ -222,7 +221,7 @@
                     from: from,
                     to: to
                 });
-                for (gen10_i = 0; gen10_i < gen9_items.length; ++gen10_i) {
+                for (gen10_i = 0; gen10_i < gen9_items.length; gen10_i++) {
                     line = gen9_items[gen10_i];
                     process.stderr.write(prefix + line + "\n");
                 }

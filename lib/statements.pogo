@@ -2,10 +2,11 @@ _ = require 'underscore'
 codegen utils = require('./codegenUtils')
 
 module.exports (terms) = terms.term {
-    constructor (statements, global: false) =
+    constructor (statements, global: false, async: false) =
         self.is statements = true
         self.statements = statements
         self.global = global
+        self.is async = async
 
     generate statements (statements, buffer, scope) =
         declared variables = self.find declared variables (scope)

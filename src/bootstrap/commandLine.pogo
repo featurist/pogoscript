@@ -93,9 +93,9 @@ exports.compile (pogo, filename: nil, in scope: true, ugly: false, global: false
     module term.global = global
     module term.return result = return result
 
-    rewritten module = module term.rewrite ()
+    //rewritten module = module term.rewrite ()
 
-    code = generate code (rewritten module)
+    code = generate code (module term)
 
     if (!ugly)
         code = beautify (code)

@@ -19,9 +19,8 @@ module.exports (terms) = terms.term {
     declare variables (variables, scope) =
         self.target.declare variable (variables, scope)
 
-    make async with statements (get remaining statements) =
+    make async with callback for result (create callback for result) =
         if (self.is async)
-            error variable = terms.generated variable ['error']
-            statements = get remaining statements (error variable)
-            self.source.make async call with result (self.target, error variable, statements)
+            callback = create callback for result (self.target)
+            self.source.make async call with callback (callback)
 }

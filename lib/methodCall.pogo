@@ -2,6 +2,7 @@ codegen utils = require './codegenUtils'
 
 module.exports (terms) =
     method call term = terms.term {
+
         constructor (object, name, args, optional args, async: false) =
             self.is method call = true
             self.object = object
@@ -31,25 +32,37 @@ module.exports (terms) =
                     async result
                 ]
 
-        make async call with result (result variable, error variable, statements) =
+        make async call with callback (callback) =
             mc = self.clone ()
-            mc.method arguments.push (terms.closure ([error variable, result variable], terms.statements (statements)))
+            mc.method arguments.push (callback)
             mc
     }
 
-    method call (object, name, args, optional args, options) =
+    method call (object, name, args, optional args, async: false) =
         splatted args = terms.splat arguments (args, optional args)
   
         if (splatted args)
             object var = terms.generated variable ['o']
             terms.sub statements [
               terms.definition (objectVar, object)
-              terms.methodCall (
+              method call (
                 terms.field reference (objectVar, name)
                 ['apply']
                 [object var, splatted args]
-                options
+                nil
+                async: async
               )
             ]
+        else if (async)
+            async result = terms.generated variable ['async', 'result']
+
+            terms.sub statements [
+                terms.definition (
+                    async result
+                    method call term (object, name, args, optional args, async: async)
+                    async: true
+                )
+                async result
+            ]
         else
-            method call term (object, name, args, optional args, options)
+            method call term (object, name, args, optional args, async: async)

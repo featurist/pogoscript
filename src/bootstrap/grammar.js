@@ -14,7 +14,7 @@
         start: "module",
         bnf: {
             module: [ [ "statements eof", "return yy.terms.module($1);" ] ],
-            statements: [ [ "statements_list", "$$ = yy.terms.statements($1);" ] ],
+            statements: [ [ "statements_list", "$$ = yy.terms.asyncStatements($1);" ] ],
             hash_entries: [ [ "hash_entries , expression", "$1.push($3.hashEntry()); $$ = $1;" ], [ "expression", "$$ = [$1.hashEntry()];" ], [ "", "$$ = [];" ] ],
             statements_list: [ [ "statements_list , statement", "$1.push($3); $$ = $1;" ], [ "statement", "$$ = [$1];" ], [ "", "$$ = [];" ] ],
             arguments_list: [ [ "arguments_list , argument", "$1.push($3); $$ = $1;" ], [ "argument", "$$ = [$1];" ], [ "", "$$ = [];" ] ],

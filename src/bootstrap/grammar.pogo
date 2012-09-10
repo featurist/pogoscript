@@ -49,7 +49,7 @@ exports.grammar = {
             ['statements eof', 'return yy.terms.module($1);']
         ]
         statements [
-            ['statements_list', '$$ = yy.terms.statements($1);']
+            ['statements_list', '$$ = yy.terms.asyncStatements($1);']
         ]
         hash_entries [
             ['hash_entries , expression', '$1.push($3.hashEntry()); $$ = $1;']

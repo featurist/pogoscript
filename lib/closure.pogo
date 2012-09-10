@@ -49,7 +49,7 @@ module.exports (terms) =
     async parameters (closure, next) = {
         parameters () =
             if (closure.is async)
-                next.parameters ().concat [closure.async callback function]
+                next.parameters ().concat [terms.callback function]
             else
                 next.parameters ()
 
