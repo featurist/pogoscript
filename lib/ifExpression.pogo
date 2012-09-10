@@ -20,22 +20,10 @@ module.exports (terms) = terms.term {
             buffer.write ('}')
 
     generate java script (buffer, scope) =
+        self.rewrite result term @(term) into
+            terms.return statement (term)
+            
         terms.function call (terms.sub expression (terms.block ([], terms.statements ([self]))), []).generate java script (buffer, scope)
-
-    serialise sub statements (statements, clone, is statement) =
-        if (!is statement)
-            clone (
-                terms.function call (
-                    terms.closure (
-                        []
-                        terms.statements [
-                            self.rewrite result term @(term) into
-                                terms.return statement (term)
-                        ]
-                    )
-                    []
-                )
-            )
 
     rewrite result term into (return term) =
         for each @(_case) in (self.cases)
