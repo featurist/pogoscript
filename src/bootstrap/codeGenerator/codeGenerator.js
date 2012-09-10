@@ -76,6 +76,7 @@ exports.codeGenerator = function () {
   importTerm('newOperator');
   codegen.loc = loc;
   importTerm('generatedVariable');
+  codegen.callbackFunction = codegen.generatedVariable(['callback']);
   codegen.optional = cg.optional;
   codegen.postIncrement = cg.postIncrement;
   codegen.oldTerm = cg.oldTerm;

@@ -18,20 +18,19 @@ module.exports (terms) = terms.term {
     rewrite async callbacks (
         return last statement: false
         force async: false
-        callback function: terms.generated variable ['callback']
     ) =
         statements = self._serialise statements (self.statements)
 
         made statements return = false
-        detected async call = force async
 
-        statements with return () =
+        statements with return (async: false) =
             if (!made statements return)
                 return term (term) =
-                    if (return last statement && detected async call)
-                        terms.function call (callback function, [terms.nil (), term])
-                    else if (return last statement)
-                        terms.return statement (term, implicit: true)
+                    if (return last statement)
+                        if (async)
+                            terms.function call (terms.callback function, [terms.nil (), term])
+                        else
+                            terms.return statement (term, implicit: true)
                     else
                         term
 
@@ -47,27 +46,26 @@ module.exports (terms) = terms.term {
         for (n = 0, n < statements.length, n = n + 1)
             statement = statements.(n)
             async statement = statement.make async with statements @(error variable)
-                detected async call = true
                 self._wrap callback statements (
-                    statements with return ().slice (n + 1)
-                    callback function: callback function
+                    statements with return (async: true).slice (n + 1)
                     error variable: error variable
                 )
 
             if (async statement)
                 first statements = statements.slice (0, n)
                 first statements.push (async statement)
+
                 return {
                     statements = (terms.statements (first statements))
-                    is async = detected async call
+                    is async = true
                 }
 
         {
-            statements = terms.statements (statements with return (), global: self.global)
-            is async = detected async call
+            statements = terms.statements (statements with return (async: force async), global: self.global)
+            is async = force async
         }
 
-    _wrap callback statements (callback statements, error variable: nil, callback function: nil) =
+    _wrap callback statements (callback statements, error variable: nil) =
         catch error variable = terms.generated variable ['error']
         [
             terms.if expression (
@@ -75,7 +73,7 @@ module.exports (terms) = terms.term {
                     [
                         error variable
                         terms.statements [
-                            terms.function call (callback function, [error variable])
+                            terms.function call (terms.callback function, [error variable])
                         ]
                     ]
                 ]
@@ -84,7 +82,7 @@ module.exports (terms) = terms.term {
                         terms.statements (callback statements)
                         catch parameter: catch error variable
                         catch body: terms.statements [
-                            terms.function call (callback function, [catch error variable])
+                            terms.function call (terms.callback function, [catch error variable])
                         ]
                     )
                 ]

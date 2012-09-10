@@ -134,8 +134,12 @@ module.exports (terms) =
         rewrite statements (clone) =
             c = clone ()
 
-            callback function = terms.generated variable ['callback']
-            async rewrite = c.body.rewrite async callbacks (return last statement: self.return last statement, force async: self.is async, callback function: callback function)
+            callback function = terms.callback function
+            async rewrite = c.body.rewrite async callbacks (
+                return last statement: self.return last statement
+                force async: self.is async
+                callback function: callback function
+            )
             c.body = async rewrite.statements
 
             if (async rewrite.is async)
