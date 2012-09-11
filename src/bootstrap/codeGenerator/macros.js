@@ -93,13 +93,17 @@ exports.macros = function (cg) {
     var cases = [];
 
     for (var n = 0; n + 1 < arguments.length; n += 2) {
-      cases.push([arguments[n], arguments[n + 1].body]);
+      var body = arguments[n + 1].body;
+      body.rewriteLastStatementToNotReturn();
+      cases.push([arguments[n], body]);
     }
 
     var _else;
 
     if (arguments.length % 2 === 1) {
-      _else = arguments[arguments.length - 1].body;
+      var body = arguments[arguments.length - 1].body;
+      body.rewriteLastStatementToNotReturn();
+      _else = body;
     }
 
     return cg.ifExpression(cases, _else);
@@ -128,8 +132,11 @@ exports.macros = function (cg) {
   var createForEach = function (name, arguments) {
     var collection = arguments[0];
     var block = arguments[1];
+    var body = block.body;
 
     var itemVariable = block.parameters[0];
+
+    body.rewriteLastStatementToNotReturn();
 
     return cg.forEach(collection, itemVariable, block.body);
   };
@@ -140,6 +147,9 @@ exports.macros = function (cg) {
     var collection = arguments[0];
     var block = arguments[1];
     var iterator = block.parameters[0];
+    var body = block.body;
+
+    body.rewriteLastStatementToNotReturn();
 
     return cg.forIn(iterator, collection, block.body);
   });
@@ -158,6 +168,8 @@ exports.macros = function (cg) {
     if (!incr)
       return errors.addTermWithMessage(arguments[0], 'expected incr, as in (... . ... . n = n + 1)');
 
+    arguments[3].body.rewriteLastStatementToNotReturn();
+
     return cg.forStatement(init, test, incr, arguments[3].body);
   });
 
@@ -171,6 +183,7 @@ exports.macros = function (cg) {
       test = arguments[0];
     }
     var statements = arguments[1].body;
+    statements.rewriteLastStatementToNotReturn();
 
     return cg.whileStatement(test, statements);
   });
@@ -204,21 +217,37 @@ exports.macros = function (cg) {
   });
 
   macros.addMacro(['try', 'catch'], function (name, arguments) {
+    var body = arguments[0].body;
     var catchParameter = arguments[1].parameters[0];
     var catchBody = arguments[1].body;
-    return cg.tryExpression(arguments[0].body, {catchBody: catchBody, catchParameter: catchParameter});
+
+    body.rewriteLastStatementToNotReturn();
+    catchBody.rewriteLastStatementToNotReturn();
+
+    return cg.tryExpression(body, {catchBody: catchBody, catchParameter: catchParameter});
   });
 
   macros.addMacro(['try', 'catch', 'finally'], function (name, arguments) {
+    var body = arguments[0].body;
     var catchParameter = arguments[1].parameters[0];
     var catchBody = arguments[1].body;
     var finallyBody = arguments[2].body;
-    return cg.tryExpression(arguments[0].body, {catchBody: catchBody, catchParameter: catchParameter, finallyBody: finallyBody});
+
+    body.rewriteLastStatementToNotReturn();
+    catchBody.rewriteLastStatementToNotReturn();
+    finallyBody.rewriteLastStatementToNotReturn();
+
+    return cg.tryExpression(body, {catchBody: catchBody, catchParameter: catchParameter, finallyBody: finallyBody});
   });
 
   macros.addMacro(['try', 'finally'], function (name, arguments) {
+    var body = arguments[0].body;
     var finallyBody = arguments[1].body;
-    return cg.tryExpression(arguments[0].body, {finallyBody: finallyBody});
+
+    body.rewriteLastStatementToNotReturn();
+    finallyBody.rewriteLastStatementToNotReturn();
+
+    return cg.tryExpression(body, {finallyBody: finallyBody});
   });
 
   macros.addMacro(['nil'], function () {

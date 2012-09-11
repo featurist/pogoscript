@@ -2,8 +2,14 @@ require './assertions'
 
 parser = require '../src/bootstrap/parser'
 require './parserAssertions'
+create terms () = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 
 describe 'parser'
+    terms = nil
+
+    before
+        terms = create terms ()
+
     describe 'terminals'
         it 'integer'
             (expression '5') should contain fields {
@@ -284,11 +290,16 @@ describe 'parser'
                                 redefines self
 
                                 body {
-                                    statements [{
-                                        is function call
+                                    statements [
+                                        {
+                                            is return
+                                            expression {
+                                                is function call
 
-                                        function {variable ['print']}
-                                    }]
+                                                function {variable ['print']}
+                                            }
+                                        }
+                                    ]
                                 }
 
                                 parameters [{variable ['name']}]
@@ -358,11 +369,11 @@ describe 'parser'
             }
 
         it 'async function call with no arguments'
-            (expression 'delete everything!') should contain fields {
-                is function call
-                function {is variable, variable ['delete', 'everything']}
-                function arguments []
-            }
+            (expression 'delete everything!') should contain fields (
+                terms.async statements [
+                    terms.function call (terms.variable ['delete', 'everything'], [], nil, async: true)
+                ].statements.0
+            )
 
         it 'function call with block with parameters'
             (expression "with file (file) @(stream)\n  stream") should contain fields {
@@ -370,7 +381,7 @@ describe 'parser'
                 function arguments [
                     {variable ['file']}
                     {
-                        body {statements [{variable ['stream']}]}
+                        body {statements [{is return, expression {variable ['stream']}}]}
                         parameters [{variable ['stream']}]
                     }
                 ]
@@ -384,7 +395,7 @@ describe 'parser'
                         parameters [
                             {variable ['database', 'connection']}
                         ]
-                        body {statements [{variable ['database', 'connection']}]}
+                        body {statements [{is return, expression {variable ['database', 'connection']}}]}
                     }
                 ]
             }
@@ -394,11 +405,11 @@ describe 'parser'
                 function {variable ['name']}
                 function arguments [
                     {
-                        body {statements [{variable ['x']}]}
+                        body {statements [{is return, expression {variable ['x']}}]}
                         parameters [{variable ['x']}]
                     }
                     {
-                        body {statements [{variable ['y']}]}
+                        body {statements [{is return, expression {variable ['y']}}]}
                         parameters [{variable ['y']}]
                     }
                 ]
@@ -484,28 +495,36 @@ describe 'parser'
             }
         
         it 'parses no argument method with ! and field'
-            (expression 'object.method! . field') should contain fields {
-                is field reference
-                object {
-                    is method call
-                    object {variable ['object']}
-                    name ['method']
-                    method arguments []
-                }
-                name ['field']
-            }
+            (expression 'object.method! . field') should contain fields (
+                terms.async statements [
+                    terms.field reference (
+                        terms.method call (
+                            terms.variable ['object']
+                            ['method']
+                            []
+                            []
+                            async: true
+                        )
+                        ['field']
+                    )
+                ].statements.0
+            )
         
         it 'parses no argument method with ! and field'
-            (expression 'object.method!.field') should contain fields {
-                is field reference
-                object {
-                    is method call
-                    object {variable ['object']}
-                    name ['method']
-                    method arguments []
-                }
-                name ['field']
-            }
+            (expression 'object.method!.field') should contain fields (
+                terms.async statements [
+                    terms.field reference (
+                        terms.method call (
+                            terms.variable ['object']
+                            ['method']
+                            []
+                            []
+                            async: true
+                        )
+                        ['field']
+                    )
+                ].statements.0
+            )
 
     describe 'blocks'
         it 'empty block'
@@ -523,7 +542,7 @@ describe 'parser'
                 redefines self (false)
                 body {statements [
                     {variable ['x']}
-                    {variable ['y']}
+                    {is return, expression {variable ['y']}}
                 ]}
             }
 
@@ -535,7 +554,7 @@ describe 'parser'
                 body {
                     statements [
                         {variable ['x']}
-                        {variable ['y']}
+                        {is return, expression {variable ['y']}}
                     ]
                 }
             }
@@ -549,7 +568,7 @@ describe 'parser'
                         is block
                         body {
                             statements [
-                                {variable ['two']}
+                                {is return, expression {variable ['two']}}
                             ]
                         }
                     }
@@ -564,7 +583,7 @@ describe 'parser'
                 body {
                     statements [
                         {variable ['x']}
-                        {variable ['y']}
+                        {is return, expression {variable ['y']}}
                     ]
                 }
             }
@@ -672,6 +691,13 @@ describe 'parser'
                 source {variable ['y']}
             }
 
+        it 'assignment on next line'
+            (expression "x =\n  y") should contain fields {
+                is definition
+                target {variable ['x']}
+                source {variable ['y']}
+            }
+
         describe 'function definition'
             it 'function with one parameter'
                 (expression 'func (x) = x') should contain fields {
@@ -679,7 +705,7 @@ describe 'parser'
                     target {variable ['func']}
                     source {
                         parameters [{variable ['x']}]
-                        body {statements [{variable ['x']}]}
+                        body {statements [{is return, expression {variable ['x']}}]}
                     }
                 }
 
@@ -690,7 +716,7 @@ describe 'parser'
                     source {
                         parameters [{variable ['x']}]
                         optional parameters [{field ['port'], value {integer 80}}]
-                        body {statements [{variable ['x']}]}
+                        body {statements [{is return, expression {variable ['x']}}]}
                     }
                 }
 
@@ -732,7 +758,7 @@ describe 'parser'
                 }
             }
 
-        it 'assignment of command'
+        it 'assignment of async function'
             (expression 'x! = 8') should contain fields {
                 is definition
                 target {variable ['x']}
@@ -740,7 +766,14 @@ describe 'parser'
                     is block
                     parameters []
                     body {
-                        statements [{integer 8}]
+                        statements [{
+                            is function call
+                            function {is variable, name ['callback']}
+                            function arguments [
+                                terms.nil ()
+                                {integer 8}
+                            ]
+                        }]
                     }
                 }
             }
@@ -753,7 +786,7 @@ describe 'parser'
                     is block
                     parameters []
                     body {
-                        statements [{integer 8}]
+                        statements [{is return, expression {integer 8}}]
                     }
                 }
             }
@@ -855,7 +888,7 @@ describe 'parser'
                     ]
                 }
 
-            it 'when before an indented block'
+            it 'before an indented block'
                 (statements "a // this is a comment\n  b") should contain fields {
                     is statements
                     statements [{
@@ -865,7 +898,10 @@ describe 'parser'
                             is block
                             body {
                                 statements [
-                                    {variable ['b']}
+                                    {
+                                        is return
+                                        expression {variable ['b']}
+                                    }
                                 ]
                             }
                         }]
@@ -950,6 +986,8 @@ describe 'parser'
                 }
 
     it 'lexer'
+        create parser = require '../src/bootstrap/parser'.create parser
+        parser = create parser (terms: terms)
         tokens = parser.lex 'a (b)'
         (tokens) should contain fields [
             ['identifier', 'a']
@@ -962,9 +1000,9 @@ describe 'parser'
     it 'ignores hash bang #!, at the beginning of the file'
         (statements '#! /usr/bin/env pogo
                      a
-                     b') should contain fields {
-            statements [
-                {variable ['a']}
-                {variable ['b']}
+                     b') should contain fields (
+            terms.async statements [
+                terms.variable ['a']
+                terms.variable ['b']
             ]
-        }
+        )

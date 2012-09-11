@@ -1,10 +1,9 @@
 ((function() {
-    var self, fs, ms, parser, parse, uglify, _, Module, path, repl, vm, versions, runningOnNodeOrHigher, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, compileFromFile, sourceLocationPrinter;
+    var self, fs, ms, createParser, uglify, _, Module, path, repl, vm, versions, runningOnNodeOrHigher, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, compileFromFile, sourceLocationPrinter, createTerms;
     self = this;
     fs = require("fs");
     ms = require("../../lib/memorystream");
-    parser = require("./parser");
-    parse = parser.parse;
+    createParser = require("./parser").createParser;
     uglify = require("uglify-js");
     _ = require("underscore");
     Module = require("module");
@@ -79,9 +78,12 @@
         }
     };
     exports.lexFile = function(filename) {
-        var self, source, tokens, gen2_items, gen3_i, token, text;
+        var self, source, parser, tokens, gen2_items, gen3_i, token, text;
         self = this;
         source = fs.readFileSync(filename, "utf-8");
+        parser = createParser({
+            terms: createTerms()
+        });
         tokens = parser.lex(source);
         gen2_items = tokens;
         for (gen3_i = 0; gen3_i < gen2_items.length; gen3_i++) {
@@ -115,17 +117,22 @@
         return module.loaded = true;
     };
     exports.compile = function(pogo, gen4_options) {
-        var filename, inScope, ugly, global, returnResult, self, moduleTerm, code;
+        var filename, inScope, ugly, global, returnResult, self, terms, parser, moduleTerm, code;
         filename = gen4_options && gen4_options.hasOwnProperty("filename") && gen4_options.filename !== void 0 ? gen4_options.filename : void 0;
         inScope = gen4_options && gen4_options.hasOwnProperty("inScope") && gen4_options.inScope !== void 0 ? gen4_options.inScope : true;
         ugly = gen4_options && gen4_options.hasOwnProperty("ugly") && gen4_options.ugly !== void 0 ? gen4_options.ugly : false;
         global = gen4_options && gen4_options.hasOwnProperty("global") && gen4_options.global !== void 0 ? gen4_options.global : false;
         returnResult = gen4_options && gen4_options.hasOwnProperty("returnResult") && gen4_options.returnResult !== void 0 ? gen4_options.returnResult : false;
         self = this;
-        moduleTerm = parse(pogo);
-        moduleTerm.inScope = inScope;
-        moduleTerm.global = global;
-        moduleTerm.returnResult = returnResult;
+        terms = createTerms();
+        parser = createParser({
+            terms: terms
+        });
+        moduleTerm = terms.module(parser.parse(pogo), {
+            inScope: inScope,
+            global: global,
+            returnLastStatement: returnResult
+        });
         code = generateCode(moduleTerm);
         if (!ugly) {
             code = beautify(code);
@@ -256,5 +263,8 @@
                 return strings.join("");
             };
         });
+    };
+    createTerms = function() {
+        return require("./codeGenerator/codeGenerator").codeGenerator();
     };
 })).call(this);

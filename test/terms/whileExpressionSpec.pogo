@@ -12,14 +12,13 @@ describe 'while expression'
                 ]
             )
 
-        expanded closure = closure.rewrite ()
-
-        (expanded closure) should contain fields (
+        (closure) should contain fields (
             terms.closure (
                 []
                 terms.statements [
                     terms.while expression (terms.variable ['condition'], terms.statements [terms.variable ['body']])
                 ]
+                return last statement: false
             )
         )
 

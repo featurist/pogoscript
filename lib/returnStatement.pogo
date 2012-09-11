@@ -12,5 +12,9 @@ module.exports (terms) = terms.term {
         else
             buffer.write ('return;')
     
-    rewrite result term into (return term) = self
+    rewrite result term into (return term) =
+        if (self.is implicit)
+            return term (self)
+        else
+            self
 }

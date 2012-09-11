@@ -27,10 +27,10 @@ module.exports (terms) = terms.term {
 
     rewrite result term into (return term) =
         for each @(_case) in (self.cases)
-            _case.1.return last statement (return term)
+            _case.1.rewrite result term into (return term)
 
         if (self._else)
-            self._else.return last statement (return term)
+            self._else.rewrite result term into (return term)
 
         self
 }

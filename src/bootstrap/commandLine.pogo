@@ -1,7 +1,6 @@
 fs = require 'fs'
 ms = require '../../lib/memorystream'
-parser = require './parser'
-parse = parser.parse
+create parser = require './parser'.create parser
 uglify = require 'uglify-js'
 _ = require 'underscore'
 Module = require 'module'
@@ -59,6 +58,7 @@ exports.compile file if stale (filename, options) =
 
 exports.lex file (filename) =
     source = fs.read file sync (filename) 'utf-8'
+    parser = create parser (terms: create terms ())
     tokens = parser.lex (source)
 
     for each @(token) in (tokens)
@@ -88,12 +88,9 @@ exports.run main (filename) =
     module.loaded = true
 
 exports.compile (pogo, filename: nil, in scope: true, ugly: false, global: false, return result: false) =
-    module term = parse (pogo)
-    module term.in scope = in scope
-    module term.global = global
-    module term.return result = return result
-
-    //rewritten module = module term.rewrite ()
+    terms = create terms ()
+    parser = create parser (terms: terms)
+    module term = terms.module (parser.parse (pogo), in scope: in scope, global: global, return last statement: return result)
 
     code = generate code (module term)
 
@@ -176,3 +173,6 @@ source location printer (filename: nil, source: nil) =
                 strings.push (s)
 
             strings.join ''
+
+
+create terms () = require './codeGenerator/codeGenerator'.code generator ()

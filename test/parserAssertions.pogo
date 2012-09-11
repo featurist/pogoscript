@@ -1,4 +1,6 @@
-parser = require '../src/bootstrap/parser'
+create parser = require '../src/bootstrap/parser'.create parser
+create terms () = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
+parser = create parser (terms: create terms ())
 parse = parser.parse
 
 assume (term) is module with statements (action) =
@@ -9,7 +11,7 @@ assume (term) is module with statements (action) =
 
 assume (statements) has just one statement (action) =
     if (statements.statements.length == 1)
-        action (statements.statements.0)
+        statements.statements.0
     else
         throw (new (Error ('expected statements to have just one statement, found ' + statements.statements.length)))
 
@@ -29,10 +31,4 @@ global.macro statements (source, print: false) =
     stmts
 
 global.statements (source, expand macros: false) =
-    term = parse (source)
-    term.in scope = false
-
-    if (expand macros)
-        term.expand macros ().statements
-    else
-        term.statements
+    parse (source)

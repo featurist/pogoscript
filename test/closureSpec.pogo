@@ -3,76 +3,61 @@ should contain fields = require './containsFields'.contains fields
 
 describe 'closure'
     describe 'async closure'
-        it 'calls callback for return value'
-            closure = terms.closure ([], terms.statements [terms.variable ['a']], async: true)
-
-            rewritten closure = closure.rewrite ()
-
-            expected closure = terms.closure (
-                []
-                terms.statements [
-                    terms.function call (terms.generated variable ['callback'], [terms.nil (), terms.variable ['a']])
-                ]
-                async: true
-            )
-
-            (rewritten closure) should contain fields (expected closure)
-
         it 'an async function statement is rewritten, accepting zero remaining statements as a block'
             closure = terms.closure (
                 []
-                terms.statements [
+                terms.async statements [
                     terms.function call (terms.variable ['fn'], [], nil, async: true)
                 ]
                 async: true
             )
 
-            callback closure = closure.rewrite ()
-
             expected closure = terms.closure (
                 []
-                terms.statements [
-                    terms.function call (
-                        terms.variable ['fn']
-                        [
-                            terms.closure (
-                                [terms.generated variable ['error'], terms.generated variable ['async', 'result']]
-                                terms.statements [
-                                    terms.if expression (
-                                        [
+                terms.statements (
+                    [
+                        terms.function call (
+                            terms.variable ['fn']
+                            [
+                                terms.closure (
+                                    [terms.generated variable ['error'], terms.generated variable ['async', 'result']]
+                                    terms.statements [
+                                        terms.if expression (
                                             [
-                                                terms.generated variable ['error']
-                                                terms.statements [
-                                                    terms.function call (terms.generated variable ['callback'], [terms.generated variable ['error']])
+                                                [
+                                                    terms.generated variable ['error']
+                                                    terms.statements [
+                                                        terms.function call (terms.generated variable ['callback'], [terms.generated variable ['error']])
+                                                    ]
                                                 ]
                                             ]
-                                        ]
-                                        terms.statements [
-                                            terms.try expression (
-                                                terms.statements [
-                                                    terms.function call (terms.generated variable ['callback'], [terms.nil (), terms.generated variable ['async', 'result']])
-                                                ]
-                                                catch parameter: terms.generated variable ['error']
-                                                catch body: terms.statements [
-                                                    terms.function call (
-                                                        terms.generated variable ['callback']
-                                                        [terms.generated variable ['error']]
-                                                    )
-                                                ]
-                                            )
-                                        ]
-                                    )
-                                ]
-                            )
-                        ]
-                        nil
-                        async: true
-                    )
-                ]
+                                            terms.statements [
+                                                terms.try expression (
+                                                    terms.statements [
+                                                        terms.generated variable ['async', 'result']
+                                                    ]
+                                                    catch parameter: terms.generated variable ['exception']
+                                                    catch body: terms.statements [
+                                                        terms.function call (
+                                                            terms.generated variable ['callback']
+                                                            [terms.generated variable ['exception']]
+                                                        )
+                                                    ]
+                                                )
+                                            ]
+                                        )
+                                    ]
+                                )
+                            ]
+                            nil
+                        )
+                    ]
+                    async: true
+                )
                 async: true
             )
 
-            (callback closure) should contain fields (expected closure)
+            (closure) should contain fields (expected closure)
 
         it 'an async function as a result of another function is rewritten to pass the result to a callback'
             closure = terms.closure (

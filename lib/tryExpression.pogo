@@ -38,10 +38,10 @@ module.exports (terms) = terms.term {
         self.cg.scope ([self], always generate function: true).generate java script (buffer, symbol scope)
 
     rewrite result term into (return term) =
-        self.body.return last statement (return term)
+        self.body.rewrite result term into (return term)
 
         if (self.catch body)
-            self.catch body.return last statement (return term)
+            self.catch body.rewrite result term into (return term)
 
         self
 }

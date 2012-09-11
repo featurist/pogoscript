@@ -63,15 +63,20 @@ module.exports (terms) =
             self.is closure = true
             self.parameters = parameters
             self.body = body
-            self.return last statement = return last statement
             self.redefines self = redefines self
             self.optional parameters = []
-            self.is async = async
+            self.is async = async || body.is async
+
+            self.rewrite result term to return (return last statement)
+
+        rewrite result term to return (return last statement) =
+            if (return last statement && !self.body.is async)
+                self.body.rewrite last statement to return (async: self.is async)
 
         blockify (parameters, optional parameters, async: false) =
             self.parameters = parameters
             self.optional parameters = optional parameters
-            self.is async = async
+            self.is async = self.is async || async
             self
       
         scopify () =

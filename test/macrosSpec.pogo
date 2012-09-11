@@ -149,16 +149,11 @@ describe 'macros'
                                                 is statements
                                                 statements [
                                                     {
-                                                        is sub statements
-                                                        statements [
-                                                            {
-                                                                is definition
-                                                                target {is variable, name ['for', 'result']}
-                                                                source {variable ['a']}
-                                                            }
-                                                            {is return, expression {boolean = true}}
-                                                        ]
+                                                        is definition
+                                                        target {is variable, name ['for', 'result']}
+                                                        source {variable ['a']}
                                                     }
+                                                    {is return, expression {boolean = true}}
                                                 ]
                                             }
                                         }

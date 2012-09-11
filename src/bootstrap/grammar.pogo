@@ -42,11 +42,11 @@ exports.grammar = {
         ['left', '.']
     ]
 
-    start 'module'
+    start 'module_statements'
 
     bnf {
-        module [
-            ['statements eof', 'return yy.terms.module($1);']
+        module_statements [
+            ['statements eof', 'return $1;']
         ]
         statements [
             ['statements_list', '$$ = yy.terms.asyncStatements($1);']

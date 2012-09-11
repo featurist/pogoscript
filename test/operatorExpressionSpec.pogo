@@ -104,6 +104,6 @@ describe 'operator expression'
                     is block
                     parameters [{variable ['b']}]
                     optional parameters []
-                    body {statements [{variable ['c']}]}
+                    body {statements [{is return, expression {variable ['c']}}]}
                 }
             }

@@ -1,22 +1,32 @@
-module.exports (terms) = terms.term {
-    constructor (statements) =
-        self.statements = statements
-        self.is module = true
-        self.in scope = true
-        self.global = false
-        self.return last statement = false
+module.exports (terms) =
+    module term = terms.term {
+        constructor (statements, global: false, return last statement: false) =
+            self.statements = statements
+            self.is module = true
+            self.global = global
 
-    generate java script module (buffer) =
-        self.statements.generate java script statements (buffer, new (terms.Symbol Scope), self.global)
+        generate java script module (buffer) =
+            self.statements.generate java script statements (buffer, new (terms.Symbol Scope (nil)), self.global)
+    }
 
-    expand macro (clone) =
-        if (self.in scope)
-            b = terms.closure ([], self.statements, return last statement: false, redefines self: true)
-            method call = clone (terms.method call (terms.sub expression (b), ['call'], [terms.variable (['this'])]))
-            terms.module (terms.statements [method call])
+    module (statements, in scope: true, global: false, return last statement: false) =
+        if (return last statement)
+            statements.rewrite last statement to return (async: false)
+
+        statements.global = global
+
+        if (in scope)
+            scope = terms.closure ([], statements, return last statement: return last statement, redefines self: true)
+            args = [terms.variable (['this'])]
+
+            if (statements.is async)
+                error variable = terms.generated variable ['error']
+                throw if error = terms.if expression (
+                    [[error variable, terms.statements [terms.throw statement (error variable)]]]
+                )
+                args.push (terms.closure ([error variable], terms.statements [throw if error]))
+
+            method call = terms.method call (terms.sub expression (scope), ['call'], args)
+            module term (terms.statements [method call])
         else
-            statements = clone ().statements.rewrite async callbacks (return last statement: self.return last statement).statements
-            statements.global = self.global
-            statements
-            terms.module (statements)
-}
+            module term (statements, global: global, return last statement: return last statement)

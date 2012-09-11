@@ -13,47 +13,29 @@ describe 'module term'
                 ]
             )
 
-            expanded module = module.expand macros ()
-
-            method call = terms.method call (
-                terms.sub expression (
-                    terms.closure (
-                        []
-                        terms.statements [
-                            terms.variable ['a']
-                            terms.variable ['b']
-                            terms.variable ['c']
-                        ]
-                        return last statement: false
-                        redefines self: true
-                    )
-                )
-                ['call']
-                [terms.variable ['this']]
-            )
-
-            (expanded module) should contain fields (
-                terms.module (
-                    terms.statements [
-                        method call = terms.method call (
-                            terms.sub expression (
-                                terms.closure (
-                                    []
-                                    terms.statements [
-                                        terms.variable ['a']
-                                        terms.variable ['b']
-                                        terms.variable ['c']
-                                    ]
-                                    return last statement: false
-                                    redefines self: true
-                                )
+            expected module = terms.module (
+                terms.statements [
+                    terms.method call (
+                        terms.sub expression (
+                            terms.closure (
+                                []
+                                terms.statements [
+                                    terms.variable ['a']
+                                    terms.variable ['b']
+                                    terms.variable ['c']
+                                ]
+                                return last statement: false
+                                redefines self: true
                             )
-                            ['call']
-                            [terms.variable ['this']]
                         )
-                    ]
-                )
+                        ['call']
+                        [terms.variable ['this']]
+                    )
+                ]
+                in scope: false
             )
+
+            (module) should contain fields (expected module)
 
     it 'returns last statement, without a scope'
         module = terms.module (
@@ -62,20 +44,18 @@ describe 'module term'
                 terms.variable ['b']
                 terms.variable ['c']
             ]
+            return last statement: true
+            in scope: false
         )
 
-        module.in scope = false
-        module.return last statement = true
-
-        expanded module = module.expand macros ()
-
-        (expanded module) should contain fields (
+        (module) should contain fields (
             terms.module (
                 terms.statements [
                     terms.variable ['a']
                     terms.variable ['b']
                     terms.return statement (terms.variable ['c'], implicit: true)
                 ]
+                in scope: false
             )
         )
 
@@ -109,26 +89,19 @@ describe 'module term'
                 terms.variable ['b']
                 terms.variable ['c']
             ]
+            in scope: false
+            global: true
         )
 
-        module.in scope = false
-        module.global = true
-
-        expanded module = module.expand macros ()
-
-        statements = terms.statements ([
-            terms.variable ['a']
-            terms.variable ['b']
-            terms.variable ['c']
-        ], global: true)
-
-        (expanded module) should contain fields (
+        (module) should contain fields (
             terms.module (
                 terms.statements ([
                     terms.variable ['a']
                     terms.variable ['b']
                     terms.variable ['c']
                 ], global: true)
+                in scope: false
+                global: true
             )
         )
 
@@ -140,6 +113,7 @@ describe 'module term'
                     terms.variable ['b']
                     terms.variable ['c']
                 ]
+                in scope: false
             )
 
             (module) should generate module ('a;b;c;')

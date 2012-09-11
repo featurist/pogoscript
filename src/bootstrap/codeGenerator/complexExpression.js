@@ -89,7 +89,7 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return cg.functionCall(cg.variable(head.name()), this.arguments(), this.optionalArguments(), {async: this.hasAsyncArgument()});
+          return cg.functionCall(cg.variable(head.name(), {couldBeMacro: false}), this.arguments(), this.optionalArguments(), {async: this.hasAsyncArgument()});
         } else {
           return cg.variable(head.name());
         }

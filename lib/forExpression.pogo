@@ -7,11 +7,6 @@ module.exports (terms) = terms.term {
         self.index variable = init.target
         self.statements = stmts
 
-    expand macro (clone) =
-        c = clone ()
-        c.statements = clone (c._scoped body ())
-        c
-
     _scoped body () =
         contains return = false
         for result variable = self.cg.generated variable ['for', 'result']
@@ -22,9 +17,14 @@ module.exports (terms) = terms.term {
                     terms.sub statements [self.cg.definition (for result variable, term.expression), self.cg.return statement (self.cg.boolean (true))]
 
             limit (term, path: path):
+                term.is closure
+        ).clone (
+            rewrite (term):
                 if (term.is statements)
-                    if (path.length > 0)
-                        path.(path.length - 1).is closure
+                    term.serialise sub statements
+
+            limit (term):
+                term.is closure
         )
 
         if (contains return)
@@ -41,7 +41,7 @@ module.exports (terms) = terms.term {
                 )
             )
 
-            self.cg.statements (loop statements)
+            self.cg.async statements (loop statements)
         else
             self.statements
   

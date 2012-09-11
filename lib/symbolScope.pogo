@@ -7,11 +7,9 @@ UniqueNames () = =>
 
     nil
 
-Symbol Scope = exports.Symbol Scope (parent scope, unique names) = =>
-    unique names = unique names || new (UniqueNames)
-  
+Symbol Scope = exports.Symbol Scope (parent scope, unique names: new (UniqueNames)) = =>
     variables = {}
-  
+
     self.define (name) =
         variables.(name) = true
   
@@ -22,6 +20,6 @@ Symbol Scope = exports.Symbol Scope (parent scope, unique names) = =>
         variables.has own property (name) || (parent scope && parent scope.is defined (name))
   
     self.sub scope () =
-        new (Symbol Scope (self, unique names))
+        new (Symbol Scope (self, unique names: unique names))
 
     nil

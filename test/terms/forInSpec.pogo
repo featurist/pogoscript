@@ -41,7 +41,7 @@ describe 'for in'
                 ]
             )
 
-        (for in expression.rewrite ()) should contain fields (
+        (for in expression) should contain fields (
             terms.closure (
                 []
                 terms.statements [
@@ -53,5 +53,6 @@ describe 'for in'
                         ]
                     )
                 ]
+                return last statement: false
             )
         )

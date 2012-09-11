@@ -12,14 +12,13 @@ describe 'continue statement'
                 ]
             )
 
-        expanded closure = closure.rewrite ()
-
-        (expanded closure) should contain fields (
+        (closure) should contain fields (
             terms.closure (
                 []
                 terms.statements [
                     terms.continue statement ()
                 ]
+                return last statement: false
             )
         )
 
