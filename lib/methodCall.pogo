@@ -19,19 +19,6 @@ module.exports (terms) =
             codegen utils.write to buffer with delimiter (codegen utils.args and optional args (self.cg, self.method arguments, self.optional arguments), ',', buffer, scope)
             buffer.write (')')
 
-        expand macro (clone) =
-            if (self.is async)
-                async result = terms.generated variable ['async', 'result']
-
-                terms.sub statements [
-                    terms.definition (
-                        async result
-                        clone ()
-                        async: true
-                    )
-                    async result
-                ]
-
         make async call with callback (callback) =
             mc = self.clone ()
             mc.method arguments.push (callback)
@@ -54,7 +41,7 @@ module.exports (terms) =
               )
             ]
         else if (async)
-            async result = terms.generated variable ['async', 'result']
+            async result = terms.async result ()
 
             terms.sub statements [
                 terms.definition (

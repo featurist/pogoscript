@@ -6,11 +6,12 @@ module.exports (terms) = terms.term {
         self.increment = incr
         self.index variable = init.target
         self.statements = stmts
+        self.statements = self._scoped body ()
 
     _scoped body () =
         contains return = false
         for result variable = self.cg.generated variable ['for', 'result']
-        rewritten statements = self.statements.clone (
+        rewritten statements = self.statements.rewrite (
             rewrite (term):
                 if (term.is return)
                     contains return = true
@@ -18,14 +19,7 @@ module.exports (terms) = terms.term {
 
             limit (term, path: path):
                 term.is closure
-        ).clone (
-            rewrite (term):
-                if (term.is statements)
-                    term.serialise sub statements
-
-            limit (term):
-                term.is closure
-        )
+        ).serialise all statements ()
 
         if (contains return)
             loop statements = []

@@ -4,41 +4,32 @@ require '../assertions'
 describe 'try expression term'
     describe 'returning as last statement'
         it 'returns last statement from body and catch body'
-            expression =
-                terms.closure (
-                    []
+            try expression =
+                terms.try expression (
                     terms.statements [
-                        terms.try expression (
-                            terms.statements [
-                                terms.variable ['a']
-                                terms.variable ['b']
-                            ]
-                            catch body: terms.statements [
-                                terms.variable ['c']
-                                terms.variable ['d']
-                            ]
-                            catch parameter: terms.variable ['e']
-                        )
+                        terms.variable ['a']
+                        terms.variable ['b']
                     ]
+                    catch body: terms.statements [
+                        terms.variable ['c']
+                        terms.variable ['d']
+                    ]
+                    catch parameter: terms.variable ['e']
                 )
 
             expected try expression = 
-                terms.closure (
-                    []
+                terms.try expression (
                     terms.statements [
-                        terms.try expression (
-                            terms.statements [
-                                terms.variable ['a']
-                                terms.return statement (terms.variable ['b'], implicit: true)
-                            ]
-                            catch body: terms.statements [
-                                terms.variable ['c']
-                                terms.return statement (terms.variable ['d'], implicit: true)
-                            ]
-                            catch parameter: terms.variable ['e']
-                        )
+                        terms.variable ['a']
+                        terms.return statement (terms.variable ['b'], implicit: true)
                     ]
-                    return last statement: false
+                    catch body: terms.statements [
+                        terms.variable ['c']
+                        terms.return statement (terms.variable ['d'], implicit: true)
+                    ]
+                    catch parameter: terms.variable ['e']
                 )
 
-            (expression) should contain fields (expected try expression)
+            try expression.rewrite result term @(term) into @{terms.return statement (term, implicit: true)}
+
+            (try expression) should contain fields (expected try expression)

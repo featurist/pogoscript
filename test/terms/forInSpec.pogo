@@ -28,31 +28,12 @@ describe 'for in'
 
     it 'never returns'
         for in expression =
-            terms.closure (
-                []
+            terms.for in (
+                terms.variable ['i']
+                terms.variable ['items']
                 terms.statements [
-                    terms.for in (
-                        terms.variable ['i']
-                        terms.variable ['items']
-                        terms.statements [
-                            terms.variable ['i']
-                        ]
-                    )
+                    terms.variable ['i']
                 ]
             )
 
-        (for in expression) should contain fields (
-            terms.closure (
-                []
-                terms.statements [
-                    terms.for in (
-                        terms.variable ['i']
-                        terms.variable ['items']
-                        terms.statements [
-                            terms.variable ['i']
-                        ]
-                    )
-                ]
-                return last statement: false
-            )
-        )
+        for in expression.rewrite result term into ().should.equal (for in expression)

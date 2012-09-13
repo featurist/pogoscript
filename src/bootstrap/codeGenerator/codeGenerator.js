@@ -67,6 +67,7 @@ exports.codeGenerator = function () {
   importTerm('throwStatement');
   importTerm('returnStatement');
   importTerm('methodCall');
+  importTerm('asyncResult');
   importTerm('indexer');
   importTerm('whileExpression');
   codegen.whileStatement = codegen.whileExpression;
@@ -77,6 +78,7 @@ exports.codeGenerator = function () {
   importTerm('newOperator');
   codegen.loc = loc;
   importTerm('generatedVariable');
+  importTerm('asyncCallback');
   codegen.callbackFunction = codegen.generatedVariable(['callback']);
   codegen.optional = cg.optional;
   codegen.postIncrement = cg.postIncrement;

@@ -287,6 +287,51 @@ describe 'terms'
                 [t, x, y]
             ]
 
+    describe 'rewriting'
+        it 'returns the same object'
+            a = new (Term {
+                b = new (Term {
+                    is crazy
+                })
+                c = new (Term {
+                    is cool
+                })
+            })
+
+            a.rewrite (
+                rewrite (term):
+                    if (term.is cool)
+                        new (Term {is bad})
+            )
+
+            a.c.is bad.should.equal (true)
+
+        it 'limits the rewrite to a term'
+            a = new (Term {
+                b = new (Term {
+                    is crazy
+                    d = new (Term {
+                        is cool
+                    })
+                })
+                c = new (Term {
+                    is cool
+                })
+            })
+
+            a.rewrite (
+                rewrite (term):
+                    if (term.is cool)
+                        new (Term {is bad})
+
+                limit (term):
+                    term.is crazy
+            )
+
+            a.c.is bad.should.equal (true)
+            a.b.d.is cool.should.equal (true)
+
+
     describe 'location'
         it 'can set location'
             t = new (Term)

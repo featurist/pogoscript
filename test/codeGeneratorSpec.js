@@ -227,7 +227,7 @@ describe('code generator', function () {
     it('with no parameters', function () {
       var b = cg.block([], cg.statements([cg.variable(['x'])]));
       
-      generatesExpression(b, 'function(){x;}');
+      generatesExpression(b, 'function(){return x;}');
     });
     
     it('with no statements', function () {
@@ -239,19 +239,19 @@ describe('code generator', function () {
     it('declares its parameters', function () {
       var b = cg.block([cg.variable(['x'])], cg.statements([cg.definition(cg.variable(['x']), cg.integer(8))]));
       
-      generatesExpression(b, 'function(x){x=8;}');
+      generatesExpression(b, 'function(x){return x=8;}');
     });
     
     it('with two parameters', function () {
       var b = cg.block([cg.variable(['x']), cg.variable(['y'])], cg.statements([cg.variable(['x'])]));
       
-      generatesExpression(b, 'function(x,y){x;}');
+      generatesExpression(b, 'function(x,y){return x;}');
     });
     
     it('with two parameters and two statements', function () {
       var b = cg.block([cg.variable(['x']), cg.variable(['y'])], cg.statements([cg.functionCall(cg.variable(['y']), [cg.variable(['x'])]), cg.variable(['x'])]));
       
-      generatesExpression(b, 'function(x,y){y(x);x;}');
+      generatesExpression(b, 'function(x,y){y(x);return x;}');
     });
     
     it('block with new context', function () {
@@ -268,7 +268,7 @@ describe('code generator', function () {
       
       b.redefinesSelf = true;
       
-      generatesExpression(b, 'function(x,y){var self;self=this;y(x);x;}');
+      generatesExpression(b, 'function(x,y){var self;self=this;y(x);return x;}');
     });
     
     it('with a parameter and two optional parameters', function () {
@@ -292,7 +292,7 @@ describe('code generator', function () {
         cg.hashEntry(['start'])
       ];
       
-      generatesStatements(s, "var port;port=1;function(x,y,gen1_options){var port,start;port=(gen1_options&&gen1_options.hasOwnProperty('port')&&gen1_options.port!==void 0)?gen1_options.port:80;start=(gen1_options&&gen1_options.hasOwnProperty('start')&&gen1_options.start!==void 0)?gen1_options.start:undefined;y(x);x;};");
+      generatesStatements(s, "var port;port=1;function(x,y,gen1_options){var port,start;port=(gen1_options&&gen1_options.hasOwnProperty('port')&&gen1_options.port!==void 0)?gen1_options.port:80;start=(gen1_options&&gen1_options.hasOwnProperty('start')&&gen1_options.start!==void 0)?gen1_options.start:undefined;y(x);return x;};");
     });
     
     it('with splat parameters', function () {
@@ -312,7 +312,7 @@ describe('code generator', function () {
         )
       ]);
 
-      generatesStatements(s, "var y;y=1;function(x){var y,z;y=Array.prototype.slice.call(arguments, 1, arguments.length - 1);z=arguments[arguments.length - 1];y(x);z;};");
+      generatesStatements(s, "var y;y=1;function(x){var y,z;y=Array.prototype.slice.call(arguments, 1, arguments.length - 1);z=arguments[arguments.length - 1];y(x);return z;};");
     });
   });
   
@@ -591,7 +591,7 @@ describe('code generator', function () {
         ]))])
       ]);
       
-      generatesStatements(s, 'var x;x=1;f(function(){x=2;x;});');
+      generatesStatements(s, 'var x;x=1;f(function(){x=2;return x;});');
     });
   });
   
@@ -599,7 +599,7 @@ describe('code generator', function () {
     it('places scope contents inside a function which is called immediately', function () {
       var s = cg.scope([cg.definition(cg.variable(['a']), cg.integer(8)), cg.variable(['a'])]);
       
-      generatesExpression(s, '(function(){var a;a=8;a;})()');
+      generatesExpression(s, '(function(){var a;a=8;return a;})()');
     });
 
     it('if there is only one statement, it just generates that statement', function () {

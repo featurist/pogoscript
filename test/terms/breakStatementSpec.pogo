@@ -4,23 +4,10 @@ require '../codeGeneratorAssertions'
 
 describe 'break statement'
     it 'is never implicitly returned'
-        closure =
-            terms.closure (
-                []
-                terms.statements [
-                    terms.break statement ()
-                ]
-            )
+        break statement =
+            terms.break statement ()
 
-        (closure) should contain fields (
-            terms.closure (
-                []
-                terms.statements [
-                    terms.break statement ()
-                ]
-                return last statement: false
-            )
-        )
+        break statement.rewrite result term into ().should.equal (break statement)
 
     describe 'code generation'
         it 'generates break expression'

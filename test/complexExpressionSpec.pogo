@@ -65,18 +65,38 @@ describe 'complex expression'
     describe 'async functions'
         it 'one argument and async argument is async function call'
           expression [[variable 'z', async argument]] should contain fields {
-            is function call
-            is async
-            function {variable ['z']}
-            function arguments []
+            is sub statements
+            statements [
+              {
+                is definition
+                is async
+                target {is variable, name ['async', 'result']}
+                source {
+                  is function call
+                  function {variable ['z']}
+                  function arguments []
+                }
+              }
+              {is variable, name ['async', 'result']}
+            ]
           }
 
         it 'name and async argument is function call'
           expression [[id 'z', async argument]] should contain fields {
-            is function call
-            is async
-            function {variable ['z']}
-            function arguments []
+            is sub statements
+            statements [
+              {
+                is definition
+                is async
+                target {is variable, name ['async', 'result']}
+                source {
+                  is function call
+                  function {variable ['z']}
+                  function arguments []
+                }
+              }
+              {is variable, name ['async', 'result']}
+            ]
           }
 
     it 'with name is variable'
@@ -144,11 +164,21 @@ describe 'complex expression'
   
     it 'async method call'
       expression (variable 'a') [[id 'method', int 10, async argument]] should contain fields {
-        is method call
-        object {variable ['a']}
-        name ['method']
-        method arguments [{integer 10}]
-        is async
+        is sub statements
+        statements [
+          {
+            is definition
+            is async
+            target {is variable, name ['async', 'result']}
+            source {
+              is method call
+              object {variable ['a']}
+              name ['method']
+              method arguments [{integer 10}]
+            }
+          }
+          {is variable, name ['async', 'result']}
+        ]
       }
   
     it 'method call with optional arguments'
@@ -183,28 +213,48 @@ describe 'complex expression'
 
     it 'async index call with arguments'
       expression (variable 'a') [[variable 'z', int 10, async argument]] should contain fields {
-        is function call
-        is async
-        function {
-          is indexer
-          object {variable ['a']}
-          indexer {variable ['z']}
-        }
-        
-        function arguments [{integer 10}]
+        is sub statements
+        statements [
+          {
+            is definition
+            is async
+            target {is variable, name ['async', 'result']}
+            source {
+              is function call
+              function {
+                is indexer
+                object {variable ['a']}
+                indexer {variable ['z']}
+              }
+              
+              function arguments [{integer 10}]
+            }
+          }
+          {is variable, name ['async', 'result']}
+        ]
       }
 
     it 'async index call with no arguments'
       expression (variable 'a') [[variable 'z', async argument]] should contain fields {
-        is function call
-        is async
-        function {
-          is indexer
-          object {variable ['a']}
-          indexer {variable ['z']}
-        }
-        
-        function arguments []
+        is sub statements
+        statements [
+          {
+            is definition
+            is async
+            target {is variable, name ['async', 'result']}
+            source {
+              is function call
+              function {
+                is indexer
+                object {variable ['a']}
+                indexer {variable ['z']}
+              }
+              
+              function arguments []
+            }
+          }
+          {is variable, name ['async', 'result']}
+        ]
       }
 
     it 'index call with no arguments'
@@ -460,7 +510,7 @@ describe 'complex expression'
           parameters [{variable ['x']}]
           optional parameters [
             {field ['port'], value {integer 80}}
-            {field ['name'], value = {variable ['nil']}}
+            {field ['name'], value = {is nil}}
           ]
           body {statements [{variable ['y']}]}
         }

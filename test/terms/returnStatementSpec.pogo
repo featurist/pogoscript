@@ -4,23 +4,8 @@ require '../codeGeneratorAssertions'
 
 describe 'return statement'
     it 'is never implicitly returned'
-        closure =
-            terms.closure (
-                []
-                terms.statements [
-                    terms.return statement (terms.variable ['a'])
-                ]
-            )
-
-        (closure) should contain fields (
-            terms.closure (
-                []
-                terms.statements [
-                    terms.return statement (terms.variable ['a'])
-                ]
-                return last statement: false
-            )
-        )
+        return statement = terms.return statement (terms.variable ['a'])
+        return statement.rewrite result term into ().should.equal (return statement)
 
     describe 'code generation'
         it 'generates return expression'

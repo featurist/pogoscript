@@ -438,8 +438,7 @@ describe 'macros'
     describe 'nil'
         it 'generates void 0'
             (macro expression 'nil') should contain fields {
-                is java script
-                source = 'void 0'
+                is nil
             }
     
     describe 'JavaScript operators'

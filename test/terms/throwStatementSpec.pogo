@@ -4,23 +4,8 @@ require '../codeGeneratorAssertions'
 
 describe 'throw statement'
     it 'is never returned'
-        closure =
-            terms.closure (
-                []
-                terms.statements [
-                    terms.throw statement (terms.variable ['a'])
-                ]
-            )
-
-        (closure) should contain fields (
-            terms.closure (
-                []
-                terms.statements [
-                    terms.throw statement (terms.variable ['a'])
-                ]
-                return last statement: false
-            )
-        )
+        throw statement = terms.throw statement (terms.variable ['a'])
+        throw statement.rewrite result term into ().should.equal (throw statement)
 
     describe 'code generation'
         it 'generates throw'

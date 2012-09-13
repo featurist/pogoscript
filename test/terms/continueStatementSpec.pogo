@@ -4,23 +4,10 @@ require '../codeGeneratorAssertions'
 
 describe 'continue statement'
     it 'is never implicitly returned'
-        closure =
-            terms.closure (
-                []
-                terms.statements [
-                    terms.continue statement ()
-                ]
-            )
+        continue statement =
+            terms.continue statement ()
 
-        (closure) should contain fields (
-            terms.closure (
-                []
-                terms.statements [
-                    terms.continue statement ()
-                ]
-                return last statement: false
-            )
-        )
+        continue statement.rewrite result term into ().should.equal (continue statement)
 
     describe 'code generation'
         it 'generates continue expression'

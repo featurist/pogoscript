@@ -42,9 +42,9 @@ module.exports (cg) =
                 else
                     nil
 
-        clone (rewrite (subterm): nil, limit (subterm): false) =
+        clone (rewrite (subterm): nil, limit (subterm): false, create object (node): Object.create (Object.get prototype of (node))) =
             clone object (node, allow rewrite, path) =
-                t = Object.create (Object.get prototype of (node))
+                t = create object (node)
 
                 for @(member) in (node)
                     if (node.has own property (member))
@@ -105,6 +105,11 @@ module.exports (cg) =
 
         is derived from (ancestor node) =
             self.set location (ancestor node.location ())
+
+        rewrite (options) =
+            options = options || {}
+            options.create object (node) = node
+            self.clone (options)
 
         children () =
             children = []
@@ -230,9 +235,13 @@ module.exports (cg) =
                 rewrite (term, clone: nil): term.rewrite statements (clone)
             )
 
-        rewrite () = self.expand macros ().rewrite all statements ()
-
         serialise sub statements () = nil
+        serialise statements () = nil
+        serialise all statements () =
+            self.rewrite (
+                rewrite (term):
+                    term.serialise statements ()
+            )
 
         declare variables () = nil
         declare variable () = nil

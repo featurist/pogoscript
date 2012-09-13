@@ -66,12 +66,7 @@ module.exports (terms) =
             self.redefines self = redefines self
             self.optional parameters = []
             self.is async = async || body.is async
-
-            self.rewrite result term to return (return last statement)
-
-        rewrite result term to return (return last statement) =
-            if (return last statement && !self.body.is async)
-                self.body.rewrite last statement to return (async: self.is async)
+            self.return last statement = return last statement
 
         blockify (parameters, optional parameters, async: false) =
             self.parameters = parameters
@@ -124,6 +119,8 @@ module.exports (terms) =
                 scope.define (parameter.variable name (scope))
 
         generate java script (buffer, scope) =
+            self.rewrite result term to return ()
+
             buffer.write ('function(')
             parameters = self.transformed parameters ()
             codegen utils.write to buffer with delimiter (parameters, ',', buffer, scope)
@@ -136,22 +133,9 @@ module.exports (terms) =
 
             buffer.write ('}')
 
-        rewrite statements (clone) =
-            c = clone ()
-
-            callback function = terms.callback function
-            async rewrite = c.body.rewrite async callbacks (
-                return last statement: self.return last statement
-                force async: self.is async
-                callback function: callback function
-            )
-            c.body = async rewrite.statements
-
-            if (async rewrite.is async)
-                c.is async = true
-                c.async callback function = callback function
-
-            c
+        rewrite result term to return () =
+            if (self.return last statement && !self.body.is async)
+                self.body.rewrite last statement to return (async: self.is async)
     }
 
 block parameters (block) = {

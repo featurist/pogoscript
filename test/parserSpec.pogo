@@ -292,12 +292,8 @@ describe 'parser'
                                 body {
                                     statements [
                                         {
-                                            is return
-                                            expression {
-                                                is function call
-
-                                                function {variable ['print']}
-                                            }
+                                            is function call
+                                            function {variable ['print']}
                                         }
                                     ]
                                 }
@@ -381,7 +377,7 @@ describe 'parser'
                 function arguments [
                     {variable ['file']}
                     {
-                        body {statements [{is return, expression {variable ['stream']}}]}
+                        body {statements [{variable ['stream']}]}
                         parameters [{variable ['stream']}]
                     }
                 ]
@@ -395,7 +391,7 @@ describe 'parser'
                         parameters [
                             {variable ['database', 'connection']}
                         ]
-                        body {statements [{is return, expression {variable ['database', 'connection']}}]}
+                        body {statements [{variable ['database', 'connection']}]}
                     }
                 ]
             }
@@ -405,11 +401,11 @@ describe 'parser'
                 function {variable ['name']}
                 function arguments [
                     {
-                        body {statements [{is return, expression {variable ['x']}}]}
+                        body {statements [{variable ['x']}]}
                         parameters [{variable ['x']}]
                     }
                     {
-                        body {statements [{is return, expression {variable ['y']}}]}
+                        body {statements [{variable ['y']}]}
                         parameters [{variable ['y']}]
                     }
                 ]
@@ -542,7 +538,7 @@ describe 'parser'
                 redefines self (false)
                 body {statements [
                     {variable ['x']}
-                    {is return, expression {variable ['y']}}
+                    {variable ['y']}
                 ]}
             }
 
@@ -554,7 +550,7 @@ describe 'parser'
                 body {
                     statements [
                         {variable ['x']}
-                        {is return, expression {variable ['y']}}
+                        {variable ['y']}
                     ]
                 }
             }
@@ -568,7 +564,7 @@ describe 'parser'
                         is block
                         body {
                             statements [
-                                {is return, expression {variable ['two']}}
+                                {variable ['two']}
                             ]
                         }
                     }
@@ -583,7 +579,7 @@ describe 'parser'
                 body {
                     statements [
                         {variable ['x']}
-                        {is return, expression {variable ['y']}}
+                        {variable ['y']}
                     ]
                 }
             }
@@ -705,7 +701,7 @@ describe 'parser'
                     target {variable ['func']}
                     source {
                         parameters [{variable ['x']}]
-                        body {statements [{is return, expression {variable ['x']}}]}
+                        body {statements [{variable ['x']}]}
                     }
                 }
 
@@ -716,7 +712,7 @@ describe 'parser'
                     source {
                         parameters [{variable ['x']}]
                         optional parameters [{field ['port'], value {integer 80}}]
-                        body {statements [{is return, expression {variable ['x']}}]}
+                        body {statements [{variable ['x']}]}
                     }
                 }
 
@@ -766,14 +762,9 @@ describe 'parser'
                     is block
                     parameters []
                     body {
-                        statements [{
-                            is function call
-                            function {is variable, name ['callback']}
-                            function arguments [
-                                terms.nil ()
-                                {integer 8}
-                            ]
-                        }]
+                        statements [
+                            {integer 8}
+                        ]
                     }
                 }
             }
@@ -786,7 +777,7 @@ describe 'parser'
                     is block
                     parameters []
                     body {
-                        statements [{is return, expression {integer 8}}]
+                        statements [{integer 8}]
                     }
                 }
             }
@@ -898,10 +889,7 @@ describe 'parser'
                             is block
                             body {
                                 statements [
-                                    {
-                                        is return
-                                        expression {variable ['b']}
-                                    }
+                                    {variable ['b']}
                                 ]
                             }
                         }]

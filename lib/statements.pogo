@@ -1,5 +1,6 @@
 _ = require 'underscore'
 codegen utils = require('./codegenUtils')
+statements utils = require './statementsUtils'
 
 module.exports (terms) = terms.term {
     constructor (statements, global: false, async: false) =
@@ -34,9 +35,6 @@ module.exports (terms) = terms.term {
             if (term.is return && term.is implicit)
                 term.expression
 
-    serialise sub statements (serialised statements, clone) =
-        terms.statements (self._serialise statements (self.statements))
-
     generate variable declarations (variables, buffer, scope) =
         if (variables.length > 0)
             _(variables).each @(name)
@@ -50,7 +48,6 @@ module.exports (terms) = terms.term {
 
                 buffer.write (';')
         
-
     find declared variables (scope) =
         declared variables = []
 
@@ -90,4 +87,8 @@ module.exports (terms) = terms.term {
             defs = statement.definitions(scope)
             list.concat (defs)
         []
+
+    serialise statements () =
+        self.statements = statements utils.serialise statements (self.statements)
+        nil
 }
