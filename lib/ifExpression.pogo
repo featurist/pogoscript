@@ -48,8 +48,39 @@ module.exports (terms) =
                 closure.asyncify ()
                 closure
 
-            if (else body)
-                async if else function = terms.module constants.define ['async', 'if', 'else'] as (terms.javascript (async control.if else.to string ()))
+            if (cases.length > 1)
+                case for condition (condition) and body (body) =
+                    terms.hash [
+                        terms.hash entry (
+                            ['condition']
+                            condition
+                        )
+                        terms.hash entry (
+                            ['body']
+                            async closure for (body)
+                        )
+                    ]
+
+                cases list =
+                    _.map (cases) @(_case)
+                        case for condition (_case.condition) and body (_case.body)
+
+                if (else body)
+                    cases list.push (
+                        case for condition (terms.boolean (true)) and body (else body)
+                    )
+
+                async if else if else function =
+                    terms.module constants.define ['async', 'if', 'else', 'if', 'else'] as (
+                        terms.javascript (async control.if else if else.to string ())
+                    )
+
+                terms.function call (async if else if else function, [terms.list (cases list)], async: true)
+            else if (else body)
+                async if else function =
+                    terms.module constants.define ['async', 'if', 'else'] as (
+                        terms.javascript (async control.if else.to string ())
+                    )
 
                 terms.function call (
                     async if else function
@@ -61,7 +92,10 @@ module.exports (terms) =
                     async: true
                 )
             else
-                async if function = terms.module constants.define ['async', 'if'] as (terms.javascript (async control.if.to string ()))
+                async if function =
+                    terms.module constants.define ['async', 'if'] as (
+                        terms.javascript (async control.if.to string ())
+                    )
 
                 terms.function call (
                     async if function

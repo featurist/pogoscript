@@ -98,3 +98,17 @@ describe 'async'
 
                    print "three"
                    done ()' should output ("'two'\n'three'", done)
+
+        it 'if else if else statements with async bodies wait until the body has finished' @(done)
+            async 'if (false)
+                       async!
+                       print "one"
+                   else if (false)
+                       async!
+                       print "two"
+                   else
+                       async!
+                       print "three"
+
+                   print "four"
+                   done ()' should output ("'three'\n'four'", done)
