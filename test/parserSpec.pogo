@@ -498,7 +498,6 @@ describe 'parser'
                             terms.variable ['object']
                             ['method']
                             []
-                            []
                             async: true
                         )
                         ['field']
@@ -513,7 +512,6 @@ describe 'parser'
                         terms.method call (
                             terms.variable ['object']
                             ['method']
-                            []
                             []
                             async: true
                         )

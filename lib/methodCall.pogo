@@ -2,13 +2,12 @@ codegen utils = require './codegenUtils'
 
 module.exports (terms) =
     method call term = terms.term {
-
-        constructor (object, name, args, optional args, async: false) =
+        constructor (object, name, args, optional arguments: [], async: false) =
             self.is method call = true
             self.object = object
             self.name = name
             self.method arguments = args
-            self.optional arguments = optional args
+            self.optional arguments = optional arguments
             self.is async = async
               
         generate java script (buffer, scope) =
@@ -25,8 +24,8 @@ module.exports (terms) =
             mc
     }
 
-    method call (object, name, args, optional args, async: false) =
-        splatted args = terms.splat arguments (args, optional args)
+    method call (object, name, args, optional arguments: [], async: false) =
+        splatted args = terms.splat arguments (args, optional arguments)
   
         if (splatted args)
             object var = terms.generated variable ['o']
@@ -46,10 +45,10 @@ module.exports (terms) =
             terms.sub statements [
                 terms.definition (
                     async result
-                    method call term (object, name, args, optional args, async: async)
+                    method call term (object, name, args, optional arguments: optional arguments, async: async)
                     async: true
                 )
                 async result
             ]
         else
-            method call term (object, name, args, optional args, async: async)
+            method call term (object, name, args, optional arguments: optional arguments, async: async)

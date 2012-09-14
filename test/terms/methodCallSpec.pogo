@@ -38,7 +38,7 @@ describe 'method call'
                     terms.variable ['args']
                     terms.splat ()
                 ]
-                [
+                optional arguments: [
                     terms.hash entry (['port'], terms.variable ['p'])
                 ]
             )
