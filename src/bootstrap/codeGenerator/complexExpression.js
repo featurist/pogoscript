@@ -89,7 +89,7 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return cg.functionCall(cg.variable(head.name(), {couldBeMacro: false}), this.arguments(), this.optionalArguments(), {async: this.hasAsyncArgument()});
+          return cg.functionCall(cg.variable(head.name(), {couldBeMacro: false}), this.arguments(), {optionalArguments: this.optionalArguments(), async: this.hasAsyncArgument()});
         } else {
           return cg.variable(head.name());
         }
@@ -97,7 +97,7 @@ module.exports = function (listOfTerminals) {
         if (!this.hasTail() && this.arguments().length === 1 && !this.hasAsyncArgument()) {
           return this.arguments()[0];
         } else {
-          return cg.functionCall(this.arguments()[0], this.arguments().slice(1), void 0, {async: this.hasAsyncArgument()});
+          return cg.functionCall(this.arguments()[0], this.arguments().slice(1), {async: this.hasAsyncArgument()});
         }
       }
     };
@@ -115,7 +115,7 @@ module.exports = function (listOfTerminals) {
         if (!this.hasTail() && !head.isCall() && !this.hasAsyncArgument()) {
           return cg.indexer(object, this.arguments()[0]);
         } else {
-          return cg.functionCall(cg.indexer(object, this.arguments()[0]), this.arguments().slice(1), void 0, {async: this.hasAsyncArgument()});
+          return cg.functionCall(cg.indexer(object, this.arguments()[0]), this.arguments().slice(1), {async: this.hasAsyncArgument()});
         }
       }
     };

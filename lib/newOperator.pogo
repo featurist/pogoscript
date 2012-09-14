@@ -7,7 +7,7 @@ module.exports (terms) =
         generate java script (buffer, scope) =
             buffer.write ('new ')
             if (self.function call.is variable)
-                self.cg.function call (self.function call, []).generate java script (buffer, scope)
+                terms.function call (self.function call, []).generate java script (buffer, scope)
             else if (self.function call.is function call && self.function call.has splat arguments ())
                 self.cg.block ([], self.cg.statements ([self.function call]), return last statement: false).generate java script (buffer, scope)
             else

@@ -81,4 +81,7 @@ describe 'if expression term'
                             terms.statements ([terms.variable ['async']], async: true)
                         )
                     ]
+                    async: true
                 )
+
+                (if expression) should contain fields (expected async if expression)

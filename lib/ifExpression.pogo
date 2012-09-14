@@ -45,6 +45,6 @@ module.exports (terms) =
         if (any async)
             async if function = terms.module constants.define ['async', 'if'] as (terms.javascript (async control.if.to string ()))
 
-            terms.function call (async if function, [cases.0.condition, terms.closure ([], cases.0.body)], nil, async: true)
+            terms.function call (async if function, [cases.0.condition, terms.closure ([], cases.0.body)], async: true)
         else
             if expression term (cases, else body)

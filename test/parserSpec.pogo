@@ -367,7 +367,7 @@ describe 'parser'
         it 'async function call with no arguments'
             (expression 'delete everything!') should contain fields (
                 terms.async statements [
-                    terms.function call (terms.variable ['delete', 'everything'], [], nil, async: true)
+                    terms.function call (terms.variable ['delete', 'everything'], [], async: true)
                 ].statements.0
             )
 

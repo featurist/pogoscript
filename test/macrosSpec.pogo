@@ -335,7 +335,6 @@ describe 'macros'
                                         terms.variable ['args']
                                         terms.splat ()
                                     ]
-                                    nil
                                     pass this to apply: true
                                 )
                             ]

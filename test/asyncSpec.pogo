@@ -70,10 +70,11 @@ describe 'async'
             error.message.should.equal 'thing'
             done ()
 
-    it 'thrown exceptions are passed to the error argument of the callback' @(done)
-        async 'if (true)
-                   async!
-                   print "one"
+    describe 'if statements'
+        it 'if statements with async bodies wait until the body has finished' @(done)
+            async 'if (true)
+                       async!
+                       print "one"
 
-               print "two"
-               done ()' should output ("'one'\n'two'", done)
+                   print "two"
+                   done ()' should output ("'one'\n'two'", done)

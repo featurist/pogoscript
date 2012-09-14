@@ -2,13 +2,13 @@ codegen utils = require './codegenUtils'
 
 module.exports (terms) =
     function call term = terms.term {
-        constructor (fun, args, optional args, async: false, pass this to apply: false) =
+        constructor (fun, args, optional arguments: [], async: false, pass this to apply: false) =
             self.is function call = true
 
             self.function = fun
             self.function arguments = args
-            self.optional arguments = (optional args || [])
-            self.splatted arguments = self.cg.splat arguments (args, optional args)
+            self.optional arguments = optional arguments
+            self.splatted arguments = self.cg.splat arguments (args, optional arguments)
             self.pass this to apply = pass this to apply
             self.is async = async
 
@@ -48,7 +48,7 @@ module.exports (terms) =
             fc
     }
 
-    function call (fun, args, optional args, async: false, pass this to apply: false) =
+    function call (fun, args, optional arguments: [], async: false, pass this to apply: false) =
         if (async)
             async result = terms.async result ()
 
@@ -56,7 +56,7 @@ module.exports (terms) =
                 terms.sub statements [
                     terms.definition (
                         async result
-                        function call term (fun, args, optional args, pass this to apply: pass this to apply)
+                        function call term (fun, args, optional arguments: optional arguments, pass this to apply: pass this to apply)
                         async: true
                     )
                     async result
@@ -67,6 +67,6 @@ module.exports (terms) =
             macro = terms.macros.find macro (name)
         
             if (macro)
-                return (macro (name, args, optional args))
+                return (macro (name, args, optional arguments))
 
-        function call term (fun, args, optional args, pass this to apply: pass this to apply)
+        function call term (fun, args, optional arguments: optional arguments, pass this to apply: pass this to apply)
