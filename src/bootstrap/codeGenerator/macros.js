@@ -209,17 +209,17 @@ exports.macros = function (cg) {
 
   macros.addMacro(['try', 'catch'], function (name, arguments) {
     var body = arguments[0].body;
-    var catchParameter = arguments[1].parameters[0];
-    var catchBody = arguments[1].body;
+    var catchParameter = arguments[1];
+    var catchBody = arguments[2].body;
 
     return cg.tryExpression(body, {catchBody: catchBody, catchParameter: catchParameter});
   });
 
   macros.addMacro(['try', 'catch', 'finally'], function (name, arguments) {
     var body = arguments[0].body;
-    var catchParameter = arguments[1].parameters[0];
-    var catchBody = arguments[1].body;
-    var finallyBody = arguments[2].body;
+    var catchParameter = arguments[1];
+    var catchBody = arguments[2].body;
+    var finallyBody = arguments[3].body;
 
     return cg.tryExpression(body, {catchBody: catchBody, catchParameter: catchParameter, finallyBody: finallyBody});
   });

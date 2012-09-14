@@ -247,7 +247,7 @@ describe 'macros'
 
     describe 'try'
         it 'try catch'
-            (macro expression 'try @{a} catch @(ex) @{b}') should contain fields {
+            (macro expression 'try @{a} catch (ex) @{b}') should contain fields {
                 is try expression
                 body {
                     statements [
@@ -280,7 +280,7 @@ describe 'macros'
             }
 
         it 'try catch finally'
-            (macro expression 'try @{a} catch @(ex) @{b} finally @{c}') should contain fields {
+            (macro expression 'try @{a} catch (ex) @{b} finally @{c}') should contain fields {
                 is try expression
                 body {
                     statements [
