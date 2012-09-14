@@ -58,17 +58,17 @@ module.exports (terms) =
     }
 
     terms.term {
-        constructor (parameters, body, return last statement: true, redefines self: false, async: false) =
+        constructor (parameters, body, optional parameters: [], return last statement: true, redefines self: false, async: false) =
             self.is block = true
             self.is closure = true
             self.parameters = parameters
             self.body = body
             self.redefines self = redefines self
-            self.optional parameters = []
+            self.optional parameters = optional parameters
             self.is async = async || body.is async
             self.return last statement = return last statement
 
-        blockify (parameters, optional parameters, async: false) =
+        blockify (parameters, optional parameters: [], async: false) =
             self.parameters = parameters
             self.optional parameters = optional parameters
             self.is async = self.is async || async

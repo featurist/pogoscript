@@ -134,18 +134,6 @@ module.exports = function (listOfTerminals) {
       );
     };
     
-    this.blockify = function (expression, parameters, optionalParameters) {
-      if (expression.isBlock) {
-        expression.parameters = parameters;
-        expression.optionalParameters = optionalParameters;
-        return expression;
-      } else {
-        var block = cg.block(parameters, cg.statements([expression]));
-        block.optionalParameters = optionalParameters;
-        return block;
-      }
-    };
-    
     this.hashEntry = function () {
       if (this.hasTail()) {
         return cg.errors.addTermsWithMessage(this.tail(), 'cannot be used in hash entry');
@@ -160,7 +148,7 @@ module.exports = function (listOfTerminals) {
         expression: function () {
           if (self.head().hasName()) {
             if (self.hasParameters()) {
-              var block = source.blockify(self.parameters(), self.optionalParameters());
+              var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters()});
               block.redefinesSelf = true;
               return cg.definition(cg.fieldReference(object, self.head().name()), block);
             } else {
@@ -170,7 +158,7 @@ module.exports = function (listOfTerminals) {
             if (!self.hasTail() && self.arguments().length === 1 && !self.hasAsyncArgument()) {
               return cg.definition(cg.indexer(object, self.arguments()[0]), source.scopify());
             } else {
-              var block = source.blockify(self.parameters({skipFirstParameter: true}), self.optionalParameters());
+              var block = source.blockify(self.parameters({skipFirstParameter: true}), {optionalParameters: self.optionalParameters()});
               block.redefinesSelf = true;
               return cg.definition(cg.indexer(object, self.arguments()[0]), block);
     				}
@@ -203,10 +191,10 @@ module.exports = function (listOfTerminals) {
         if (self.hasParameters()) {
           return {
             expression: function () {
-              return cg.definition(cg.variable(self.head().name()), source.blockify(self.parameters(), self.optionalParameters(), {async: self.hasAsyncArgument()}));
+              return cg.definition(cg.variable(self.head().name()), source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()}));
             },
             hashEntry: function (isOptionalArgument) {
-              var block = source.blockify(self.parameters(), self.optionalParameters());
+              var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters()});
               block.redefinesSelf = !isOptionalArgument;
 
               return cg.hashEntry(self.head().name(), block);
