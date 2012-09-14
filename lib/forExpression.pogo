@@ -26,12 +26,12 @@ module.exports (terms) = terms.term {
             loop statements.push (self.cg.definition (for result variable, self.cg.nil ()))
             loop statements.push (
                 self.cg.if expression (
-                    [[
-                        self.cg.sub expression (
+                    [{
+                        condition = self.cg.sub expression (
                             self.cg.function call (self.cg.block ([self.index variable], rewritten statements, return last statement: false), [self.index variable])
                         )
-                        self.cg.statements ([self.cg.return statement (for result variable)])
-                    ]]
+                        body = self.cg.statements ([self.cg.return statement (for result variable)])
+                    }]
                 )
             )
 

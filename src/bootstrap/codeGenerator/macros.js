@@ -94,17 +94,17 @@ exports.macros = function (cg) {
 
     for (var n = 0; n + 1 < arguments.length; n += 2) {
       var body = arguments[n + 1].body;
-      cases.push([arguments[n], body]);
+      cases.push({condition: arguments[n], body: body});
     }
 
-    var _else;
+    var elseBody;
 
     if (arguments.length % 2 === 1) {
       var body = arguments[arguments.length - 1].body;
-      _else = body;
+      elseBody = body;
     }
 
-    return cg.ifExpression(cases, _else);
+    return cg.ifExpression(cases, elseBody);
   };
 
   var matchIfMacro = function (name) {

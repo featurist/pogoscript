@@ -14,51 +14,51 @@ describe 'macros'
         it 'if'
             (macro expression 'if (true) @{a}') should contain fields {
                 is if expression
-                cases [[
-                    {variable ['true']}
-                    {statements [{variable ['a']}]}
-                ]]
+                cases [{
+                    condition = {variable ['true']}
+                    body = {statements [{variable ['a']}]}
+                }]
             }
         
         it 'if else'
             (macro expression 'if (true) @{a} else @{b}') should contain fields {
                 is if expression
-                _else {statements [{variable ['b']}]}
-                cases [[
-                    {variable ['true']}
-                    {statements [{variable ['a']}]}
-                ]]
+                else body {statements [{variable ['b']}]}
+                cases [{
+                    condition = {variable ['true']}
+                    body = {statements [{variable ['a']}]}
+                }]
             }
         
         it 'if else if'
             (macro expression 'if (true) @{a} else if (false) @{b}') should contain fields {
                 is if expression
-                _else = undefined
+                else body = undefined
                 cases [
-                    [
-                        {variable ['true']}
-                        {statements [{variable ['a']}]}
-                    ]
-                    [
-                        {variable ['false']}
-                        {statements [{variable ['b']}]}
-                    ]
+                    {
+                        condition = {variable ['true']}
+                        body = {statements [{variable ['a']}]}
+                    }
+                    {
+                        condition = {variable ['false']}
+                        body = {statements [{variable ['b']}]}
+                    }
                 ]
             }
                 
         it 'if else if else'
             (macro expression 'if (true) @{a} else if (false) @{b} else @{c}') should contain fields {
                 is if expression
-                _else {statements [{variable ['c']}]}
+                else body {statements [{variable ['c']}]}
                 cases [
-                    [
-                        {variable ['true']}
-                        {statements [{variable ['a']}]}
-                    ]
-                    [
-                        {variable ['false']}
-                        {statements [{variable ['b']}]}
-                    ]
+                    {
+                        condition = {variable ['true']}
+                        body = {statements [{variable ['a']}]}
+                    }
+                    {
+                        condition = {variable ['false']}
+                        body = {statements [{variable ['b']}]}
+                    }
                 ]
             }
 
@@ -137,8 +137,8 @@ describe 'macros'
                     {
                         is if expression
                         cases [
-                            [
-                                {
+                            {
+                                condition = {
                                     is sub expression
                                     expression {
                                         is function call
@@ -160,13 +160,13 @@ describe 'macros'
                                         function arguments [{variable ['n']}]
                                     }
                                 }
-                                {
+                                body = {
                                     is statements
                                     statements [
                                         {is return, expression {is variable, name ['for', 'result']}}
                                     ]
                                 }
-                            ]
+                            }
                         ]
                     }
                 ]

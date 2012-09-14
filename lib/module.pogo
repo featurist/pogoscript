@@ -25,7 +25,10 @@ module.exports (terms) =
             if (statements.is async)
                 error variable = terms.generated variable ['error']
                 throw if error = terms.if expression (
-                    [[error variable, terms.statements [terms.throw statement (error variable)]]]
+                    [{
+                        condition = error variable
+                        body = terms.statements [terms.throw statement (error variable)]
+                    }]
                 )
                 args.push (terms.closure ([error variable], terms.statements [throw if error]))
 

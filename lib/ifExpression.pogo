@@ -4,22 +4,22 @@ async control = require './asyncControl'
 
 module.exports (terms) =
     if expression term = terms.term {
-        constructor (cases, _else) =
+        constructor (cases, else body) =
             self.is if expression = true 
             self.cases = cases
-            self._else = _else
+            self.else body = else body
 
         generate java script statement (buffer, scope) =
             codegen utils.write to buffer with delimiter (self.cases, 'else ', buffer) @(case_)
                 buffer.write ('if(')
-                case_.0.generate java script (buffer, scope)
+                case_.condition.generate java script (buffer, scope)
                 buffer.write ('){')
-                case_.1.generate java script statements (buffer, scope)
+                case_.body.generate java script statements (buffer, scope)
                 buffer.write ('}')
 
-            if (self._else)
+            if (self.else body)
                 buffer.write ('else{')
-                self._else.generate java script statements (buffer, scope)
+                self.else body.generate java script statements (buffer, scope)
                 buffer.write ('}')
 
         generate java script (buffer, scope) =
@@ -30,21 +30,21 @@ module.exports (terms) =
 
         rewrite result term into (return term) =
             for each @(_case) in (self.cases)
-                _case.1.rewrite result term into (return term)
+                _case.body.rewrite result term into (return term)
 
-            if (self._else)
-                self._else.rewrite result term into (return term)
+            if (self.else body)
+                self.else body.rewrite result term into (return term)
 
             self
     }
 
-    if expression (cases, _else) =
+    if expression (cases, else body) =
         any async = _.any (cases) @(_case)
-            _case.1.is async
+            _case.body.is async
 
         if (any async)
             async if function = terms.module constants.define ['async', 'if'] as (terms.javascript (async control.if.to string ()))
 
-            terms.function call (async if function, [cases.(0).(0), terms.closure ([], cases.(0).(1))], nil, async: true)
+            terms.function call (async if function, [cases.0.condition, terms.closure ([], cases.0.body)], nil, async: true)
         else
-            if expression term (cases, _else)
+            if expression term (cases, else body)

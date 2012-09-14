@@ -7,20 +7,20 @@ describe 'if expression term'
             expression =
                 terms.if expression (
                     [
-                        [
-                            terms.variable ['condition', 'a']
-                            terms.statements [
+                        {
+                            condition = terms.variable ['condition', 'a']
+                            body = terms.statements [
                                 terms.variable ['a']
                                 terms.variable ['b']
                             ]
-                        ]
-                        [
-                            terms.variable ['condition', 'b']
-                            terms.statements [
+                        }
+                        {
+                            condition = terms.variable ['condition', 'b']
+                            body = terms.statements [
                                 terms.variable ['c']
                                 terms.variable ['d']
                             ]
-                        ]
+                        }
                     ]
                     terms.statements [
                         terms.variable ['e']
@@ -31,20 +31,20 @@ describe 'if expression term'
             expected if expression = 
                 terms.if expression (
                     [
-                        [
-                            terms.variable ['condition', 'a']
-                            terms.statements [
+                        {
+                            condition = terms.variable ['condition', 'a']
+                            body = terms.statements [
                                 terms.variable ['a']
                                 terms.return statement (terms.variable ['b'], implicit: true)
                             ]
-                        ]
-                        [
-                            terms.variable ['condition', 'b']
-                            terms.statements [
+                        }
+                        {
+                            condition = terms.variable ['condition', 'b']
+                            body = terms.statements [
                                 terms.variable ['c']
                                 terms.return statement (terms.variable ['d'], implicit: true)
                             ]
-                        ]
+                        }
                     ]
                     terms.statements [
                         terms.variable ['e']
@@ -61,15 +61,15 @@ describe 'if expression term'
         context 'when no else and only one case'
             it 'calls an async if function, with body in a closure'
                 if expression = terms.if expression [
-                    [
-                        terms.variable ['condition']
-                        terms.statements (
+                    {
+                        condition = terms.variable ['condition']
+                        body = terms.statements (
                             [
                                 terms.variable ['async']
                             ]
                             async: true
                         )
-                    ]
+                    }
                 ]
 
                 expected async if expression = terms.function call (
