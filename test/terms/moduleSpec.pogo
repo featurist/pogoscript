@@ -12,6 +12,13 @@ describe 'module term'
                     terms.variable ['c']
                 ]
             )
+            
+            body statements =
+                terms.statements [
+                    terms.variable ['a']
+                    terms.variable ['b']
+                    terms.variable ['c']
+                ]
 
             expected module = terms.module (
                 terms.statements [
@@ -19,11 +26,7 @@ describe 'module term'
                         terms.sub expression (
                             terms.closure (
                                 []
-                                terms.statements [
-                                    terms.variable ['a']
-                                    terms.variable ['b']
-                                    terms.variable ['c']
-                                ]
+                                body statements
                                 return last statement: false
                                 redefines self: true
                             )
@@ -33,6 +36,7 @@ describe 'module term'
                     )
                 ]
                 in scope: false
+                body statements: body statements
             )
 
             (module) should contain fields (expected module)
@@ -123,9 +127,8 @@ describe 'module term'
                 terms.statements [
                     terms.variable ['a']
                 ]
-                in scope: false
             )
 
             terms.module constants.define ['pi'] as (terms.float 3.142)
 
-            (module) should generate module ('var gen1_pi;gen1_pi=3.142;a;')
+            (module) should generate module ('(function(){var self,gen1_pi;self=this;gen1_pi=3.142;a;}).call(this);')

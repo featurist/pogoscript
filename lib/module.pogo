@@ -1,18 +1,19 @@
 module.exports (terms) =
     module term = terms.term {
-        constructor (statements, global: false, return last statement: false) =
+        constructor (statements, global: false, return last statement: false, body statements: nil) =
             self.statements = statements
             self.is module = true
             self.global = global
+            self.body statements = (body statements || statements)
 
         generate java script module (buffer) =
             scope = new (terms.Symbol Scope (nil))
             definitions = terms.module constants.definitions ()
-            self.statements.statements.unshift (definitions, ...)
+            self.body statements.statements.unshift (definitions, ...)
             self.statements.generate java script statements (buffer, scope, self.global)
     }
 
-    module (statements, in scope: true, global: false, return last statement: false) =
+    module (statements, in scope: true, global: false, return last statement: false, body statements: body statements) =
         if (return last statement)
             statements.rewrite last statement to return (async: false)
 
@@ -33,6 +34,6 @@ module.exports (terms) =
                 args.push (terms.closure ([error variable], terms.statements [throw if error]))
 
             method call = terms.method call (terms.sub expression (scope), ['call'], args)
-            module term (terms.statements [method call])
+            module term (terms.statements [method call], body statements: statements)
         else
-            module term (statements, global: global, return last statement: return last statement)
+            module term (statements, global: global, return last statement: return last statement, body statements: body statements)
