@@ -111,3 +111,42 @@ describe 'async control functions'
                     done ()
                 catch @(ex)
                     done (ex)
+
+    describe 'if else if else'
+        it 'executes the first body when only the first condition is true' @(done)
+            async.if else if else (
+                [
+                    {condition = true, body = @(callback) @{callback (nil, 'first result')}}
+                    {condition = false, body = @(callback) @{callback (nil, 'second result')}}
+                ]
+            ) @(error, result)
+                result.should.equal 'first result'
+                done ()
+
+        it 'executes the second body when only the second condition is true' @(done)
+            async.if else if else (
+                [
+                    {condition = false, body = @(callback) @{callback (nil, 'first result')}}
+                    {condition = true, body = @(callback) @{callback (nil, 'second result')}}
+                ]
+            ) @(error, result)
+                result.should.equal 'second result'
+                done ()
+
+        it 'returns an error if the body throws' @(done)
+            async.if else if else (
+                [
+                    {condition = true, body = @(callback) @{throw 'error'}}
+                ]
+            ) @(error, result)
+                error.should.equal 'error'
+                done ()
+
+        it 'returns nil if no conditions are true' @(done)
+            async.if else if else (
+                [
+                    {condition = false, body = @(callback) @{throw 'error'}}
+                ]
+            ) @(error, result)
+                should.strict equal (undefined, result)
+                done ()
