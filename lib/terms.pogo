@@ -247,6 +247,8 @@ module.exports (cg) =
         make async with callback for result (create callback for result) = nil
 
         rewrite result term into (return term) = return term (self)
+
+        asyncify () = nil
     }
 
     term prototype = new (Term)

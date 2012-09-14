@@ -1,4 +1,5 @@
 codegen utils = require './codegenUtils'
+argument utils = require './argumentUtils'
 
 module.exports (terms) =
     method call term = terms.term {
@@ -40,6 +41,8 @@ module.exports (terms) =
               )
             ]
         else if (async)
+            argument utils.asyncify arguments (args, optional arguments)
+
             async result = terms.async result ()
 
             terms.sub statements [

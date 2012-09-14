@@ -61,6 +61,16 @@ describe 'async'
                    process.next tick!
                    "finished"' should output ("'finished'", done)
 
+    context 'when an async function is called with a block'
+        it 'asyncifies the block' @(done)
+            async 'func! (block) = block!
+
+                   f = func!
+                       "asdf"
+
+                   print (f)
+                   done ()' should output ("'asdf'", done)
+
     it 'thrown exceptions are passed to the error argument of the callback' @(done)
         async 'f () =
                    process.next tick!

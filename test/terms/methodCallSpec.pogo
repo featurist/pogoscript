@@ -84,3 +84,90 @@ describe 'method call'
                 ]
             )
         )
+
+    context 'when the method call is asynchronous'
+        context 'and a non-asynchronous block is passed'
+            it 'asyncifies the block'
+                method call =
+                    terms.method call (
+                        terms.variable ['obj']
+                        ['method']
+                        [
+                            terms.closure (
+                                []
+                                terms.statements [
+                                    terms.variable ['a']
+                                ]
+                            )
+                        ]
+                        async: true
+                    )
+
+                block arg =
+                    terms.closure (
+                        []
+                        terms.statements [
+                            terms.variable ['a']
+                        ]
+                    )
+
+                block arg.asyncify ()
+
+                expected method call =
+                    terms.method call (
+                        terms.variable ['obj']
+                        ['method']
+                        [
+                            block arg
+                        ]
+                        async: true
+                    )
+
+                (method call) should contain fields (expected method call)
+
+        context 'and a non-asynchronous block is passed as an optional argument'
+            it 'asyncifies the block'
+                method call =
+                    terms.method call (
+                        terms.variable ['obj']
+                        ['method']
+                        []
+                        optional arguments: [
+                            terms.hash entry (
+                                ['block']
+                                terms.closure (
+                                    []
+                                    terms.statements [
+                                        terms.variable ['a']
+                                    ]
+                                )
+                            )
+                        ]
+                        async: true
+                    )
+
+                block arg =
+                    terms.closure (
+                        []
+                        terms.statements [
+                            terms.variable ['a']
+                        ]
+                    )
+
+                block arg.asyncify ()
+
+                expected method call =
+                    terms.method call (
+                        terms.variable ['obj']
+                        ['method']
+                        []
+                        optional arguments: [
+                            terms.hash entry (
+                                ['block']
+                                block arg
+                            )
+                        ]
+                        async: true
+                    )
+
+                (method call) should contain fields (expected method call)

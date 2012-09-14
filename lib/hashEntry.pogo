@@ -27,6 +27,9 @@ module.exports (terms) = terms.term {
       buffer.write (self.legal field name ())
       buffer.write (':')
       self.value or true ().generate java script (buffer, scope)
+
+    asyncify () =
+        self.value.asyncify ()
 }
 
 is legal java script identifier (id) = r/^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test (id)
