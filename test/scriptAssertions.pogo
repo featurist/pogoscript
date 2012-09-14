@@ -64,6 +64,9 @@ exports.evaluate async script (script, done) =
     print (arg) =
         printed items.push (arg)
 
+    async (callback) =
+        process.next tick (callback)
+
     return printed output (error) =
         done (
             error
@@ -72,7 +75,11 @@ exports.evaluate async script (script, done) =
             .join "\n"
         )
     
-    command line.evaluate (script, definitions: {print = print, done = return printed output})
+    command line.evaluate (script, definitions: {
+        print = print
+        done = return printed output
+        async = async
+    })
     
 
 exports.async (script) should output (expected output, done) =

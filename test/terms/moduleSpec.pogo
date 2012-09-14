@@ -117,3 +117,34 @@ describe 'module term'
             )
 
             (module) should generate module ('a;b;c;')
+
+        it 'generates module constants'
+            module = terms.module (
+                terms.statements [
+                    terms.variable ['a']
+                ]
+                in scope: false
+            )
+
+            terms.module constants.define ['pi'] as (terms.float 3.142)
+
+            (module) should generate module ('var gen1_pi;gen1_pi=3.142;a;')
+
+        it 'ignores the second definition of a constant'
+            module = terms.module (
+                terms.statements [
+                    terms.variable ['a']
+                ]
+                in scope: false
+            )
+
+            terms.module constants.define ['pi'] as (terms.float 3.142)
+            terms.module constants.define ['pi'] as (terms.float 3)
+
+            (module) should generate module ('var gen1_pi;gen1_pi=3.142;a;')
+
+        it 'ignores the second definition of a constant'
+            first pi = terms.module constants.define ['pi'] as (terms.float 3.142)
+            second pi = terms.module constants.define ['pi'] as (terms.float 3)
+
+            first pi.should.equal (second pi)

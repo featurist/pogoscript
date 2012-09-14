@@ -56,3 +56,29 @@ describe 'if expression term'
                 terms.return statement (term, implicit: true)
 
             (expression) should contain fields (expected if expression)
+
+    describe 'asynchronous if'
+        context 'when no else and only one case'
+            it 'calls an async if function, with body in a closure'
+                if expression = terms.if expression [
+                    [
+                        terms.variable ['condition']
+                        terms.statements (
+                            [
+                                terms.variable ['async']
+                            ]
+                            async: true
+                        )
+                    ]
+                ]
+
+                expected async if expression = terms.function call (
+                    terms.generated variable ['async', 'if']
+                    [
+                        terms.variable ['condition']
+                        terms.closure (
+                            []
+                            terms.statements ([terms.variable ['async']], async: true)
+                        )
+                    ]
+                )

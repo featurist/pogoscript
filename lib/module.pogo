@@ -6,7 +6,10 @@ module.exports (terms) =
             self.global = global
 
         generate java script module (buffer) =
-            self.statements.generate java script statements (buffer, new (terms.Symbol Scope (nil)), self.global)
+            scope = new (terms.Symbol Scope (nil))
+            definitions = terms.module constants.definitions ()
+            self.statements.statements.unshift (definitions, ...)
+            self.statements.generate java script statements (buffer, scope, self.global)
     }
 
     module (statements, in scope: true, global: false, return last statement: false) =

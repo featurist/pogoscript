@@ -11,6 +11,10 @@ exports.codeGenerator = function () {
   
   codegen.term = term.term;
   codegen.termPrototype = term.termPrototype;
+  codegen.moduleConstants = new (require('../../../lib/moduleConstants')(codegen));
+  importTerm('generatedVariable');
+  importTerm('definition');
+  importTerm('javascript');
   codegen.basicExpression = require('./basicExpression');
   importTerm('splatArguments');
   importTerm('variable');
@@ -46,12 +50,10 @@ exports.codeGenerator = function () {
   importTerm('unaryOperatorExpression');
   importTerm('operator');
   importTerm('splat');
-  importTerm('javascript');
   importTerm('hashEntry');
   codegen.concatName = cg.concatName;
   codegen.parseSplatParameters = cg.parseSplatParameters;
   codegen.collapse = cg.collapse;
-  importTerm('definition');
   importTerm('functionCall');
   importTerm('scope');
   codegen.SymbolScope = require('../../../lib/symbolScope').SymbolScope;
@@ -77,7 +79,6 @@ exports.codeGenerator = function () {
   importTerm('forEach');
   importTerm('newOperator');
   codegen.loc = loc;
-  importTerm('generatedVariable');
   importTerm('asyncCallback');
   codegen.callbackFunction = codegen.generatedVariable(['callback']);
   codegen.optional = cg.optional;
@@ -85,7 +86,6 @@ exports.codeGenerator = function () {
   codegen.oldTerm = cg.oldTerm;
   codegen.errors = require('./errors').errors(codegen);
   codegen.macros = require('./macros').macros(codegen);
-  codegen.thisiscodegen = true;
   
   return codegen;
 };

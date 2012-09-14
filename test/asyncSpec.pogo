@@ -71,13 +71,9 @@ describe 'async'
             done ()
 
     it 'thrown exceptions are passed to the error argument of the callback' @(done)
-        async 'bad yield (callback) =
-                   process.next tick
-                       callback ("thing")
+        async 'if (true)
+                   async!
+                   print "one"
 
-               f () =
-                   bad yield!
-
-               f(done)' should output ("") @(error)
-            error.should.equal 'thing'
-            done ()
+               print "two"
+               done ()' should output ("'one'\n'two'", done)
