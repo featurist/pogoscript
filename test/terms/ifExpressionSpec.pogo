@@ -85,3 +85,47 @@ describe 'if expression term'
                 )
 
                 (if expression) should contain fields (expected async if expression)
+
+        context 'when there is an else and only one case'
+            it 'calls an async if else function, with body and else body in a closure'
+                if expression = terms.if expression(
+                    [
+                        {
+                            condition = terms.variable ['condition']
+                            body = terms.statements (
+                                [
+                                    terms.variable ['body']
+                                ]
+                            )
+                        }
+                    ]
+                    terms.statements (
+                        [
+                            terms.variable ['else', 'body']
+                        ]
+                        async: true
+                    )
+                )
+
+                body = 
+                    terms.closure (
+                        []
+                        terms.statements [terms.variable ['body']]
+                    )
+
+                body.asyncify ()
+
+                expected async if expression = terms.function call (
+                    terms.generated variable ['async', 'if', 'else']
+                    [
+                        terms.variable ['condition']
+                        body
+                        terms.closure (
+                            []
+                            terms.statements ([terms.variable ['else', 'body']], async: true)
+                        )
+                    ]
+                    async: true
+                )
+
+                (if expression) should contain fields (expected async if expression)

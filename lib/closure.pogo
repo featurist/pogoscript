@@ -136,6 +136,12 @@ module.exports (terms) =
         rewrite result term to return () =
             if (self.return last statement && !self.body.is async)
                 self.body.rewrite last statement to return (async: self.is async)
+
+        asyncify () =
+            if (!self.body.is async)
+                self.body.rewrite last statement to return (async: true)
+                self.body.is async = true
+                self.is async = true
     }
 
 block parameters (block) = {
