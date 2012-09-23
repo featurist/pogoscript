@@ -41,6 +41,72 @@ describe 'module term'
 
             (module) should contain fields (expected module)
 
+        context 'with async statements'
+            it 'throws error in callback'
+                module = terms.module (
+                    terms.statements (
+                        [
+                            terms.variable ['a']
+                        ]
+                        async: true
+                    )
+                )
+
+                body statements =
+                    terms.statements (
+                        [
+                            terms.variable ['a']
+                        ]
+                        async: true
+                    )
+
+                expected module = terms.module (
+                    terms.statements [
+                        terms.method call (
+                            terms.sub expression (
+                                terms.closure (
+                                    []
+                                    body statements
+                                    return last statement: false
+                                    redefines self: true
+                                )
+                            )
+                            ['call']
+                            [
+                                terms.variable ['this']
+                                terms.closure (
+                                    [terms.generated variable ['error']]
+                                    terms.statements [
+                                        terms.if expression (
+                                            [{
+                                                condition = terms.generated variable ['error']
+                                                body = terms.statements [
+                                                    terms.function call (
+                                                        terms.variable ['set', 'timeout']
+                                                        [
+                                                            terms.closure (
+                                                                []
+                                                                terms.statements [
+                                                                    terms.throw statement (terms.generated variable ['error'])
+                                                                ]
+                                                            )
+                                                            terms.integer 0
+                                                        ]
+                                                    )
+                                                ]
+                                            }]
+                                        )
+                                    ]
+                                )
+                            ]
+                        )
+                    ]
+                    in scope: false
+                    body statements: body statements
+                )
+
+                (module) should contain fields (expected module)
+
     it 'returns last statement, without a scope'
         module = terms.module (
             terms.statements [

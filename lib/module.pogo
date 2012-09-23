@@ -28,7 +28,20 @@ module.exports (terms) =
                 throw if error = terms.if expression (
                     [{
                         condition = error variable
-                        body = terms.statements [terms.throw statement (error variable)]
+                        body = terms.statements [
+                            terms.function call (
+                                terms.variable ['set', 'timeout']
+                                [
+                                    terms.closure (
+                                        []
+                                        terms.statements [
+                                            terms.throw statement (error variable)
+                                        ]
+                                    )
+                                    terms.integer 0
+                                ]
+                            )
+                        ]
                     }]
                 )
                 args.push (terms.closure ([error variable], terms.statements [throw if error]))
