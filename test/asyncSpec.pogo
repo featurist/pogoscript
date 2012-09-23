@@ -12,6 +12,16 @@ describe 'async'
                print (x)
                done ()' should output ("'result'", done)
 
+    it 'can make two async calls in a row' @(done)
+        async 'aprint! (msg) =
+                   async!
+                   print (msg)
+               
+               aprint! "one"
+               aprint! "two"
+               print "finished"
+               done ()' should output ("'one'\n'two'\n'finished'", done)
+
     it 'can make one async call as argument to another function' @(done)
         async 'f (callback) =
                    process.next tick
@@ -126,5 +136,5 @@ describe 'async'
                        print "finally"
 
                    print "finished"
-                   done ()' should output ("'one'\n'finished'", done)
+                   done ()' should output ("'one'\n'finally'\n'finished'", done)
             

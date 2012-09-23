@@ -63,7 +63,7 @@ describe 'try expression term'
             )
 
             catch body = terms.closure (
-                []
+                [terms.variable ['error']]
                 terms.statements [
                     terms.variable ['error']
                 ]
