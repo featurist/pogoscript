@@ -90,7 +90,7 @@ exports.async (script) should output (expected output, done) =
             try
                 assert.equal (chomp (result), chomp (expected output))
                 done ()
-            catch @(ex)
+            catch (ex)
                 done (ex)
 
 exports.(script) should throw (expected error) =
@@ -99,7 +99,7 @@ exports.(script) should throw (expected error) =
     try
         exports.evaluate script (script)
         failed = true
-    catch @(ex)
+    catch (ex)
         assert.equal (ex.to string () , expected error)
     
     if (failed)
