@@ -12,3 +12,8 @@ test : test_all
 
 test_all : test/*Spec.pogo
 	mocha test/*Spec.* test/*/*Spec.*
+
+clean:
+	for subdir in src/bootstrap lib; do \
+		$(MAKE) -C $$subdir clean; \
+	done

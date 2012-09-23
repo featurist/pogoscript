@@ -132,7 +132,7 @@ exports.repl () =
         try
             result = vm.run (js) in context (context) (filename)
             callback (nil, result)
-        catch @(error)
+        catch (error)
             callback (error)
 
     if (running on node 'v0.8.0' or higher)
