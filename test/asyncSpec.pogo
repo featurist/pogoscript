@@ -138,3 +138,14 @@ describe 'async'
                    print "finished"
                    done ()' should output ("'one'\n'finally'\n'finished'", done)
             
+    describe 'while expression'
+        it 'executes each loop one after the other' @(done)
+            async "condition = true
+                   get condition! = condition
+
+                   while (get condition!)
+                       print 'loop'
+                       async!
+                       condition = false
+
+                   done ()" should output ("'loop'", done)
