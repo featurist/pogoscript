@@ -53,7 +53,7 @@ module.exports (terms) =
         if (async)
             async result = terms.async result ()
 
-            argument utils.asyncify arguments (args, optional arguments)
+            terms.argument utils.asyncify arguments (args, optional arguments)
 
             return (
                 terms.sub statements [

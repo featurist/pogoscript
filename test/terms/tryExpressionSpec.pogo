@@ -33,3 +33,59 @@ describe 'try expression term'
             try expression.rewrite result term @(term) into @{terms.return statement (term, implicit: true)}
 
             (try expression) should contain fields (expected try expression)
+
+    describe 'when any of the bodies are asynchronous'
+        it 'generates a call to an asynchronous try function'
+            try expression = terms.try expression (
+                terms.statements (
+                    [
+                        terms.variable ['a']
+                    ]
+                    async: true
+                )
+                catch body: terms.statements [
+                    terms.variable ['error']
+                ]
+                catch parameter: terms.variable ['error']
+                finally body: terms.statements [
+                    terms.variable ['error']
+                ]
+            )
+
+            body = terms.closure (
+                []
+                terms.statements (
+                    [
+                        terms.variable ['a']
+                    ]
+                    async: true
+                )
+            )
+
+            catch body = terms.closure (
+                []
+                terms.statements [
+                    terms.variable ['error']
+                ]
+            )
+            catch body.asyncify ()
+
+            finally body = terms.closure (
+                []
+                terms.statements [
+                    terms.variable ['error']
+                ]
+            )
+            finally body.asyncify ()
+
+            expected try expression = terms.function call (
+                terms.generated variable ['async', 'try']
+                [
+                    body
+                    catch body
+                    finally body
+                ]
+                async: true
+            )
+
+            (try expression) should contain fields (expected try expression)

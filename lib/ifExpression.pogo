@@ -43,11 +43,6 @@ module.exports (terms) =
             _case.body.is async
 
         if (any async cases || (else body && else body.is async))
-            async closure for (body) =
-                closure = terms.closure ([], body)
-                closure.asyncify ()
-                closure
-
             if (cases.length > 1)
                 case for condition (condition) and body (body) =
                     terms.hash [
@@ -57,7 +52,7 @@ module.exports (terms) =
                         )
                         terms.hash entry (
                             ['body']
-                            async closure for (body)
+                            terms.argument utils.asyncify body (body)
                         )
                     ]
 
@@ -86,8 +81,8 @@ module.exports (terms) =
                     async if else function
                     [
                         cases.0.condition
-                        async closure for (cases.0.body)
-                        async closure for (else body)
+                        terms.argument utils.asyncify body (cases.0.body)
+                        terms.argument utils.asyncify body (else body)
                     ]
                     async: true
                 )
@@ -101,7 +96,7 @@ module.exports (terms) =
                     async if function
                     [
                         cases.0.condition
-                        async closure for (cases.0.body)
+                        terms.argument utils.asyncify body (cases.0.body)
                     ]
                     async: true
                 )

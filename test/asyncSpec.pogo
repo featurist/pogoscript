@@ -47,7 +47,7 @@ describe 'async'
                done ()' should output ("'result'", done)
 
     it "an async method call works in the same way as an async function call" @(done)
-        async 'process.next tick!
+        async 'async!
                print "finished"
                done ()' should output ("'finished'", done)
 
@@ -58,7 +58,7 @@ describe 'async'
                        done ()
 
                print result
-                   process.next tick!
+                   async!
                    "finished"' should output ("'finished'", done)
 
     context 'when an async function is called with a block'
@@ -73,7 +73,7 @@ describe 'async'
 
     it 'thrown exceptions are passed to the error argument of the callback' @(done)
         async 'f () =
-                   process.next tick!
+                   async!
                    throw (new (Error "thing"))
 
                f(done)' should output ("") @(error)
@@ -112,3 +112,19 @@ describe 'async'
 
                    print "four"
                    done ()' should output ("'three'\n'four'", done)
+
+    describe 'try statements'
+        it "waits for the body to finish" @(done)
+            async 'try
+                       async!
+                       print "one"
+                   catch (error)
+                       async!
+                       print (error)
+                   finally
+                       async!
+                       print "finally"
+
+                   print "finished"
+                   done ()' should output ("'one'\n'finished'", done)
+            

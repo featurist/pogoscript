@@ -86,6 +86,7 @@ exports.codeGenerator = function () {
   codegen.oldTerm = cg.oldTerm;
   codegen.errors = require('./errors').errors(codegen);
   codegen.macros = require('./macros').macros(codegen);
+  importTerm('argumentUtils');
   
   return codegen;
 };

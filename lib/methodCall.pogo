@@ -41,7 +41,7 @@ module.exports (terms) =
               )
             ]
         else if (async)
-            argument utils.asyncify arguments (args, optional arguments)
+            terms.argument utils.asyncify arguments (args, optional arguments)
 
             async result = terms.async result ()
 
