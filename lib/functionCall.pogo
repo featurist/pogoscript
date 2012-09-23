@@ -3,7 +3,14 @@ argument utils = require './argumentUtils'
 
 module.exports (terms) =
     function call term = terms.term {
-        constructor (fun, args, optional arguments: [], async: false, pass this to apply: false) =
+        constructor (
+            fun
+            args
+            optional arguments: []
+            async: false
+            pass this to apply: false
+            originally async: false
+        ) =
             self.is function call = true
 
             self.function = fun
@@ -12,6 +19,7 @@ module.exports (terms) =
             self.splatted arguments = self.cg.splat arguments (args, optional arguments)
             self.pass this to apply = pass this to apply
             self.is async = async
+            self.originally async = originally async
 
         has splat arguments () =
             self.splatted arguments
@@ -59,7 +67,13 @@ module.exports (terms) =
                 terms.sub statements [
                     terms.definition (
                         async result
-                        function call term (fun, args, optional arguments: optional arguments, pass this to apply: pass this to apply)
+                        function call term (
+                            fun
+                            args
+                            optional arguments: optional arguments
+                            pass this to apply: pass this to apply
+                            originally async: true
+                        )
                         async: true
                     )
                     async result

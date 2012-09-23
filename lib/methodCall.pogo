@@ -3,14 +3,22 @@ argument utils = require './argumentUtils'
 
 module.exports (terms) =
     method call term = terms.term {
-        constructor (object, name, args, optional arguments: [], async: false) =
+        constructor (
+            object
+            name
+            args
+            optional arguments: []
+            async: false
+            originally async: false
+        ) =
             self.is method call = true
             self.object = object
             self.name = name
             self.method arguments = args
             self.optional arguments = optional arguments
             self.is async = async
-              
+            self.originally async = originally async
+
         generate java script (buffer, scope) =
             self.object.generate java script (buffer, scope)
             buffer.write ('.')
@@ -48,7 +56,14 @@ module.exports (terms) =
             terms.sub statements [
                 terms.definition (
                     async result
-                    method call term (object, name, args, optional arguments: optional arguments, async: async)
+                    method call term (
+                        object
+                        name
+                        args
+                        optional arguments: optional arguments
+                        async: async
+                        originally async: true
+                    )
                     async: true
                 )
                 async result

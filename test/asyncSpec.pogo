@@ -30,6 +30,17 @@ describe 'async'
                print (f ()!)
                done ()' should output ("'result'", done)
 
+    it 'it only exits once' @(done)
+        async "do stuff! =
+                   async!
+                   process.next tick!
+                   async!
+               
+               do stuff!
+               
+               print 'finished'
+               done ()" should output ("'finished'", done)
+
     it "an async function returns its result in a callback" @(done)
         async 'as (f) =
                    process.next tick
