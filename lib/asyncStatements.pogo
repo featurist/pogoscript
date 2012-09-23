@@ -4,7 +4,6 @@ statements utils = require './statementsUtils'
 
 module.exports (terms) =
     create callback with statements (callback statements, result variable: nil, force async: false, global: false) =
-        debugger
         if ((callback statements.length == 1) && (callback statements.0.is async result))
             terms.callback function
         else

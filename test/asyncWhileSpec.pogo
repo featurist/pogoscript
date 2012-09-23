@@ -44,7 +44,6 @@ describe 'while statement'
 
     context 'condition starts false'
         it 'skips the while statement' @(done)
-            debugger
             when while has the following loops [
                 {condition = returns false, loop = does nothing}
             ] then {
