@@ -187,16 +187,21 @@
                 async: true
             });
         };
-        evalPogo = function(source, context, filename, callback) {
-            var compiledPogo, js, terms, result;
+        evalPogo = function(sourceWithParens, context, filename, callback) {
+            var source, compiledPogo, js, terms, result;
+            source = sourceWithParens.replace(/^\(((.|[\r\n])*)\)$/mg, "$1");
             compiledPogo = compilePogo(source, filename);
             js = compiledPogo.javascript;
             terms = compiledPogo.terms;
-            try {
-                context[terms.callbackFunction.genVar] = callback;
-                return result = vm.runInContext(js, context, filename);
-            } catch (error) {
-                return callback(error);
+            if (source.trim() === "") {
+                return callback();
+            } else {
+                try {
+                    context[terms.callbackFunction.genVar] = callback;
+                    return result = vm.runInContext(js, context, filename);
+                } catch (error) {
+                    return callback(error);
+                }
             }
         };
         if (runningOnNodeOrHigher("v0.8.0")) {

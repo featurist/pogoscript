@@ -146,15 +146,20 @@ exports.repl () =
             async: true
         )
 
-    eval pogo (source, context, filename, callback) =
+    eval pogo (source with parens, context, filename, callback) =
+        source = source with parens.replace r/^\(((.|[\r\n])*)\)$/mg '$1'
         compiled pogo = compile pogo (source, filename)
         js = compiled pogo.javascript
         terms = compiled pogo.terms
-        try
-            context.(terms.callback function.gen var) = callback
-            result = vm.run (js) in context (context) (filename)
-        catch (error)
-            callback (error)
+
+        if (source.trim () == '')
+            callback ()
+        else
+            try
+                context.(terms.callback function.gen var) = callback
+                result = vm.run (js) in context (context) (filename)
+            catch (error)
+                callback (error)
 
     if (running on node 'v0.8.0' or higher)
         repl.start (
