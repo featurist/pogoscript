@@ -117,18 +117,23 @@
         return module.loaded = true;
     };
     exports.compile = function(pogo, gen4_options) {
-        var filename, inScope, ugly, global, returnResult, self, terms, parser, moduleTerm, code;
+        var filename, inScope, ugly, global, returnResult, async, self, terms, parser, statements, moduleTerm, code;
         filename = gen4_options && gen4_options.hasOwnProperty("filename") && gen4_options.filename !== void 0 ? gen4_options.filename : void 0;
         inScope = gen4_options && gen4_options.hasOwnProperty("inScope") && gen4_options.inScope !== void 0 ? gen4_options.inScope : true;
         ugly = gen4_options && gen4_options.hasOwnProperty("ugly") && gen4_options.ugly !== void 0 ? gen4_options.ugly : false;
         global = gen4_options && gen4_options.hasOwnProperty("global") && gen4_options.global !== void 0 ? gen4_options.global : false;
         returnResult = gen4_options && gen4_options.hasOwnProperty("returnResult") && gen4_options.returnResult !== void 0 ? gen4_options.returnResult : false;
+        async = gen4_options && gen4_options.hasOwnProperty("async") && gen4_options.async !== void 0 ? gen4_options.async : false;
         self = this;
         terms = createTerms();
         parser = createParser({
             terms: terms
         });
-        moduleTerm = terms.module(parser.parse(pogo), {
+        statements = parser.parse(pogo);
+        if (async) {
+            statements.asyncify();
+        }
+        moduleTerm = terms.module(statements, {
             inScope: inScope,
             global: global,
             returnLastStatement: returnResult
@@ -144,7 +149,10 @@
             }));
             return process.exit(1);
         } else {
-            return code;
+            return {
+                javascript: code,
+                terms: terms
+            };
         }
     };
     exports.evaluate = function(pogo, gen5_options) {
@@ -157,7 +165,7 @@
             inScope: !global,
             global: global,
             returnResult: global
-        });
+        }).javascript;
         definitionNames = _.keys(definitions);
         parameters = definitionNames.join(",");
         runScript = new Function(parameters, js);
@@ -175,15 +183,18 @@
                 ugly: true,
                 inScope: false,
                 global: true,
-                returnResult: false
+                returnResult: false,
+                async: true
             });
         };
         evalPogo = function(source, context, filename, callback) {
-            var js, result;
-            js = compilePogo(source, filename);
+            var compiledPogo, js, terms, result;
+            compiledPogo = compilePogo(source, filename);
+            js = compiledPogo.javascript;
+            terms = compiledPogo.terms;
             try {
-                result = vm.runInContext(js, context, filename);
-                return callback(void 0, result);
+                context[terms.callbackFunction.genVar] = callback;
+                return result = vm.runInContext(js, context, filename);
             } catch (error) {
                 return callback(error);
             }
@@ -203,7 +214,7 @@
         return exports.compile(contents, {
             filename: filename,
             ugly: ugly
-        });
+        }).javascript;
     };
     sourceLocationPrinter = function(gen7_options) {
         var filename, source;

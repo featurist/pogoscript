@@ -87,10 +87,28 @@ exports.run main (filename) =
     exports.run file (full filename) in module (module)
     module.loaded = true
 
-exports.compile (pogo, filename: nil, in scope: true, ugly: false, global: false, return result: false) =
+exports.compile (
+    pogo
+    filename: nil
+    in scope: true
+    ugly: false
+    global: false
+    return result: false
+    async: false
+) =
     terms = create terms ()
     parser = create parser (terms: terms)
-    module term = terms.module (parser.parse (pogo), in scope: in scope, global: global, return last statement: return result)
+    statements = parser.parse (pogo)
+
+    if (async)
+        statements.asyncify ()
+
+    module term = terms.module (
+        statements
+        in scope: in scope
+        global: global
+        return last statement: return result
+    )
 
     code = generate code (module term)
 
@@ -101,10 +119,10 @@ exports.compile (pogo, filename: nil, in scope: true, ugly: false, global: false
         parser.errors.print errors (source location printer (filename: filename, source: pogo))
         process.exit 1
     else
-        code
+        {javascript = code, terms = terms}
 
 exports.evaluate (pogo, definitions: {}, global: false) =
-    js = exports.compile (pogo, ugly: true, in scope: !global, global: global, return result: global)
+    js = exports.compile (pogo, ugly: true, in scope: !global, global: global, return result: global).javascript
     definition names = _.keys (definitions)
     
     parameters = definition names.join ','
@@ -125,13 +143,16 @@ exports.repl () =
             in scope: false
             global: true
             return result: false
+            async: true
         )
 
     eval pogo (source, context, filename, callback) =
-        js = compile pogo (source, filename)
+        compiled pogo = compile pogo (source, filename)
+        js = compiled pogo.javascript
+        terms = compiled pogo.terms
         try
+            context.(terms.callback function.gen var) = callback
             result = vm.run (js) in context (context) (filename)
-            callback (nil, result)
         catch (error)
             callback (error)
 
@@ -144,7 +165,7 @@ exports.repl () =
 
 compile from file (filename, ugly: false) =
     contents = fs.read file sync (filename) 'utf-8'
-    exports.compile (contents, filename: filename, ugly: ugly)
+    exports.compile (contents, filename: filename, ugly: ugly).javascript
         
 source location printer (filename: nil, source: nil) =
     object =>

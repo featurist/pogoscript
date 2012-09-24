@@ -89,4 +89,9 @@ module.exports (terms) = terms.term {
     serialise statements () =
         self.statements = statements utils.serialise statements (self.statements)
         nil
+
+    asyncify () =
+        if (!self.is async)
+            self.rewrite last statement to return (async: true)
+            self.is async = true
 }
