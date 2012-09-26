@@ -41,6 +41,18 @@ describe 'async'
                print 'finished'
                done ()" should output ("'finished'", done)
 
+    it 'it can chain async methods' @(done)
+        async "one!() =
+                   async!()
+                   {
+                       two!() =
+                           async!()
+                           'finished'
+                   }
+
+               print (one!().two!())
+               done ()" should output ("'finished'", done)
+
     it "an async function returns its result in a callback" @(done)
         async 'as (f) =
                    process.next tick

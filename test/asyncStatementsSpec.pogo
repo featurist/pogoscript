@@ -16,6 +16,23 @@ describe 'async statements'
                 terms.variable ['b']
             ])
 
+        it 'serialises sub statements inside sub statements'
+            statements = terms.async statements [
+                terms.sub statements [
+                    terms.sub statements [
+                        terms.variable ['a']
+                        terms.variable ['b']
+                    ]
+                    terms.variable ['c']
+                ]
+            ]
+
+            (statements) should contain fields (terms.statements [
+                terms.variable ['a']
+                terms.variable ['b']
+                terms.variable ['c']
+            ])
+
         it "doesn't serialise sub statements in inner blocks"
             statements = terms.async statements [
                 terms.statements [
@@ -57,7 +74,11 @@ describe 'async statements'
                 (statements) should contain fields (
                     terms.statements (
                         [
-                            terms.function call (terms.variable ['async', 'func'], [terms.variable ['arg'], terms.callback function])
+                            terms.function call (
+                                terms.variable ['async', 'func']
+                                [terms.variable ['arg'], terms.callback function]
+                                originally async: true
+                            )
                         ]
                         async: true
                     )
@@ -85,6 +106,7 @@ describe 'async statements'
                                         result variable: terms.async result ()
                                     )
                                 ]
+                                originally async: true
                             )
                         ]
                         async: true

@@ -4,8 +4,8 @@ exports.serialise statements (statements) =
     for (n = 0, n < statements.length, n = n + 1)
         statement = statements.(n)
         statement = statement.rewrite (
-            rewrite (term):
-                term.serialise sub statements (serialised statements)
+            rewrite (term, rewrite: nil):
+                term.serialise sub statements (serialised statements, rewrite: rewrite)
                 
             limit (term):
                 term.is statements

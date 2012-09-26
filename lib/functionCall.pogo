@@ -57,7 +57,14 @@ module.exports (terms) =
             fc
     }
 
-    function call (fun, args, optional arguments: [], async: false, pass this to apply: false) =
+    function call (
+        fun
+        args
+        optional arguments: []
+        async: false
+        pass this to apply: false
+        originally async: false
+    ) =
         if (async)
             async result = terms.async result ()
 
@@ -86,4 +93,10 @@ module.exports (terms) =
             if (macro)
                 return (macro (name, args, optional arguments))
 
-        function call term (fun, args, optional arguments: optional arguments, pass this to apply: pass this to apply)
+        function call term (
+            fun
+            args
+            optional arguments: optional arguments
+            pass this to apply: pass this to apply
+            originally async: originally async
+        )
