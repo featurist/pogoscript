@@ -19,10 +19,12 @@ describe 'try statement'
     when the (body: nil, catch body: nil, finally body: nil) then (assertions) and (done) when finished =
         catch body executed = false
         caught error = nil
+        finally body executed = false
 
         catch clause =
             if (catch body)
                 @(error, callback)
+                    should.equal (catch body executed, false)
                     catch body executed = true
                     caught error = error
                     catch body (callback)
@@ -30,6 +32,7 @@ describe 'try statement'
         finally clause =
             if (finally body)
                 @(callback)
+                    should.equal (finally body executed, false)
                     finally body executed = true
                     finally body (callback)
 
@@ -38,6 +41,7 @@ describe 'try statement'
         } (catch clause) (finally clause) @(error, result)
             try
                 should.equal (catch body executed, assertions.catch body executed || false)
+                should.equal (finally body executed, assertions.finally body executed || false)
                 should.equal (caught error, assertions.caught error)
                 should.equal (result, assertions.result)
                 should.equal (error, assertions.error)
