@@ -31,7 +31,7 @@ module.exports (terms) =
             terms.functionCall (
                 asyncWhileFunction
                 [
-                    terms.closure ([], conditionStatements)
+                    terms.argument utils.asyncify body (conditionStatements)
                     terms.argumentUtils.asyncifyBody (statements)
                 ]
                 async: true

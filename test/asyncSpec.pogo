@@ -172,3 +172,11 @@ describe 'async'
                        condition = false
 
                    done ()" should output ("'loop'", done)
+            
+    describe 'for expression'
+        it 'executes each loop one after the other' @(done)
+            async "for (n = 0, n < 3, n = n + 1)
+                       print 'loop'
+                       async!
+
+                   done ()" should output ("'loop'\n'loop'\n'loop'", done)

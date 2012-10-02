@@ -230,7 +230,7 @@ describe 'macros'
     it 'while'
         (macro expression 'while (n < 10) @{n}') should contain fields {
             is while
-            test {
+            condition {
                 is operator
                 operator '<'
                 operator arguments [
