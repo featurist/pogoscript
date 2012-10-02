@@ -1,9 +1,10 @@
 module.exports (terms) = terms.term {
-    constructor (target, source, async: false) =
+    constructor (target, source, async: false, shadow: false) =
         self.is definition = true
         self.target = target
         self.source = source
         self.is async = async
+        self.shadow = shadow
 
     expression () =
         self
@@ -17,7 +18,7 @@ module.exports (terms) = terms.term {
         self.source.generate java script (buffer, scope)
   
     declare variables (variables, scope) =
-        self.target.declare variable (variables, scope)
+        self.target.declare variable (variables, scope, shadow: self.shadow)
 
     make async with callback for result (create callback for result) =
         if (self.is async)

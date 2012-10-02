@@ -2,10 +2,9 @@ codegen utils = require './codegenUtils'
 
 module.exports (terms) =
     variable term = terms.term {
-        constructor (name, shadow: false) =
+        constructor (name) =
             self.variable = name
             self.is variable = true
-            self.shadow = shadow
 
         variable name () =
             codegen utils.concat name (self.variable, escape: true)
@@ -30,17 +29,17 @@ module.exports (terms) =
             if (macro)
                 macro (name)
 
-        declare variable (variables, scope) =
+        declare variable (variables, scope, shadow: false) =
             name = self.variable name ()
-            if (self.shadow || !scope.is defined (name))
+            if (shadow || !scope.is defined (name))
                 variables.push (name)
     }
 
-    variable (name, shadow: false, could be macro: true) =
+    variable (name, could be macro: true) =
         if (could be macro)
             macro = terms.macros.find macro (name)
         
             if (macro)
                 return (macro (name))
 
-        variable term (name, shadow: shadow)
+        variable term (name)

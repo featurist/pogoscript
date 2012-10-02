@@ -12,7 +12,7 @@ module.exports (terms) =
 
                 statements () =
                     optional statements = _.map(optional parameters) @(parm)
-                        terms.definition (terms.variable (parm.field, shadow: true), optional (self.options, parm.field, parm.value))
+                        terms.definition (terms.variable (parm.field), optional (self.options, parm.field, parm.value), shadow: true)
                     
                     optional statements.concat (next.statements ())
                 
@@ -157,7 +157,7 @@ self parameter (cg, redefines self, next) =
                 next.parameters ()
         
             statements () =
-                [cg.definition (cg.self expression (), cg.variable ['this'])].concat (next.statements ())
+                [cg.definition (cg.self expression (), cg.variable ['this'], shadow: true)].concat (next.statements ())
         }
     else
         next
@@ -182,6 +182,7 @@ splat parameters (cg, next) =
                     cg.definition (
                         splat.splat parameter
                         cg.javascript ('Array.prototype.slice.call(arguments, ' + splat.first parameters.length + ', ' + last index + ')')
+                        shadow: true
                     )
             
                 last parameter statements = [splat parameter]
@@ -191,6 +192,7 @@ splat parameters (cg, next) =
                         cg.definition (
                             param
                             cg.javascript('arguments[arguments.length - ' + (splat.last parameters.length - n) + ']')
+                            shadow: true
                         )
                     )
 
