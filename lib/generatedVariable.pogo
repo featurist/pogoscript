@@ -24,8 +24,8 @@ module.exports (terms) = terms.term {
 
     generate java script target (args, ...) = self.generate java script (args, ...)
 
-    declare variable (variables, scope) =
+    declare variable (variables, scope, shadow: false) =
         name = codegen utils.concat name ([self.generated name (scope)])
-        if (!scope.is defined (name))
+        if (shadow || !scope.is defined (name))
             variables.push (name)
 }
