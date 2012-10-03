@@ -180,3 +180,11 @@ describe 'async'
                        async!
 
                    done ()" should output ("'loop'\n'loop'\n'loop'", done)
+
+    describe 'splat arguments'
+        it 'can handle splat arguments in an async function' @(done)
+            async "f! (a, ...) =
+                       a
+
+                   print (f! (1, 2, 3))
+                   done ()" should output ("[ 1, 2, 3 ]", done)

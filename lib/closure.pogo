@@ -92,21 +92,21 @@ module.exports (terms) =
                     block parameters (self)
                 )
             )
-        
-            splat = splat parameters (
-                terms
-                optionals
-            )
 
             async = async parameters (
                 self
-                splat
+                optionals
+            )
+        
+            splat = splat parameters (
+                terms
+                async
             )
         
             if (optionals.has optionals && splat.has splat)
                 terms.errors.add terms (self.optional parameters) with message 'cannot have splat parameters with optional parameters'
         
-            self._parameter transforms = async
+            self._parameter transforms = splat
       
         transformed statements () =
             terms.statements (self.parameter transforms ().statements ())
