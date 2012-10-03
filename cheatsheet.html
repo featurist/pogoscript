@@ -9,7 +9,7 @@
     <body>
         <div class="header">
           <div>
-            <h1>The <a href="/"><span class="pogo">PogoScript<span class="js">js</span></span></a> cheat sheet</h1>
+            <h1>The <a href="/"><span class="pogo">PogoScript</span></a> cheat sheet</h1>
             <ul>
               <li><a href="cheatsheet.pdf">(PDF version)</a></li>
             </ul>
@@ -102,7 +102,7 @@ move file (filename) to dir (docs dir)</code></pre>
 <h2 id='calling_methods'>Calling Methods</h2>
 
 <pre><code>date = new (Date 2011 4 5)
-month = date.get month()
+month = date.get month ()
 date.set minutes 5</code></pre>
 
 
@@ -112,14 +112,14 @@ date.set minutes 5</code></pre>
 <pre><code>size = {}
 size.x = 10
 size.y = 20
-size.area() = self.x * self.y</code></pre>
+size.area () = self.x * self.y</code></pre>
 
 <p>Or as a hash:</p>
 
 <pre><code>size = {
     x = 10
     y = 20
-    area() = self.x * self.y
+    area () = self.x * self.y
 }</code></pre>
 
 <h1 id='self'>Self</h1>
@@ -195,11 +195,11 @@ while (!finished)
 <h1>Try Catch</h1>
 
 <pre><code>try
-    something complicated()
-catch @(ex)
+    something complicated ()
+catch (ex)
     console.log "it went horribly wrong"
 finally
-    always do this()</code></pre>
+    always do this ()</code></pre>
 
 
 </div>
