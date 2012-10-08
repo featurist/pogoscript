@@ -84,7 +84,7 @@ Make async operations behave as though they were synchronous with the `!` operat
     mojo = fs.read file! 'mojo.txt' 'utf-8'
     console.log (mojo)
 
-Async calls also play nicely with `try catch finally`, `if else`, `for`, `while` and friends, and it even works in the REPL. Even though the async operator mimics synchronous behaviour, it is intended to facilitate truly asynchronous code, such as this simple [async `ls` implementation](https://gist.github.com/3770212).
+Async calls also play nicely with `try catch finally`, `if else`, `for`, `while` and friends, and it even works in the REPL. Even though the async operator mimics synchronous behaviour, it is intended to facilitate truly asynchronous code, such as this simple [async `ls` implementation](https://gist.github.com/3770212), or more freakily: [continuations](https://github.com/featurist/pogoscript/blob/master/src/samples/continuations.pogo).
 
 ## Self
 
