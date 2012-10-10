@@ -1,24 +1,27 @@
 mongodb = require 'mongodb'
 assert = require 'assert'
 
-mongodb named (name, address: '127.0.0.1', port: 27017) =
-    new (mongodb.Db (name, new (mongodb.Server (address, port))))
+connect to mongodb (name, address: '127.0.0.1', port: 27017) =
+    new (mongodb.Db (name, new (mongodb.Server (address, port)), safe: false))
 
-test db = mongodb named 'test'
+test db = connect to mongodb 'test'
 
-test (err, collection) =
-    collection.remove
-        console.log "inserting" {a 2}
-        collection.insert {a 2} @(err, docs)
-            collection.count @(err, count)
-                console.log "document count: #(count)"
+test db.open!()
 
-            console.log "searching"
-            collection.find ().to array @(err, results)
-                console.log "found #(results.length) documents"
-                console.log "document:" (results.0)
+collection = test db.collection 'test_insert'
 
-                test db.close ()
+collection.remove!()
 
-test db.open
-    test db.collection ('test_insert', test)
+console.log "inserting" {a 2}
+docs = collection.insert! {a 2}
+
+count = collection.count!()
+console.log "document count: #(count)"
+
+console.log "searching"
+results = collection.find ().to array!()
+
+console.log "found #(results.length) documents"
+console.log "document:" (results.0)
+
+test db.close!()
