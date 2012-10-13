@@ -23,6 +23,9 @@ exports.codeGenerator = function () {
   importTerm('asyncStatements');
   importTerm('subStatements');
   importTerm('closure');
+  importTerm('closureParameters');
+  importTerm('normalParameters');
+  importTerm('splatParameters');
   codegen.block = codegen.closure;
   importTerm('parameters');
   importTerm('identifier');
