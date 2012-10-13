@@ -10,6 +10,7 @@ module.exports (terms) =
             optional arguments: []
             async: false
             originally async: false
+            async callback argument: nil
         ) =
             self.is method call = true
             self.object = object
@@ -18,19 +19,25 @@ module.exports (terms) =
             self.optional arguments = optional arguments
             self.is async = async
             self.originally async = originally async
+            self.async callback argument = async callback argument
 
         generate java script (buffer, scope) =
             self.object.generate java script (buffer, scope)
             buffer.write ('.')
             buffer.write (codegen utils.concat name (self.name))
             buffer.write ('(')
-            codegen utils.write to buffer with delimiter (codegen utils.args and optional args (self.cg, self.method arguments, self.optional arguments), ',', buffer, scope)
+            args = codegen utils.concat args (
+                self.method arguments
+                optional args: self.optional arguments
+                terms: terms
+                async callback arg: self.async callback argument
+            )
+            codegen utils.write to buffer with delimiter (args, ',', buffer, scope)
             buffer.write (')')
 
         make async call with callback (callback) =
-            mc = self.clone ()
-            mc.method arguments.push (callback)
-            mc
+            self.async callback argument = callback
+            self
     }
 
     method call (object, name, args, optional arguments: [], async: false) =

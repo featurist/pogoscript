@@ -1,5 +1,6 @@
 codegen utils = require './codegenUtils'
 argument utils = require './argumentUtils'
+_ = require 'underscore'
 
 module.exports (terms) =
     function call term = terms.term {
@@ -10,32 +11,41 @@ module.exports (terms) =
             async: false
             pass this to apply: false
             originally async: false
+            async callback argument: nil
         ) =
             self.is function call = true
 
             self.function = fun
             self.function arguments = args
             self.optional arguments = optional arguments
-            self.splatted arguments = self.cg.splat arguments (args, optional arguments)
             self.pass this to apply = pass this to apply
             self.is async = async
             self.originally async = originally async
+            self.async callback argument = async callback argument
 
         has splat arguments () =
-            self.splatted arguments
+            _.any (self.function arguments) @(arg)
+                arg.is splat
       
         generate java script (buffer, scope) =
             self.function.generate java script (buffer, scope)
+
+            args = codegen utils.concat args (
+                self.function arguments
+                optional args: self.optional arguments
+                async callback arg: self.async callback argument
+                terms: terms
+            )
+
+            splatted arguments = self.cg.splat arguments (args)
         
-            args = codegen utils.args and optional args (self.cg, self.function arguments, self.optional arguments)
-        
-            if (self.splatted arguments && self.function.is indexer)
+            if (splatted arguments && self.function.is indexer)
                 buffer.write ('.apply(')
                 self.function.object.generate java script (buffer, scope)
                 buffer.write (',')
-                self.splatted arguments.generate java script (buffer, scope)
+                splatted arguments.generate java script (buffer, scope)
                 buffer.write (')')
-            else if (self.splatted arguments)
+            else if (splatted arguments)
                 buffer.write ('.apply(')
 
                 if (self.pass this to apply)
@@ -44,7 +54,7 @@ module.exports (terms) =
                     buffer.write ('null')
 
                 buffer.write (',')
-                self.splatted arguments.generate java script (buffer, scope)
+                splatted arguments.generate java script (buffer, scope)
                 buffer.write (')')
             else
                 buffer.write ('(')
@@ -52,9 +62,8 @@ module.exports (terms) =
                 buffer.write (')')
 
         make async call with callback (callback) =
-            fc = self.clone ()
-            fc.function arguments.push (callback)
-            fc
+            self.async callback argument = callback
+            self
     }
 
     function call (
@@ -64,6 +73,7 @@ module.exports (terms) =
         async: false
         pass this to apply: false
         originally async: false
+        async callback argument: nil
     ) =
         if (async)
             async result = terms.async result ()
@@ -80,6 +90,7 @@ module.exports (terms) =
                             optional arguments: optional arguments
                             pass this to apply: pass this to apply
                             originally async: true
+                            async callback argument: async callback argument
                         )
                         async: true
                     )
@@ -99,4 +110,5 @@ module.exports (terms) =
             optional arguments: optional arguments
             pass this to apply: pass this to apply
             originally async: originally async
+            async callback argument: async callback argument
         )

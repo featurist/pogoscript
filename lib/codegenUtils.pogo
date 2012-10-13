@@ -80,10 +80,13 @@ escape reserved word (word) =
     else
         word
 
-exports.args and optional args (cg, args, optional args) =
-  a = args.slice ()
+exports.concat args (args, optional args: nil, async callback arg: nil, terms: nil) =
+    a = args.slice ()
 
-  if (optional args && (optional args.length > 0))
-    a.push (cg.hash (optional args))
+    if (optional args && (optional args.length > 0))
+        a.push (terms.hash (optional args))
 
-  a
+    if (async callback arg)
+        a.push (async callback arg)
+
+    a

@@ -105,23 +105,50 @@ describe('code generator', function () {
       
         generatesExpression(f, 'f.apply(null,b.concat([{port:p}]))');
       });
+    
+      it('adds async callback argument last', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a']), cg.splat()]);
+        f.makeAsyncCallWithCallback(cg.variable(['callback']));
+
+        generatesExpression(f, 'f.apply(null,a.concat([callback]))');
+      });
+    });
+
+    describe('optional arguments', function () {
+      it('with no arguments and an optional argument', function () {
+        var f = cg.functionCall(cg.variable(['f']), [], {optionalArguments: [cg.hashEntry(['port'], cg.variable(['p']))]});
+
+        generatesExpression(f, 'f({port:p})');
+      });
+
+      it('with an argument and two optional arguments', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a'])],
+          {optionalArguments: [
+            cg.hashEntry(['port'], cg.variable(['p'])),
+            cg.hashEntry(['server'], cg.variable(['s'])),
+            cg.hashEntry(['start'])
+          ]});
+
+        generatesExpression(f, 'f(a,{port:p,server:s,start:true})');
+      });
+    
+      it('adds async callback argument last', function () {
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a'])],
+          {optionalArguments: [
+            cg.hashEntry(['port'], cg.variable(['p']))
+          ]});
+          
+        f.makeAsyncCallWithCallback(cg.variable(['callback']));
+
+        generatesExpression(f, 'f(a,{port:p},callback)');
+      });
     });
     
-    it('with no arguments and an optional argument', function () {
-      var f = cg.functionCall(cg.variable(['f']), [], {optionalArguments: [cg.hashEntry(['port'], cg.variable(['p']))]});
-      
-      generatesExpression(f, 'f({port:p})');
-    });
-    
-    it('with an argument and two optional arguments', function () {
-      var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a'])],
-        {optionalArguments: [
-          cg.hashEntry(['port'], cg.variable(['p'])),
-          cg.hashEntry(['server'], cg.variable(['s'])),
-          cg.hashEntry(['start'])
-        ]});
-      
-      generatesExpression(f, 'f(a,{port:p,server:s,start:true})');
+    it('adds async callback argument last', function () {
+      var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a'])]);
+      f.makeAsyncCallWithCallback(cg.variable(['callback']));
+
+      generatesExpression(f, 'f(a,callback)');
     });
   });
   
@@ -440,10 +467,24 @@ describe('code generator', function () {
       generatesExpression(m, 'console.class(stuff)');
     });
 
-    it('method call with optional argument', function () {
-      var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff'])], {optionalArguments: [cg.hashEntry(['port'], cg.integer(45))]});
+    describe('optional arguments', function () {
+      it('method call with optional argument', function () {
+        var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff'])], {optionalArguments: [cg.hashEntry(['port'], cg.integer(45))]});
+
+        generatesExpression(m, 'console.log(stuff,{port:45})');
+      });
       
-      generatesExpression(m, 'console.log(stuff,{port:45})');
+      it('method call with optional argument and async callback argument', function () {
+        var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff'])],
+          {
+            optionalArguments: [cg.hashEntry(['port'], cg.integer(45))],
+          }
+        );
+        
+        m.makeAsyncCallWithCallback(cg.variable(['callback']));
+
+        generatesExpression(m, 'console.log(stuff,{port:45},callback)');
+      });
     });
   });
   

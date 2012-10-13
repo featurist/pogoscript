@@ -76,8 +76,9 @@ describe 'async statements'
                         [
                             terms.function call (
                                 terms.variable ['async', 'func']
-                                [terms.variable ['arg'], terms.callback function]
+                                [terms.variable ['arg']]
                                 originally async: true
+                                async callback argument: terms.callback function
                             )
                         ]
                         async: true
@@ -98,6 +99,9 @@ describe 'async statements'
                                 terms.variable ['async', 'func']
                                 [
                                     terms.variable ['arg']
+                                ]
+                                originally async: true
+                                async callback argument:
                                     terms.async callback (
                                         terms.statements [
                                             terms.async result ()
@@ -105,8 +109,6 @@ describe 'async statements'
                                         ]
                                         result variable: terms.async result ()
                                     )
-                                ]
-                                originally async: true
                             )
                         ]
                         async: true
