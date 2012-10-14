@@ -19,6 +19,9 @@
         "lib",
         "bin"
     ],
+    "scripts": {
+        "test": "mocha test/*Spec.* test/*/*Spec.*"
+    },
     "bin": {
         "pogo": "bin/pogo",
         "mogo": "bin/mogo"
