@@ -26,6 +26,7 @@
         "pogo": "bin/pogo",
         "mogo": "bin/mogo"
     },
+    "main": "index.js",
     "devDependencies": {
         "mocha": "",
         "should": ""
