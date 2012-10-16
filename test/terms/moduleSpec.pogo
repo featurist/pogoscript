@@ -197,4 +197,4 @@ describe 'module term'
 
             terms.module constants.define ['pi'] as (terms.float 3.142)
 
-            (module) should generate module ('(function(){var self,gen1_pi;self=this;gen1_pi=3.142;a;}).call(this);')
+            (module) should generate module ('(function(){var self=this;var gen1_pi;gen1_pi=3.142;a;}).call(this);')

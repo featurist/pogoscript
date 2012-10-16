@@ -8,7 +8,9 @@ module.exports (terms) = {
             codegen utils.write (self.strategy.named parameters (), ',') to buffer (buffer, scope) with delimiter
 
         generate java script parameter statements (buffer, scope, args) =
-            self.strategy.generate java script statements (buffer, scope, args)
+            self.strategy.generate java script parameter statements (buffer, scope, args)
+
+        named parameters () = strategy.named parameters ()
     }
 
     normal strategy (parameters) = {
@@ -39,6 +41,11 @@ module.exports (terms) = {
 
             buffer.write ");"
 
+            if ((before.length > 0) && (after.length > 0))
+                buffer.write "if("
+                args.generate java script (buffer, scope)
+                buffer.write ".length>#(before.length)){"
+
             for (n = 0, n < self.after.length, n = n + 1)
                 after arg = self.after.(n)
                 args index = self.after.length - n
@@ -49,9 +56,12 @@ module.exports (terms) = {
                 buffer.write "["
                 args.generate java script (buffer, scope)
                 buffer.write ".length-#(args index)];"
+
+            if ((before.length > 0) && (after.length > 0))
+                buffer.write "}"
     }
 
-    options strategy (before: nil, options: nil) =
+    optional strategy (before: nil, options: nil) =
         {
             before = before
             options = options
@@ -65,21 +75,21 @@ module.exports (terms) = {
 
                 buffer.write "var "
                 buffer.write (option names.join ',')
-                buffer.write ";if("
-                self.options variable.generate java script (buffer, scope)
-                buffer.write "!==void 0){"
+                buffer.write ";"
 
                 for each @(option) in (self.options)
                     option name = codegen utils.concat name (option.field)
-                    buffer.write "#(option name)=Object.prototype.hasOwnProperty.call("
+                    buffer.write "#(option name)="
                     self.options variable.generate java script (buffer, scope)
-                    buffer.write ",'#(option name)')?"
+                    buffer.write "!==void 0&&Object.prototype.hasOwnProperty.call("
+                    self.options variable.generate java script (buffer, scope)
+                    buffer.write ",'#(option name)')&&"
+                    self.options variable.generate java script (buffer, scope)
+                    buffer.write ".#(option name)!==void 0?"
                     self.options variable.generate java script (buffer, scope)
                     buffer.write ".#(option name):"
                     option.value.generate java script (buffer, scope)
                     buffer.write ";"
-
-                buffer.write "}"
         }
 
     callback strategy (strategy) = {

@@ -29,7 +29,7 @@ describe 'closure parameter strategies'
                         terms.variable ['b']
                     ]
 
-                    generate java script statements (buffer, scope, arguments) =
+                    generate java script parameter statements (buffer, scope, arguments) =
                         arguments.generate java script (buffer, scope)
                         buffer.write ";"
                 }
@@ -39,6 +39,9 @@ describe 'closure parameter strategies'
 
             it "generates statements of underlying strategy"
                 generate statements from (fs).should.equal 'args;'
+
+            it "requires underlying named parameters"
+                should.deep equal (fs.named parameters (), [terms.variable ['a'], terms.variable ['b']])
 
     describe 'normal strategy'
         context 'when there are two parameters'
@@ -105,12 +108,28 @@ describe 'closure parameter strategies'
             it 'generates full slice of arguments'
                 generate statements from (splat).should.equal 'var a=Array.prototype.slice.call(args,0,args.length-1);var b=args[args.length-1];'
 
-    describe 'options strategy'
+        context 'when there is one argument, a splat argument, then another argument'
+            splat = nil
+
+            before
+                splat = strategies.splat strategy (
+                    before: [terms.variable ['a']]
+                    splat: terms.variable ['b']
+                    after: [terms.variable ['c']]
+                )
+
+            it "doesn't require any parameters"
+                should.deep equal (splat.named parameters (), [terms.variable ['a']])
+
+            it 'generates full slice of arguments'
+                generate statements from (splat).should.equal 'var b=Array.prototype.slice.call(args,1,args.length-1);if(args.length>1){var c=args[args.length-1];}'
+
+    describe 'optional strategy'
         context 'when there are no other arguments'
             opts = nil
 
             before
-                opts = strategies.options strategy (
+                opts = strategies.optional strategy (
                     before: []
                     options: [
                         terms.hash entry ['a'] (terms.integer 10)
@@ -122,13 +141,13 @@ describe 'closure parameter strategies'
                 should.deep equal (opts.named parameters (), [terms.generated variable ['options']])
 
             it 'generates code to extract each named option from the options variable'
-                generate statements from (opts).should.equal "var a,b;if(gen1_options!==void 0){a=Object.prototype.hasOwnProperty.call(gen1_options,'a')?gen1_options.a:10;b=Object.prototype.hasOwnProperty.call(gen1_options,'b')?gen1_options.b:'asdf';}"
+                generate statements from (opts).should.equal "var a,b;a=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'a')&&gen1_options.a!==void 0?gen1_options.a:10;b=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'b')&&gen1_options.b!==void 0?gen1_options.b:'asdf';"
 
         context 'when there are two other parameters'
             opts = nil
 
             before
-                opts = strategies.options strategy (
+                opts = strategies.optional strategy (
                     before: [terms.variable ['a'], terms.variable ['b']]
                     options: [
                         terms.hash entry ['c'] (terms.integer 10)
@@ -140,7 +159,7 @@ describe 'closure parameter strategies'
                 should.deep equal (opts.named parameters (), [terms.variable ['a'], terms.variable ['b'], terms.generated variable ['options']])
 
             it 'generates code to extract each named option from the options variable'
-                generate statements from (opts).should.equal "var c,d;if(gen1_options!==void 0){c=Object.prototype.hasOwnProperty.call(gen1_options,'c')?gen1_options.c:10;d=Object.prototype.hasOwnProperty.call(gen1_options,'d')?gen1_options.d:'asdf';}"
+                generate statements from (opts).should.equal "var c,d;c=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'c')&&gen1_options.c!==void 0?gen1_options.c:10;d=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'d')&&gen1_options.d!==void 0?gen1_options.d:'asdf';"
 
     describe 'callback strategy'
         context "with two other parameters"

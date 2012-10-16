@@ -110,3 +110,10 @@ describe 'functions'
              }
 
              obj.method ()' should output "'field value'"
+
+    describe 'redefining self'
+        it 'redefines self with the => operator'
+            'print self () = =>
+                 print (self.x)
+             
+             print self.call ({x = "self"})' should output "'self'"

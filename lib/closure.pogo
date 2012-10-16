@@ -57,6 +57,30 @@ module.exports (terms) =
             next.statements ()
     }
 
+    (closure) contains splat parameter =
+        _.any (closure.parameters) @(parameter)
+            parameter.is splat
+
+    create splat parameter strategy for (closure) =
+        non splat params = take from (closure.parameters) while @(parameter)
+            !parameter.is splat
+
+        before = non splat params.slice (0, non splat params.length - 1)
+        splat = non splat params.(non splat params.length - 1)
+        after = closure.parameters.slice (non splat params.length + 1)
+
+        terms.closure parameter strategies.splat strategy (
+            before: before
+            splat: splat
+            after: after
+        )
+
+    create optional parameter strategy for (closure) =
+        terms.closure parameter strategies.optional strategy (
+            before: closure.parameters
+            options: closure.optional parameters
+        )
+
     terms.term {
         constructor (parameters, body, optional parameters: [], return last statement: true, redefines self: false, async: false) =
             self.is block = true
@@ -119,19 +143,27 @@ module.exports (terms) =
                 scope.define (parameter.variable name (scope))
 
         generate java script (buffer, scope) =
+            parameters strategy = self.parameters strategy ()
+
             self.rewrite result term to return ()
 
             buffer.write ('function(')
-            parameters = self.transformed parameters ()
-            codegen utils.write to buffer with delimiter (parameters, ',', buffer, scope)
+            parameters = parameters strategy.named parameters ()
+            parameters strategy.generate java script parameters (buffer, scope)
             buffer.write ('){')
-            body = self.transformed statements ()
             body scope = scope.sub scope ()
             self.declare parameters (body scope, parameters)
 
-            body.generate java script statements (buffer, body scope)
+            self.generate self assignment (buffer)
+
+            parameters strategy.generate java script parameter statements (buffer, scope, terms.variable ['arguments'])
+            self.body.generate java script statements (buffer, body scope)
 
             buffer.write ('}')
+
+        generate self assignment (buffer) =
+            if (self.redefines self)
+                buffer.write 'var self=this;'
 
         rewrite result term to return () =
             if (self.return last statement && !self.body.is async)
@@ -140,6 +172,21 @@ module.exports (terms) =
         asyncify () =
             self.body.asyncify ()
             self.is async = true
+
+        parameters strategy () =
+            inner strategy = if ((self) contains splat parameter)
+                create splat parameter strategy for (self)
+            else if (self.optional parameters.length > 0)
+                create optional parameter strategy for (self)
+            else
+                terms.closure parameter strategies.normal strategy (self.parameters)
+
+            strategy = if (self.is async)
+                terms.closure parameter strategies.callback strategy (inner strategy)
+            else
+                inner strategy
+
+            terms.closure parameter strategies.function strategy (strategy)
     }
 
 block parameters (block) = {

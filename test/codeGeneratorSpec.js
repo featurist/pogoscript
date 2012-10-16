@@ -295,7 +295,7 @@ describe('code generator', function () {
       
       b.redefinesSelf = true;
       
-      generatesExpression(b, 'function(x,y){var self;self=this;y(x);return x;}');
+      generatesExpression(b, 'function(x,y){var self=this;y(x);return x;}');
     });
     
     it('with a parameter and two optional parameters', function () {
@@ -316,10 +316,10 @@ describe('code generator', function () {
 
       b.optionalParameters = [
         cg.hashEntry(['port'], cg.integer(80)),
-        cg.hashEntry(['start'])
+        cg.hashEntry(['start'], cg.boolean(true))
       ];
       
-      generatesStatements(s, "var port;port=1;function(x,y,gen1_options){var port,start;port=(gen1_options&&gen1_options.hasOwnProperty('port')&&gen1_options.port!==void 0)?gen1_options.port:80;start=(gen1_options&&gen1_options.hasOwnProperty('start')&&gen1_options.start!==void 0)?gen1_options.start:undefined;y(x);return x;};");
+      generatesStatements(s, "var port;port=1;function(x,y,gen1_options){var port,start;port=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'port')&&gen1_options.port!==void 0?gen1_options.port:80;start=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'start')&&gen1_options.start!==void 0?gen1_options.start:true;y(x);return x;};");
     });
     
     it('with splat parameters', function () {
@@ -339,7 +339,7 @@ describe('code generator', function () {
         )
       ]);
 
-      generatesStatements(s, "var y;y=1;function(x){var y,z;y=Array.prototype.slice.call(arguments, 1, arguments.length - 1);z=arguments[arguments.length - 1];y(x);return z;};");
+      generatesStatements(s, "var y;y=1;function(x){var y=Array.prototype.slice.call(arguments,1,arguments.length-1);if(arguments.length>1){var z=arguments[arguments.length-1];}y(x);return z;};");
     });
   });
   

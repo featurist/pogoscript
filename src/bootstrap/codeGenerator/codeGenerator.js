@@ -90,6 +90,7 @@ exports.codeGenerator = function () {
   codegen.errors = require('./errors').errors(codegen);
   codegen.macros = require('./macros').macros(codegen);
   importTerm('argumentUtils');
+  importTerm('closureParameterStrategies');
   
   return codegen;
 };
