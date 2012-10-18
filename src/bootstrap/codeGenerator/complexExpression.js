@@ -148,7 +148,7 @@ module.exports = function (listOfTerminals) {
         expression: function () {
           if (self.head().hasName()) {
             if (self.hasParameters()) {
-              var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters()});
+              var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()});
               block.redefinesSelf = true;
               return cg.definition(cg.fieldReference(object, self.head().name()), block);
             } else {
@@ -158,10 +158,10 @@ module.exports = function (listOfTerminals) {
             if (!self.hasTail() && self.arguments().length === 1 && !self.hasAsyncArgument()) {
               return cg.definition(cg.indexer(object, self.arguments()[0]), source.scopify());
             } else {
-              var block = source.blockify(self.parameters({skipFirstParameter: true}), {optionalParameters: self.optionalParameters()});
+              var block = source.blockify(self.parameters({skipFirstParameter: true}), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()});
               block.redefinesSelf = true;
               return cg.definition(cg.indexer(object, self.arguments()[0]), block);
-    				}
+            }
           }
         }
       };
@@ -194,7 +194,7 @@ module.exports = function (listOfTerminals) {
               return cg.definition(cg.variable(self.head().name()), source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()}));
             },
             hashEntry: function (isOptionalArgument) {
-              var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters()});
+              var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()});
               block.redefinesSelf = !isOptionalArgument;
 
               return cg.hashEntry(self.head().name(), block);
