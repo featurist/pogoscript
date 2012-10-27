@@ -178,6 +178,10 @@ exports.macros = function (cg) {
 
     return cg.whileStatement(test, statements);
   });
+  
+  macros.addMacro(['with'], function(name, arguments) {
+    return cg.withStatement(arguments[0], arguments[1].body);
+  });
 
   macros.addMacro(['and'], function (name, arguments) {
     return cg.operator('&&', arguments);

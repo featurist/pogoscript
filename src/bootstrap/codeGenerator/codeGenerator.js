@@ -76,6 +76,8 @@ exports.codeGenerator = function () {
   importTerm('indexer');
   importTerm('whileExpression');
   codegen.whileStatement = codegen.whileExpression;
+  importTerm('withExpression');
+  codegen.withStatement = codegen.withExpression;
   importTerm('forExpression');
   codegen.forStatement = codegen.forExpression;
   importTerm('forIn');
