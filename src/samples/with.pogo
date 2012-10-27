@@ -1,19 +1,23 @@
-things = []
+things = {}
 
-specification = {
+merge (traits) into (thing) =
+  for each @(trait) in (traits)
+    for @(attr) in (trait) @ { thing.(attr) = trait.(attr) }
 
-  describe (thing) as (attributes) = things.push [thing, attributes]
+spec = {
+
+  describe (thing) as (traits) = merge (traits) into (things.(thing) = {})
 
   made of (stuff) = { material = stuff }
   
   solid material = { breakable = false }
   
-  (name) orientation = { orientation = name }
+  (direction) orientation = { orientation = direction }
   
 }
 
 
-with (specification)
+with (spec)
   
   describe 'wall' as [
     
@@ -22,4 +26,8 @@ with (specification)
     'vertical' orientation
   
   ]
-    
+  
+
+console.log (things)
+
+// { wall: { material: { breakable: false }, orientation: 'vertical' } }
