@@ -95,8 +95,8 @@ exports.compile (
     global: false
     return result: false
     async: false
+    terms: create terms ()
 ) =
-    terms = create terms ()
     parser = create parser (terms: terms)
     statements = parser.parse (pogo)
 
@@ -119,10 +119,10 @@ exports.compile (
         parser.errors.print errors (source location printer (filename: filename, source: pogo))
         process.exit 1
     else
-        {javascript = code, terms = terms}
+        code
 
 exports.evaluate (pogo, definitions: {}, global: false) =
-    js = exports.compile (pogo, ugly: true, in scope: !global, global: global, return result: global).javascript
+    js = exports.compile (pogo, ugly: true, in scope: !global, global: global, return result: global)
     definition names = _.keys (definitions)
     
     parameters = definition names.join ','
@@ -135,7 +135,7 @@ exports.evaluate (pogo, definitions: {}, global: false) =
     run script.apply (undefined) (definition values)
 
 exports.repl () =
-    compile pogo (source, filename) =
+    compile pogo (source, filename, terms) =
         exports.compile (
             source
             filename: filename
@@ -144,13 +144,13 @@ exports.repl () =
             global: true
             return result: false
             async: true
+            terms: terms
         )
 
     eval pogo (source with parens, context, filename, callback) =
         source = source with parens.replace r/^\(((.|[\r\n])*)\)$/mg '$1'
-        compiled pogo = compile pogo (source, filename)
-        js = compiled pogo.javascript
-        terms = compiled pogo.terms
+        terms = create terms ()
+        js = compile pogo (source, filename, terms)
 
         if (source.trim () == '')
             callback ()
@@ -170,7 +170,7 @@ exports.repl () =
 
 compile from file (filename, ugly: false) =
     contents = fs.read file sync (filename) 'utf-8'
-    exports.compile (contents, filename: filename, ugly: ugly).javascript
+    exports.compile (contents, filename: filename, ugly: ugly)
         
 source location printer (filename: nil, source: nil) =
     object =>
