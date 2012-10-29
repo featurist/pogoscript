@@ -172,6 +172,14 @@ describe 'async'
                        condition = false
 
                    done ()" should output ("'loop'", done)
+
+        it "completes the function as the last statement" @(done)
+            async "f! () =
+                       while (false)
+                           never here ()
+                   
+                   f! ()
+                   done ()" should output ("", done)
             
     describe 'for expression'
         it 'executes each loop one after the other' @(done)
@@ -180,6 +188,23 @@ describe 'async'
                        async!
 
                    done ()" should output ("'loop'\n'loop'\n'loop'", done)
+
+        it "completes the function as the last statement" @(done)
+            async "f! () =
+                       for (n = 0, n < 3, n = n + 1)
+                           print 'loop'
+                   
+                   f! ()
+                   done ()" should output ("'loop'\n'loop'\n'loop'", done)
+            
+    describe 'for in expression'
+        it "completes the function as the last statement" @(done)
+            async "f! () =
+                       for @(n) in {a = 1, b = 2}
+                           print (n)
+                   
+                   f! ()
+                   done ()" should output ("'a'\n'b'", done)
 
     describe 'splat arguments'
         it 'can handle splat arguments in an async function' @(done)

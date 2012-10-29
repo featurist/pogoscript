@@ -16,7 +16,7 @@ module.exports (terms) =
       
         generateJavaScriptStatement (args, ...) = self.generateJavaScript (args, ...)
 
-        rewriteResultTermInto (returnTerm) = self
+        rewriteResultTermInto (returnTerm) = nil
     }
 
     whileExpression (condition, statements) =

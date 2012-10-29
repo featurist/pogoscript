@@ -1,5 +1,6 @@
 terms = require '../../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 require '../assertions'
+should = require 'should'
 
 describe 'for in'
     it 'scopes body'
@@ -36,4 +37,4 @@ describe 'for in'
                 ]
             )
 
-        for in expression.rewrite result term into ().should.equal (for in expression)
+        should.equal (for in expression.rewrite result term into (), nil)

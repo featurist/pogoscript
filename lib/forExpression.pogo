@@ -58,7 +58,7 @@ module.exports (terms) =
         declare variables (variables, scope) =
             self.index variable.declare variable (variables, scope)
 
-        rewrite result term into (return term) = self
+        rewrite result term into (return term) = nil
     }
 
     for expression (init, test, incr, body) =

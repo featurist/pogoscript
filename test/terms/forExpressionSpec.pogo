@@ -1,5 +1,6 @@
 terms = require '../../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 require '../assertions'
+should = require 'should'
 
 describe 'for expression term'
     it 'declares index variable'
@@ -24,4 +25,4 @@ describe 'for expression term'
                 terms.statements [terms.variable ['x']]
             )
 
-        for expression.rewrite result term into ().should.equal (for expression)
+        should.equal (for expression.rewrite result term into (), nil)

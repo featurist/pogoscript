@@ -19,9 +19,14 @@ module.exports (terms) = terms.term {
 
     rewrite result term into (return term) =
         if (self.statements.length > 0)
-            self.statements.(self.statements.length - 1) =
-                self.statements.(self.statements.length - 1).rewrite result term @(term) into
-                    return term (term)
+            last statement = self.statements.(self.statements.length - 1)
+            rewritten last statement = last statement.rewrite result term @(term) into
+                return term (term)
+
+            if (rewritten last statement)
+                self.statements.(self.statements.length - 1) = rewritten last statement
+            else
+                self.statements.push (return term (terms.nil ()))
 
     rewrite last statement to return (async: false) =
         self.rewrite result term @(term) into
