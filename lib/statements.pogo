@@ -30,11 +30,6 @@ module.exports (terms) = terms.term {
             else
                 terms.return statement (term, implicit: true)
 
-    rewrite last statement to not return () =
-        self.rewrite result term @(term) into
-            if (term.is return && term.is implicit)
-                term.expression
-
     generate variable declarations (variables, buffer, scope) =
         if (variables.length > 0)
             _(variables).each @(name)

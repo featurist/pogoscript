@@ -13,9 +13,7 @@ describe 'statements term'
                 global: true
             )
 
-            rewritten statements = statements.rewrite ()
-
-            (rewritten statements) should generate statements 'a=1;b=1;'
+            (statements) should generate statements 'a=1;b=1;'
 
         it 'generates local variables'
             statements = terms.statements (
@@ -25,6 +23,4 @@ describe 'statements term'
                 ]
             )
 
-            rewritten statements = statements.rewrite ()
-
-            (rewritten statements) should generate statements 'var a,b;a=1;b=1;'
+            (statements) should generate statements 'var a,b;a=1;b=1;'
