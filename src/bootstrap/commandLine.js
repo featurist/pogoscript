@@ -91,6 +91,7 @@
             text = token[1] && "'" + token[1] + "'" || "";
             console.log("<" + token[0] + "> " + text);
         }
+        return void 0;
     };
     jsFilenameFromPogoFilename = function(pogo) {
         return pogo.replace(/\.pogo$/, "") + ".js";
@@ -155,19 +156,20 @@
     };
     exports.evaluate = function(pogo, gen5_options) {
         var self = this;
-        var definitions, global;
+        var definitions, ugly, global;
         definitions = gen5_options !== void 0 && Object.prototype.hasOwnProperty.call(gen5_options, "definitions") && gen5_options.definitions !== void 0 ? gen5_options.definitions : {};
+        ugly = gen5_options !== void 0 && Object.prototype.hasOwnProperty.call(gen5_options, "ugly") && gen5_options.ugly !== void 0 ? gen5_options.ugly : true;
         global = gen5_options !== void 0 && Object.prototype.hasOwnProperty.call(gen5_options, "global") && gen5_options.global !== void 0 ? gen5_options.global : false;
         var js, definitionNames, parameters, runScript, definitionValues;
         js = exports.compile(pogo, {
-            ugly: true,
-            inScope: !global,
+            ugly: ugly,
+            inScope: true,
             global: global,
-            returnResult: global
+            returnResult: true
         });
         definitionNames = _.keys(definitions);
         parameters = definitionNames.join(",");
-        runScript = new Function(parameters, js);
+        runScript = new Function(parameters, "return " + js + ";");
         definitionValues = _.map(definitionNames, function(name) {
             return definitions[name];
         });
@@ -248,6 +250,7 @@
                     line = gen9_items[gen10_i];
                     process.stderr.write(prefix + line + "\n");
                 }
+                return void 0;
             };
             self.printLocation = function(location) {
                 var self = this;

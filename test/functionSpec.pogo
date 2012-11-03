@@ -68,7 +68,7 @@ describe 'functions'
             'open tcp connection (port: 80) =
                  print (port)
              
-             open tcp connection!' should output "80"
+             open tcp connection ()' should output "80"
         
         it 'if the optional parameter has a default value
             and other optional arguments are passed by the caller

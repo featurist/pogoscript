@@ -121,13 +121,13 @@ exports.compile (
     else
         code
 
-exports.evaluate (pogo, definitions: {}, global: false) =
-    js = exports.compile (pogo, ugly: true, in scope: !global, global: global, return result: global)
+exports.evaluate (pogo, definitions: {}, ugly: true, global: false) =
+    js = exports.compile (pogo, ugly: ugly, in scope: true, global: global, return result: true)
     definition names = _.keys (definitions)
     
     parameters = definition names.join ','
     
-    run script = new (Function (parameters, js))
+    run script = new (Function (parameters, "return #(js);"))
     
     definition values = _.map (definition names) @(name)
         definitions.(name)

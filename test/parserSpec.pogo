@@ -57,6 +57,12 @@ describe 'parser'
                     string "one\ntwo"
                 }
                     
+            it 'multiline string with empty lines'
+                (expression "  'one\n\n   two\n\n   three'") should contain fields {
+                    is string
+                    string "one\n\ntwo\n\nthree"
+                }
+                    
             it 'multiline double-quote string'
                 (expression "  \"one\n   two\"") should contain fields {
                     is string
