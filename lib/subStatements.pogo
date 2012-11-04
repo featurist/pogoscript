@@ -13,7 +13,12 @@ module.exports (terms) = terms.term {
 
         statements.push (rewritten statements, ...)
 
-        self.statements.(self.statements.length - 1)
+        last statement = self.statements.(self.statements.length - 1)
+
+        if (last statement.is sub statements)
+            last statement.serialise sub statements (statements, rewrite: rewrite)
+        else
+            last statement
 
     generate java script () =
         self.show ()
