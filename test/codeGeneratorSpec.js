@@ -202,7 +202,7 @@ describe('code generator', function () {
     it('expression in string', function () {
       var s = cg.interpolatedString([cg.string("before "), cg.variable(['x']), cg.string(' after')]);
 
-      generatesExpression(s, "'before '+x+' after'");
+      generatesExpression(s, "('before '+x+' after')");
     });
   });
   
