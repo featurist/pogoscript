@@ -2,6 +2,8 @@
 
 Pogoscript is a programming language that emphasises readability, is friendly to domain specific languages and compiles to regular Javascript.
 
+![travis-ci](https://secure.travis-ci.org/featurist/pogoscript.png)
+
 # Installation
 
 Pogoscript requires [node.js](http://nodejs.org/) and [npm](http://npmjs.org/).
