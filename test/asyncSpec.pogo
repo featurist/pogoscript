@@ -184,10 +184,11 @@ describe 'async'
     describe 'for expression'
         it 'executes each loop one after the other' @(done)
             async "for (n = 0, n < 3, n = n + 1)
-                       print 'loop'
+                       print ('before: ' + n)
                        async!
+                       print ('after: ' + n)
 
-                   done ()" should output ("'loop'\n'loop'\n'loop'", done)
+                   done ()" should output ("'before: 0'\n'after: 0'\n'before: 1'\n'after: 1'\n'before: 2'\n'after: 2'", done)
 
         it "completes the function as the last statement" @(done)
             async "f! () =
@@ -196,6 +197,25 @@ describe 'async'
                    
                    f! ()
                    done ()" should output ("'loop'\n'loop'\n'loop'", done)
+            
+    describe 'for each expression'
+        it 'executes each loop one after the other' @(done)
+            async "for each @(n) in [0, 1, 2]
+                       print ('before: ' + n)
+                       async!
+                       print ('after: ' + n)
+
+                   done ()" should output ("'before: 0'\n'after: 0'\n'before: 1'\n'after: 1'\n'before: 2'\n'after: 2'", done)
+
+        it "completes the function as the last statement" @(done)
+            async "f! () =
+                       for each @(n) in [0, 1, 2]
+                           print ('before: ' + n)
+                           async!
+                           print ('after: ' + n)
+                   
+                   f! ()
+                   done ()" should output ("'before: 0'\n'after: 0'\n'before: 1'\n'after: 1'\n'before: 2'\n'after: 2'", done)
             
     describe 'for in expression'
         it "completes the function as the last statement" @(done)

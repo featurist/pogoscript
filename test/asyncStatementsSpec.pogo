@@ -33,6 +33,23 @@ describe 'async statements'
                 terms.variable ['c']
             ])
 
+        it 'serialises sub statements inside sub statements, even if they are the last statement'
+            statements = terms.async statements [
+                terms.sub statements [
+                    terms.variable ['a']
+                    terms.sub statements [
+                        terms.variable ['b']
+                        terms.variable ['c']
+                    ]
+                ]
+            ]
+
+            (statements) should contain fields (terms.statements [
+                terms.variable ['a']
+                terms.variable ['b']
+                terms.variable ['c']
+            ])
+
         it "doesn't serialise sub statements in inner blocks"
             statements = terms.async statements [
                 terms.statements [
