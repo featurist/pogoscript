@@ -113,6 +113,9 @@ module.exports (terms) = {
             buffer.write "["
             args.generate java script (buffer, scope)
             buffer.write ".length-1];"
+            buffer.write "if(!("
+            terms.callback function.generate java script (buffer, scope)
+            buffer.write " instanceof Function)){throw new Error('asynchronous function called synchronously');}"
 
             named parameters = self.strategy.named parameters ()
             for (n = 0, n < named parameters.length, n = n + 1)

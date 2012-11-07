@@ -1,6 +1,7 @@
 script = require './scriptAssertions'
 
 async should output = script.async should output
+should output = script.should output
 
 describe 'async'
     it 'can make one async call in statements' @(done)
@@ -83,6 +84,11 @@ describe 'async'
 
                print (one!().two!())
                done ()" should output ("'finished'", done)
+
+    it 'throws if async function is not called asynchronously'
+        @{"f!() = 12
+
+           print (f ())" should output ("'finished'")}.should.throw 'asynchronous function called synchronously'
 
     it "an async function returns its result in a callback" @(done)
         async 'as (f) =
