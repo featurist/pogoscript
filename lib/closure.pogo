@@ -100,7 +100,10 @@ module.exports (terms) =
       
         scopify () =
             if ((self.parameters.length == 0) && (self.optional parameters.length == 0))
-                terms.scope (self.body.statements)
+                if (self.is async)
+                    terms.function call (terms.sub expression (self), [], async: true)
+                else
+                    terms.scope (self.body.statements, async: self.is async)
             else
                 self
       

@@ -1,6 +1,6 @@
 module.exports (terms) =
-    scope (statement list, always generate function) =
-        if ((statement list.length == 1) && !always generate function)
+    scope (statement list) =
+        if (statement list.length == 1)
             statement = statement list.0
 
             if (statement.is return)

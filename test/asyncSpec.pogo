@@ -41,6 +41,37 @@ describe 'async'
                print 'finished'
                done ()" should output ("'finished'", done)
 
+    it 'single async call can be made in scopified assignment' @(done)
+        async "f!() = 8
+
+               x =
+                   f!()
+
+               print (x)
+
+               done ()" should output ("8", done)
+
+    it 'async call expression can be made in scopified assignment' @(done)
+        async "f!() = 8
+
+               x =
+                   f!() * 2
+
+               print (x)
+
+               done ()" should output ("16", done)
+
+    it 'statements including async call can be made in scopified assignment' @(done)
+        async "f!() = 8
+
+               x =
+                   n = f!()
+                   n * 2
+
+               print (x)
+
+               done ()" should output ("16", done)
+
     it 'it can chain async methods' @(done)
         async "one!() =
                    async!()
