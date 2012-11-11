@@ -1,8 +1,5 @@
 require './assertions'
-
-parser = require '../src/bootstrap/parser'
 require './parserAssertions'
-create terms () = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 
 describe 'operators'
     it parses binary operator (op) =
