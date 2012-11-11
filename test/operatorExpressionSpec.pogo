@@ -27,29 +27,6 @@ describe 'operator expression'
             is variable
             variable ['a']
         }
-
-    it 'a +- b'
-        e = expression [id 'a']
-        e.add operator '+-' expression (complex expression [id 'b'])
-        
-        (e.expression ()) should contain fields {
-            is method call
-            object {variable ['a']}
-            name ['+-']
-            method arguments [{variable ['b']}]
-        }
-
-    it 'a +- b */ c'
-        e = expression [id 'a']
-        e.add operator '+-' expression (complex expression [id 'b'])
-        e.add operator '*/' expression (complex expression [id 'c'])
-        
-        (e.expression ()) should contain fields {
-            is method call
-            object {variable ['a']}
-            name ['+-', '*/']
-            method arguments [{variable ['b']}, {variable ['c']}]
-        }
     
     it 'looks up macro'
         e = expression [id 'a']

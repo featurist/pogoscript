@@ -354,28 +354,6 @@ describe 'macros'
                     terms.new operator (terms.generated variable ['c'])
                 ]
             )
-
-    describe 'multi argument operators'
-        it 'a + b'
-            (macro expression 'a + b') should contain fields {
-                is operator
-                operator '+'
-                operator arguments [
-                    {variable ['a']}
-                    {variable ['b']}
-                ]
-            }
-
-        it 'a + b + c'
-            (macro expression 'a + b + c') should contain fields {
-                is operator
-                operator '+'
-                operator arguments [
-                    {variable ['a']}
-                    {variable ['b']}
-                    {variable ['c']}
-                ]
-            }
     
     describe '=='
         it 'generates ==='

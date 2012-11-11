@@ -2,7 +2,7 @@ require '../assertions'
 terms = require '../../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 _ = require 'underscore'
 
-describe 'operator parser'
+describe 'operator expression'
     variable (name) = terms.complex expression [[terms.variable [name]]]
 
     it 'parses operators, using precedence table'

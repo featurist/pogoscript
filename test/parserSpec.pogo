@@ -627,33 +627,22 @@ describe 'parser'
 
     describe 'operators'
         it 'should be lower precedence than object operation'
-            (expression 'o.m 2 +- o.x') should contain fields {
-                is method call
-                object {
-                    is method call
-                    object {variable ['o']}
-                    name ['m']
-                    method arguments [{integer 2}]
-                }
-                    
-                name ['+-']
-                method arguments [
+            (expression 'o.m 2 * o.x') should contain fields {
+                is operator
+                operator '*'
+
+                operator arguments [
+                    {
+                        is method call
+                        object {variable ['o']}
+                        name ['m']
+                        method arguments [{integer 2}]
+                    }
                     {
                         is field reference
                         object {variable ['o']}
                         name ['x']
                     }
-                ]
-            }
-                
-        it 'parses backslash'
-            (expression "2 +\\+ 1") should contain fields {
-                is method call
-                object {integer 2}
-                    
-                name ["+\\+"]
-                method arguments [
-                    {integer 1}
                 ]
             }
                 

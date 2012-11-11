@@ -20,22 +20,6 @@ describe 'operators'
                     {variable ['a'], is variable}
                 ]
             }
-
-    it parses (higher) as higher precedence than (lower) =
-        it "it parses #(higher) as higher precedence than #(lower)"
-            (expression "a #(higher) b #(lower) c") should contain fields {
-                operator = op
-                operator arguments = [
-                    {
-                        operator = higher
-                        operator arguments = [
-                            {variable ['a'], is variable}
-                            {variable ['b'], is variable}
-                        ]
-                    }
-                    {variable ['c'], is variable}
-                ]
-            }
         
     binary operators = [
         '+'
@@ -69,5 +53,3 @@ describe 'operators'
 
     for each @(op) in (binary operators)
         it parses binary operator (op)
-
-    it parses '*' as higher precedence than '+'
