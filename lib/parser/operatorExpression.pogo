@@ -36,29 +36,33 @@ module.exports (terms) =
         operators = {}
 
         for each @(line) in (op lines)
-            match = r/\s*(\S+)\s+(left|right)/.exec (line)
-            name = match.1
-            assoc = match.2
+            match = r/\s*((\S+\s+)*)(left|right)/.exec (line)
+            names = match.1.trim ().split r/\s+/
+            assoc = match.3
 
             precedence = precedence - 1
 
-            operators.(name) = {
-                name = name
-                left associative = assoc == 'left'
-                precedence = precedence
-            }
+            for each @(name) in (names)
+                operators.(name) = {
+                    name = name
+                    left associative = assoc == 'left'
+                    precedence = precedence
+                }
 
         operators
 
     operator table =
         table = operators in decreasing precedence order "
-            / left
-            * left
-            % left
-            - left
-            + left
-            @or  right
-            @and right
+            / * % left
+            - + left
+            << >> >>> left
+            > >= < <= left
+            == != left
+            & left
+            ^ left
+            | left
+            && @and left
+            || @or left
         "
 
         {

@@ -48,7 +48,7 @@ exports.codeGenerator = function () {
   importTerm('hash');
   importTerm('asyncArgument');
   codegen.complexExpression = require('./complexExpression');
-  codegen.operatorExpression = require('./operatorExpression');
+  codegen.operatorExpression = require('../../../lib/parser/operatorExpression')(codegen);
   importTerm('unaryOperatorExpression');
   importTerm('operator');
   importTerm('splat');

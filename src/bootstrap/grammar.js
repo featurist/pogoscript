@@ -1,6 +1,6 @@
-((function() {
-    var self, comments;
-    self = this;
+(function() {
+    var self = this;
+    var comments;
     comments = "\\s*((\\/\\*([^*](\\*[^\\/]|))*(\\*\\/|$)|\\/\\/[^\\n]*)\\s*)+";
     exports.grammar = {
         lex: {
@@ -41,4 +41,4 @@
             interpolated_string_component: [ [ "interpolated_terminal", "$$ = $1;" ], [ "interpolated_string_body", "$$ = yy.terms.string($1);" ], [ "escaped_interpolated_string_terminal_start", '$$ = yy.terms.string("#");' ], [ "escape_sequence", "$$ = yy.terms.string(yy.normaliseInterpolatedString($1));" ] ]
         }
     };
-})).call(this);
+}).call(this);

@@ -1,50 +1,45 @@
-((function() {
-    var self, _, createIndentStack, createInterpolation, createParserContext;
-    self = this;
+(function() {
+    var self = this;
+    var _, createIndentStack, createInterpolation, createParserContext;
     _ = require("underscore");
     createIndentStack = require("./indentStack").createIndentStack;
     createInterpolation = require("./interpolation").createInterpolation;
     exports.createParserContext = createParserContext = function(gen1_options) {
         var terms;
-        terms = gen1_options && gen1_options.hasOwnProperty("terms") && gen1_options.terms !== void 0 ? gen1_options.terms : void 0;
+        terms = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "terms") && gen1_options.terms !== void 0 ? gen1_options.terms : void 0;
         return object(function() {
-            var self;
-            self = this;
+            var self = this;
             self.terms = terms;
             self.indentStack = createIndentStack();
             self.tokens = function(tokens) {
-                var self;
-                self = this;
+                var self = this;
                 self.lexer.tokens = tokens;
                 return tokens.shift();
             };
             self.setIndentation = function(text) {
-                var self;
-                self = this;
+                var self = this;
                 return self.indentStack.setIndentation(text);
             };
             self.unsetIndentation = function(token) {
-                var self, tokens;
-                self = this;
+                var self = this;
+                var tokens;
                 tokens = self.indentStack.unsetIndentation();
                 tokens.push(token);
                 return self.tokens(tokens);
             };
             self.indentation = function(text) {
-                var self, tokens;
-                self = this;
+                var self = this;
+                var tokens;
                 tokens = self.indentStack.tokensForNewLine(text);
                 return self.tokens(tokens);
             };
             self.eof = function() {
-                var self;
-                self = this;
+                var self = this;
                 return self.tokens(self.indentStack.tokensForEof());
             };
             self.interpolation = createInterpolation();
             self.lexOperator = function(parserContext, op) {
-                var self;
-                self = this;
+                var self = this;
                 if (/[?!][.;]/.test(op)) {
                     return parserContext.tokens([ op[0], op[1] ]);
                 } else if (/^(=>|\.\.\.|@:|[#@:!?,.=;])$/.test(op)) {
@@ -54,8 +49,8 @@
                 }
             };
             self.loc = function(term, location) {
-                var self, loc;
-                self = this;
+                var self = this;
+                var loc;
                 loc = {
                     firstLine: location.first_line,
                     lastLine: location.last_line,
@@ -63,36 +58,34 @@
                     lastColumn: location.last_column
                 };
                 term.location = function() {
-                    var self;
-                    self = this;
+                    var self = this;
                     return loc;
                 };
                 return term;
             };
             self.unindentBy = function(string, columns) {
-                var self, r;
-                self = this;
+                var self = this;
+                var r;
                 r = new RegExp("\\n {" + columns + "}", "g");
                 return string.replace(r, "\n");
             };
             self.normaliseString = function(s) {
-                var self;
-                self = this;
+                var self = this;
                 return s.substring(1, s.length - 1).replace(/''/g, "'");
             };
             self.parseRegExp = function(s) {
-                var self, match;
-                self = this;
+                var self = this;
+                var match;
                 match = /^r\/((\n|.)*)\/([^\/]*)$/.exec(s);
                 return {
                     pattern: match[1].replace(/\\\//g, "/").replace(/\n/, "\\n"),
                     options: match[3]
                 };
             };
-            self.actualCharacters = [ [ /\\\\/g, "\\" ], [ /\\b/g, "\b" ], [ /\\f/g, "\f" ], [ /\\n/g, "\n" ], [ /\\0/g, "\0" ], [ /\\r/g, "\r" ], [ /\\t/g, "\t" ], [ /\\v/g, "" ], [ /\\'/g, "'" ], [ /\\"/g, '"' ] ];
+            self.actualCharacters = [ [ /\\\\/g, "\\" ], [ /\\b/g, "\b" ], [ /\\f/g, "\f" ], [ /\\n/g, "\n" ], [ /\\0/g, "\0" ], [ /\\r/g, "\r" ], [ /\\t/g, "	" ], [ /\\v/g, "" ], [ /\\'/g, "'" ], [ /\\"/g, '"' ] ];
             self.normaliseInterpolatedString = function(s) {
-                var self, gen2_items, gen3_i, mapping;
-                self = this;
+                var self = this;
+                var gen2_items, gen3_i, mapping;
                 gen2_items = self.actualCharacters;
                 for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
                     mapping = gen2_items[gen3_i];
@@ -101,8 +94,8 @@
                 return s;
             };
             self.compressInterpolatedStringComponents = function(components) {
-                var self, compressedComponents, lastString, gen4_items, gen5_i, component;
-                self = this;
+                var self = this;
+                var compressedComponents, lastString, gen4_items, gen5_i, component;
                 compressedComponents = [];
                 lastString = void 0;
                 gen4_items = components;
@@ -121,8 +114,7 @@
                 return compressedComponents;
             };
             self.unindentStringComponentsBy = function(components, columns) {
-                var self;
-                self = this;
+                var self = this;
                 return _.map(components, function(component) {
                     if (component.isString) {
                         return self.terms.string(self.unindentBy(component.string, columns));
@@ -132,8 +124,8 @@
                 });
             };
             self.separateExpressionComponentsWithStrings = function(components) {
-                var self, separatedComponents, lastComponentWasExpression, gen6_items, gen7_i, component;
-                self = this;
+                var self = this;
+                var separatedComponents, lastComponentWasExpression, gen6_items, gen7_i, component;
                 separatedComponents = [];
                 lastComponentWasExpression = false;
                 gen6_items = components;
@@ -148,10 +140,9 @@
                 return separatedComponents;
             };
             return self.normaliseStringComponentsUnindentingBy = function(components, indentColumns) {
-                var self;
-                self = this;
+                var self = this;
                 return self.separateExpressionComponentsWithStrings(self.compressInterpolatedStringComponents(self.unindentStringComponentsBy(components, indentColumns)));
             };
         });
     };
-})).call(this);
+}).call(this);
