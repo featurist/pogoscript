@@ -444,6 +444,8 @@ describe 'macros'
         it generates unary '~'
         it generates unary '+'
         it generates unary '-'
+        it generates unary '--'
+        it generates unary '++'
         
         it generates binary '+'
         it generates binary '*'
