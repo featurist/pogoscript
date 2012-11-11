@@ -1,4 +1,5 @@
 require '../assertions'
+require '../parserAssertions'
 terms = require '../../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 _ = require 'underscore'
 
@@ -6,10 +7,7 @@ describe 'operator expression'
     variable (name) = terms.complex expression [[terms.variable [name]]]
 
     it 'parses operators, using precedence table'
-        op = terms.operator expression (variable 'a')
-        op.add operator ('@and') expression (variable 'b')
-
-        (op.expression ()) should contain fields (
+        (expression "a @and b") should contain fields (
             terms.operator (
                 '&&'
                 [
@@ -34,14 +32,11 @@ describe 'operator expression'
     '@or' compiles to '||'
     '==' compiles to '==='
     '!=' compiles to '!=='
+    '@not' compiles to '!'
 
     (higher) is higher in precedence than (lower) =
         it "parses #(higher) as higher precedence than #(lower)"
-            op = terms.operator expression (variable 'a')
-            op.add operator (higher) expression (variable 'b')
-            op.add operator (lower) expression (variable 'c')
-
-            (op.expression ()) should contain fields (
+            (expression "a #(higher) b #(lower) c") should contain fields (
                 terms.operator (
                     compiled name for (lower)
                     [
@@ -58,11 +53,7 @@ describe 'operator expression'
             )
 
         it "parses #(lower) as lower precedence than #(higher)"
-            op = terms.operator expression (variable 'a')
-            op.add operator (lower) expression (variable 'b')
-            op.add operator (higher) expression (variable 'c')
-
-            (op.expression ()) should contain fields (
+            (expression "a #(lower) b #(higher) c") should contain fields (
                 terms.operator (
                     compiled name for (lower)
                     [
@@ -106,11 +97,7 @@ describe 'operator expression'
     ]
 
     the left operator (left) has higher precedence than the right operator (right) =
-        op = terms.operator expression (variable 'a')
-        op.add operator (left) expression (variable 'b')
-        op.add operator (right) expression (variable 'c')
-
-        (op.expression ()) should contain fields (
+        (expression "a #(left) b #(right) c") should contain fields (
             terms.operator (
                 compiled name for (right)
                 [
@@ -149,3 +136,43 @@ describe 'operator expression'
                 (higher) is higher in precedence than (lower)
 
         lower
+
+    it parses unary operator (op) =
+        it "should parse unary #(op)"
+            (expression "#(op) a") should contain fields {
+                operator = compiled name for (op)
+                operator arguments = [
+                    {variable ['a'], is variable}
+                ]
+            }
+
+    it "parses two unary operators"
+        (expression "@outer @inner a") should contain fields (
+            terms.function call (
+                terms.variable ['outer']
+                [
+                    terms.function call (
+                        terms.variable ['inner']
+                        [
+                            terms.variable ['a']
+                        ]
+                    )
+                ]
+            )
+        )
+
+    it "parses @custom unary operator as function call"
+        (expression "@custom a") should contain fields (
+            terms.function call (terms.variable ['custom'], [terms.variable ['a']])
+        )
+
+    unary operators = [
+        '!'
+        '@not'
+        '~'
+        '+'
+        '-'
+    ]
+
+    for each @(op) in (unary operators)
+        it parses unary operator (op)

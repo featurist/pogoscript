@@ -1,4 +1,5 @@
 _ = require 'underscore'
+codegen utils = require '../codegenUtils'
 
 module.exports (terms) =
     operator stack () =
@@ -75,13 +76,6 @@ module.exports (terms) =
                     }
         }
 
-    normalise operator name (name) =
-        match = r/^@([a-z_$]+)$/i.exec (name)
-        if (match)
-            match.1
-        else
-            name
-
     create operator call (name, arguments) =
         terms.function call (name, arguments)
 
@@ -103,7 +97,7 @@ module.exports (terms) =
                     for each @(op) in (ops)
                         right = operands.shift ()
                         left = operands.shift ()
-                        name = terms.variable ([normalise operator name (op.name)], could be macro: false)
+                        name = terms.variable ([codegen utils.normalise operator name (op.name)], could be macro: false)
                         operands.unshift (create operator call (name, [left, right]))
 
                 for (n = 0, n < self.name.length, n = n + 1)

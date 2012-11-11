@@ -19,6 +19,7 @@ exports.grammar = {
             ['(\r?\n *)*\r?\n *', 'return yy.indentation(yytext);']
             ['[0-9]+\.[0-9]+', 'return ''float'';']
             ['[0-9]+', 'return ''integer'';']
+            ['@[a-zA-Z_$]+', 'return "operator";']
             ['([:;=,?!.@~#%^&*+<>\/?\\|-])+', 'return yy.lexOperator(yy, yytext);']
             ['r/([^\\/]*\\.)*[^/]*/(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|)', 'return ''reg_exp'';']
             ['[a-zA-Z_$][a-zA-Z_$0-9]*', 'return ''identifier'';']
@@ -95,7 +96,7 @@ exports.grammar = {
         ]
         unary_operator_expression [
             ['object_operation', '$$ = $1;']
-            ['unary_operator object_operation', '$$ = yy.terms.unaryOperatorExpression($1, $2.expression());']
+            ['unary_operator unary_operator_expression', '$$ = yy.terms.unaryOperatorExpression($1, $2.expression());']
         ]
         object_reference_with_newline [
             ['. ,', '$$ = $1']

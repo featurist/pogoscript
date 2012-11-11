@@ -3,13 +3,12 @@ require './assertions'
 
 describe 'unary operator expression'
     it 'as expression'
-        op expr = cg.unary operator expression ('%%', {variable ['a']})
+        op expr = cg.unary operator expression ('@cat', {variable ['a']})
 
         (op expr.expression ()) should contain fields {
-            is method call
-            object {variable ['a']}
-            name ['%%']
-            method arguments []
+            is function call
+            function {variable ['cat']}
+            function arguments [{variable ['a']}]
         }
     
     it 'as expression with macro'

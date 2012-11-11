@@ -90,3 +90,10 @@ exports.concat args (args, optional args: nil, async callback arg: nil, terms: n
         a.push (async callback arg)
 
     a
+
+exports.normalise operator name (name) =
+        match = r/^@([a-z_$]+)$/i.exec (name)
+        if (match)
+            match.1
+        else
+            name
