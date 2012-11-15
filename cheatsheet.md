@@ -1,5 +1,6 @@
 ---
-layout: cheatsheet
+layout: doc
+title: Cheat Sheet
 ---
 
 # Variables
@@ -57,6 +58,33 @@ Or all on one line:
     map each @(name) in (names) into
         "<div class='name'>#(name)</div>"
 
+## Async Functions
+
+Use the `!` operator:
+
+    users.find by name! 'Jack'
+
+## Async Blocks
+
+Blocks that contain async calls expect an async callback as the last argument, works great in [mocha](http://visionmedia.github.com/mocha) tests:
+
+    describe 'finding users'
+        it 'finds users by name'
+            users.find by name! 'Jack'
+            ...
+
+If you pass two blocks and one of them is async, the other is made async too:
+
+    run (block1) then (block2) =
+        block1!()
+        block2!()
+
+    user = nil
+    run!
+        user = users.find by name! 'Jack'
+    then
+        console.log (user.name)
+
 # Defining Functions
 
     move file (filename) to dir (dir name) =
@@ -75,7 +103,7 @@ Or all on one line:
 
 ## Calling Methods
 
-    date = new (Date 2011 4 5)
+    date = @new Date 2011 4 5
     month = date.get month ()
     date.set minutes 5
 
@@ -95,6 +123,14 @@ Or as a hash:
         y = 20
         area () = self.x * self.y
     }
+
+## New Operator
+
+    @new circle (40, 50, radius: 50)
+
+Or
+
+    new (circle (40, 50, radius: 50))
 
 # Self
 
@@ -124,18 +160,16 @@ use `=>` to allow self to be redefined by the caller of the block:
       self.get '/' =>
         self.response.end "hi!\n"
 
+# Arrays
+
+    colours = ['red', 'blue', 'yellow']
+
 ## Array Indexes
 
     fib = [0, 1, 1, 2, 3, 5]
 
     fib.0
     fib.5 = 5
-
-
-
-# Arrays
-
-    colours = ['red', 'blue', 'yellow']
 
 # Hashes
 
@@ -148,22 +182,23 @@ Or
         foreground = 'yellow'
     }
 
+# Control Structures
 
-# If
+## If
 
     if (wind speed > 20)
         console.log "gone kitesurfing!"
     else
         console.log "no wind, programming"
 
-# While
+## While
 
     finished = false
 
-    while (!finished)
+    while (@not finished)
         console.log "still going"
 
-# Try Catch
+## Try Catch
 
     try
         something complicated ()
@@ -173,15 +208,39 @@ Or
         always do this ()
 
 
-# For Each
+## For Each
 
     for each @(mountain) in (moutains)
         console.log (mountain)
 
-# For
+## For
 
     for (n = 0, n < 10, n = n + 1)
         console.log (n)
+
+## Return
+
+    @return @new circle (40, 50, radius: 50)
+
+Or
+
+    return (new (circle (40, 50, radius: 50)))
+
+## Throw
+
+    @throw @new Error 'aaaaargghh!'
+
+Or
+
+    throw (new (Error 'aaaaargghh!'))
+
+## Break
+
+    break
+
+## Continue
+
+    continue
 
 # Comments
 
@@ -238,7 +297,9 @@ Regexps use `r/.../` syntax, and accept the usual sufixes, `g`, `i` and `m`.
 
     render (title: nil) = ...
 
-# Instance of
+# Operators
+
+## Instance of
 
 You can check the type of something by using the `::` operator, all of these expressions are true:
 
@@ -249,3 +310,69 @@ You can check the type of something by using the `::` operator, all of these exp
     9.8 :: Number
     false :: Boolean
 
+## Boolean
+
+    true @and true
+
+    false @or true
+
+    @not false
+
+## Arithmetic
+
+    a * b
+    a / b
+    a + b
+    a - b
+
+## Comparison
+
+    a < b
+    a <= b
+    a >= b
+    a > b
+
+Strict equality, same as JavaScript `===`:
+
+    a == b
+
+Strict inequality, same as JavaScript `!==`:
+
+    a != b
+
+## Bitwise
+
+Bitwise shift to greater significance:
+
+    a << b      
+
+Bitwise shift to lesser significance:
+
+    a >> b    
+
+Bitwise and
+
+    a & b   
+
+Bitwise or
+
+    a | b  
+
+## Increment/Decrement
+
+    --a
+    ++a
+
+## Custom
+
+Named operators are just function calls, so you can make your own:
+
+    (region1) union (region2) = ...
+
+    americas = north america @union south america
+
+Likewise, you can write unary operators in the same way:
+
+    inverse (region) = ...
+
+    rest of the world = @inverse australia

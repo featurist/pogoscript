@@ -37,6 +37,14 @@ hljs.LANGUAGES.pogoscript = function() {
           end: "\\n"
         },
         {
+          className: 'bracket',
+          begin: "@?[(){}]|[\\[\\]]",
+        },
+        {
+          className: 'operator',
+          begin: "@[a-zA-Z_$][a-zA-Z_$0-9]*",
+        },
+        {
           className: 'string',
           begin: '"',
           end: '"',
@@ -50,10 +58,12 @@ hljs.LANGUAGES.pogoscript = function() {
           ]
         },
         operator(','),
+        operator('\\.'),
+        operator('!'),
         operator(':'),
+        operator('[&\\|]|>>|<<|<|<=|>=|>'),
         operator(';'),
         operator('=>'),
-        operator('@'),
         operator('\\*'),
         operator('/'),
         operator('\\+'),

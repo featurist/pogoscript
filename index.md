@@ -2,8 +2,6 @@
 layout: main
 ---
 
-### New Syntax: [read about the changes here](/newsyntax.html)
-
 # Whaa?
 
 Pogoscript is a programming language that emphasises readability, is friendly to domain specific languages and compiles to regular Javascript.

@@ -4,6 +4,9 @@
 .operator {
   color: #4593e5;
 }
+.bracket {
+  color: #d80074;
+}
 .number {
   color: #32b544;
 }

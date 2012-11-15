@@ -19,6 +19,9 @@
 .operator {
   color: #4593e5;
 }
+.bracket {
+  color: #d80074;
+}
 .number {
   color: #32b544;
 }
@@ -57,9 +60,6 @@ body {
   margin-top: 0.4em;
   float: none;
 }
-.header h1 a {
-  text-decoration: none;
-}
 .header ul {
   list-style-type: none;
 }
@@ -74,8 +74,6 @@ body {
 }
 a {
   color: #4593e5;
-  border-bottom: dashed 1pt rgba(69, 147, 229, 0.7);
-  text-decoration: none;
 }
 .content {
   width: 800px;
