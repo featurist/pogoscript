@@ -8,10 +8,8 @@ subdirs:
 		$(MAKE) -C $$subdir; \
 	done
 
-test : test_all
-
-test_all : test/*Spec.pogo
-	mocha test/*Spec.* test/*/*Spec.*
+test :
+	npm test
 
 clean:
 	for subdir in src/bootstrap lib; do \

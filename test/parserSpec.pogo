@@ -364,6 +364,16 @@ describe 'parser'
                 ]
             }
 
+        it 'function call with splat argument'
+            (expression 'copy (files, ..., dir)') should contain fields {
+                function {variable ['copy']}
+                function arguments [
+                  {variable ['files']}
+                  {is splat}
+                  {variable ['dir']}
+                ]
+            }
+
         it 'function call with no argument'
             (expression 'delete everything ()') should contain fields {
                 function {variable ['delete', 'everything']}
