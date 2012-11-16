@@ -19,7 +19,14 @@ module.exports (terms) = terms.term {
         self.source.generate java script (buffer, scope)
   
     declare variables (variables, scope) =
-        self.target.declare variable (variables, scope, shadow: self.shadow)
+        if (@not self.is assignment)
+            name = self.target.variable name (scope)
+
+            if (name)
+                if (self.shadow || !scope.is defined (name))
+                    variables.push (name)
+                else if (scope.is defined (name))
+                    terms.errors.add term (self) with message "variable #(name) already defined"
 
     make async with callback for result (create callback for result) =
         if (self.is async)

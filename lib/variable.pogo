@@ -28,11 +28,6 @@ module.exports (terms) =
         
             if (macro)
                 macro (name)
-
-        declare variable (variables, scope, shadow: false) =
-            name = self.variable name ()
-            if (shadow || !scope.is defined (name))
-                variables.push (name)
     }
 
     variable (name, could be macro: true) =

@@ -23,9 +23,4 @@ module.exports (terms) = terms.term {
     generate java script parameter (args, ...) = self.generate java script (args, ...)
 
     generate java script target (args, ...) = self.generate java script (args, ...)
-
-    declare variable (variables, scope, shadow: false) =
-        name = self.generated name (scope)
-        if (shadow || !scope.is defined (name))
-            variables.push (name)
 }

@@ -117,7 +117,7 @@ exports.compile (
 
     if (parser.errors.has errors ())
         parser.errors.print errors (source location printer (filename: filename, source: pogo))
-        process.exit 1
+        @throw @new Error 'errors!'
     else
         code
 

@@ -9,7 +9,7 @@ describe 'definitions'
             @{evaluate script 'a = 1
                       
                                f () =
-                                   a = 2'}.should.throw 'shadow'
+                                   a = 3'}.should.throw 'shadow'
 
         it 'can assign to a variable after it has been defined'
             'a = 1

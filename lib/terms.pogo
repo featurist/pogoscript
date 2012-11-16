@@ -245,7 +245,7 @@ module.exports (cg) =
             )
 
         declare variables () = nil
-        declare variable () = nil
+        variable name () = nil
 
         make async with callback for result (create callback for result) = nil
 

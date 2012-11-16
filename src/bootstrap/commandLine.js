@@ -1,4 +1,4 @@
-((function() {
+(function() {
     var self = this;
     var fs, ms, createParser, uglify, _, Module, path, repl, vm, versions, runningOnNodeOrHigher, generateCode, beautify, compileFile, whenChanges, jsFilenameFromPogoFilename, compileFromFile, sourceLocationPrinter, createTerms;
     fs = require("fs");
@@ -149,7 +149,7 @@
                 filename: filename,
                 source: pogo
             }));
-            return process.exit(1);
+            throw new Error("errors!");
         } else {
             return code;
         }
@@ -286,4 +286,4 @@
     createTerms = function() {
         return require("./codeGenerator/codeGenerator").codeGenerator();
     };
-})).call(this);
+}).call(this);
