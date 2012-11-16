@@ -55,9 +55,6 @@ module.exports (terms) =
 
         generate java script statement (args, ...) = self.generate java script (args, ...)
 
-        declare variables (variables, scope) =
-            self.index variable.declare variable (variables, scope)
-
         rewrite result term into (return term) = nil
     }
 

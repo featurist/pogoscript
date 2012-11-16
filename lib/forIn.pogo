@@ -1,7 +1,7 @@
 module.exports (terms) = terms.term {
     constructor (iterator, collection, stmts) =
         self.is for in = true
-        self.iterator = iterator
+        self.iterator = terms.definition (iterator, terms.nil ())
         self.collection = collection
         self.statements =
             terms.sub expression (
@@ -17,7 +17,7 @@ module.exports (terms) = terms.term {
   
     generate java script (buffer, scope) =
         buffer.write ('for(')
-        self.iterator.generate java script (buffer, scope)
+        self.iterator.target.generate java script (buffer, scope)
         buffer.write (' in ')
         self.collection.generate java script (buffer, scope)
         buffer.write ('){')
@@ -27,9 +27,6 @@ module.exports (terms) = terms.term {
         buffer.write ('}')
 
     generate java script statement (args, ...) = self.generate java script (args, ...)
-
-    declare variables (variables, scope) =
-        self.iterator.declare variable (variables, scope)
 
     rewrite result term into (return term) = nil
 }

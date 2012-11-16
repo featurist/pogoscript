@@ -206,7 +206,10 @@ describe 'macros'
         it 'generates for (var item in items) {}'
             (macro expression 'for @(item) in (items) @{item}') should contain fields {
                 is for in
-                iterator {variable ['item']}
+                iterator {
+                    is definition
+                    target {variable ['item']}
+                }
                 collection {variable ['items']}
                 statements {
                     is sub expression
