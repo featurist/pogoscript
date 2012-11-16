@@ -143,7 +143,7 @@ module.exports (terms) =
       
         declare parameters (scope, parameters) =
             for each @(parameter) in (parameters)
-                scope.define (parameter.variable name (scope))
+                scope.define (parameter.canonical name (scope))
 
         generate java script (buffer, scope) =
             parameters strategy = self.parameters strategy ()

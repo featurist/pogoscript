@@ -97,3 +97,16 @@ exports.normalise operator name (name) =
             match.1
         else
             name
+
+exports.declared variables (scope) = {
+    variables = []
+    scope = scope
+
+    declare (variable) =
+        scope.define (variable)
+        self.variables.push (variable)
+
+    is declared (variable) = scope.is defined (variable)
+
+    unique variables () = _.uniq (self.variables)
+}

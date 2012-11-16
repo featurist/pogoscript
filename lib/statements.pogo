@@ -49,14 +49,14 @@ module.exports (terms) = terms.term {
                 buffer.write (';')
         
     find declared variables (scope) =
-        declared variables = []
+        variables = codegen utils.declared variables (scope)
 
         self.walk descendants @(subterm, path)
-            subterm.declare variables (declared variables, scope)
+            subterm.declare variables (variables, scope)
         not below @(subterm, path) if
             subterm.is closure
 
-        _.uniq (declared variables)
+        variables.unique variables ()
 
     generate java script statements (buffer, scope, in closure: false, global: false) =
         self.generate statements (self.statements, buffer, scope, in closure: in closure, global: global)

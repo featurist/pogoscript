@@ -7,11 +7,14 @@ module.exports (terms) =
             self.is variable = true
             self.set location (location)
 
-        variable name () =
+        canonical name () =
             codegen utils.concat name (self.variable, escape: true)
+
+        display name () =
+            self.variable.join ' '
       
         generate java script (buffer, scope) =
-            buffer.write (this.variable name ())
+            buffer.write (this.canonical name ())
       
         generate java script target (args, ...) = self.generate java script (args, ...)
       

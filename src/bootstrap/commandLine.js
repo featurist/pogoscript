@@ -273,7 +273,8 @@
                     return self.printLinesInRange({
                         prefix: "> ",
                         from: location.firstLine,
-                        to: location.lastLine
+                        to: location.lastLine,
+                        buffer: buffer
                     });
                 }
             };

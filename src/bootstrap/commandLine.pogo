@@ -194,7 +194,7 @@ source location printer (filename: nil, source: nil) =
                 markers = self.'^' times (location.last column - location.first column)
                 buffer.write (spaces + markers + "\n")
             else
-                self.print lines in range (prefix: '> ', from: location.first line, to: location.last line)
+                self.print lines in range (prefix: '> ', from: location.first line, to: location.last line, buffer: buffer)
 
         self.(s) times (n) =
             strings = []

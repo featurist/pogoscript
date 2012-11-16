@@ -1,5 +1,6 @@
 terms = require '../../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 should = require 'should'
+codegen utils = require '../../lib/codegenUtils'
 
 describe 'definitions'
     variables = nil
@@ -7,8 +8,8 @@ describe 'definitions'
     variable = nil
 
     before each
-        variables = []
         scope = @new terms.Symbol Scope (nil)
+        variables = codegen utils.declared variables (scope)
         variable = terms.variable ['a', 'b']
 
     describe 'declare variables'
@@ -23,7 +24,7 @@ describe 'definitions'
 
             it 'should declare the variable'
                 def.declare variables (variables, scope)
-                variables.should.eql ['aB']
+                variables.unique variables ().should.eql ['aB']
 
             context 'and when already in scope'
                 before each
@@ -31,11 +32,11 @@ describe 'definitions'
 
                 it 'should still declare the variable'
                     def.declare variables (variables, scope)
-                    variables.should.eql ['aB']
+                    variables.unique variables ().should.eql ['aB']
 
         it 'should declare the variable'
             def.declare variables (variables, scope)
-            variables.should.eql ['aB']
+            variables.unique variables ().should.eql ['aB']
 
         context 'and when already in scope'
             before each
@@ -44,7 +45,7 @@ describe 'definitions'
             it 'should add an error'
                 def.declare variables (variables, scope)
                 should.equal (terms.errors.has errors (), true)
-                terms.errors.errors.0.message.should.match r/variable aB already defined/
+                terms.errors.errors.0.message.should.match r/variable a b already defined/
 
         context 'when assignment'
             before each
@@ -52,7 +53,7 @@ describe 'definitions'
 
             it 'should not declare the variable'
                 def.declare variables (variables, scope)
-                variables.should.eql []
+                variables.unique variables ().should.eql []
 
             context 'and when already in scope'
                 before each
@@ -60,4 +61,4 @@ describe 'definitions'
 
                 it 'should not declare the variable'
                     def.declare variables (variables, scope)
-                    variables.should.eql []
+                    variables.unique variables ().should.eql []

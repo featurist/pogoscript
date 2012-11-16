@@ -3,7 +3,7 @@ script = require './scriptAssertions'
 describe 'for'
     it 'can be returned from'
         script.'count to three () =
-                    for (n = 0, n < 10, n = n + 1)
+                    for (n = 0, n < 10, ++n)
                         if (n > 2)
                             return "three"
 
@@ -21,7 +21,7 @@ describe 'for'
         
     it 'can loop'
         script.'count to three () =
-                    for (n = 0, n < 10, n = n + 1)
+                    for (n = 0, n < 10, ++n)
                         print (n)
 
                 count to three ()' should output '0

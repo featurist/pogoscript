@@ -4,9 +4,9 @@ for each in (list, action) asynchronously (done) =
     outstanding callbacks = 0
 
     for each @(item) in (list)
-        outstanding callbacks = outstanding callbacks + 1
+        outstanding callbacks := outstanding callbacks + 1
         action (item) @(error, result)
-            outstanding callbacks = outstanding callbacks - 1
+            outstanding callbacks := outstanding callbacks - 1
 
             if (outstanding callbacks == 0)
                 done (error)

@@ -14,8 +14,11 @@ module.exports (terms) = terms.term {
 
         self.gen var
 
-    variable name (scope) =
+    canonical name (scope) =
         self.generated name (scope)
+
+    display name () =
+        self.name
 
     generate java script (buffer, scope) =
         buffer.write (self.generated name (scope))

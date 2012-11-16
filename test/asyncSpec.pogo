@@ -229,7 +229,7 @@ describe 'async'
 
         it "completes the function as the last statement" @(done)
             async "f! () =
-                       for (n = 0, n < 3, n = n + 1)
+                       for (n = 0, n < 3, ++n)
                            print 'loop'
                    
                    f! ()
