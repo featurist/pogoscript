@@ -1,6 +1,6 @@
 var _ = require('underscore');
 
-exports.errors = function (cg) {
+exports.errors = function (terms) {
   return new function () {
     this.errors = [];
   
@@ -12,9 +12,9 @@ exports.errors = function (cg) {
       return this.errors.length > 0;
     };
   
-    this.printErrors = function (sourceFile) {
+    this.printErrors = function (sourceFile, buffer) {
       _.each(this.errors, function (error) {
-        error.printError(sourceFile);
+        error.printError(sourceFile, buffer);
       });
     };
   
@@ -22,25 +22,8 @@ exports.errors = function (cg) {
       return this.addTermsWithMessage([term], message);
     };
   
-    this.addTermsWithMessage = function (terms, message) {
-      var e = new function () {
-        this.isSemanticFailure = true;
-        this.terms = terms;
-        this.message = message;
-
-        this.generateJavaScript = function(buffer, scope) {
-        };
-      
-        this.generateJavaScriptStatement = this.generateJavaScript;
-        this.generateJavaScriptHashEntry = this.generateJavaScript;
-      
-        this.walkDescendants = function () {};
-
-        this.printError = function(sourceFile) {
-          sourceFile.printLocation(this.terms[0].location());
-          process.stdout.write(this.message + '\n');
-        };
-      };
+    this.addTermsWithMessage = function (errorTerms, message) {
+      var e = terms.semanticError (errorTerms, message);
       this.errors.push(e);
       return e;
     };

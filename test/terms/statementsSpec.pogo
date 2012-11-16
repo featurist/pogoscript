@@ -10,10 +10,9 @@ describe 'statements term'
                     terms.definition (terms.variable ['a'], terms.integer 1)
                     terms.definition (terms.variable ['b'], terms.integer 1)
                 ]
-                global: true
             )
 
-            (statements) should generate statements 'a=1;b=1;'
+            (statements) should generate global statements 'a=1;b=1;'
 
         it 'generates local variables'
             statements = terms.statements [

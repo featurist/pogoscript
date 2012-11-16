@@ -290,7 +290,7 @@ describe 'complex expression'
     
     it 'if contains more than component then semantic error'
       hash entry [[id 'field'], [id 'secondField']] should contain fields {
-        is semantic failure
+        is semantic error
       }
 
   describe 'definition -> hash entry'

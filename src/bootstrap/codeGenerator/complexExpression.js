@@ -9,7 +9,7 @@ module.exports = function (listOfTerminals) {
     });
     
     this.subterms('basicExpressions');
-    
+
     this.head = function () {
       return this._firstExpression || (this._firstExpression = this.basicExpressions[0]);
     };
@@ -89,9 +89,9 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return cg.functionCall(cg.variable(head.name(), {couldBeMacro: false}), this.arguments(), {optionalArguments: this.optionalArguments(), async: this.hasAsyncArgument()});
+          return cg.functionCall(cg.variable(head.name(), {couldBeMacro: false, location: this.location()}), this.arguments(), {optionalArguments: this.optionalArguments(), async: this.hasAsyncArgument()});
         } else {
-          return cg.variable(head.name());
+          return cg.variable(head.name(), {location: this.location()});
         }
       } else {
         if (!this.hasTail() && this.arguments().length === 1 && !this.hasAsyncArgument()) {
@@ -192,8 +192,7 @@ module.exports = function (listOfTerminals) {
         if (self.hasParameters()) {
           return {
             expression: function () {
-              debugger;
-              return cg.definition(cg.variable(self.head().name()), source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()}), {assignment: assignment});
+              return cg.definition(cg.variable(self.head().name(), {location: self.location()}), source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()}), {assignment: assignment});
             },
             hashEntry: function (isOptionalArgument) {
               var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()});
@@ -205,7 +204,7 @@ module.exports = function (listOfTerminals) {
         } else {
           return {
             expression: function () {
-              return cg.definition(cg.variable(self.head().name()), source.scopify(), {assignment: assignment});
+              return cg.definition(cg.variable(self.head().name(), {location: self.location()}), source.scopify(), {assignment: assignment});
             },
             hashEntry: function () {
               return cg.hashEntry(self.head().hashKey(), source.scopify());

@@ -24,7 +24,7 @@ describe('code generator', function () {
   
   var generatesStatements = function(term, expectedGeneratedCode, global, print) {
     var stream = new MemoryStream();
-    term.generateJavaScriptStatements(stream, new cg.SymbolScope(), global);
+    term.generateJavaScriptStatements(stream, new cg.SymbolScope(), {inClosure: true, global: global});
     if (print)
         console.log(stream.toString())
     assert.equal(stream.toString(), expectedGeneratedCode);

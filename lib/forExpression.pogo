@@ -18,7 +18,10 @@ module.exports (terms) =
                 rewrite (term):
                     if (term.is return)
                         contains return = true
-                        terms.sub statements [self.cg.definition (for result variable, term.expression), self.cg.return statement (self.cg.boolean (true))]
+                        terms.sub statements [
+                            self.cg.definition (for result variable, term.expression, assignment: true)
+                            self.cg.return statement (self.cg.boolean (true))
+                        ]
 
                 limit (term, path: path):
                     term.is closure

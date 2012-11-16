@@ -13,6 +13,7 @@ options = cli.parse(process.argv.slice(2));
 
 var commandLine = require('..');
 
+try {
 if (options.debug || options.debugBrk || options._[0] == 'debug') {
   require('../lib/debugPogo').debugPogo();
 } else if (options.lex) {
@@ -33,4 +34,11 @@ if (options.debug || options.debugBrk || options._[0] == 'debug') {
   commandLine.repl();
 } else {
   commandLine.runMain(options._[0]);
+}
+} catch (error) {
+  if (error.isSemanticErrors) {
+    process.stderr.write(error.message);
+  } else {
+    throw error;
+  }
 }

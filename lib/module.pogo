@@ -10,14 +10,12 @@ module.exports (terms) =
             scope = new (terms.Symbol Scope (nil))
             definitions = terms.module constants.definitions ()
             self.body statements.statements.unshift (definitions, ...)
-            self.statements.generate java script statements (buffer, scope, self.global)
+            self.statements.generate java script statements (buffer, scope, global: self.global, in closure: true)
     }
 
     module (statements, in scope: true, global: false, return last statement: false, body statements: body statements) =
         if (return last statement)
             statements.rewrite last statement to return (async: false)
-
-        statements.global = global
 
         if (in scope)
             scope = terms.closure ([], statements, return last statement: return last statement, redefines self: true)
@@ -47,6 +45,6 @@ module.exports (terms) =
                 args.push (terms.closure ([error variable], terms.statements [throw if error]))
 
             method call = terms.method call (terms.sub expression (scope), ['call'], args)
-            module term (terms.statements [method call], body statements: statements)
+            module term (terms.statements [method call], body statements: statements, global: global)
         else
             module term (statements, global: global, return last statement: return last statement, body statements: body statements)

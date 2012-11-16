@@ -3,15 +3,15 @@ codegen utils = require('./codegenUtils')
 statements utils = require './statementsUtils'
 
 module.exports (terms) = terms.term {
-    constructor (statements, global: false, async: false) =
+    constructor (statements, async: false) =
         self.is statements = true
         self.statements = statements
-        self.global = global
         self.is async = async
 
-    generate statements (statements, buffer, scope) =
-        declared variables = self.find declared variables (scope)
-        self.generate variable declarations (declared variables, buffer, scope)
+    generate statements (statements, buffer, scope, in closure: false, global: false) =
+        if (in closure)
+            declared variables = self.find declared variables (scope)
+            self.generate variable declarations (declared variables, buffer, scope, global: global)
 
         for (s = 0, s < statements.length, s = s + 1)
             statement = statements.(s)
@@ -35,12 +35,12 @@ module.exports (terms) = terms.term {
             else
                 terms.return statement (term, implicit: true)
 
-    generate variable declarations (variables, buffer, scope) =
+    generate variable declarations (variables, buffer, scope, global: false) =
         if (variables.length > 0)
             _(variables).each @(name)
                 scope.define (name)
 
-            if (!self.global)
+            if (@not global)
                 buffer.write ('var ')
 
                 codegen utils.write to buffer with delimiter (variables, ',', buffer) @(variable)
@@ -51,15 +51,15 @@ module.exports (terms) = terms.term {
     find declared variables (scope) =
         declared variables = []
 
-        self.walk descendants @(subterm)
+        self.walk descendants @(subterm, path)
             subterm.declare variables (declared variables, scope)
         not below @(subterm, path) if
-            subterm.is statements && path.(path.length - 1).is closure
+            subterm.is closure
 
         _.uniq (declared variables)
 
-    generate java script statements (buffer, scope) =
-        self.generate statements (self.statements, buffer, scope)
+    generate java script statements (buffer, scope, in closure: false, global: false) =
+        self.generate statements (self.statements, buffer, scope, in closure: in closure, global: global)
 
     blockify (parameters, optional parameters: nil, async: false) =
         statements = if (self.is expression statements)

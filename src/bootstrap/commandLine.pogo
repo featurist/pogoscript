@@ -116,13 +116,16 @@ exports.compile (
         code = beautify (code)
 
     if (parser.errors.has errors ())
-        parser.errors.print errors (source location printer (filename: filename, source: pogo))
-        @throw @new Error 'errors!'
+        memory stream = new (ms.MemoryStream)
+        parser.errors.print errors (source location printer (filename: filename, source: pogo), memory stream)
+        error = @new Error (memory stream.to string ())
+        error.is semantic errors = true
+        @throw error
     else
         code
 
 exports.evaluate (pogo, definitions: {}, ugly: true, global: false) =
-    js = exports.compile (pogo, ugly: ugly, in scope: true, global: global, return result: true)
+    js = exports.compile (pogo, ugly: ugly, in scope: @not global, global: global, return result: @not global)
     definition names = _.keys (definitions)
     
     parameters = definition names.join ','
@@ -178,18 +181,18 @@ source location printer (filename: nil, source: nil) =
             lines = source.split r/\n/
             lines.slice (range.from - 1) (range.to)
 
-        self.print lines in range (prefix: '', from: nil, to: nil) =
+        self.print lines in range (prefix: '', from: nil, to: nil, buffer: buffer) =
             for each @(line) in (self.lines in range (from: from, to: to))
-                process.stderr.write (prefix + line + "\n")
+                buffer.write (prefix + line + "\n")
 
-        self.print location (location) =
-            process.stderr.write (filename + ':' + location.first line + "\n")
+        self.print location (location, buffer) =
+            buffer.write (filename + ':' + location.first line + "\n")
 
             if (location.first line == location.last line)
-                self.print lines in range (from: location.first line, to: location.last line)
+                self.print lines in range (from: location.first line, to: location.last line, buffer: buffer)
                 spaces = self.' ' times (location.first column)
                 markers = self.'^' times (location.last column - location.first column)
-                process.stderr.write (spaces + markers + "\n")
+                buffer.write (spaces + markers + "\n")
             else
                 self.print lines in range (prefix: '> ', from: location.first line, to: location.last line)
 

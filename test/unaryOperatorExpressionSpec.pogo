@@ -24,5 +24,5 @@ describe 'unary operator expression'
         op expr = cg.unary operator expression ('%', {variable ['a']})
         
         (op expr.hash entry ()) should contain fields {
-          is semantic failure
+          is semantic error
         }

@@ -206,7 +206,7 @@ describe 'async'
                    while (get condition!)
                        print 'loop'
                        async!
-                       condition = false
+                       condition := false
 
                    done ()" should output ("'loop'", done)
 
@@ -220,7 +220,7 @@ describe 'async'
             
     describe 'for expression'
         it 'executes each loop one after the other' @(done)
-            async "for (n = 0, n < 3, n = n + 1)
+            async "for (n = 0, n < 3, ++n)
                        print ('before: ' + n)
                        async!
                        print ('after: ' + n)

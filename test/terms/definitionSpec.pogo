@@ -44,7 +44,7 @@ describe 'definitions'
             it 'should add an error'
                 def.declare variables (variables, scope)
                 should.equal (terms.errors.has errors (), true)
-                terms.errors.errors.0.message.should.equal 'variable aB already defined'
+                terms.errors.errors.0.message.should.match r/variable aB already defined/
 
         context 'when assignment'
             before each

@@ -52,7 +52,7 @@ describe 'operator expression'
             e.add operator '*/' expression (complex expression [id 'b'])
         
             (e.hash entry ()) should contain fields {
-                is semantic failure
+                is semantic error
             }
 
     describe 'definition'

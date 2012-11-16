@@ -127,7 +127,7 @@
         returnResult = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "returnResult") && gen4_options.returnResult !== void 0 ? gen4_options.returnResult : false;
         async = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "async") && gen4_options.async !== void 0 ? gen4_options.async : false;
         terms = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "terms") && gen4_options.terms !== void 0 ? gen4_options.terms : createTerms();
-        var parser, statements, moduleTerm, code;
+        var parser, statements, moduleTerm, code, memoryStream, error;
         parser = createParser({
             terms: terms
         });
@@ -145,11 +145,14 @@
             code = beautify(code);
         }
         if (parser.errors.hasErrors()) {
+            memoryStream = new ms.MemoryStream;
             parser.errors.printErrors(sourceLocationPrinter({
                 filename: filename,
                 source: pogo
-            }));
-            throw new Error("errors!");
+            }), memoryStream);
+            error = new Error(memoryStream.toString());
+            error.isSemanticErrors = true;
+            throw error;
         } else {
             return code;
         }
@@ -163,9 +166,9 @@
         var js, definitionNames, parameters, runScript, definitionValues;
         js = exports.compile(pogo, {
             ugly: ugly,
-            inScope: true,
+            inScope: !global,
             global: global,
-            returnResult: true
+            returnResult: !global
         });
         definitionNames = _.keys(definitions);
         parameters = definitionNames.join(",");
@@ -237,10 +240,11 @@
             };
             self.printLinesInRange = function(gen8_options) {
                 var self = this;
-                var prefix, from, to;
+                var prefix, from, to, buffer;
                 prefix = gen8_options !== void 0 && Object.prototype.hasOwnProperty.call(gen8_options, "prefix") && gen8_options.prefix !== void 0 ? gen8_options.prefix : "";
                 from = gen8_options !== void 0 && Object.prototype.hasOwnProperty.call(gen8_options, "from") && gen8_options.from !== void 0 ? gen8_options.from : void 0;
                 to = gen8_options !== void 0 && Object.prototype.hasOwnProperty.call(gen8_options, "to") && gen8_options.to !== void 0 ? gen8_options.to : void 0;
+                buffer = gen8_options !== void 0 && Object.prototype.hasOwnProperty.call(gen8_options, "buffer") && gen8_options.buffer !== void 0 ? gen8_options.buffer : buffer;
                 var gen9_items, gen10_i, line;
                 gen9_items = self.linesInRange({
                     from: from,
@@ -248,22 +252,23 @@
                 });
                 for (gen10_i = 0; gen10_i < gen9_items.length; ++gen10_i) {
                     line = gen9_items[gen10_i];
-                    process.stderr.write(prefix + line + "\n");
+                    buffer.write(prefix + line + "\n");
                 }
                 return void 0;
             };
-            self.printLocation = function(location) {
+            self.printLocation = function(location, buffer) {
                 var self = this;
                 var spaces, markers;
-                process.stderr.write(filename + ":" + location.firstLine + "\n");
+                buffer.write(filename + ":" + location.firstLine + "\n");
                 if (location.firstLine === location.lastLine) {
                     self.printLinesInRange({
                         from: location.firstLine,
-                        to: location.lastLine
+                        to: location.lastLine,
+                        buffer: buffer
                     });
                     spaces = self.times(" ", location.firstColumn);
                     markers = self.times("^", location.lastColumn - location.firstColumn);
-                    return process.stderr.write(spaces + markers + "\n");
+                    return buffer.write(spaces + markers + "\n");
                 } else {
                     return self.printLinesInRange({
                         prefix: "> ",

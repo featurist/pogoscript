@@ -88,6 +88,7 @@ exports.codeGenerator = function () {
   codegen.optional = cg.optional;
   codegen.postIncrement = cg.postIncrement;
   codegen.oldTerm = cg.oldTerm;
+  importTerm('semanticError');
   codegen.errors = require('./errors').errors(codegen);
   codegen.macros = require('./macros').macros(codegen);
   importTerm('argumentUtils');

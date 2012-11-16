@@ -26,7 +26,7 @@ module.exports (terms) = terms.term {
                 if (self.shadow || !scope.is defined (name))
                     variables.push (name)
                 else if (scope.is defined (name))
-                    terms.errors.add term (self) with message "variable #(name) already defined"
+                    terms.errors.add term (self) with message "variable #(name) already defined, use := to reassign it"
 
     make async with callback for result (create callback for result) =
         if (self.is async)

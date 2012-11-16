@@ -13,7 +13,7 @@ module.exports (cg) =
                         self.(member) = members.(member)
 
         set location (new location) =
-            self._location = new location
+            Object.defineProperty(self, '_location', value: new location, writable: true)
 
         location () =
             if (self._location)
