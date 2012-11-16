@@ -682,10 +682,18 @@ describe 'parser'
                 ]
             }
       
-    describe 'assignment'
-        it 'assignment'
+    describe 'definition and assignment'
+        it 'definition'
             (expression 'x = y') should contain fields {
                 is definition
+                target {variable ['x']}
+                source {variable ['y']}
+            }
+
+        it 'assignment'
+            (expression 'x := y') should contain fields {
+                is definition
+                is assignment
                 target {variable ['x']}
                 source {variable ['y']}
             }

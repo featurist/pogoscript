@@ -32,7 +32,7 @@ exports.create parser context =
         self.lex operator (parser context, op) =
           if (r/[?!][.;]/.test (op))
             parser context.tokens [op.0, op.1]
-          else if (r/^(=>|\.\.\.|@:|[#@:!?,.=;])$/.test (op))
+          else if (r/^(=>|\.\.\.|@:|[#@:!?,.=;]|:=)$/.test (op))
             op
           else
             'operator'

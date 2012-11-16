@@ -121,13 +121,13 @@ module.exports (terms) =
             else
                 terms.errors.add term with message (self, 'cannot be used as a hash entry')
         
-        definition (source) =
+        definition (source, assignment: false) =
             if (this.arguments.length > 1)
                 object = self.arguments.0.expression ()
                 parms = _(self.arguments.slice (1)).map @(arg)
                     arg.expression ().parameter ()
                 
-                terms.definition (terms.field reference (object, self.name), source.blockify (parms, []))
+                terms.definition (terms.field reference (object, self.name), source.blockify (parms, []), assignment: assignment)
             else
-                this.arguments.0.definition (source)
+                this.arguments.0.definition (source, assignment: assignment)
     }

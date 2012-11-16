@@ -40,7 +40,7 @@ exports.grammar = {
     }
 
     operators [
-        ['right', '=']
+        ['right', ':=', '=']
         ['left', '.']
     ]
 
@@ -85,6 +85,7 @@ exports.grammar = {
         ]
         expression [
             ['expression = expression', '$$ = $1.definition($3.expression());']
+            ['expression := expression', '$$ = $1.definition($3.expression(), {assignment: true});']
             ['operator_expression', '$$ = $1;']
         ]
         operator_with_newline [

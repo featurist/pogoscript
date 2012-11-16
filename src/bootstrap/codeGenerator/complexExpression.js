@@ -150,17 +150,17 @@ module.exports = function (listOfTerminals) {
             if (self.hasParameters()) {
               var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()});
               block.redefinesSelf = true;
-              return cg.definition(cg.fieldReference(object, self.head().name()), block);
+              return cg.definition(cg.fieldReference(object, self.head().name()), block, {assignment: true});
             } else {
-              return cg.definition(cg.fieldReference(object, self.head().name()), source.scopify());
+              return cg.definition(cg.fieldReference(object, self.head().name()), source.scopify(), {assignment: true});
             }
           } else {
             if (!self.hasTail() && self.arguments().length === 1 && !self.hasAsyncArgument()) {
-              return cg.definition(cg.indexer(object, self.arguments()[0]), source.scopify());
+              return cg.definition(cg.indexer(object, self.arguments()[0]), source.scopify(), {assignment: true});
             } else {
               var block = source.blockify(self.parameters({skipFirstParameter: true}), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()});
               block.redefinesSelf = true;
-              return cg.definition(cg.indexer(object, self.arguments()[0]), block);
+              return cg.definition(cg.indexer(object, self.arguments()[0]), block, {assignment: true});
             }
           }
         }
@@ -184,14 +184,16 @@ module.exports = function (listOfTerminals) {
       };
     };
     
-    this.definition = function (source) {
+    this.definition = function (source, options) {
       var self = this;
+      var assignment = options && Object.hasOwnProperty.call(options, 'assignment') && options.assignment;
       
       if (self.head().hasName()) {
         if (self.hasParameters()) {
           return {
             expression: function () {
-              return cg.definition(cg.variable(self.head().name()), source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()}));
+              debugger;
+              return cg.definition(cg.variable(self.head().name()), source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()}), {assignment: assignment});
             },
             hashEntry: function (isOptionalArgument) {
               var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.hasAsyncArgument()});
@@ -203,7 +205,7 @@ module.exports = function (listOfTerminals) {
         } else {
           return {
             expression: function () {
-              return cg.definition(cg.variable(self.head().name()), source.scopify());
+              return cg.definition(cg.variable(self.head().name()), source.scopify(), {assignment: assignment});
             },
             hashEntry: function () {
               return cg.hashEntry(self.head().hashKey(), source.scopify());

@@ -10,7 +10,7 @@
             },
             rules: [ [ "^#![^\\n]*", "/* ignore hashbang */" ], [ " +", "/* ignore whitespace */" ], [ "\\s*$", "return yy.eof();" ], [ comments + "$", "return yy.eof();" ], [ comments, "var indentation = yy.indentation(yytext); if (indentation) { return indentation; }" ], [ "\\(\\s*", 'yy.setIndentation(yytext); if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return "(";' ], [ "\\s*\\)", "if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); yy.interpolation.stopInterpolation()}} return yy.unsetIndentation(')');" ], [ "{\\s*", "yy.setIndentation(yytext); return '{';" ], [ "\\s*}", "return yy.unsetIndentation('}');" ], [ "\\[\\s*", "yy.setIndentation(yytext); return '[';" ], [ "\\s*\\]", "return yy.unsetIndentation(']')" ], [ "(\\r?\\n *)*\\r?\\n *", "return yy.indentation(yytext);" ], [ "[0-9]+\\.[0-9]+", "return 'float';" ], [ "[0-9]+", "return 'integer';" ], [ "@[a-zA-Z_$][a-zA-Z_$0-9]*", 'return "operator";' ], [ "\\.\\.\\.", 'return "...";' ], [ "([:;=,?!.@~#%^&*+<>\\/?\\\\|-])+", "return yy.lexOperator(yy, yytext);" ], [ "r/([^\\\\/]*\\\\.)*[^/]*/(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|)", "return 'reg_exp';" ], [ "[a-zA-Z_$][a-zA-Z_$0-9]*", "return 'identifier';" ], [ "$", "return 'eof';" ], [ "'([^']*'')*[^']*'", "return 'string';" ], [ '"', "this.begin('interpolated_string'); return 'start_interpolated_string';" ], [ [ "interpolated_string" ], "\\\\#", "return 'escaped_interpolated_string_terminal_start';" ], [ [ "interpolated_string" ], "#\\(", "yy.setIndentation('('); yy.interpolation.startInterpolation(); this.begin('INITIAL'); return '(';" ], [ [ "interpolated_string" ], "#", "return 'interpolated_string_body';" ], [ [ "interpolated_string" ], '"', "this.popState(); return 'end_interpolated_string';" ], [ [ "interpolated_string" ], "\\\\.", "return 'escape_sequence';" ], [ [ "interpolated_string" ], '[^"#\\\\]*', "return 'interpolated_string_body';" ], [ ".", "return 'non_token';" ] ]
         },
-        operators: [ [ "right", "=" ], [ "left", "." ] ],
+        operators: [ [ "right", ":=", "=" ], [ "left", "." ] ],
         start: "module_statements",
         bnf: {
             module_statements: [ [ "statements eof", "return $1;" ] ],
@@ -22,7 +22,7 @@
             parameter_list: [ [ "parameter_list , statement", "$1.push($3); $$ = $1;" ], [ "statement", "$$ = [$1];" ] ],
             expression_list: [ [ "expression_list , statement", "$1.push($3); $$ = $1;" ], [ "statement", "$$ = [$1];" ] ],
             statement: [ [ "expression", "$$ = $1.expression();" ] ],
-            expression: [ [ "expression = expression", "$$ = $1.definition($3.expression());" ], [ "operator_expression", "$$ = $1;" ] ],
+            expression: [ [ "expression = expression", "$$ = $1.definition($3.expression());" ], [ "expression := expression", "$$ = $1.definition($3.expression(), {assignment: true});" ], [ "operator_expression", "$$ = $1;" ] ],
             operator_with_newline: [ [ "operator ,", "$$ = $1" ], [ "operator", "$$ = $1" ] ],
             operator_expression: [ [ "operator_expression operator_with_newline unary_operator_expression", "$1.addOperatorExpression($2, $3); $$ = $1;" ], [ "unary_operator_expression", "$$ = yy.terms.operatorExpression($1);" ] ],
             unary_operator_expression: [ [ "object_operation", "$$ = $1;" ], [ "unary_operator unary_operator_expression", "$$ = yy.terms.unaryOperatorExpression($1, $2.expression());" ] ],

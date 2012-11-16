@@ -42,7 +42,7 @@
                 var self = this;
                 if (/[?!][.;]/.test(op)) {
                     return parserContext.tokens([ op[0], op[1] ]);
-                } else if (/^(=>|\.\.\.|@:|[#@:!?,.=;])$/.test(op)) {
+                } else if (/^(=>|\.\.\.|@:|[#@:!?,.=;]|:=)$/.test(op)) {
                     return op;
                 } else {
                     return "operator";

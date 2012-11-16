@@ -1,10 +1,11 @@
 module.exports (terms) = terms.term {
-    constructor (target, source, async: false, shadow: false) =
+    constructor (target, source, async: false, shadow: false, assignment: false) =
         self.is definition = true
         self.target = target
         self.source = source
         self.is async = async
         self.shadow = shadow
+        self.is assignment = assignment
 
     expression () =
         self

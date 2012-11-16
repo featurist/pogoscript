@@ -349,6 +349,7 @@ describe 'complex expression'
     it 'method definition'
       definition (variable 'object') [[id 'method', variable 'x']] (block) should contain fields {
         is definition
+        is assignment
         target {
           is field reference
           name ['method']
@@ -364,6 +365,7 @@ describe 'complex expression'
     it 'method definition without block'
       definition (variable 'object') [[id 'method', variable 'x']] (variable 'y') should contain fields {
         is definition
+        is assignment
         target {
           is field reference
           name ['method']
@@ -381,6 +383,7 @@ describe 'complex expression'
     it 'field definition'
       definition (variable 'object') [[id 'x']] (variable 'y') should contain fields {
         is definition
+        is assignment
         target {
           is field reference
           name ['x']
@@ -396,6 +399,7 @@ describe 'complex expression'
     it 'index definition'
       definition (variable 'object') [[variable 'x']] (variable 'y') should contain fields {
         is definition
+        is assignment
         target {
           is indexer
           indexer {variable ['x']}
@@ -411,6 +415,7 @@ describe 'complex expression'
     it 'index method definition'
       definition (variable 'object') [[cg.string 'xyz', variable 'p']] (variable 'y') should contain fields {
         is definition
+        is assignment
         target {
           is indexer
           indexer {string 'xyz'}
@@ -437,6 +442,7 @@ describe 'complex expression'
     it 'async index method definition with no args'
       definition (variable 'object') [[cg.string 'xyz', async argument]] (variable 'y') should contain fields {
         is definition
+        is assignment
         target {
           is indexer
           indexer {string 'xyz'}
@@ -462,10 +468,29 @@ describe 'complex expression'
   describe 'definition'
     definition (target, source) should contain fields (fields) =
       (cg.complex expression (target).definition (source).expression ()) should contain fields (fields)
+
+    assignment (target, source) should contain fields (fields) =
+      (cg.complex expression (target).definition (source, assignment: true).expression ()) should contain fields (fields)
     
     it 'function definition'
       definition [[id 'function', variable 'x']] (block) should contain fields {
         is definition
+        target {
+          is variable
+          variable ['function']
+        }
+        
+        source {
+          is block
+          parameters [{variable ['x']}]
+          body {statements [{variable ['x']}]}
+        }
+      }
+    
+    it 'function assignment'
+      assignment [[id 'function', variable 'x']] (block) should contain fields {
+        is definition
+        is assignment
         target {
           is variable
           variable ['function']
@@ -565,6 +590,21 @@ describe 'complex expression'
     it 'variable definition'
       definition [[id 'function']] (variable 'y') should contain fields {
         is definition
+        target {
+          is variable
+          variable ['function']
+        }
+        
+        source {
+          is variable
+          variable ['y']
+        }
+      }
+    
+    it 'variable assignment'
+      assignment [[id 'function']] (variable 'y') should contain fields {
+        is definition
+        is assignment
         target {
           is variable
           variable ['function']
