@@ -25,15 +25,15 @@ describe 'try statement'
             if (catch body)
                 @(error, callback)
                     should.equal (catch body executed, false)
-                    catch body executed = true
-                    caught error = error
+                    catch body executed := true
+                    caught error := error
                     catch body (callback)
 
         finally clause =
             if (finally body)
                 @(callback)
                     should.equal (finally body executed, false)
-                    finally body executed = true
+                    finally body executed := true
                     finally body (callback)
 
         async.try @(callback) @{

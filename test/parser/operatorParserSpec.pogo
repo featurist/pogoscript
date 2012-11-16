@@ -70,18 +70,18 @@ describe 'operator expression'
             )
 
     it 'throws when a custom operator is used before other operators'
-        op = terms.operator expression (variable 'a')
-        op.add operator '@custom' expression (variable 'b')
-        op.add operator '@and' expression (variable 'c')
+        operator = terms.operator expression (variable 'a')
+        operator.add operator '@custom' expression (variable 'b')
+        operator.add operator '@and' expression (variable 'c')
 
-        @{op.expression ()}.should.throw '@custom cannot be used with other operators'
+        @{operator.expression ()}.should.throw '@custom cannot be used with other operators'
 
     it 'throws when a custom operator is used after other operators'
-        op = terms.operator expression (variable 'a')
-        op.add operator '@and' expression (variable 'b')
-        op.add operator '@custom' expression (variable 'c')
+        operator = terms.operator expression (variable 'a')
+        operator.add operator '@and' expression (variable 'b')
+        operator.add operator '@custom' expression (variable 'c')
 
-        @{op.expression ()}.should.throw '@custom cannot be used with other operators'
+        @{operator.expression ()}.should.throw '@custom cannot be used with other operators'
 
     operators in order of precedence = [
         ['/', '*', '%']

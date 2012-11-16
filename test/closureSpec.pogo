@@ -58,8 +58,8 @@ describe 'closure'
         strats = terms.closure parameter strategies
         statements = nil
 
-        before
-            statements = terms.statements [
+        before each
+            statements := terms.statements [
                 terms.variable ['a']
             ]
 

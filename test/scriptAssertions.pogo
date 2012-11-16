@@ -20,7 +20,7 @@ execute script (script) with args (args, callback, script filename: filename for
     
         pogo.stdout.set encoding 'utf-8'
         pogo.stdout.on 'data' @(output)
-            all output = all output + output
+            all output := all output + output
     
         pogo.on 'exit' @(code)
             fs.unlink (script filename) @(code)
@@ -98,7 +98,7 @@ exports.(script) should throw (expected error) =
     
     try
         exports.evaluate script (script)
-        failed = true
+        failed := true
     catch (ex)
         assert.equal (ex.to string () , expected error)
     

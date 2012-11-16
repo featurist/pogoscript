@@ -52,8 +52,8 @@ spawn (command, args, done) =
     done (nil, process)
 
 run (command, done) =
-    command = expand pogo command (command)
-    child process.exec (command, {cwd = __dirname}, done)
+    expanded command = expand pogo command (command)
+    child process.exec (expanded command, {cwd = __dirname}, done)
 
 describe 'pogo --compile'
     it 'can compile a script' @(done)

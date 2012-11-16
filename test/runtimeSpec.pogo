@@ -15,10 +15,10 @@ describe 'runtime'
         obj.a.should.equal 'a'
     
     describe 'inheritance'
-        prototype = null
+        prototype = nil
         
         before each
-            prototype = object =>
+            prototype := object =>
                 self.a = 'a'
                 self.b = 'b'
         

@@ -200,9 +200,9 @@ describe 'terms'
             
             clone = t.clone (
                 rewrite (old term): 
-                    t = new (Term)
-                    t.rewritten = true
-                    t
+                    new term = new (Term)
+                    new term.rewritten = true
+                    new term
             )
 
             (clone) should contain fields {
@@ -587,14 +587,14 @@ describe 'terms'
             reduction count = 0
 
             total term count = t.reduce @(term) with reduced children @(terms) into
-                reduction count = reduction count + 1
+                ++reduction count
                 1 + sum of (terms)
             (cache name: 'term count')
 
             first reduction count = reduction count
 
-            total term count = t.reduce @(term) with reduced children @(terms) into
-                reduction count = reduction count + 1
+            t.reduce @(term) with reduced children @(terms) into
+                ++reduction count
                 1 + sum of (terms)
             (cache name: 'term count')
 

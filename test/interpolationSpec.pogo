@@ -10,7 +10,7 @@ describe 'interpolation'
     interpolation state = undefined
 
     before each
-        interpolation state = interpolation.create interpolation ()
+        interpolation state := interpolation.create interpolation ()
 
     describe "the number of starts should be matched by the same number of stops"
         it "should not be interpolating if it interpolation hasn't been started"

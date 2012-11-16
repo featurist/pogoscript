@@ -8,19 +8,19 @@ describe 'definitions'
     variable = nil
 
     before each
-        scope = @new terms.Symbol Scope (nil)
-        variables = codegen utils.declared variables (scope)
-        variable = terms.variable ['a', 'b']
+        scope := @new terms.Symbol Scope (nil)
+        variables := codegen utils.declared variables (scope)
+        variable := terms.variable ['a', 'b']
 
     describe 'declare variables'
         def = nil
 
         before each
-            def = terms.definition (variable, terms.nil ())
+            def := terms.definition (variable, terms.nil ())
 
         context 'when shadow'
             before each
-                def = terms.definition (variable, terms.nil (), shadow: true)
+                def := terms.definition (variable, terms.nil (), shadow: true)
 
             it 'should declare the variable'
                 def.declare variables (variables, scope)
@@ -49,7 +49,7 @@ describe 'definitions'
 
         context 'when assignment'
             before each
-                def = terms.definition (variable, terms.nil (), assignment: true)
+                def := terms.definition (variable, terms.nil (), assignment: true)
 
             it 'should not declare the variable'
                 def.declare variables (variables, scope)

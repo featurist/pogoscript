@@ -25,12 +25,12 @@ describe 'while statement'
         current loop = nil
 
         condition (callback) =
-            current loop = loops.(current loop index)
-            current loop index = current loop index + 1
+            current loop := loops.(current loop index)
+            ++current loop index
             current loop.condition (callback)
 
         loop (callback) =
-            loops executed = loops executed + 1
+            ++loops executed
             current loop.loop (callback)
 
         async.while (condition, loop) @(error, result)

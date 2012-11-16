@@ -6,7 +6,7 @@ describe 'for'
     it 'executes each loop sequentially' @(done)
         n = 0
         loops = []
-        async.for @(cb) @{cb (nil, n < 3)} @(cb) @{n = n + 1, cb ()} @(cb)
+        async.for @(cb) @{cb (nil, n < 3)} @(cb) @{++n, cb ()} @(cb)
             loops.push (n)
             cb ()
         @{
@@ -21,7 +21,7 @@ describe 'for'
         it 'returns error' @(done)
             n = 0
             loops = []
-            async.for @(cb) @{cb 'test error'} @(cb) @{n = n + 1, cb ()} @(cb)
+            async.for @(cb) @{cb 'test error'} @(cb) @{++n, cb ()} @(cb)
                 loops.push (n)
                 cb ()
             @(error) @{
@@ -37,7 +37,7 @@ describe 'for'
         it 'returns error' @(done)
             n = 0
             loops = []
-            async.for @(cb) @{throw 'test error'} @(cb) @{n = n + 1, cb ()} @(cb)
+            async.for @(cb) @{throw 'test error'} @(cb) @{++n, cb ()} @(cb)
                 loops.push (n)
                 cb ()
             @(error) @{
@@ -85,7 +85,7 @@ describe 'for'
         it 'returns error' @(done)
             n = 0
             loops = []
-            async.for @(cb) @{cb (nil, n < 3)} @(cb) @{n = n + 1, cb ()} @(cb)
+            async.for @(cb) @{cb (nil, n < 3)} @(cb) @{++n, cb ()} @(cb)
                 loops.push (n)
                 cb 'loop error'
             @(error) @{
@@ -101,7 +101,7 @@ describe 'for'
         it 'returns error' @(done)
             n = 0
             loops = []
-            async.for @(cb) @{cb (nil, n < 3)} @(cb) @{n = n + 1, cb ()} @(cb)
+            async.for @(cb) @{cb (nil, n < 3)} @(cb) @{++n, cb ()} @(cb)
                 loops.push (n)
                 throw 'loop error'
             @(error) @{

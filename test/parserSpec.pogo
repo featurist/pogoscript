@@ -8,7 +8,7 @@ describe 'parser'
     terms = nil
 
     before
-        terms = create terms ()
+        terms := create terms ()
 
     describe 'terminals'
         it 'integer'
@@ -986,8 +986,8 @@ describe 'parser'
 
     it 'lexer'
         create parser = require '../src/bootstrap/parser'.create parser
-        parser = create parser (terms: terms)
-        tokens = parser.lex 'a (b)'
+        lex parser = create parser (terms: terms)
+        tokens = lex parser.lex 'a (b)'
         (tokens) should contain fields [
             ['identifier', 'a']
             ['(']

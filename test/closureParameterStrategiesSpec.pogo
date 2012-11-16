@@ -22,8 +22,8 @@ describe 'closure parameter strategies'
         context 'when there are two arguments'
             fs = nil
 
-            before
-                fs = strategies.function strategy {
+            before each
+                fs := strategies.function strategy {
                     named parameters () = [
                         terms.variable ['a']
                         terms.variable ['b']
@@ -47,8 +47,8 @@ describe 'closure parameter strategies'
         context 'when there are two parameters'
             n = nil
 
-            before
-                n = strategies.normal strategy [
+            before each
+                n := strategies.normal strategy [
                     terms.variable ['a']
                     terms.variable ['b']
                 ]
@@ -63,8 +63,8 @@ describe 'closure parameter strategies'
         context 'when there is only one splat parameter'
             splat = nil
 
-            before
-                splat = strategies.splat strategy (
+            before each
+                splat := strategies.splat strategy (
                     before: []
                     splat: terms.variable ['a']
                     after: []
@@ -79,8 +79,8 @@ describe 'closure parameter strategies'
         context 'when there is one argument before the splat parameter'
             splat = nil
 
-            before
-                splat = strategies.splat strategy (
+            before each
+                splat := strategies.splat strategy (
                     before: [terms.variable ['a']]
                     splat: terms.variable ['b']
                     after: []
@@ -95,8 +95,8 @@ describe 'closure parameter strategies'
         context 'when there is one argument after the splat parameter'
             splat = nil
 
-            before
-                splat = strategies.splat strategy (
+            before each
+                splat := strategies.splat strategy (
                     before: []
                     splat: terms.variable ['a']
                     after: [terms.variable ['b']]
@@ -111,8 +111,8 @@ describe 'closure parameter strategies'
         context 'when there is one argument, a splat argument, then another argument'
             splat = nil
 
-            before
-                splat = strategies.splat strategy (
+            before each
+                splat := strategies.splat strategy (
                     before: [terms.variable ['a']]
                     splat: terms.variable ['b']
                     after: [terms.variable ['c']]
@@ -128,8 +128,8 @@ describe 'closure parameter strategies'
         context 'when there are no other arguments'
             opts = nil
 
-            before
-                opts = strategies.optional strategy (
+            before each
+                opts := strategies.optional strategy (
                     before: []
                     options: [
                         terms.hash entry ['a'] (terms.integer 10)
@@ -146,8 +146,8 @@ describe 'closure parameter strategies'
         context 'when there are two other parameters'
             opts = nil
 
-            before
-                opts = strategies.optional strategy (
+            before each
+                opts := strategies.optional strategy (
                     before: [terms.variable ['a'], terms.variable ['b']]
                     options: [
                         terms.hash entry ['c'] (terms.integer 10)
@@ -165,8 +165,8 @@ describe 'closure parameter strategies'
         context "with two other parameters"
             cb = nil
 
-            before
-                cb = strategies.callback strategy {
+            before each
+                cb := strategies.callback strategy {
                     named parameters () = [terms.variable ['a'], terms.variable ['b']]
 
                     generate java script parameter statements (buffer, scope, args) =
