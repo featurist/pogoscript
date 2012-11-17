@@ -12,9 +12,9 @@ Boolean Option = class {
 
         name = segments.0
 
-        for (n = 1, n < segments.length, n = n + 1)
+        for (n = 1, n < segments.length, ++n)
             segment = segments.(n)
-            name = name + (segment.0.to upper case () + segment.substring (1))
+            name := name + (segment.0.to upper case () + segment.substring (1))
 
         name
 
@@ -72,7 +72,7 @@ Option Parser = class {
 
     parse (args) =
         if (!args)
-            args = process.argv
+            args := process.argv
 
         options = {
             _ = []
@@ -80,18 +80,20 @@ Option Parser = class {
 
         self._set default options (options)
 
-        for (n = 0, n < args.length, n = n + 1)
+        for (n = 0, n < args.length, ++n)
             arg = args.(n)
 
             long match = r/^--([a-z0-9-]*)$/.exec (arg)
             short match = r/^-([a-z0-9-]*)$/.exec (arg)
 
+            option = nil
+
             if (long match)
-                option = self._find long option (long match.1)
+                option := self._find long option (long match.1)
                 option.set (options)
             else if (short match)
                 for each @(short option) in (short match.1)
-                    option = self._find short option (short option)
+                    option := self._find short option (short option)
                     option.set (options)
             else
                 options._.push (args.slice (n), ...)

@@ -60,7 +60,7 @@ module.exports (cg) =
                         path.push (original node)
                         rewritten node =
                             if ((original node :: Node) && allow rewrite)
-                                clone (node) =
+                                sub clone (node) :=
                                     if (node)
                                         clone subterm (node, allow rewrite, path)
                                     else
@@ -69,8 +69,8 @@ module.exports (cg) =
                                 rewrite (
                                     original node
                                     path: path
-                                    clone: clone
-                                    rewrite: clone
+                                    clone: sub clone
+                                    rewrite: sub clone
                                 )
                             else
                                 nil
@@ -110,7 +110,7 @@ module.exports (cg) =
             self.set location (ancestor node.location ())
 
         rewrite (options) =
-            options = options || {}
+            options := options || {}
             options.create object (node) = node
             self.clone (options)
 

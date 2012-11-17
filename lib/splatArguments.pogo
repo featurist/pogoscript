@@ -6,7 +6,7 @@ module.exports (terms) =
             self.splat arguments = splat arguments
 
         generate java script (buffer, scope) =
-            for (i = 0, i < self.splat arguments.length, i = i + 1)
+            for (i = 0, i < self.splat arguments.length, ++i)
                 splat argument = self.splat arguments.(i)
 
                 if (i == 0)
@@ -27,19 +27,19 @@ module.exports (terms) =
             current = args.(i)
             next = args.(i + 1)
             if (next && next.is splat)
-                found splat = true
+                found splat := true
                 if (previous args.length > 0)
                     splat args.push (terms.list (previous args))
-                    previous args = []
+                    previous args := []
 
                 splat args.push (current)
-                i = i + 1
+                ++i
             else if (current.is splat)
                 terms.errors.add term (current) with message 'splat keyword with no argument to splat'
             else
                 previous args.push (current)
 
-            i = i + 1
+            ++i
         
         if (optional args && (optional args.length > 0))
             previous args.push (terms.hash (optional args))

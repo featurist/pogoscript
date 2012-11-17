@@ -3,7 +3,7 @@ _ = require 'underscore'
 exports.(a) is less than (b) =
     parse version (v) =
         if (v.0 == 'v')
-            v = v.substring (1)
+            v := v.substring (1)
 
         v.split '.'
 

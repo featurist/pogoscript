@@ -11,7 +11,7 @@ module.exports (terms) =
             terms.async callback (async stmts, result variable: result variable)
 
     put statements in callback for next async call (statements, force async: false, force not async: false, global: false) =
-        for (n = 0, n < statements.length, n = n + 1)
+        for (n = 0, n < statements.length, ++n)
             statement = statements.(n)
             async statement = statement.make async with callback for result @(result variable)
                 create callback with statements (
@@ -30,6 +30,6 @@ module.exports (terms) =
         terms.statements (statements, global: global, async: force async)
 
     async statements (statements, force async: false, global: false) =
-        statements = statements utils.serialise statements (statements)
+        serialised statements = statements utils.serialise statements (statements)
 
-        put statements (statements) in callback for next async call (force async: force async, global: global)
+        put statements (serialised statements) in callback for next async call (force async: force async, global: global)

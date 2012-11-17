@@ -37,4 +37,5 @@ clean :
 		indentStack.js \
 		grammar.js \
 		parserContext.js \
-		dynamicLexer.js
+		dynamicLexer.js \
+		interpolation.js

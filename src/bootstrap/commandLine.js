@@ -282,7 +282,7 @@
                 var self = this;
                 var strings, i;
                 strings = [];
-                for (i = 0; i < n; i = i + 1) {
+                for (i = 0; i < n; ++i) {
                     strings.push(s);
                 }
                 return strings.join("");

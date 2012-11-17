@@ -1,6 +1,6 @@
-((function() {
-    var self, jisonParser, ms, createParserContext, createDynamicLexer, grammar, parser, jisonLexer;
-    self = this;
+(function() {
+    var self = this;
+    var jisonParser, ms, createParserContext, createDynamicLexer, grammar, parser, jisonLexer;
     jisonParser = require("jison").Parser;
     ms = require("../../lib/memorystream");
     createParserContext = require("./parserContext").createParserContext;
@@ -9,13 +9,13 @@
     parser = new jisonParser(grammar);
     jisonLexer = parser.lexer;
     self.createParser = function(gen1_options) {
-        var terms, self;
-        terms = gen1_options && gen1_options.hasOwnProperty("terms") && gen1_options.terms !== void 0 ? gen1_options.terms : terms;
-        self = this;
+        var self = this;
+        var terms;
+        terms = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "terms") && gen1_options.terms !== void 0 ? gen1_options.terms : terms;
         return {
             parse: function(source) {
-                var self, dynamicLexer, parserContext;
-                self = this;
+                var self = this;
+                var dynamicLexer, parserContext;
                 dynamicLexer = createDynamicLexer({
                     nextLexer: jisonLexer
                 });
@@ -30,10 +30,9 @@
             },
             errors: terms.errors,
             lex: function(source) {
-                var self, tokens, tokenIndex, lexer, parserContext, token, text, lexerToken;
-                self = this;
+                var self = this;
+                var tokens, lexer, parserContext, tokenIndex, token, text, lexerToken;
                 tokens = [];
-                tokenIndex = undefined;
                 lexer = createDynamicLexer({
                     nextLexer: jisonLexer,
                     source: source
@@ -77,4 +76,4 @@
             }
         };
     };
-})).call(this);
+}).call(this);

@@ -12,4 +12,4 @@ describe 'with expression'
         it 'generates with expression'
             with expression = terms.with expression (terms.variable ['subject'], terms.statements [terms.variable ['body']])
 
-            (with expression) should generate statement 'with(subject){body;};'
+            (with expression) should generate statement 'with(subject){body;}'

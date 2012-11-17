@@ -24,7 +24,6 @@ self.create parser (terms: terms) =
 
         lex (source) =
             tokens = []
-            token index = undefined
             lexer = create dynamic lexer (next lexer: jison lexer, source: source)
             parser context = create parser context (terms: terms)
             parser context.lexer = lexer
@@ -55,7 +54,7 @@ self.create parser (terms: terms) =
                         [token]
 
                 tokens.push (lexer token)
-                token index = lexer.lex ()
+                token index := lexer.lex ()
 
             tokens
     }

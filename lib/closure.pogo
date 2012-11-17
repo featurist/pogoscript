@@ -226,7 +226,7 @@ splat parameters (cg, next) =
                 last index = 'arguments.length'
             
                 if (splat.last parameters.length > 0)
-                    last index = last index + ' - ' + splat.last parameters.length
+                    last index := last index + ' - ' + splat.last parameters.length
             
                 splat parameter =
                     cg.definition (
@@ -236,7 +236,7 @@ splat parameters (cg, next) =
                     )
             
                 last parameter statements = [splat parameter]
-                for (n = 0, n < splat.last parameters.length, n = n + 1)
+                for (n = 0, n < splat.last parameters.length, ++n)
                     param = splat.last parameters.(n)
                     last parameter statements.push (
                         cg.definition (
@@ -262,18 +262,18 @@ parse splat parameters = module.exports.parse splat parameters (cg, parameters) 
     last parameters = nil
     
     if (maybe splat && maybe splat.is splat)
-        splat param = first parameters.pop ()
+        splat param := first parameters.pop ()
         splat param.shadow = true
-        last parameters = parameters.slice (first parameters.length + 2)
+        last parameters := parameters.slice (first parameters.length + 2)
         
-        last parameters = _.filter(last parameters) @(param)
+        last parameters := _.filter(last parameters) @(param)
             if (param.is splat)
                 cg.errors.add term (param) with message 'cannot have more than one splat parameter'
                 false
             else
                 true
     else
-        last parameters = []
+        last parameters := []
     
     {
         first parameters = first parameters

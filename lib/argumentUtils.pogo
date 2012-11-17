@@ -3,8 +3,8 @@ module.exports (terms) = {
         for each @(arg) in (arguments)
             arg.asyncify ()
 
-        for each @(arg) in (optional arguments)
-            arg.asyncify ()
+        for each @(opt arg) in (optional arguments)
+            opt arg.asyncify ()
 
     asyncify body (body, args) =
         if (body)

@@ -19,7 +19,7 @@ module.exports (terms) = terms.term {
             alpha = self.is operator alpha ()
       
             self.operator arguments.0.generate java script (buffer, scope)
-            for (n = 1, n < self.operator arguments.length, n = n + 1)
+            for (n = 1, n < self.operator arguments.length, ++n)
                 if (alpha)
                     buffer.write (' ')
 

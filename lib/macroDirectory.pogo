@@ -9,9 +9,9 @@ module.exports (terms) =
             name tree = self.name tree root
             _ (name).each @(name segment)
                 if (!name tree.has own property (name segment))
-                    name tree = name tree.(name segment) = {}
+                    name tree := name tree.(name segment) = {}
                 else
-                    name tree = name tree.(name segment)
+                    name tree := name tree.(name segment)
 
             name tree
     
@@ -25,9 +25,9 @@ module.exports (terms) =
             match macros = nil
 
             if (!name tree.has own property 'match macro')
-                match macros = name tree.'match macro' = []
+                match macros := name tree.'match macro' = []
             else
-                match macros = name tree.'match macro'
+                match macros := name tree.'match macro'
         
             match macros.push (match macro)
     
@@ -40,14 +40,14 @@ module.exports (terms) =
                     if (macro)
                         return (macro)
 
-                    n = n + 1
+                    ++n
         
             find macro in tree (name tree, name, index, wild macros) =
                 if (index < name.length)
                     if (name tree.has own property (name.(index)))
                         subtree = name tree.(name.(index))
                         if (subtree.has own property 'match macro')
-                            wild macros = subtree.'match macro'.concat (wild macros)
+                            wild macros := subtree.'match macro'.concat (wild macros)
 
                         find macro in tree (subtree, name, index + 1, wild macros)
                     else

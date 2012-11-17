@@ -9,7 +9,7 @@ exports.create dynamic lexer = create dynamic lexer (next lexer: nil, source: ni
             self.yytext = token
             token
         else
-            token = self.next lexer.lex ()
+            token := self.next lexer.lex ()
             
             self.yytext = self.next lexer.yytext
             self.yylloc = self.next lexer.yylloc

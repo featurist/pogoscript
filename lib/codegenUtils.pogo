@@ -3,9 +3,9 @@ _ = require 'underscore'
 exports.write to buffer with delimiter (array, delimiter, buffer, scope) =
   writer = nil
   if (scope :: Function)
-      writer = scope
+      writer := scope
   else
-      writer (item) =
+      writer (item) :=
           item.generate java script (buffer, scope)
   
   first = true
@@ -14,7 +14,7 @@ exports.write to buffer with delimiter (array, delimiter, buffer, scope) =
       if (!first)
           buffer.write (delimiter)
 
-      first = false
+      first := false
       writer (item)
 
 actual characters = [
@@ -32,16 +32,16 @@ actual characters = [
 
 exports.format java script string (s) =
     for each @(mapping) in (actual characters)
-        s = s.replace (mapping.0, mapping.1)
+        s := s.replace (mapping.0, mapping.1)
 
     "'" + s + "'"
 
 exports.concat name (name segments, options) =
     name = ''
   
-    for (n = 0, n < name segments.length, n = n + 1)
+    for (n = 0, n < name segments.length, ++n)
         segment = name segments.(n)
-        name = name + name segment rendered in java script (segment, n == 0)
+        name := name + name segment rendered in java script (segment, n == 0)
 
     if ((options && options.has own property ('escape')) && options.escape)
         escape reserved word (name)
@@ -59,8 +59,8 @@ name segment rendered in java script (name segment, is first) =
 
 operator rendered in java script (operator) =
     java script name = ''
-    for (n = 0, n < operator.length, n = n + 1)
-        java script name = java script name + '$' + operator.char code at (n).to string (16)
+    for (n = 0, n < operator.length, ++n)
+        java script name := java script name + '$' + operator.char code at (n).to string (16)
 
     java script name
 

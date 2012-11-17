@@ -1,9 +1,8 @@
 exports.serialise statements (statements) =
     serialised statements = []
 
-    for (n = 0, n < statements.length, n = n + 1)
-        statement = statements.(n)
-        statement = statement.rewrite (
+    for (n = 0, n < statements.length, ++n)
+        statement = statements.(n).rewrite (
             rewrite (term, rewrite: nil):
                 term.serialise sub statements (serialised statements, rewrite: rewrite)
                 

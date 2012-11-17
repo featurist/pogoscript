@@ -1,18 +1,17 @@
-((function() {
-    var self, createDynamicLexer;
-    self = this;
+(function() {
+    var self = this;
+    var createDynamicLexer;
     exports.createDynamicLexer = createDynamicLexer = function(gen1_options) {
         var nextLexer, source;
-        nextLexer = gen1_options && gen1_options.hasOwnProperty("nextLexer") && gen1_options.nextLexer !== void 0 ? gen1_options.nextLexer : void 0;
-        source = gen1_options && gen1_options.hasOwnProperty("source") && gen1_options.source !== void 0 ? gen1_options.source : void 0;
+        nextLexer = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "nextLexer") && gen1_options.nextLexer !== void 0 ? gen1_options.nextLexer : void 0;
+        source = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "source") && gen1_options.source !== void 0 ? gen1_options.source : void 0;
         return object(function() {
-            var self;
-            self = this;
+            var self = this;
             self.tokens = [];
             self.nextLexer = nextLexer;
             self.lex = function() {
-                var self, token;
-                self = this;
+                var self = this;
+                var token;
                 token = self.tokens.shift();
                 if (token) {
                     self.yytext = token;
@@ -28,13 +27,11 @@
                 }
             };
             self.showPosition = function() {
-                var self;
-                self = this;
+                var self = this;
                 return self.nextLexer.showPosition();
             };
             self.setInput = function(input) {
-                var self;
-                self = this;
+                var self = this;
                 return self.nextLexer.setInput(input);
             };
             if (source) {
@@ -42,4 +39,4 @@
             }
         });
     };
-})).call(this);
+}).call(this);

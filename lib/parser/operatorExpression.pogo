@@ -7,7 +7,7 @@ module.exports (terms) =
 
         {
             push (op, popped) =
-                popped = popped || []
+                popped := popped || []
 
                 if (operators.length == 0)
                     operators.unshift (op)
@@ -41,7 +41,7 @@ module.exports (terms) =
             names = match.1.trim ().split r/\s+/
             assoc = match.3
 
-            precedence = precedence - 1
+            --precedence
 
             for each @(name) in (names)
                 operators.(name) = {
@@ -100,16 +100,14 @@ module.exports (terms) =
                         name = terms.variable ([codegen utils.normalise operator name (op.name)], could be macro: false)
                         operands.unshift (create operator call (name, [left, right]))
 
-                for (n = 0, n < self.name.length, n = n + 1)
-                    op = operator table.find op (self.name.(n))
-                    popped ops = operators.push (op)
+                for (n = 0, n < self.name.length, ++n)
+                    popped ops = operators.push (operator table.find op (self.name.(n)))
     
                     apply operators (popped ops)
 
                     operands.unshift (self.arguments.(n + 1).expression ())
 
-                popped ops = operators.pop ()
-                apply operators (popped ops)
+                apply operators (operators.pop ())
 
                 return (operands.0)
             else

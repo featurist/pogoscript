@@ -81,7 +81,7 @@ exports.create parser context =
         
         self.normalise interpolated string (s) =
           for each @(mapping) in (self.actual characters)
-            s = s.replace (mapping.0, mapping.1)
+            s := s.replace (mapping.0, mapping.1)
 
           s
 
@@ -91,12 +91,12 @@ exports.create parser context =
 
             for each @(component) in (components)
                 if (!last string && component.is string)
-                    last string = component
+                    last string := component
                     compressed components.push (last string)
                 else if (last string && component.is string)
                     last string.string = last string.string + component.string
                 else
-                    last string = nil
+                    last string := nil
                     compressed components.push (component)
 
             compressed components
@@ -117,7 +117,7 @@ exports.create parser context =
                     separated components.push (self.terms.string '')
 
                 separated components.push (component)
-                last component was expression = !component.is string
+                last component was expression := !component.is string
 
             separated components
 

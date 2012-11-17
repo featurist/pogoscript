@@ -113,7 +113,7 @@ exports.compile (
     code = generate code (module term)
 
     if (!ugly)
-        code = beautify (code)
+        code := beautify (code)
 
     if (parser.errors.has errors ())
         memory stream = new (ms.MemoryStream)
@@ -198,7 +198,7 @@ source location printer (filename: nil, source: nil) =
 
         self.(s) times (n) =
             strings = []
-            for (i = 0, i < n, i = i + 1)
+            for (i = 0, i < n, ++i)
                 strings.push (s)
 
             strings.join ''

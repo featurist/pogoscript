@@ -2,7 +2,7 @@ UniqueNames () = =>
     unique = 0
   
     self.generate name (name) =
-        unique = unique + 1
+        unique := unique + 1
         'gen' + unique + '_' + name
 
     nil

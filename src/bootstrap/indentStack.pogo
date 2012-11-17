@@ -44,7 +44,7 @@ exports.create indent stack = create indent stack () =
 
             while (indents > 1)
                 tokens.push '}'
-                indents = indents - 1
+                --indents
             
             tokens.push 'eof'
         

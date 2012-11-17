@@ -46,7 +46,7 @@ module.exports (terms) = {
                 args.generate java script (buffer, scope)
                 buffer.write ".length>#(before.length)){"
 
-            for (n = 0, n < self.after.length, n = n + 1)
+            for (n = 0, n < self.after.length, ++n)
                 after arg = self.after.(n)
                 args index = self.after.length - n
                 buffer.write "var "
@@ -118,7 +118,7 @@ module.exports (terms) = {
             buffer.write " instanceof Function)){throw new Error('asynchronous function called synchronously');}"
 
             named parameters = self.strategy.named parameters ()
-            for (n = 0, n < named parameters.length, n = n + 1)
+            for (n = 0, n < named parameters.length, ++n)
                 named param = self.strategy.named parameters ().(n)
                 named param.generate java script (buffer, scope)
                 buffer.write "="

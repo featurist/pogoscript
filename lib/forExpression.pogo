@@ -17,7 +17,7 @@ module.exports (terms) =
             rewritten statements = self.statements.rewrite (
                 rewrite (term):
                     if (term.is return)
-                        contains return = true
+                        contains return := true
                         terms.sub statements [
                             self.cg.definition (for result variable, term.expression, assignment: true)
                             self.cg.return statement (self.cg.boolean (true))

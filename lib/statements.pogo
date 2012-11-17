@@ -13,7 +13,7 @@ module.exports (terms) = terms.term {
             declared variables = self.find declared variables (scope)
             self.generate variable declarations (declared variables, buffer, scope, global: global)
 
-        for (s = 0, s < statements.length, s = s + 1)
+        for (s = 0, s < statements.length, ++s)
             statement = statements.(s)
             statement.generate java script statement (buffer, scope)
 

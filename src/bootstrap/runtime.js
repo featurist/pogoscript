@@ -1,18 +1,17 @@
-((function() {
-    var self, constructor;
-    self = this;
+(function() {
+    var self = this;
+    var constructor;
     constructor = function(members) {
         if (members instanceof Function) {
             return function() {
-                var self;
-                self = this;
+                var self = this;
                 members.call(self);
                 return undefined;
             };
         } else {
             return function() {
-                var self, member;
-                self = this;
+                var self = this;
+                var member;
                 for (member in members) {
                     (function(member) {
                         if (members.hasOwnProperty(member)) {
@@ -20,20 +19,21 @@
                         }
                     })(member);
                 }
+                return void 0;
             };
         }
     };
     global.object = function(members) {
-        var self, c;
-        self = this;
+        var self = this;
+        var c;
         c = constructor(members);
         return new c;
     };
     global.objectExtending = function(base, members) {
-        var self, c;
-        self = this;
+        var self = this;
+        var c;
         c = constructor(members);
         c.prototype = base;
         return new c;
     };
-})).call(this);
+}).call(this);
