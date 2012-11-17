@@ -19,14 +19,17 @@ module.exports (terms) = terms.term {
         self.source.generate java script (buffer, scope)
   
     declare variables (variables) =
-        if (@not self.is assignment)
-            name = self.target.canonical name (variables.scope)
+        debugger
+        name = self.target.canonical name (variables.scope)
 
-            if (name)
-                if (self.shadow || !variables.is (name) declared)
+        if (name)
+            if (@not self.is assignment)
+                if (self.shadow @or @not variables.is (name) declared)
                     variables.declare (name)
                 else if (variables.is (name) declared)
-                    terms.errors.add term (self) with message "variable #(self.target.display name ()) already defined, use := to reassign it"
+                    terms.errors.add term (self) with message "variable #(self.target.display name ()) is already defined, use := to reassign it"
+            else if (@not variables.is (name) declared)
+                terms.errors.add term (self) with message "variable #(self.target.display name ()) is not defined, use = to define it"
 
     make async with callback for result (create callback for result) =
         if (self.is async)

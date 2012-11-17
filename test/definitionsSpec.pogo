@@ -9,7 +9,7 @@ describe 'definitions'
             @{evaluate script 'a = 1
                       
                                f () =
-                                   a = 3'}.should.throw r/variable a already defined/
+                                   a = 3'}.should.throw r/variable a is already defined/
 
         it 'can assign to a variable after it has been defined'
             'a = 1
@@ -18,4 +18,6 @@ describe 'definitions'
              a := 2
              print (a)' should output "1
                                        2"
-        
+
+        it "throws when an assignment is made to a variable that hasn't been defined yet"
+            @{evaluate script 'a := 1'}.should.throw r/variable a is not defined/

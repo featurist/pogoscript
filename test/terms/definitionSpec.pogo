@@ -11,6 +11,7 @@ describe 'definitions'
         scope := @new terms.Symbol Scope (nil)
         variables := codegen utils.declared variables (scope)
         variable := terms.variable ['a', 'b']
+        terms.errors.clear ()
 
     describe 'declare variables'
         def = nil
@@ -42,18 +43,19 @@ describe 'definitions'
             before each
                 scope.define 'aB'
 
-            it 'should add an error'
+            it 'should add an error saying that variable is already defined'
                 def.declare variables (variables, scope)
                 should.equal (terms.errors.has errors (), true)
-                terms.errors.errors.0.message.should.match r/variable a b already defined/
+                terms.errors.errors.0.message.should.match r/variable a b is already defined/
 
         context 'when assignment'
             before each
                 def := terms.definition (variable, terms.nil (), assignment: true)
 
-            it 'should not declare the variable'
+            it 'should add an error saying that variable is not yet defined'
                 def.declare variables (variables, scope)
-                variables.unique variables ().should.eql []
+                should.equal (terms.errors.has errors (), true)
+                terms.errors.errors.0.message.should.match r/variable a b is not defined/
 
             context 'and when already in scope'
                 before each
