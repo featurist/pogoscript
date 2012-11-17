@@ -15,7 +15,7 @@ exports.(a) is less than (b) =
         else
             0
 
-    for each @(version numbers) in (_.zip (parse version (a), parse version (b))) @(version number)
+    for each @(version numbers) in (_.zip (parse version (a), parse version (b)))
         comparison = compare (version numbers.0, version numbers.1)
 
         if (comparison)
