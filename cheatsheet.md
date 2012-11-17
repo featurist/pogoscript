@@ -17,6 +17,13 @@ Or in a scoped block:
         n = 2
         Math.(n) pow 3
 
+## Assigning
+
+Once a variable is defined, you can re-assign it using `:=`
+
+    small number = 8
+    small number := 9
+
 ## JavaScript Interop
 
 `small number` is the same as `smallNumber`
