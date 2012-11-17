@@ -25,13 +25,6 @@ module.exports (terms) =
       
         parameter () =
             self
-
-        expand macro () =
-            name = self.variable
-            macro = self.cg.macros.find macro (name)
-        
-            if (macro)
-                macro (name)
     }
 
     variable (name, could be macro: true, location: nil) =
@@ -39,6 +32,6 @@ module.exports (terms) =
             macro = terms.macros.find macro (name)
         
             if (macro)
-                return (macro (name))
+                return (macro (self, name))
 
         variable term (name, location: location)

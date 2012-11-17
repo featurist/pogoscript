@@ -102,7 +102,7 @@ module.exports (terms) =
             macro = terms.macros.find macro (name)
         
             if (macro)
-                return (macro (name, args, optional arguments))
+                return (macro (self, name, args, optional arguments))
 
         function call term (
             fun

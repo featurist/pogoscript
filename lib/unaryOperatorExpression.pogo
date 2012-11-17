@@ -7,13 +7,13 @@ module.exports (terms) = terms.term {
 
     expression () =
         name = codegen utils.normalise operator name (self.operator)
-        found macro = self.cg.macros.find macro [name]
+        found macro = terms.macros.find macro [name]
         
         if (found macro)
-            found macro [self.operator] [self.expr]
+            found macro (self, [self.operator], [self.expr])
         else
-            self.cg.function call (terms.variable [name], [self.expr])
+            terms.function call (terms.variable [name], [self.expr])
     
     hash entry () =
-        self.cg.errors.add term (self) with message 'cannot be a hash entry'
+        terms.errors.add term (self) with message 'cannot be a hash entry'
 }
