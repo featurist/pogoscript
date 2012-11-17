@@ -93,8 +93,21 @@ exports.macros = function (cg) {
 
   var createIfExpression = function(term, name, args) {
     var cases = [];
+    var errorMsg = 'arguments to if else in are incorrect, try:\n\nif (condition)\n    then ()\nelse if (another condition)\n    do this ()\nelse\n    otherwise ()';
+
+    if (args.length < 2) {
+        return cg.errors.addTermWithMessage(term, errorMsg);
+    }
+
+    if ((name[name.length - 1] === 'else') !== (args.length % 2 === 1)) {
+        return cg.errors.addTermWithMessage(term, errorMsg);
+    }
 
     for (var n = 0; n + 1 < args.length; n += 2) {
+      if (!isAny(args[n]) || !isClosureWithParameters(0)(args[n + 1])) {
+        return cg.errors.addTermWithMessage(term, errorMsg);
+      }
+
       var body = args[n + 1].body;
       cases.push({condition: args[n], body: body});
     }
@@ -133,15 +146,31 @@ exports.macros = function (cg) {
     var args = arguments[0];
     var argValidators = Array.prototype.slice.call(arguments, 1);
 
-    if (args.length !== argValidators.length) {
-      return false;
+    if (args && args.length === argValidators.length) {
+      return _.all(_.zip(args, argValidators), function (argval) {
+        return argval[1](argval[0]);
+      });
     } else {
-      return true;
+      return false;
     }
   };
 
+  var isClosureWithParameters = function (paramterCount) {
+    return function (arg) {
+      return arg.isClosure && arg.parameters.length === paramterCount;
+    };
+  };
+
+  var isAny = function (arg) {
+    return arg !== undefined;
+  };
+
+  var isDefinition = function (arg) {
+    return arg.isDefinition;
+  };
+
   var createForEach = function (term, name, args) {
-    if (areValidArguments(args, 1, 1)) {
+    if (areValidArguments(args, isAny, isClosureWithParameters(1))) {
       var collection = args[0];
       var block = args[1];
       var body = block.body;
@@ -150,54 +179,63 @@ exports.macros = function (cg) {
 
       return cg.forEach(collection, itemVariable, block.body);
     } else {
-      return cg.errors.addTermWithMessage();
+      return cg.errors.addTermWithMessage(term, 'arguments to for each in are incorrect, try:\n\nfor each @(item) in (items)\n    do something with (item)');
     }
   };
 
   macros.addMacro(['for', 'each', 'in'], createForEach);
 
   macros.addMacro(['for', 'in'], function (term, name, args) {
-    var collection = args[0];
-    var block = args[1];
-    var iterator = block.parameters[0];
-    var body = block.body;
+    if (areValidArguments(args, isAny, isClosureWithParameters(1))) {
+      var collection = args[0];
+      var block = args[1];
+      var iterator = block.parameters[0];
+      var body = block.body;
 
-    return cg.forIn(iterator, collection, block.body);
+      return cg.forIn(iterator, collection, block.body);
+    } else {
+      return cg.errors.addTermWithMessage(term, 'arguments to for in are incorrect, try:\n\nfor @(field) in (object)\n    do something with (field)');
+    }
   });
 
   macros.addMacro(['for'], function(term, name, args) {
-    var init = args[0];
-    var test = args[1];
-    var incr = args[2];
+    if (areValidArguments(args, isDefinition, isAny, isAny, isClosureWithParameters(0))) {
+      var init = args[0];
+      var test = args[1];
+      var incr = args[2];
 
-    if (!init)
-      return errors.addTermWithMessage(args[0], 'expected init, as in (n = 0. ...)');
+      if (!init)
+        return errors.addTermWithMessage(args[0], 'expected init, as in (n = 0. ...)');
 
-    if (!test)
-      return errors.addTermWithMessage(args[0], 'expected test, as in (... . n < 10. ...)');
+      if (!test)
+        return errors.addTermWithMessage(args[0], 'expected test, as in (... . n < 10. ...)');
 
-    if (!incr)
-      return errors.addTermWithMessage(args[0], 'expected incr, as in (... . ... . n = n + 1)');
+      if (!incr)
+        return errors.addTermWithMessage(args[0], 'expected incr, as in (... . ... . n = n + 1)');
 
-    return cg.forStatement(init, test, incr, args[3].body);
+      return cg.forStatement(init, test, incr, args[3].body);
+    } else {
+      return cg.errors.addTermWithMessage(term, 'arguments to for are incorrect, try:\n\nfor (n = 0, n < 10, ++n)\n    do something with (n)');
+    }
   });
 
   macros.addMacro(['while'], function(term, name, args) {
-    var test;
-    if (args[0].isSubExpression) {
-      test = args[0].statements[0];
-    } else if (args[0].isBlock) {
-      test = args[0].body.statements[0];
-    } else {
-      test = args[0];
-    }
-    var statements = args[1].body;
+    if (areValidArguments(args, isAny, isClosureWithParameters(0))) {
+      var test = args[0];
+      var statements = args[1].body;
 
-    return cg.whileStatement(test, statements);
+      return cg.whileStatement(test, statements);
+    } else {
+      return cg.errors.addTermWithMessage(term, 'arguments to while are incorrect, try:\n\nwhile (condition)\n    do something ()');
+    }
   });
   
   macros.addMacro(['with'], function(term, name, args) {
-    return cg.withStatement(args[0], args[1].body);
+    if (areValidArguments(args, isAny, isClosureWithParameters(0))) {
+      return cg.withStatement(args[0], args[1].body);
+    } else {
+      return cg.errors.addTermWithMessage(term, 'arguments to with are incorrect, try:\n\nwith (object)\n    do something with (field)');
+    }
   });
 
   macros.addMacro(['and'], function (term, name, args) {
@@ -217,7 +255,11 @@ exports.macros = function (cg) {
   });
 
   macros.addMacro(['throw'], function(term, name, args) {
-    return cg.throwStatement(args[0]);
+    if (areValidArguments(args, isAny)) {
+      return cg.throwStatement(args[0]);
+    } else {
+      return cg.errors.addTermWithMessage(term, 'arguments to throw are incorrect, try: @throw error');
+    }
   });
 
   macros.addMacro(['break'], function(term, name, args) {
@@ -229,27 +271,39 @@ exports.macros = function (cg) {
   });
 
   macros.addMacro(['try', 'catch'], function (term, name, args) {
-    var body = args[0].body;
-    var catchParameter = args[1];
-    var catchBody = args[2].body;
+    if (areValidArguments(args, isClosureWithParameters(0), isAny, isClosureWithParameters(0))) {
+      var body = args[0].body;
+      var catchParameter = args[1];
+      var catchBody = args[2].body;
 
-    return cg.tryExpression(body, {catchBody: catchBody, catchParameter: catchParameter});
+      return cg.tryExpression(body, {catchBody: catchBody, catchParameter: catchParameter});
+    } else {
+      return cg.errors.addTermWithMessage(term, 'arguments to try catch are incorrect, try:\n\ntry\n    something dangerous ()\ncatch (error)\n    handle (error)');
+    }
   });
 
   macros.addMacro(['try', 'catch', 'finally'], function (term, name, args) {
-    var body = args[0].body;
-    var catchParameter = args[1];
-    var catchBody = args[2].body;
-    var finallyBody = args[3].body;
+    if (areValidArguments(args, isClosureWithParameters(0), isAny, isClosureWithParameters(0), isClosureWithParameters(0))) {
+      var body = args[0].body;
+      var catchParameter = args[1];
+      var catchBody = args[2].body;
+      var finallyBody = args[3].body;
 
-    return cg.tryExpression(body, {catchBody: catchBody, catchParameter: catchParameter, finallyBody: finallyBody});
+      return cg.tryExpression(body, {catchBody: catchBody, catchParameter: catchParameter, finallyBody: finallyBody});
+    } else {
+      return cg.errors.addTermWithMessage(term, 'arguments to try catch finally are incorrect, try:\n\ntry\n    something dangerous ()\ncatch (error)\n    handle (error)\nfinally\n    always do this ()');
+    }
   });
 
   macros.addMacro(['try', 'finally'], function (term, name, args) {
-    var body = args[0].body;
-    var finallyBody = args[1].body;
+    if (areValidArguments(args, isClosureWithParameters(0), isClosureWithParameters(0))) {
+      var body = args[0].body;
+      var finallyBody = args[1].body;
 
-    return cg.tryExpression(body, {finallyBody: finallyBody});
+      return cg.tryExpression(body, {finallyBody: finallyBody});
+    } else {
+      return cg.errors.addTermWithMessage(term, 'arguments to try finally are incorrect, try:\n\ntry\n    something dangerous ()\nfinally\n    always do this ()');
+    }
   });
 
   macros.addMacro(['nil'], function (term) {

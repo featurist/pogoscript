@@ -28,10 +28,12 @@ module.exports (terms) =
     }
 
     variable (name, could be macro: true, location: nil) =
+        v = variable term (name, location: location)
+
         if (could be macro)
             macro = terms.macros.find macro (name)
         
             if (macro)
-                return (macro (self, name))
+                return (macro (v, name))
 
-        variable term (name, location: location)
+        v

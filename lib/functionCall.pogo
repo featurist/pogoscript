@@ -100,9 +100,10 @@ module.exports (terms) =
         else if (fun.variable)
             name = fun.variable
             macro = terms.macros.find macro (name)
+            fun call = function call term (fun, args, optional arguments: optional arguments)
         
             if (macro)
-                return (macro (self, name, args, optional arguments))
+                return (macro (fun call, name, args, optional arguments))
 
         function call term (
             fun
