@@ -19,7 +19,6 @@ module.exports (terms) = terms.term {
         self.source.generate java script (buffer, scope)
   
     declare variables (variables) =
-        debugger
         name = self.target.canonical name (variables.scope)
 
         if (name)

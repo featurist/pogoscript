@@ -60,7 +60,7 @@ module.exports (cg) =
                         path.push (original node)
                         rewritten node =
                             if ((original node :: Node) && allow rewrite)
-                                sub clone (node) :=
+                                sub clone (node) =
                                     if (node)
                                         clone subterm (node, allow rewrite, path)
                                     else

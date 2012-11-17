@@ -1,5 +1,6 @@
 terms = require '../../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
 require '../assertions'
+require '../codeGeneratorAssertions'
 
 describe 'if expression term'
     describe 'returning as last statement'
@@ -129,3 +130,29 @@ describe 'if expression term'
                 )
 
                 (if expression) should contain fields (expected async if expression)
+
+    describe 'code generation'
+        if expression = nil
+
+        before each
+            if expression := terms.if expression (
+                [
+                    {
+                        condition = terms.variable ['condition']
+                        body = terms.statements [
+                            terms.variable ['body']
+                        ]
+                    }
+                ]
+                terms.statements [
+                    terms.variable ['else', 'body']
+                ]
+            )
+
+        context 'as a statement'
+            it 'generates a regular js if statement'
+                (if expression) should generate statement 'if(condition){body;}else{elseBody;}'
+
+        context 'as an expression'
+            it 'generates a scoped if statement, returning the last statement of each body'
+                (if expression) should generate expression '(function(){if(condition){return body;}else{return elseBody;}})()'

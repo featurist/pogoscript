@@ -26,7 +26,9 @@ module.exports (terms) =
             self.rewrite result term @(term) into
                 terms.return statement (term)
                 
-            terms.function call (terms.sub expression (terms.block ([], terms.statements ([self]))), []).generate java script (buffer, scope)
+            buffer.write '(function(){'
+            self.generate java script statement (buffer, scope)
+            buffer.write '})()'
 
         rewrite result term into (return term) =
             for each @(_case) in (self.cases)
