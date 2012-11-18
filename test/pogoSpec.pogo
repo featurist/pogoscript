@@ -1,4 +1,4 @@
-pogo = require '../src/bootstrap/commandLine'
+pogo = require '../lib/parser/commandLine'
 should = require 'should'
 
 describe 'pogo'

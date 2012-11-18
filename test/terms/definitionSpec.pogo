@@ -1,4 +1,4 @@
-terms = require '../../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
+terms = require '../../lib/parser/codeGenerator'.code generator ()
 should = require 'should'
 codegen utils = require '../../lib/codegenUtils'
 

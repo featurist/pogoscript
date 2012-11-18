@@ -1,5 +1,5 @@
-parser context = require '../src/bootstrap/parserContext'
-cg = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
+parser context = require '../lib/parser/parserContext'
+cg = require '../lib/parser/codeGenerator'.code generator ()
 should contain fields = require './containsFields'.contains fields
 
 describe 'parser context'

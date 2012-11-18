@@ -1,11 +1,10 @@
-((function() {
-    var self, commandLine;
-    self = this;
-    commandLine = require("./src/bootstrap/commandLine");
+(function() {
+    var self = this;
+    var commandLine;
+    commandLine = require("./lib/parser/commandLine");
     module.exports = commandLine;
     require.extensions[".pogo"] = function(module, filename) {
-        var self;
-        self = this;
+        var self = this;
         return commandLine.runFileInModule(filename, module);
     };
-})).call(this);
+}).call(this);

@@ -1,8 +1,8 @@
 require './assertions'
 
-parser = require '../src/bootstrap/parser'
+parser = require '../lib/parser/parser'
 require './parserAssertions'
-create terms () = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
+create terms () = require '../lib/parser/codeGenerator'.code generator ()
 
 describe 'parser'
     terms = nil
@@ -985,7 +985,7 @@ describe 'parser'
                 }
 
     it 'lexer'
-        create parser = require '../src/bootstrap/parser'.create parser
+        create parser = require '../lib/parser/parser'.create parser
         lex parser = create parser (terms: terms)
         tokens = lex parser.lex 'a (b)'
         (tokens) should contain fields [

@@ -1,4 +1,4 @@
-cg = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
+cg = require '../lib/parser/codeGenerator'.code generator ()
 require './assertions'
 
 expression (expression) =

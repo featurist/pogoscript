@@ -1,4 +1,4 @@
-var cg = require('../src/bootstrap/codeGenerator/codeGenerator').codeGenerator();
+var cg = require('../lib/parser/codeGenerator').codeGenerator();
 var MemoryStream = require('../lib/memorystream').MemoryStream;
 var assert = require('assert');
 var _ = require('underscore');

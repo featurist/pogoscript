@@ -1,5 +1,5 @@
-create parser = require '../src/bootstrap/parser'.create parser
-create terms () = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
+create parser = require '../lib/parser/parser'.create parser
+create terms () = require '../lib/parser/codeGenerator'.code generator ()
 parser = create parser (terms: create terms ())
 parse = parser.parse
 

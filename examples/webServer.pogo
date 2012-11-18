@@ -1,11 +1,11 @@
 express = require 'express'
-require '../bootstrap/runtime'
+require '../lib/parser/runtime'
 
 web server (methods, port: 3000) =
-    app = express.create server ()
+    app = express ()
 
     app context = object =>
-        self.get (path, action) =>
+        self.get (path, action) =
             app.get (path) @(req, res)
                 request context = object =>
                     self.request = req

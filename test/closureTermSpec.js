@@ -1,4 +1,4 @@
-var cg = require('../src/bootstrap/codeGenerator/codeGenerator').codeGenerator();
+var cg = require('../lib/parser/codeGenerator').codeGenerator();
 var closure = require('../lib/closure');
 var shouldContainFields = require('./containsFields.js').containsFields;
 

@@ -9,6 +9,8 @@ repl = require 'repl'
 vm = require 'vm'
 versions = require '../../lib/versions'
 
+create terms () = require './codeGenerator'.code generator ()
+
 running on node (version) or higher =
     !versions.(process.version) is less than (version)
 
@@ -202,6 +204,3 @@ source location printer (filename: nil, source: nil) =
                 strings.push (s)
 
             strings.join ''
-
-
-create terms () = require './codeGenerator/codeGenerator'.code generator ()

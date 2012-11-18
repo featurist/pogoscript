@@ -1,4 +1,4 @@
-require '../src/bootstrap/runtime'
+require '../lib/parser/runtime'
 
 describe 'runtime'
     it 'creates objects with constructor'

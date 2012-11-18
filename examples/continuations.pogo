@@ -9,7 +9,7 @@ n = 0
 cont = current continuation!
 
 console.log (n)
-n = n + 1
+++n
 
 if (n < 10)
     cont ()

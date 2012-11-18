@@ -1,4 +1,4 @@
-command line = require './src/bootstrap/commandLine'
+command line = require './lib/parser/commandLine'
 module.exports = command line
 
 require.extensions.'.pogo' (module, filename) =

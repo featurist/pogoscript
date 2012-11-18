@@ -1,4 +1,4 @@
-terms = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
+terms = require '../lib/parser/codeGenerator'.code generator ()
 require './assertions'
 
 describe 'module constants'

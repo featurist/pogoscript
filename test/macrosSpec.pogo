@@ -1,6 +1,6 @@
 require './assertions'
 require './parserAssertions'
-terms = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
+terms = require '../lib/parser/codeGenerator'.code generator ()
 
 loc = {
     first line 1

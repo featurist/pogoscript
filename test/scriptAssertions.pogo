@@ -2,7 +2,7 @@ fs = require 'fs'
 spawn = require 'child_process'.spawn
 assert = require 'assert'
 crypto = require 'crypto'
-command line = require '../src/bootstrap/commandLine'
+command line = require '../lib/parser/commandLine'
 util = require 'util'
 _ = require 'underscore'
 

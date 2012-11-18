@@ -1,4 +1,4 @@
-terms = require '../src/bootstrap/codeGenerator/codeGenerator'.code generator ()
+terms = require '../lib/parser/codeGenerator'.code generator ()
 should contain fields = require './containsFields'.contains fields
 
 describe 'async statements'

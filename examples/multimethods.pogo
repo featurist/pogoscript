@@ -1,4 +1,4 @@
-require '../bootstrap/runtime'
+require '../lib/parser/runtime'
 
 generic method =
     generic method id = 0
@@ -27,7 +27,7 @@ generic method =
 
     gm () =
         name = "genericMethod$#(++generic method id)"
-        body = "var method = void 0;
+        gm body = "var method = void 0;
                 for (var n = 0; n < arguments.length; n++) {
                     if (method = arguments[n][\"#(name)$\" + n]) {
                         break;
@@ -37,11 +37,10 @@ generic method =
                     return method.apply(void 0, arguments);
                 }
                 throw new Error(\"no such method for arguments\")"
-        fn = @new Function (body)
+        fn = @new Function (gm body)
 
         fn.add method (constructors, ... , method) =
             for each constructor @(constructor) index @(index) next index @(next index) in (constructors)
-                debugger
                 body = "return arguments[#(next index)][\"#(name)$#(next index)\"].apply(void 0, arguments);"
                 constructor.prototype."#(name)$#(index)" = @new Function (body)
 
