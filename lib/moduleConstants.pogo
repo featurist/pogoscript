@@ -1,4 +1,4 @@
-codegen utils = require './codegenUtils'
+codegen utils = require './terms/codegenUtils'
 
 module.exports (terms) =
     module constants = class {

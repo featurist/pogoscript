@@ -1,6 +1,6 @@
 cg = require '../lib/parser/codeGenerator'.code generator ()
 require './assertions'
-Term = (require '../lib/terms') {}.Term
+Term = (require '../lib/terms/terms') {}.Term
 _ = require 'underscore'
 assert = require 'assert'
 

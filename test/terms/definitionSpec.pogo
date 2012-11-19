@@ -1,6 +1,6 @@
 terms = require '../../lib/parser/codeGenerator'.code generator ()
 should = require 'should'
-codegen utils = require '../../lib/codegenUtils'
+codegen utils = require '../../lib/terms/codegenUtils'
 
 describe 'definitions'
     variables = nil

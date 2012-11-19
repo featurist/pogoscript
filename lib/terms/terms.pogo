@@ -1,4 +1,4 @@
-require './class'
+require '../class'
 _ = require 'underscore'
 util = require 'util'
 

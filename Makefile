@@ -4,7 +4,7 @@ index.js : index.pogo
 	pogo -c index.pogo
 
 subdirs:
-	for subdir in src/bootstrap lib; do \
+	for subdir in lib; do \
 		$(MAKE) -C $$subdir; \
 	done
 

@@ -1,5 +1,5 @@
 terms = require '../lib/parser/codeGenerator'.code generator ()
-strategies = (require '../lib/closureParameterStrategies') (terms)
+strategies = (require '../lib/terms/closureParameterStrategies') (terms)
 Memory Stream = require '../lib/memorystream'.Memory Stream
 should = require 'should'
 

@@ -1,5 +1,5 @@
 var cg = require('../lib/parser/codeGenerator').codeGenerator();
-var closure = require('../lib/closure');
+var closure = require('../lib/terms/closure');
 var shouldContainFields = require('./containsFields.js').containsFields;
 
 describe('closure term', function () {

@@ -1,5 +1,5 @@
 _ = require 'underscore'
-codegen utils = require '../codegenUtils'
+codegen utils = require '../terms/codegenUtils'
 
 module.exports (terms) =
     operator stack () =

@@ -1,4 +1,4 @@
-var codegenUtils = require('../lib/codegenUtils');
+var codegenUtils = require('../lib/terms/codegenUtils');
 var assert = require('assert');
 
 describe('codegen utils', function () {

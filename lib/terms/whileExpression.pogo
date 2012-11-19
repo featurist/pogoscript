@@ -1,4 +1,4 @@
-asyncControl = require './asyncControl'
+asyncControl = require '../asyncControl'
 
 module.exports (terms) =
     whileExpressionTerm = terms.term {

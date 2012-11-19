@@ -1,6 +1,6 @@
 codegen utils = require "./codegenUtils"
 _ = require 'underscore'
-async control = require './asyncControl'
+async control = require '../asyncControl'
 
 module.exports (terms) =
     if expression term = terms.term {

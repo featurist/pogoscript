@@ -1,4 +1,4 @@
-async control = require './asyncControl'
+async control = require '../asyncControl'
 
 module.exports (terms) =
     try expression term = terms.term {

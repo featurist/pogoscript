@@ -1,4 +1,4 @@
-codegen utils = require './codegenUtils'
+codegen utils = require '../terms/codegenUtils'
 
 module.exports (terms) = terms.term {
     constructor (operator, expression) =
