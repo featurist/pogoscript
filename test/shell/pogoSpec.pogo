@@ -28,14 +28,6 @@ describe 'pogo command'
                                                                               '#(path.resolve '343111c34d666435dd7e88265c816cbfdbe68cd3.pogo')',
                                                                               '--compile' ]" (done)
 
-on success callback for (callback) =
-    @(on success, always do)
-        @(error, args, ...)
-            if (error)
-                callback (error)
-            else
-                on success (args, ...)
-
 write file (filename, content, done) =
     fs.write file ("#(__dirname)/#(filename)", content, done)
 
@@ -51,29 +43,25 @@ spawn (command, args, done) =
     process = child process.spawn (expand pogo command (command), args, {cwd = __dirname, custom fds = [0, 1, 2]})
     done (nil, process)
 
-run (command, done) =
+run (command, callback) =
     expanded command = expand pogo command (command)
-    child process.exec (expanded command, {cwd = __dirname}, done)
+    child process.exec (expanded command, {cwd = __dirname}) @(error, stdout, stderr)
+        callback (error, {stdout = stdout, stderr = stderr})
 
 describe 'pogo --compile'
-    it 'can compile a script' @(done)
-        on success = on success callback for (done)
+    after each
+        fs.unlink! "#(__dirname)/toCompile.pogo"
+        fs.unlink! "#(__dirname)/toCompile.js"
 
-        write file "toCompile.pogo" "console.log 'hi'" (on success
-            run "pogo -c toCompile.pogo" (on success @(stdout, stderr)
-                stdout.should.equal ''
-                stderr.should.equal ''
+    it 'can compile a script'
+        write file! "toCompile.pogo" "console.log 'hi'"
+        pogo output = run! "pogo -c toCompile.pogo"
+        pogo output.stdout.should.equal ''
+        pogo output.stderr.should.equal ''
 
-                run "node toCompile.js" (on success @(stdout, stderr)
-                    stdout.should.equal "hi\n"
-                    stderr.should.equal ''
-
-                    fs.unlink "#(__dirname)/toCompile.pogo"
-                        fs.unlink "#(__dirname)/toCompile.js"
-                            done ()
-                )
-            )
-        )
+        node output = run! "node toCompile.js"
+        node output.stdout.should.equal "hi\n"
+        node output.stderr.should.equal ''
 
 (n)ms = n
 (n)s = n * 1000
@@ -81,81 +69,73 @@ describe 'pogo --compile'
 after (milliseconds, do something) =
     set timeout (do something, milliseconds)
 
+unlink! (file) =
+    try
+        fs.unlink! (file)
+    catch (error)
+        if (error.code != 'ENOENT')
+            throw (error)
+
+        // bug #6, remove this
+        nil
+
+describe 'pogo --help'
+    it 'prints out help'
+        pogo output = run! "pogo --help"
+
+        pogo output.stdout.should.match r/usage:/
+        pogo output.stdout.should.match r/--compile/
+        pogo output.stdout.should.match r/--watch/
+
 describe 'pogo --compile --if-stale'
-    it 'compiles a pogo script if the js is missing' @(done)
-        on success = on success callback for (done)
+    before each
+        unlink! "#(__dirname)/toCompile.pogo"
+        unlink! "#(__dirname)/toCompile.js"
 
-        fs.unlink "#(__dirname)/toCompile.js"
-            write file "toCompile.pogo" "console.log 'hi'" (on success
-                run "pogo -cs toCompile.pogo" (on success @(stdout, stderr)
-                    stdout.should.equal "compiling toCompile.pogo => toCompile.js\n"
-                    stderr.should.equal ''
+    after each
+        unlink! "#(__dirname)/toCompile.pogo"
+        unlink! "#(__dirname)/toCompile.js"
 
-                    run "node toCompile.js" (on success @(stdout, stderr)
-                        stdout.should.equal "hi\n"
-                        stderr.should.equal ''
+    it 'compiles a pogo script if the js is missing'
+        write file! "toCompile.pogo" "console.log 'hi'"
+        pogo output = run! "pogo -cs toCompile.pogo"
+        pogo output.stdout.should.equal "compiling toCompile.pogo => toCompile.js\n"
+        pogo output.stderr.should.equal ''
 
-                        fs.unlink "#(__dirname)/toCompile.pogo"
-                            fs.unlink "#(__dirname)/toCompile.js"
-                                done ()
-                    )
-                )
-            )
+        node output = run! "node toCompile.js"
+        node output.stdout.should.equal "hi\n"
+        node output.stderr.should.equal ''
 
-    it 'compiles a pogo script if the js is out of date' @(done)
-        on success = on success callback for (done)
+    it 'compiles a pogo script if the js is out of date'
+        write file! "toCompile.js" "console.log('old')"
+        after! (1s)
+        write file! "toCompile.pogo" "console.log 'new'"
 
-        write file "toCompile.js" "console.log('old')" (on success
-            after (1s)
-                write file "toCompile.pogo" "console.log 'new'" (on success
-                    run "pogo -cs toCompile.pogo" (on success @(stdout, stderr)
-                        stdout.should.equal "compiling toCompile.pogo => toCompile.js\n"
-                        stderr.should.equal ''
+        pogo output = run! "pogo -cs toCompile.pogo"
+        pogo output.stdout.should.equal "compiling toCompile.pogo => toCompile.js\n"
+        pogo output.stderr.should.equal ''
 
-                        run "node toCompile.js" (on success @(stdout, stderr)
-                            stdout.should.equal "new\n"
-                            stderr.should.equal ''
+        node output = run! "node toCompile.js"
+        node output.stdout.should.equal "new\n"
+        node output.stderr.should.equal ''
 
-                            fs.unlink "#(__dirname)/toCompile.pogo"
-                                fs.unlink "#(__dirname)/toCompile.js"
-                                    done ()
-                        )
-                    )
-                )
-        )
+    it "doesn't recompile the js if it the pogo is older"
+        write file! "toCompile.pogo" "console.log 'pogo'"
+        after! (1s)
+        write file! "toCompile.js" "console.log('js')"
 
-    it "doesn't recompile the js if it the pogo is older" @(done)
-        on success = on success callback for (done)
+        pogo output = run! "pogo -cs toCompile.pogo"
+        pogo output.stdout.should.equal ''
+        pogo output.stderr.should.equal ''
 
-        write file "toCompile.pogo" "console.log 'pogo'" (on success
-            after (1s)
-                write file "toCompile.js" "console.log('js')" (on success
-                    run "pogo -cs toCompile.pogo" (on success @(stdout, stderr)
-                        stdout.should.equal ''
-                        stderr.should.equal ''
-
-                        run "node toCompile.js" (on success @(stdout, stderr)
-                            stdout.should.equal "js\n"
-                            stderr.should.equal ''
-
-                            fs.unlink "#(__dirname)/toCompile.pogo"
-                                fs.unlink "#(__dirname)/toCompile.js"
-                                    done ()
-                        )
-                    )
-                )
-        )
+        node output = run! "node toCompile.js"
+        node output.stdout.should.equal "js\n"
+        node output.stderr.should.equal ''
 
 describe 'debugging'
     describe '--debug'
-        it 'starts remote debugging' @(done)
-            on success = on success callback for (done)
-
-            write file "toDebug.pogo" "console.log 'bug!'" (on success
-                run 'pogo --debug toDebug.pogo' (on success @(stdout, stderr)
-                    stderr.should.equal "debugger listening on port 5858\n"
-                    stdout.should.equal "bug!\n"
-
-                    done ()
-                )
-            )
+        it 'starts remote debugging'
+            write file! "toDebug.pogo" "console.log 'bug!'"
+            pogo output = run! 'pogo --debug toDebug.pogo'
+            pogo output.stderr.should.equal "debugger listening on port 5858\n"
+            pogo output.stdout.should.equal "bug!\n"
