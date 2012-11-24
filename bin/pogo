@@ -7,6 +7,7 @@ cli.option("-u, --ugly don't prettify when compiling");
 cli.option("-l, --lex tokenise each file");
 cli.option("-w, --watch watch and compile files when they change");
 cli.option("-s, --if-stale only compile files if they are out of date");
+cli.option("-h, --help print herlp!");
 cli.option("--debug run the node debugger");
 cli.option("--debug-brk run the node debugger, breaking on the first line");
 options = cli.parse(process.argv.slice(2));
@@ -14,27 +15,29 @@ options = cli.parse(process.argv.slice(2));
 var commandLine = require('..');
 
 try {
-if (options.debug || options.debugBrk || options._[0] == 'debug') {
-  require('../lib/debugPogo').debugPogo();
-} else if (options.lex) {
-  for (var i in options._) {
-    commandLine.lexFile(options._[i]);
-  }
-} else if (options.compile) {
-  for (var i in options._) {
-    if (options.watch) {
-      commandLine.watchFile(options._[i], {ugly: options.ugly});
-    } else if (options.ifStale) {
-      commandLine.compileFileIfStale(options._[i], {ugly: options.ugly});
-    } else {
-      commandLine.compileFile(options._[i], {ugly: options.ugly});
+  if (options.help) {
+    cli.help ();
+  } else if (options.debug || options.debugBrk || options._[0] == 'debug') {
+    require('../lib/debugPogo').debugPogo();
+  } else if (options.lex) {
+    for (var i in options._) {
+      commandLine.lexFile(options._[i]);
     }
+  } else if (options.compile) {
+    for (var i in options._) {
+      if (options.watch) {
+        commandLine.watchFile(options._[i], {ugly: options.ugly});
+      } else if (options.ifStale) {
+        commandLine.compileFileIfStale(options._[i], {ugly: options.ugly});
+      } else {
+        commandLine.compileFile(options._[i], {ugly: options.ugly});
+      }
+    }
+  } else if (options._.length === 0) {
+    commandLine.repl();
+  } else {
+    commandLine.runMain(options._[0]);
   }
-} else if (options._.length === 0) {
-  commandLine.repl();
-} else {
-  commandLine.runMain(options._[0]);
-}
 } catch (error) {
   if (error.isSemanticErrors) {
     process.stderr.write(error.message);

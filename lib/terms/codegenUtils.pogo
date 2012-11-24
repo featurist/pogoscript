@@ -72,6 +72,7 @@ reserved words = {
     function
     else
     case
+    switch
 }
 
 escape reserved word (word) =

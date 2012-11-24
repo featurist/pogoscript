@@ -23,6 +23,16 @@ Boolean Option = class {
 
     set (options) =
         options.(self.name) = true
+
+    to string () =
+        switches = [
+            if (self.short name) @{ "-" + self.short name}
+            if (self.long name) @{ "--" + self.long name}
+        ].filter @(s)
+            s
+        .join ', '
+
+        "    #(switches)\n\n        #(self.description)\n"
 }
 
 Option Parser = class {
@@ -100,6 +110,19 @@ Option Parser = class {
                 return (options)
 
         options
+
+    help () =
+        process.stdout.write "usage:
+
+                                  pogo [debug] script.pogo [script options]
+                                  pogo [options] scripts ...
+
+                              options:
+
+                              "
+
+        for each @(option) in (self._options)
+            process.stdout.write (option + "\n")
 }
 
 exports.create parser () = new (Option Parser)
