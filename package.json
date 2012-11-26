@@ -1,6 +1,6 @@
 {
     "name": "pogo",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "A readable, DSL friendly programming language that compiles to JavaScript",
     "maintainers": [
         {
