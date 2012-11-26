@@ -69,19 +69,45 @@ describe 'operator expression'
                 )
             )
 
-    it 'throws when a custom operator is used before other operators'
-        operator = terms.operator expression (variable 'a')
-        operator.add operator '@custom' expression (variable 'b')
-        operator.add operator '@and' expression (variable 'c')
+    describe 'custom operators'
+        it 'throws when a custom operator is used before other operators'
+            operator = terms.operator expression (variable 'a')
+            operator.add operator '@custom' expression (variable 'b')
+            operator.add operator '@and' expression (variable 'c')
 
-        @{operator.expression ()}.should.throw '@custom cannot be used with other operators'
+            @{operator.expression ()}.should.throw '@custom cannot be used with other operators'
 
-    it 'throws when a custom operator is used after other operators'
-        operator = terms.operator expression (variable 'a')
-        operator.add operator '@and' expression (variable 'b')
-        operator.add operator '@custom' expression (variable 'c')
+        it 'throws when a custom operator is used after other operators'
+            operator = terms.operator expression (variable 'a')
+            operator.add operator '@and' expression (variable 'b')
+            operator.add operator '@custom' expression (variable 'c')
 
-        @{operator.expression ()}.should.throw '@custom cannot be used with other operators'
+            @{operator.expression ()}.should.throw '@custom cannot be used with other operators'
+
+        it "parses two custom unary operators, outer to inner"
+            (expression "@outer @inner a") should contain fields (
+                terms.function call (
+                    terms.variable ['outer']
+                    [
+                        terms.function call (
+                            terms.variable ['inner']
+                            [
+                                terms.variable ['a']
+                            ]
+                        )
+                    ]
+                )
+            )
+
+        it "parses @custom unary operator as function call"
+            (expression "@custom a") should contain fields (
+                terms.function call (terms.variable ['custom'], [terms.variable ['a']])
+            )
+
+        it "parses camel case custom operators"
+            (expression "@customOp a") should contain fields (
+                terms.function call (terms.variable ['customOp'], [terms.variable ['a']])
+            )
 
     operators in order of precedence = [
         ['/', '*', '%']
@@ -145,26 +171,6 @@ describe 'operator expression'
                     {variable ['a'], is variable}
                 ]
             }
-
-    it "parses two unary operators"
-        (expression "@outer @inner a") should contain fields (
-            terms.function call (
-                terms.variable ['outer']
-                [
-                    terms.function call (
-                        terms.variable ['inner']
-                        [
-                            terms.variable ['a']
-                        ]
-                    )
-                ]
-            )
-        )
-
-    it "parses @custom unary operator as function call"
-        (expression "@custom a") should contain fields (
-            terms.function call (terms.variable ['custom'], [terms.variable ['a']])
-        )
 
     unary operators = [
         '!'

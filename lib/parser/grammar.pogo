@@ -76,10 +76,6 @@ exports.grammar = {
             ['parameter_list , statement', '$1.push($3); $$ = $1;']
             ['statement', '$$ = [$1];']
         ]
-        expression_list [
-            ['expression_list , statement', '$1.push($3); $$ = $1;']
-            ['statement', '$$ = [$1];']
-        ]
         statement [
             ['expression', '$$ = $1.expression();']
         ]
@@ -127,7 +123,7 @@ exports.grammar = {
             ['@ ( parameter_list )', '$$ = yy.loc(yy.terms.parameters($3), @$);']
             ['block_start statements }', '$$ = yy.loc(yy.terms.block([], $2), @$);']
             ['=> block_start statements }', '$$ = yy.loc(yy.terms.block([], $3, {redefinesSelf: true}), @$);']
-            ['[ statements_list ]', '$$ = yy.loc(yy.terms.list($2), @$);']
+            ['[ arguments_list ]', '$$ = yy.loc(yy.terms.list($2), @$);']
             ['{ hash_entries }', '$$ = yy.loc(yy.terms.hash($2), @$);']
             ['float', '$$ = yy.loc(yy.terms.float(parseFloat(yytext)), @$);']
             ['integer', '$$ = yy.loc(yy.terms.integer(parseInt(yytext)), @$);']
