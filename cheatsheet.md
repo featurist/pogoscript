@@ -178,6 +178,20 @@ use `=>` to allow self to be redefined by the caller of the block:
     fib.0
     fib.5 = 5
 
+## List Comprehensions
+
+Simple map:
+
+    [x * x, where: x <- [1, 2, 3]]
+
+Filter:
+
+    [x, where: x <- [1, 2, 3], x > 1]
+
+Combinations:
+
+    [x * y, where: x <- [1, 2, 3], y <- [4, 5, 6]]
+
 # Hashes
 
     colour scheme = {bg 'red', fg 'yellow'}
