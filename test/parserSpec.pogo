@@ -203,15 +203,6 @@ describe 'parser'
                     ]
                 }
             
-            it 'a hash entry'
-                (expression '[x, width: 10]') should contain fields {
-                    is list
-                    items [
-                        {variable ['x']}
-                        {is hash entry, field ['width'], value {integer 10}}
-                    ]
-                }
-            
             it 'two items separated by newlines'
                 (expression "[\n  1\n  2\n]") should contain fields {
                     is list
