@@ -114,9 +114,6 @@ exports.compile (
 
     code = generate code (module term)
 
-    if (!ugly)
-        code := beautify (code)
-
     if (parser.errors.has errors ())
         memory stream = new (ms.MemoryStream)
         parser.errors.print errors (source location printer (filename: filename, source: pogo), memory stream)
@@ -124,7 +121,10 @@ exports.compile (
         error.is semantic errors = true
         @throw error
     else
-        code
+        if (ugly)
+            code
+        else
+            beautify (code)
 
 exports.evaluate (pogo, definitions: {}, ugly: true, global: false) =
     js = exports.compile (pogo, ugly: ugly, in scope: @not global, global: global, return result: @not global)
