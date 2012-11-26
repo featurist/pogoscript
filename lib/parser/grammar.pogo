@@ -63,14 +63,21 @@ exports.grammar = {
             ['statement', '$$ = [$1];']
             ['', '$$ = [];']
         ]
+        arguments [
+            ['arguments_list', '$$ = $1;']
+            ['', '$$ = [];']
+        ]
         arguments_list [
             ['arguments_list , argument', '$1.push($3); $$ = $1;']
             ['argument', '$$ = [$1];']
-            ['', '$$ = [];']
         ]
         argument [
             ['expression : expression', '$$ = $1.definition($3.expression()).hashEntry(true);']
             ['statement', '$$ = $1']
+        ]
+        parameters [
+            ['parameter_list', '$$ = $1;']
+            ['', '$$ = [];']
         ]
         parameter_list [
             ['parameter_list , statement', '$1.push($3); $$ = $1;']
@@ -119,11 +126,11 @@ exports.grammar = {
             ['!', '$$ = yy.loc(yy.terms.asyncArgument(), @$);']
         ]
         terminal [
-            ['( arguments_list )', '$$ = yy.loc(yy.terms.argumentList($arguments_list), @$);']
-            ['@ ( parameter_list )', '$$ = yy.loc(yy.terms.parameters($3), @$);']
+            ['( arguments )', '$$ = yy.loc(yy.terms.argumentList($arguments), @$);']
+            ['@ ( parameters )', '$$ = yy.loc(yy.terms.parameters($3), @$);']
             ['block_start statements }', '$$ = yy.loc(yy.terms.block([], $2), @$);']
             ['=> block_start statements }', '$$ = yy.loc(yy.terms.block([], $3, {redefinesSelf: true}), @$);']
-            ['[ arguments_list ]', '$$ = yy.loc(yy.terms.list($2), @$);']
+            ['[ arguments ]', '$$ = yy.loc(yy.terms.list($2), @$);']
             ['{ hash_entries }', '$$ = yy.loc(yy.terms.hash($2), @$);']
             ['float', '$$ = yy.loc(yy.terms.float(parseFloat(yytext)), @$);']
             ['integer', '$$ = yy.loc(yy.terms.integer(parseInt(yytext)), @$);']

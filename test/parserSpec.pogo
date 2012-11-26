@@ -555,6 +555,16 @@ describe 'parser'
                     {variable ['y']}
                 ]}
             }
+                
+        it 'block with no parameters'
+            (expression '@() @{x}') should contain fields {
+                is block
+                parameters []
+                redefines self (false)
+                body {statements [
+                    {variable ['x']}
+                ]}
+            }
 
         it 'block with parameter'
             (expression "@(x)\n  x, y") should contain fields {
