@@ -25,9 +25,7 @@ module.exports (terms) =
     comprehension expressions from (term, results variable) =
         exprs = term.items.slice (2)
         exprs.unshift (term.items.1.value)
-        comprehension exprs =
-            _.map (exprs) @(expr)
-                comprehension expression for (expr)
+        comprehension exprs = [comprehension expression for (expr), where: expr <- exprs]
 
         comprehension exprs.push (map (term.items.0, results variable))
         expressions (comprehension exprs)
@@ -38,7 +36,7 @@ module.exports (terms) =
         collection = expression.function arguments.1
 
         generate (rest) =
-            [terms.for each (self.collection, self.iterator, terms.statements (rest.generate ()))]
+            [terms.for each (self.collection, self.iterator, terms.async statements (rest.generate ()))]
     }
 
     map (expression, results variable) = {
@@ -58,7 +56,7 @@ module.exports (terms) =
     filter (expression) = {
         is filter
         generate (rest) =
-            [terms.if expression [{condition = expression, body = terms.statements (rest.generate ())}]]
+            [terms.if expression [{condition = expression, body = terms.async statements (rest.generate ())}]]
     }
 
     expressions (exprs) = {

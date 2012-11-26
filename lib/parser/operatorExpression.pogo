@@ -122,8 +122,7 @@ module.exports (terms) =
         definition (source, assignment: false) =
             if (this.arguments.length > 1)
                 object = self.arguments.0.expression ()
-                parms = _(self.arguments.slice (1)).map @(arg)
-                    arg.expression ().parameter ()
+                parms = [arg.expression ().parameter (), where: arg <- self.arguments.slice (1)]
                 
                 terms.definition (terms.field reference (object, self.name), source.blockify (parms, []), assignment: assignment)
             else
