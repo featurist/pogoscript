@@ -61,6 +61,12 @@ Arguments and parameters can be placed anywhere in the name of a function or met
     for each @(mountain) in (mountains)
         console.log (mountain)
 
+## List Comprehensions
+
+A short-hand for map/select:
+
+    [[x, y], where: x <- [1, 2, 3], y <- [1, 2, 3], x < y]
+
 ## Blocks
 
 Blocks are just indented code:

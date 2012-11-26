@@ -70,8 +70,6 @@ The canonical 99 beers on the wall:
 
 # The Big Features
 
-<br/>
-
 ## Names
 
 Names of variables, functions and methods can contain spaces.
