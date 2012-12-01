@@ -177,6 +177,9 @@ use `=>` to allow self to be redefined by the caller of the block:
 
     fib.0
     fib.5 = 5
+    
+    n = 3
+    fib.(n) = 2
 
 ## List Comprehensions
 
@@ -192,7 +195,7 @@ Combinations:
 
     [x * y, where: x <- [1, 2, 3], y <- [4, 5, 6]]
 
-# Hashes
+# Objects
 
     colour scheme = {bg 'red', fg 'yellow'}
 
@@ -202,6 +205,13 @@ Or
         background = 'red'
         foreground = 'yellow'
     }
+
+## Accessing Fields
+
+    color scheme.background
+    
+    back or foreground = 'foreground'
+    color scheme.(back or foreground)
 
 # Control Structures
 
