@@ -22,7 +22,7 @@ exports.grammar = {
             ['@[a-zA-Z_$][a-zA-Z_$0-9]*', 'return "operator";']
             ['\.\.\.', 'return "...";']
             ['([:;=,?!.@~#%^&*+<>\/?\\|-])+', 'return yy.lexOperator(yy, yytext);']
-            ['r/([^\\/]*\\.)*[^/]*/(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|)', 'return ''reg_exp'';']
+            ['r\/([^\\\/]*\\.)*[^\/]*\/(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|)', 'return ''reg_exp'';']
             ['[a-zA-Z_$][a-zA-Z_$0-9]*', 'return ''identifier'';']
             ['$', 'return ''eof'';']
             ['''([^'']*'''')*[^'']*''', 'return ''string'';']

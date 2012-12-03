@@ -1,10 +1,8 @@
-jison parser = require 'jison'.Parser
 ms = require '../../lib/memorystream'
 create parser context = require './parserContext'.create parser context
 create dynamic lexer = require './dynamicLexer'.create dynamic lexer
-grammar = require './grammar'.grammar
+parser = require './jisonParser'.parser
 
-parser = new (jison parser (grammar))
 jison lexer = parser.lexer
 
 self.create parser (terms: terms) =

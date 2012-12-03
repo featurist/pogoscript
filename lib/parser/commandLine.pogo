@@ -2,7 +2,6 @@ fs = require 'fs'
 ms = require '../../lib/memorystream'
 create parser = require './parser'.create parser
 uglify = require 'uglify-js'
-_ = require 'underscore'
 Module = require 'module'
 path = require 'path'
 repl = require 'repl'
@@ -128,14 +127,13 @@ exports.compile (
 
 exports.evaluate (pogo, definitions: {}, ugly: true, global: false) =
     js = exports.compile (pogo, ugly: ugly, in scope: @not global, global: global, return result: @not global)
-    definition names = _.keys (definitions)
+    definition names = Object.keys (definitions)
     
     parameters = definition names.join ','
     
     run script = new (Function (parameters, "return #(js);"))
     
-    definition values = _.map (definition names) @(name)
-        definitions.(name)
+    definition values = [definitions.(name), where: name <- definition names]
     
     run script.apply (undefined) (definition values)
 

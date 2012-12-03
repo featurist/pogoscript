@@ -29,11 +29,11 @@
     "main": "index.js",
     "devDependencies": {
         "mocha": "",
-        "should": ""
+        "should": "",
+        "jison": ""
     },
     "dependencies": {
         "underscore": "",
-        "jison": "",
         "uglify-js": "~1.3"
     }
 }

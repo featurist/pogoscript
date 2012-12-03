@@ -4,7 +4,7 @@ index.js : index.pogo
 	pogo -c index.pogo
 
 subdirs:
-	for subdir in lib; do \
+	for subdir in lib lib/parser; do \
 		$(MAKE) -C $$subdir; \
 	done
 

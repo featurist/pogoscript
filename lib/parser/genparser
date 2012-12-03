@@ -1,8 +1,8 @@
-#!/usr/bin/env node
+#!/usr/bin/env pogo
 
-var g = require('./grammar').grammar;
-var fs = require('fs');
-var jison = require('jison');
+g = require('./grammar').grammar
+fs = require('fs')
+jison = require('jison')
 
-var parserSource = new jison.Parser (g).generate();
-fs.writeFileSync ('jisonParser.js', parserSource, 'utf-8');
+parserSource = (@new jison.Parser (g)).generate()
+fs.writeFileSync ('jisonParser.js', parserSource, 'utf-8')
