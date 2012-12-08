@@ -1,4 +1,3 @@
 .DS_Store
-.*.swp
-.swp
+*.sw[op]
 _site/
