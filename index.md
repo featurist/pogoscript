@@ -12,10 +12,10 @@ The canonical [Node.js](http://nodejs.org/) hello world:
 
     http = require 'http'
 
-    http.create server @(req, res)
-        res.write head 200 ('Content-Type': 'text/plain')
+    http.createServer @(req, res)
+        res.writeHead (200, 'Content-Type': 'text/plain')
         res.end "Hello World\n"
-    .listen 1337 "127.0.0.1"
+    .listen (1337, "127.0.0.1")
 
     console.log 'Server running at http://127.0.0.1:1337/'
 
@@ -47,7 +47,6 @@ The canonical [99 beers on the wall](http://99-bottles-of-beer.net/):
 Names of variables, functions and methods can contain spaces.
 
     wind speed = 25
-    
     average temperature = 32
 
 These get translated into their camel-case equivalents, so `average temperature` becomes `averageTemperature` in JavaScript.
