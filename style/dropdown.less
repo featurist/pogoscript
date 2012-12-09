@@ -1,0 +1,44 @@
+@import "colours.less";
+
+.dropdown {
+  position: relative;
+
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 160%;
+    left: 0;
+    background-image: url('../images/paper_cream.png');
+    background-color: @code_block_background;
+    padding: 5pt 5pt;
+    box-shadow: 1pt 1pt 3pt #888;
+    border-radius: 5pt 5pt;
+    min-width: 200px;
+
+    li {
+      display: block;
+      margin: 0;
+      text-align: left;
+      /* background-color: @code_block_background; */
+      a {
+        padding: 3pt;
+        border: none;
+        text-decoration: none;
+        display: block;
+      }
+    }
+
+    li a:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+.open > a {
+}
+
+.open > .dropdown-menu {
+  display: block;
+
+
+}

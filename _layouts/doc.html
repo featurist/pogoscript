@@ -1,20 +1,13 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <link rel="stylesheet" type="text/css" href="style/main.css">
-        <link rel="stylesheet" type="text/css" href="style/doc.css">
-        <title>PogoScript {{ page.title }}</title>
-    </head>
-    <body>
-        <div class="header">
-          <h1>The <a href="/">PogoScript</a> {{ page.title }}</h1>
-          {% include nav.html %}
-        </div>
-        <div class="content">
-            {{ content }}
-        </div>
-        {% include analytics.html %}
-        {% include highlight.html %}
-    </body>
+  <head>
+    {% include head.html %}
+    <title>PogoScript {{ page.title }}</title>
+  </head>
+  <body>
+    <div class="header doc">
+      <h1>The <a href="/">PogoScript</a> {{ page.title }}</h1>
+    </div>
+    {% include content.html %}
+  </body>
 </html>

@@ -1,24 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="/style/main.css">
+    {% include head.html %}
     <title>PogoScript</title>
-    <meta http-equiv="X-UA-Compatible" content="IE=7">
   </head>
   <body>
-    <div class="header">
+    <div class="header main">
       <h1><span class="pogo">PogoScript<span class="js">js</span></span></h1>
       <p class="tagline">(free wahwah juice with every download)</p>
       
       {% include nav.html %}
     </div>
   
-    <div class="content">
-      {{ content }}
-    </div>
-
-    {% include analytics.html %}
-    {% include highlight.html %}
+    {% include content.html %}
   </body>
 </html>

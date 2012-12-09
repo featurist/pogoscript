@@ -6,6 +6,8 @@
 @import url(fonts.css);
 @import 'pogo.less';
 @import 'code.less';
+@import 'dropdown.less';
+@import 'font-awesome.less';
 
 body {
   margin: 0pt;
@@ -13,6 +15,16 @@ body {
   background-color: @page_background;
   color: @content_foreground;
   font-family: sans-serif;
+}
+.header.main {
+  h1 {
+    font-size: 6em;
+    margin-left: auto;
+    margin-bottom: 0.4em;
+    margin-top: 0.4em;
+    float:none;
+    text-align: center;
+  }
 }
 .header {
   background-color: @code_block_background;
@@ -27,21 +39,41 @@ body {
   }
   h1 {
     color: @blue;
-    font-size: 6em;
-    margin-left: auto;
-    margin-bottom: 0.4em;
-    margin-top: 0.4em;
-    float:none;
+    font-size: 2em;
+    width: 800px;
+    margin: auto;
+    text-align: left;
   }
   ul {
     list-style-type: none;
+    padding-left: 0;
     li {
       display: inline-block;
       margin: 1em 1em;
+
       a {
         padding: 0.5em 1em;
-        border: dashed 1pt fade(@blue, 30%);
+        border: solid 1pt fade(@blue, 30%);
+        border-radius: 5pt 5pt;
         text-decoration: none;
+      }
+
+      pre {
+        border: solid 1pt fade(@blue, 30%);
+        padding: 0.5em 1em;
+      }
+
+      a i {
+        font-size: 1.2em;
+      }
+
+      a.btn {
+        box-shadow: inset 2pt 2pt 5pt rgba(255, 255, 255, 0.5), inset -2pt -2pt 5pt rgba(0, 0, 0, 0.1);
+      }
+
+      a.btn:focus {
+        outline: none;
+        box-shadow: none;
       }
     }
   }
