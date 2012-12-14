@@ -64,6 +64,12 @@ module.exports (terms) =
         make async call with callback (callback) =
             self.async callback argument = callback
             self
+
+        rewrite result term into (return term, async: false) =
+            if (async @and self.function == terms.callback function)
+                self
+            else
+                return term (self)
     }
 
     function call (
@@ -74,6 +80,7 @@ module.exports (terms) =
         pass this to apply: false
         originally async: false
         async callback argument: nil
+        could be macro: true
     ) =
         if (async)
             async result = terms.async result ()
@@ -97,7 +104,7 @@ module.exports (terms) =
                     async result
                 ]
             )
-        else if (fun.variable)
+        else if (fun.variable @and could be macro)
             name = fun.variable
             macro = terms.macros.find macro (name)
             fun call = function call term (fun, args, optional arguments: optional arguments)

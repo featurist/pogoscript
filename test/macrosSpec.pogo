@@ -421,6 +421,22 @@ describe 'macros'
                 is nil
             }
     
+    describe 'continuation'
+        context 'when called as a function'
+            (macro expression 'continuation (x, y)') should contain fields {
+                is function call
+                function { is continuation }
+                function arguments [
+                    {variable ['x']}
+                    {variable ['y']}
+                ]
+            }
+
+        context 'when as a variable'
+            (macro expression 'continuation') should contain fields {
+                is continuation
+            }
+    
     describe 'JavaScript operators'
         it generates unary (op) =
             it "generates unary #(op)"

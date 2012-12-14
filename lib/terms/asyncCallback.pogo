@@ -4,7 +4,7 @@ module.exports (terms) =
         catch error variable = terms.generated variable ['exception']
 
         body.rewrite result term @(term) into
-            if (!term.originally async)
+            if (@not term.originally async)
                 terms.function call (terms.callback function, [terms.nil (), term])
             else
                 term

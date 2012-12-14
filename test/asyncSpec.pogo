@@ -288,3 +288,11 @@ describe 'async'
 
                        print (f!)
                        done ()' should output ("'result'", done)
+
+    describe 'continuation'
+        it 'can be called in an async function as the callback' @(done)
+            async 'f! =
+                       continuation (nil, "result")
+
+                   print (f!)
+                   done ()' should output ("'result'", done)

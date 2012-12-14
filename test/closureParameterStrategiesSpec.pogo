@@ -178,4 +178,4 @@ describe 'closure parameter strategies'
                 should.deep equal (cb.named parameters (), [terms.variable ['a'], terms.variable ['b'], terms.callback function])
 
             it 'generates code to extract the callback and the other parameters'
-                generate statements from (cb).should.equal "var gen1_arguments=Array.prototype.slice.call(args,0,args.length-1);gen2_callback=args[args.length-1];if(!(gen2_callback instanceof Function)){throw new Error('asynchronous function called synchronously');}a=gen1_arguments[0];b=gen1_arguments[1];gen1_arguments;"
+                generate statements from (cb).should.equal "var gen1_arguments=Array.prototype.slice.call(args,0,args.length-1);continuation=args[args.length-1];if(!(continuation instanceof Function)){throw new Error('asynchronous function called synchronously');}a=gen1_arguments[0];b=gen1_arguments[1];gen1_arguments;"
