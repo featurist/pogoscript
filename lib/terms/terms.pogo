@@ -254,7 +254,7 @@ module.exports (cg) =
 
             self.walk descendants @(term)
                 found := term.is continuation @or found
-            (limit (term): term.is closure)
+            (limit (term): term.is closure @and term.is async)
 
             found
 

@@ -334,3 +334,21 @@ describe 'async'
 
                    print (f!)
                    done ()' should output ("'result'", done)
+
+        it 'can be called within another closure' @(done)
+            async 'g (block) = block ("result")
+
+                   f! = g @(result)
+                       continuation (nil, result)
+
+                   print (f!)
+                   done ()' should output ("'result'", done)
+
+        it "but can't be called within another async closure" @(done)
+            async 'g! (block) = "g #(block!)"
+
+                   f! = g!
+                       continuation (nil, "result")
+
+                   print (f!)
+                   done ()' should output ("'g result'", done)
