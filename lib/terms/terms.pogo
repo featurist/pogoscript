@@ -249,17 +249,17 @@ module.exports (cg) =
 
         make async with callback for result (create callback for result) = nil
 
+        contains continuation () =
+            found = false
+
+            self.walk descendants @(term)
+                found := term.is continuation @or found
+            (limit (term): term.is closure)
+
+            found
+
         rewrite result term into (return term) =
-            contains continuation =
-                found = false
-
-                self.walk descendants @(term)
-                    found := term.is continuation @or found
-                (limit (term): term.is closure)
-
-                found
-
-            if (contains continuation)
+            if (self.contains continuation ())
                 self
             else
                 return term (self)

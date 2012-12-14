@@ -58,7 +58,11 @@ module.exports (terms) =
 
         generate java script statement (args, ...) = self.generate java script (args, ...)
 
-        rewrite result term into (return term) = nil
+        rewrite result term into (return term) =
+            if (self.contains continuation ())
+                self
+            else
+                nil
     }
 
     for expression (init, test, incr, body) =

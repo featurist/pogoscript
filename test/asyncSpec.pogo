@@ -243,6 +243,16 @@ describe 'async'
                    
                    f! ()
                    done ()" should output ("'loop'\n'loop'\n'loop'", done)
+
+        it "doesn't return as last statement if body contains continuation" @(done)
+            async "repeat! (times) times =
+                       for (n = 0, n < times, ++n)
+                           continuation (nil, n)
+
+                   n = repeat! 1 times
+
+                   print (n)
+                   done ()" should output ("0", done)
             
     describe 'for each expression'
         it 'executes each loop one after the other' @(done)
@@ -262,6 +272,16 @@ describe 'async'
                    
                    f! ()
                    done ()" should output ("'before: 0'\n'after: 0'\n'before: 1'\n'after: 1'\n'before: 2'\n'after: 2'", done)
+
+        it "doesn't return as last statement if body contains continuation" @(done)
+            async "repeat! (times) times =
+                       for each @(n) in [0]
+                           continuation (nil, n)
+
+                   n = repeat! 1 times
+
+                   print (n)
+                   done ()" should output ("0", done)
             
     describe 'for in expression'
         it "completes the function as the last statement" @(done)
@@ -271,6 +291,16 @@ describe 'async'
                    
                    f! ()
                    done ()" should output ("'a'\n'b'", done)
+
+        it "doesn't return as last statement if body contains continuation" @(done)
+            async "repeat! (times) times =
+                       for @(n) in {a = 1}
+                           continuation (nil, n)
+
+                   n = repeat! 1 times
+
+                   print (n)
+                   done ()" should output ("'a'", done)
 
     describe 'splat arguments'
         it 'can handle splat arguments in an async function' @(done)
