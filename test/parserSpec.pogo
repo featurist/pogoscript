@@ -11,10 +11,16 @@ describe 'parser'
         terms := create terms ()
 
     describe 'terminals'
-        it 'integer'
-            (expression '5') should contain fields {
-                integer 5
-            }
+        describe 'integers'
+            it 'can parse 5'
+                (expression '5') should contain fields {
+                    integer 5
+                }
+
+            it 'can parse 09'
+                (expression '09') should contain fields {
+                    integer 9
+                }
 
         it 'float'
             (expression '5.6') should contain fields {
