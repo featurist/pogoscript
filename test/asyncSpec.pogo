@@ -296,3 +296,11 @@ describe 'async'
 
                    print (f!)
                    done ()' should output ("'result'", done)
+
+        it 'can be passed to another function as the callback' @(done)
+            async 'g! = "result"
+
+                   f! = g (continuation)
+
+                   print (f!)
+                   done ()' should output ("'result'", done)

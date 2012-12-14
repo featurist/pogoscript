@@ -64,12 +64,6 @@ module.exports (terms) =
         make async call with callback (callback) =
             self.async callback argument = callback
             self
-
-        rewrite result term into (return term, async: false) =
-            if (async @and self.function == terms.callback function)
-                self
-            else
-                return term (self)
     }
 
     function call (
