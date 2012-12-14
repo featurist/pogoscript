@@ -183,6 +183,15 @@ describe 'async'
                    print "four"
                    done ()' should output ("'three'\n'four'", done)
 
+        context 'without else clause inside async function'
+            it 'returns via callback when condition is false' @(done)
+                async 'f! =
+                           if (false)
+                               "result"
+
+                       f!
+                       done ()' should output ('', done)
+
     describe 'try statements'
         it "waits for the body to finish" @(done)
             async 'try

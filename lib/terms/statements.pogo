@@ -17,10 +17,10 @@ module.exports (terms) = terms.term {
             statement = statements.(s)
             statement.generate java script statement (buffer, scope)
 
-    rewrite result term into (return term) =
+    rewrite result term into (return term, async: false) =
         if (self.statements.length > 0)
             last statement = self.statements.(self.statements.length - 1)
-            rewritten last statement = last statement.rewrite result term @(term) into
+            rewritten last statement = last statement.rewrite result term @(term) into (async: async)
                 return term (term)
 
             if (rewritten last statement)
@@ -29,7 +29,7 @@ module.exports (terms) = terms.term {
                 self.statements.push (return term (terms.nil ()))
 
     rewrite last statement to return (async: false) =
-        self.rewrite result term @(term) into
+        self.rewrite result term @(term) into (async: async)
             if (async)
                 terms.function call (terms.callback function, [terms.nil (), term])
             else

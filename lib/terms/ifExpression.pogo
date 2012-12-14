@@ -30,12 +30,16 @@ module.exports (terms) =
             self.generate java script statement (buffer, scope)
             buffer.write '})()'
 
-        rewrite result term into (return term) =
+        rewrite result term into (return term, async: false) =
             for each @(_case) in (self.cases)
                 _case.body.rewrite result term into (return term)
 
             if (self.else body)
                 self.else body.rewrite result term into (return term)
+            else if (async)
+                self.else body = terms.statements [
+                    terms.function call (terms.callback function, [])
+                ]
 
             self
     }
