@@ -12,5 +12,15 @@ module.exports (terms) = terms.term {
         else
             buffer.write ('return;')
     
-    rewrite result term into (return term) = self
+    rewrite result term into (return term, async: false) =
+        if (async)
+            arguments =
+                if (self.expression)
+                    [terms.nil (), self.expression]
+                else
+                    []
+
+            terms.function call (terms.callback function, arguments)
+        else
+            self
 }

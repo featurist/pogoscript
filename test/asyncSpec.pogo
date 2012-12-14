@@ -279,3 +279,12 @@ describe 'async'
 
                    print (f! (1, 2, 3))
                    done ()" should output ("[ 1, 2, 3 ]", done)
+
+    describe 'return'
+        context 'when in an async function'
+            it 'is rewritten to call the callback' @(done)
+                async 'f! =
+                           return "result"
+
+                       print (f!)
+                       done ()' should output ("'result'", done)
