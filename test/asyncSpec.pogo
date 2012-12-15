@@ -416,17 +416,16 @@ describe 'async'
                        done ()' should output ("'result'", done)
 
             it "raises error if async call raises error" @(done)
-                async 'g (callback) = callback (@new Error "argh!")
+                async 'e (callback) = callback (@new Error "argh!")
                 
                        f! =
-                           if (false)
-                               continuation (nil, "result")
+                           continuation (nil, "result")
+                           e!
 
-                           g!
+                       f @(error, result)
+                           if (result)
+                               print (result)
 
-                       try
-                           print (f!)
-                       catch (err)
-                           print (err.message)
-
-                       done ()' should output ("'argh!'", done)
+                           if (error)
+                               print (error.message)
+                               done ()' should output ("'result'\n'argh!'", done)

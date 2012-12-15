@@ -20,7 +20,7 @@ module.exports (terms) =
                             [{
                                 condition = error variable
                                 body = terms.statements [
-                                    terms.throw statement (error variable)
+                                    terms.function call (terms.callback function, [error variable])
                                 ]
                             }]
                         )
