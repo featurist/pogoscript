@@ -3,11 +3,12 @@ module.exports (terms) =
         error variable = terms.generated variable ['error']
         catch error variable = terms.generated variable ['exception']
 
-        body.rewrite result term @(term) into
-            if (@not term.originally async)
-                terms.function call (terms.callback function, [terms.nil (), term])
-            else
-                term
+        if (@not body.contains continuation ())
+            body.rewrite result term @(term) into (async: true)
+                if (@not term.originally async)
+                    terms.function call (terms.callback function, [terms.nil (), term])
+                else
+                    term
             
         terms.closure (
             [error variable, result variable]

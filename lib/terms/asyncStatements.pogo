@@ -3,14 +3,48 @@ codegen utils = require('./codegenUtils')
 statements utils = require './statementsUtils'
 
 module.exports (terms) =
-    create callback with statements (callback statements, result variable: nil, force async: false, global: false) =
+    create callback with statements (
+        callback statements
+        result variable: nil
+        force async: false
+        global: false
+        contains continuation: contains continuation
+    ) =
         if ((callback statements.length == 1) && (callback statements.0.is async result))
-            terms.callback function
+            if (contains continuation)
+                error variable = terms.generated variable ['error']
+                terms.closure (
+                    [error variable]
+                    terms.statements [
+                        terms.if expression (
+                            [{
+                                condition = error variable
+                                body = terms.statements [
+                                    terms.throw statement (error variable)
+                                ]
+                            }]
+                        )
+                    ]
+                )
+            else
+                terms.callback function
         else
-            async stmts = put statements (callback statements) in callback for next async call (force async: force async, force not async: true, global: global)
+            async stmts = put statements (
+                callback statements
+            ) in callback for next async call (
+                force async: force async
+                force not async: true
+                global: global
+            )
             terms.async callback (async stmts, result variable: result variable)
 
     put statements in callback for next async call (statements, force async: false, force not async: false, global: false) =
+        contains continuation =
+            if (statements.length > 0)
+                [stmt.contains continuation (), where: stmt <- statements].reduce @(l, r) @{l @or r}
+            else
+                false
+
         for (n = 0, n < statements.length, ++n)
             statement = statements.(n)
             async statement = statement.make async with callback for result @(result variable)
@@ -19,6 +53,7 @@ module.exports (terms) =
                     result variable: result variable
                     force async: force async
                     global: global
+                    contains continuation: contains continuation
                 )
 
             if (async statement)
@@ -31,5 +66,4 @@ module.exports (terms) =
 
     async statements (statements, force async: false, global: false) =
         serialised statements = statements utils.serialise statements (statements)
-
         put statements (serialised statements) in callback for next async call (force async: force async, global: global)

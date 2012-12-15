@@ -28,9 +28,5 @@ module.exports (terms) = terms.term {
 
     generate java script statement (args, ...) = self.generate java script (args, ...)
 
-    rewrite result term into (return term) =
-        if (self.contains continuation () @or self.statements.expression.function.contains continuation ())
-            self
-        else
-            nil
+    rewrite result term into (return term) = nil
 }

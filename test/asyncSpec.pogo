@@ -352,3 +352,81 @@ describe 'async'
 
                    print (f!)
                    done ()' should output ("'g result'", done)
+
+        context 'when not the last statement'
+            it "the callback isn't called on the last statement" @(done)
+                async 'f! =
+                           continuation (nil, "result")
+                           "non result"
+
+                       print (f!)
+                       done ()' should output ("'result'", done)
+
+        context 'when continuation is after async call'
+            it "doesn't call the callback on the last statement" @(done)
+                async 'g! = "result"
+                
+                       f! =
+                           g!
+                           continuation (nil, "result")
+                           "non result"
+
+                       print (f!)
+                       done ()' should output ("'result'", done)
+
+            context 'and the async call raises an error'
+                it "raises an error on the callback" @(done)
+                    async 'g (callback) = callback (@new Error "argh!")
+                    
+                           f! =
+                               g!
+                               continuation (nil, "result")
+                               "non result"
+
+                           try
+                               f!
+                           catch (e)
+                               print (e.message)
+
+                           done ()' should output ("'argh!'", done)
+
+        context 'when continuation is in the body and an exception is thrown'
+            it "raises the exception" @(done)
+                async 'f! =
+                           @throw @new Error "argh!"
+                           continuation (nil, "result")
+                           "non result"
+
+                       try
+                           f!
+                       catch (e)
+                           print (e.message)
+
+                       done ()' should output ("'argh!'", done)
+
+        context 'when continuation is in the body, and async call is last'
+            it "doesn't return on the last statement" @(done)
+                async 'g! = "non result"
+                
+                       f! =
+                           continuation (nil, "result")
+                           g!
+
+                       print (f!)
+                       done ()' should output ("'result'", done)
+
+            it "raises error if async call raises error" @(done)
+                async 'g (callback) = callback (@new Error "argh!")
+                
+                       f! =
+                           if (false)
+                               continuation (nil, "result")
+
+                           g!
+
+                       try
+                           print (f!)
+                       catch (err)
+                           print (err.message)
+
+                       done ()' should output ("'argh!'", done)

@@ -29,8 +29,10 @@ module.exports (terms) = terms.term {
                 self.statements.push (return term (terms.nil ()))
 
     rewrite last statement to return (async: false) =
+        contains continuation = self.contains continuation ()
+
         self.rewrite result term @(term) into (async: async)
-            if (async)
+            if (async @and @not contains continuation)
                 terms.function call (terms.callback function, [terms.nil (), term])
             else
                 terms.return statement (term, implicit: true)
