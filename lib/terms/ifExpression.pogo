@@ -48,7 +48,7 @@ module.exports (terms) =
         any async cases = _.any (cases) @(_case)
             _case.body.is async
 
-        if (any async cases || (else body && else body.is async))
+        if (any async cases @or else body @and else body.is async)
             if (cases.length > 1)
                 case for condition (condition) and body (body) =
                     terms.hash [
