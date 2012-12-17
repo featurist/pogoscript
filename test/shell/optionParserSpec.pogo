@@ -1,4 +1,4 @@
-option parser = require '../lib/optionParser'
+option parser = require '../../lib/optionParser'
 should = require 'should'
 
 describe 'option parser'
