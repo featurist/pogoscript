@@ -1,8 +1,8 @@
-current continuation (callback) =
-    continuation () =
-        callback (nil, continuation)
+current continuation! () =
+    cont () =
+        continuation (nil, cont)
 
-    callback (nil, continuation)
+    continuation (nil, cont)
 
 n = 0
 
