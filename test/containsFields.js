@@ -31,7 +31,7 @@ var containsFields = exports.containsFields = function (actual, expected, key, o
     assert.ok(actual, message());
 
     containsFields(actual.length, expected.length, field('length'), originalActual);
-    for (var n in expected) {
+    for (var n = 0; n < expected.length; n++) {
       containsFields(actual[n], expected[n], index(n), originalActual);
     }
   } else if (_.isObject(expected)) {

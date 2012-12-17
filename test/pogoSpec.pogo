@@ -1,4 +1,4 @@
-pogo = require '../lib/parser/commandLine'
+pogo = require '../lib/parser/compiler'
 should = require 'should'
 
 describe 'pogo'

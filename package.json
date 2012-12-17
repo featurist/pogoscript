@@ -30,7 +30,8 @@
     "devDependencies": {
         "mocha": "",
         "should": "",
-        "jison": ""
+        "jison": "",
+        "browserify": ""
     },
     "dependencies": {
         "underscore": "",

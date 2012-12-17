@@ -18,6 +18,11 @@ wip : wip-tests
 wip-tests :
 	mocha -g @wip test/*Spec.* test/*/*Spec.*
 
+test/pogo.js : browser-test
+
+browser-test :
+	pogo lib/tools/bundle.pogo > test/pogo.js
+
 clean:
 	for subdir in src/bootstrap lib; do \
 		$(MAKE) -C $$subdir clean; \

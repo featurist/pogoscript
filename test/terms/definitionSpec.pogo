@@ -1,6 +1,7 @@
 terms = require '../../lib/parser/codeGenerator'.code generator ()
 should = require 'should'
 codegen utils = require '../../lib/terms/codegenUtils'
+equals = require '../containsFields'.contains fields
 
 describe 'definitions'
     variables = nil
@@ -25,7 +26,7 @@ describe 'definitions'
 
             it 'should declare the variable'
                 def.declare variables (variables, scope)
-                variables.unique variables ().should.eql ['aB']
+                (variables.unique variables ()) equals ['aB']
 
             context 'and when already in scope'
                 before each
@@ -33,11 +34,11 @@ describe 'definitions'
 
                 it 'should still declare the variable'
                     def.declare variables (variables, scope)
-                    variables.unique variables ().should.eql ['aB']
+                    (variables.unique variables ()) equals ['aB']
 
         it 'should declare the variable'
             def.declare variables (variables, scope)
-            variables.unique variables ().should.eql ['aB']
+            (variables.unique variables ()) equals ['aB']
 
         context 'and when already in scope'
             before each
@@ -63,4 +64,4 @@ describe 'definitions'
 
                 it 'should not declare the variable'
                     def.declare variables (variables, scope)
-                    variables.unique variables ().should.eql []
+                    (variables.unique variables ()) equals []
