@@ -1,0 +1,27 @@
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 1,
+    "pending": 0,
+    "failures": 0,
+    "start": "2012-12-31T01:55:35.455Z",
+    "end": "2012-12-31T01:55:36.958Z",
+    "duration": 1503
+  },
+  "tests": [
+    {
+      "title": "looks up a macro",
+      "fullTitle": "macro directory looks up a macro",
+      "duration": 1502
+    }
+  ],
+  "failures": [],
+  "passes": [
+    {
+      "title": "looks up a macro",
+      "fullTitle": "macro directory looks up a macro",
+      "duration": 1502
+    }
+  ]
+}

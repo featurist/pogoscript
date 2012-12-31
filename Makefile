@@ -32,3 +32,7 @@ clean:
 	for subdir in src/bootstrap lib; do \
 		$(MAKE) -C $$subdir clean; \
 	done
+
+perf:
+	mocha --reporter json test/macroDirectoryPerfSpec.pogo > test/macroDirectoryPerfSpec.json
+	cat test/macroDirectoryPerfSpec.json | grep duration
