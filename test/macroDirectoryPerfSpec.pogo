@@ -1,5 +1,6 @@
 terms = require '../lib/parser/codeGenerator'.code generator ()
-macro directory () = terms.macro directory ()
+create macro directory = require '../lib/macroDirectoryPerf'
+macro directory () = create macro directory (terms)
 
 describe 'macro directory'
     md = nil
