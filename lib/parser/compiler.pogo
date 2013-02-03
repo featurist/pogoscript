@@ -4,8 +4,10 @@ uglify = require 'uglify-js'
 create terms () = require './codeGenerator'.code generator ()
 
 beautify (code) =
-    ast = uglify.parser.parse (code)
-    uglify.uglify.gen_code (ast, beautify: true)
+    ast = uglify.parse (code)
+    stream = uglify.Output Stream (beautify: true)
+    ast.print (stream)
+    stream.to string ()
 
 generate code (term) =
     memory stream = new (ms.MemoryStream)

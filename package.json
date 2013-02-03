@@ -31,10 +31,11 @@
         "mocha": "",
         "should": "",
         "jison": "",
-        "browserify": ""
+        "browserify": "",
+        "glob": ""
     },
     "dependencies": {
-        "underscore": "",
-        "uglify-js": "~1.3"
+        "underscore": "1.4.4",
+        "uglify-js": "2.2.4"
     }
 }
