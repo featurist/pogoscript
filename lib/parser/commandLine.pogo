@@ -99,7 +99,7 @@ exports.repl () =
             callback ()
         else
             try
-                context.(terms.callback function.gen var) = callback
+                context.(terms.callback function.canonical name ()) = callback
                 result = vm.run (js) in context (context) (filename)
             catch (error)
                 callback (error)

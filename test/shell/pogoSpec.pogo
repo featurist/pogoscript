@@ -32,7 +32,7 @@ write file (filename, content, done) =
     fs.write file ("#(__dirname)/#(filename)", content, done)
 
 expand pogo command (command) =
-    if (r/^pogo /.test (command))
+    if (r/^pogo( |$)/.test (command))
         pogo = __dirname + "/../../bin/pogo"
 
         command.replace r/^pogo/ (pogo)
@@ -66,7 +66,7 @@ describe 'pogo --compile'
 (n)ms = n
 (n)s = n * 1000
 
-after (milliseconds, do something) =
+wait (milliseconds, do something) =
     set timeout (do something, milliseconds)
 
 unlink! (file) =
@@ -108,7 +108,7 @@ describe 'pogo --compile --if-stale'
 
     it 'compiles a pogo script if the js is out of date'
         write file! "toCompile.js" "console.log('old')"
-        after! (1s)
+        wait! (1s)
         write file! "toCompile.pogo" "console.log 'new'"
 
         pogo output = run! "pogo -cs toCompile.pogo"
@@ -121,7 +121,7 @@ describe 'pogo --compile --if-stale'
 
     it "doesn't recompile the js if it the pogo is older"
         write file! "toCompile.pogo" "console.log 'pogo'"
-        after! (1s)
+        wait! (1s)
         write file! "toCompile.js" "console.log('js')"
 
         pogo output = run! "pogo -cs toCompile.pogo"
@@ -139,3 +139,58 @@ describe 'debugging'
             pogo output = run! 'pogo --debug toDebug.pogo'
             pogo output.stderr.should.equal "debugger listening on port 5858\n"
             pogo output.stdout.should.equal "bug!\n"
+
+describe '`pogo` (interactive)'
+    util = require 'util'
+
+    pogo session () =
+        pogo = child process.spawn (expand pogo command 'pogo', []) {
+            cwd = __dirname
+            stdio = 'pipe'
+        }
+
+        handle result = nil
+        current output = ''
+        first prompt = true
+
+        pogo.stdout.on 'data' @(data)
+            out = data.to string ()
+            current output := current output + out
+            if (r/^> $/m.test (current output))
+                command output = current output.replace (r/\n?> $/, '')
+                current output := ''
+                debugger
+                if (first prompt)
+                    first prompt := false
+                else
+                    handle result (command output)
+
+        pogo.stderr.on 'data' @(data)
+            console.log 'error'
+            console.log (data.to string ())
+
+        {
+            issue (command) and expect (result, done) =
+                handle result (actual result) :=
+                    actual result.should.equal (result)
+                    done ()
+
+                pogo.stdin.write "#(command)\n"
+
+            exit (done) =
+                pogo.on 'exit' @(code)
+                    done (nil, code)
+
+                pogo.stdin.end ()
+        }
+
+    it 'evaluates a simple line of pogoscript'
+        pogo = pogo session ()
+        pogo.issue '8' and expect! '8'
+        pogo.exit!
+
+    it 'variables are shared among different lines'
+        pogo = pogo session ()
+        pogo.issue 'a = 8' and expect! '8'
+        pogo.issue 'a' and expect! '8'
+        pogo.exit!
