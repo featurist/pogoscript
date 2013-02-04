@@ -1,0 +1,24 @@
+diff --git b/lib/parser/jisonParser.js a/lib/parser/jisonParser.js
+index 4582824..a89b033 100644
+--- b/lib/parser/jisonParser.js
++++ a/lib/parser/jisonParser.js
+@@ -492,18 +492,4 @@ if (typeof require !== 'undefined' && typeof exports !== 'undefined') {
+ exports.parser = parser;
+ exports.Parser = parser.Parser;
+ exports.parse = function () { return parser.parse.apply(parser, arguments); }
+-exports.main = function commonjsMain(args) {
+-    if (!args[1])
+-        throw new Error('Usage: '+args[0]+' FILE');
+-    var source, cwd;
+-    if (typeof process !== 'undefined') {
+-        source = require('fs').readFileSync(require('path').resolve(args[1]), "utf8");
+-    } else {
+-        source = require("file").path(require("file").cwd()).join(args[1]).read({charset: "utf-8"});
+-    }
+-    return exports.parser.parse(source);
+-}
+-if (typeof module !== 'undefined' && require.main === module) {
+-  exports.main(typeof process !== 'undefined' ? process.argv.slice(1) : require("system").args);
+ }
+-}
+\ No newline at end of file
