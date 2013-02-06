@@ -7,7 +7,7 @@ cli.option("-u, --ugly don't prettify when compiling");
 cli.option("-l, --lex tokenise each file");
 cli.option("-w, --watch watch and compile files when they change");
 cli.option("-s, --if-stale only compile files if they are out of date");
-cli.option("-h, --help print herlp!");
+cli.option("-h, --help print help!");
 cli.option("--debug run the node debugger");
 cli.option("--debug-brk run the node debugger, breaking on the first line");
 options = cli.parse(process.argv.slice(2));

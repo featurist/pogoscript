@@ -86,6 +86,7 @@ describe 'pogo --help'
         pogo output.stdout.should.match r/usage:/
         pogo output.stdout.should.match r/--compile/
         pogo output.stdout.should.match r/--watch/
+        pogo output.stdout.should.match r/print help\!/
 
 describe 'pogo --compile --if-stale'
     before each
