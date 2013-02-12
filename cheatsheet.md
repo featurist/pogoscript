@@ -65,13 +65,17 @@ Or all on one line:
     map each @(name) in (names) into
         "<div class='name'>#(name)</div>"
 
-## Async Functions
+# Async
+
+See also [the rules](https://github.com/featurist/pogoscript/wiki/Async-Rules).
+
+## Async Function Calls
 
 Use the `!` operator:
 
     users.find by name! 'Jack'
 
-## Async Blocks
+## Passing Async Blocks
 
 Blocks that contain async calls expect an async callback as the last argument, works great in [mocha](http://visionmedia.github.com/mocha) tests:
 

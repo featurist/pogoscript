@@ -89,6 +89,8 @@ Make async operations behave as though they were synchronous with the `!` operat
 
 Async calls also play nicely with `try catch finally`, `if else`, `for`, `while` and friends, and it even works in the REPL. Even though the async operator mimics synchronous behaviour, it is intended to facilitate truly asynchronous code, such as this simple [async `ls` implementation](https://gist.github.com/3770212), or more freakily: [continuations](https://github.com/featurist/pogoscript/blob/master/src/samples/continuations.pogo).
 
+See [the rules](https://github.com/featurist/pogoscript/wiki/Async-Rules).
+
 ## Self
 
 The `self` variable, also known as `this` in JavaScript, is retained from a block's outer context:
@@ -166,6 +168,10 @@ What about a multi-line control structure?
 # Installation
 
 Pogoscript requires [node.js](http://nodejs.org/) and [npm](http://npmjs.org/).
+
+    npm install -g pogo
+
+Or to install local to your project:
 
     npm install pogo
 
