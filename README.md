@@ -8,7 +8,7 @@ Pogoscript is a programming language that emphasises readability, is friendly to
 
 Pogoscript requires [node.js](http://nodejs.org/) and [npm](http://npmjs.org/).
 
-    npm install pogo
+    npm install -g pogo
 
 # Usage
 
