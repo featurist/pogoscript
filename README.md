@@ -10,6 +10,10 @@ Pogoscript requires [node.js](http://nodejs.org/) and [npm](http://npmjs.org/).
 
     npm install -g pogo
 
+Or to install local to your project:
+
+    npm install pogo
+
 # Usage
 
 ## Interactive Prompt
