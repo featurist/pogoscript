@@ -380,6 +380,14 @@ describe 'parser'
                 ]
             }
 
+        it 'async operator and comma are separate operators'
+            (statements 'f!,a') should contain fields (
+                terms.async statements [
+                    terms.function call (terms.variable ['f'], [], async: true)
+                    terms.variable ['a']
+                ]
+            )
+
         it 'function call with no argument'
             (expression 'delete everything ()') should contain fields {
                 function {variable ['delete', 'everything']}
