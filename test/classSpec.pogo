@@ -1,4 +1,6 @@
-require '../lib/class'
+cls = require '../lib/class'
+class = cls.class
+class extending = cls.class extending
 
 describe 'class'
   it 'can create constructors that can be used in new'

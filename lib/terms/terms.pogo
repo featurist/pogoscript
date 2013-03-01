@@ -1,4 +1,5 @@
-require '../class'
+class = require '../class'.class
+class extending = require '../class'.class extending
 _ = require 'underscore'
 util = require 'util'
 

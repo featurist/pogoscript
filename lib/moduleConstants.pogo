@@ -1,3 +1,4 @@
+class = require './class'.class
 codegen utils = require './terms/codegenUtils'
 
 module.exports (terms) =
