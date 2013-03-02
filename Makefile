@@ -10,7 +10,7 @@ subdirs:
 
 test : non-wip-tests
 
-non-wip-tests :
+non-wip-tests : all
 	npm test
 
 wip : wip-tests
@@ -21,12 +21,12 @@ wip-tests :
 test/pogo.js : browser-test
 
 browser-test :
-	pogo lib/tools/bundle.pogo --test > test/pogo.js
+	pogo tools/bundle.pogo --test
 
 html/pogo.js : browser
 
-browser :
-	pogo lib/tools/bundle.pogo > html/pogo.js
+browser : all
+	pogo tools/bundle.pogo
 
 clean:
 	for subdir in src/bootstrap lib; do \

@@ -5,7 +5,7 @@ parser = require './jisonParser'.parser
 
 jison lexer = parser.lexer
 
-self.create parser (terms: terms) =
+exports.create parser (terms: terms) =
     
     {
         parse (source) =

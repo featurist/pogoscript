@@ -1,7 +1,6 @@
 class = require '../class'.class
 class extending = require '../class'.class extending
 _ = require 'underscore'
-util = require 'util'
 
 module.exports (cg) =
     Node = class {
@@ -199,6 +198,7 @@ module.exports (cg) =
         arguments () = self
 
         inspect term (depth: 20) =
+            util = require 'util'
             util.inspect (self, false, depth)
 
         show (desc: nil, depth: 20) =
