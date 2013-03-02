@@ -1,54 +1,215 @@
+;(function(){
+  
 
-(function(/*! Stitch !*/) {
-  if (!this.pogoscript) {
-    var modules = {}, cache = {}, require = function(name, root) {
-      var path = expand(root, name), module = cache[path], fn;
-      if (module) {
-        return module.exports;
-      } else if (fn = modules[path] || modules[path = expand(path, './index')]) {
-        module = {id: path, exports: {}};
-        try {
-          cache[path] = module;
-          fn(module.exports, function(name) {
-            return require(name, dirname(path));
-          }, module);
-          return module.exports;
-        } catch (err) {
-          delete cache[path];
-          throw err;
-        }
-      } else {
-        throw 'module \'' + name + '\' not found';
-      }
-    }, expand = function(root, name) {
-      var results = [], parts, part;
-      if (/^\.\.?(\/|$)/.test(name)) {
-        parts = [root, name].join('/').split('/');
-      } else {
-        parts = name.split('/');
-      }
-      for (var i = 0, length = parts.length; i < length; i++) {
-        part = parts[i];
-        if (part == '..') {
-          results.pop();
-        } else if (part != '.' && part != '') {
-          results.push(part);
-        }
-      }
-      return results.join('/');
-    }, dirname = function(path) {
-      return path.split('/').slice(0, -1).join('/');
-    };
-    this.pogoscript = function(name) {
-      return require(name, '');
-    }
-    this.pogoscript.define = function(bundle) {
-      for (var key in bundle)
-        modules[key] = bundle[key];
-    };
+/**
+ * hasOwnProperty.
+ */
+
+var has = Object.prototype.hasOwnProperty;
+
+/**
+ * Require the given path.
+ *
+ * @param {String} path
+ * @return {Object} exports
+ * @api public
+ */
+
+function require(path, parent, orig) {
+  var resolved = require.resolve(path);
+
+  // lookup failed
+  if (null == resolved) {
+    orig = orig || path;
+    parent = parent || 'root';
+    var err = new Error('Failed to require "' + orig + '" from "' + parent + '"');
+    err.path = orig;
+    err.parent = parent;
+    err.require = true;
+    throw err;
   }
-  return this.pogoscript.define;
-}).call(this)({"asyncControl": function(exports, require, module) {exports.try = function(body, catchBody, finallyBody, cb) {
+
+  var module = require.modules[resolved];
+
+  // perform real require()
+  // by invoking the module's
+  // registered function
+  if (!module.exports) {
+    module.exports = {};
+    module.client = module.component = true;
+    module.call(this, module.exports, require.relative(resolved), module);
+  }
+
+  return module.exports;
+}
+
+/**
+ * Registered modules.
+ */
+
+require.modules = {};
+
+/**
+ * Registered aliases.
+ */
+
+require.aliases = {};
+
+/**
+ * Resolve `path`.
+ *
+ * Lookup:
+ *
+ *   - PATH/index.js
+ *   - PATH.js
+ *   - PATH
+ *
+ * @param {String} path
+ * @return {String} path or null
+ * @api private
+ */
+
+require.resolve = function(path) {
+  if (path.charAt(0) === '/') path = path.slice(1);
+  var index = path + '/index.js';
+
+  var paths = [
+    path,
+    path + '.js',
+    path + '.json',
+    path + '/index.js',
+    path + '/index.json'
+  ];
+
+  for (var i = 0; i < paths.length; i++) {
+    var path = paths[i];
+    if (has.call(require.modules, path)) return path;
+  }
+
+  if (has.call(require.aliases, index)) {
+    return require.aliases[index];
+  }
+};
+
+/**
+ * Normalize `path` relative to the current path.
+ *
+ * @param {String} curr
+ * @param {String} path
+ * @return {String}
+ * @api private
+ */
+
+require.normalize = function(curr, path) {
+  var segs = [];
+
+  if ('.' != path.charAt(0)) return path;
+
+  curr = curr.split('/');
+  path = path.split('/');
+
+  for (var i = 0; i < path.length; ++i) {
+    if ('..' == path[i]) {
+      curr.pop();
+    } else if ('.' != path[i] && '' != path[i]) {
+      segs.push(path[i]);
+    }
+  }
+
+  return curr.concat(segs).join('/');
+};
+
+/**
+ * Register module at `path` with callback `definition`.
+ *
+ * @param {String} path
+ * @param {Function} definition
+ * @api private
+ */
+
+require.register = function(path, definition) {
+  require.modules[path] = definition;
+};
+
+/**
+ * Alias a module definition.
+ *
+ * @param {String} from
+ * @param {String} to
+ * @api private
+ */
+
+require.alias = function(from, to) {
+  if (!has.call(require.modules, from)) {
+    throw new Error('Failed to alias "' + from + '", it does not exist');
+  }
+  require.aliases[to] = from;
+};
+
+/**
+ * Return a require function relative to the `parent` path.
+ *
+ * @param {String} parent
+ * @return {Function}
+ * @api private
+ */
+
+require.relative = function(parent) {
+  var p = require.normalize(parent, '..');
+
+  /**
+   * lastIndexOf helper.
+   */
+
+  function lastIndexOf(arr, obj) {
+    var i = arr.length;
+    while (i--) {
+      if (arr[i] === obj) return i;
+    }
+    return -1;
+  }
+
+  /**
+   * The relative require() itself.
+   */
+
+  function localRequire(path) {
+    var resolved = localRequire.resolve(path);
+    return require(resolved, parent, path);
+  }
+
+  /**
+   * Resolve relative to the parent.
+   */
+
+  localRequire.resolve = function(path) {
+    var c = path.charAt(0);
+    if ('/' == c) return path.slice(1);
+    if ('.' == c) return require.normalize(p, path);
+
+    // resolve deps by returning
+    // the dep in the nearest "deps"
+    // directory
+    var segs = parent.split('/');
+    var i = lastIndexOf(segs, 'deps') + 1;
+    if (!i) i = 0;
+    path = segs.slice(0, i + 1).join('/') + '/deps/' + path;
+    return path;
+  };
+
+  /**
+   * Check if module is defined at `path`.
+   */
+
+  localRequire.exists = function(path) {
+    return has.call(require.modules, localRequire.resolve(path));
+  };
+
+  return localRequire;
+};
+
+  require.register("pogoscript/lib/asyncControl.js", function(exports, require, module){
+exports.try = function(body, catchBody, finallyBody, cb) {
   var callbackCalled = false;
 
   var callback = function (error, result) {
@@ -262,7 +423,10 @@ exports.for = function (test, incr, loop, cb) {
     cb(error);
   }
 };
-}, "class": function(exports, require, module) {(function() {
+
+});
+require.register("pogoscript/lib/class.js", function(exports, require, module){
+(function() {
     var self = this;
     exports.class = function(prototype) {
         var self = this;
@@ -302,7 +466,10 @@ exports.for = function (test, incr, loop, cb) {
         constructor.prototype = prototype;
         return constructor;
     };
-}).call(this);}, "codeGenerator": function(exports, require, module) {var _ = require('underscore');
+}).call(this);
+});
+require.register("pogoscript/lib/codeGenerator.js", function(exports, require, module){
+var _ = require('underscore');
 require('./parser/runtime');
 var codegenUtils = require('./terms/codegenUtils');
 
@@ -330,7 +497,10 @@ exports.oldTerm = function (members) {
   constructor.prototype = cg.termPrototype;
   return new constructor();
 };
-}, "debugPogo": function(exports, require, module) {(function() {
+
+});
+require.register("pogoscript/lib/debugPogo.js", function(exports, require, module){
+(function() {
     var self = this;
     var removeFrom, moveToHeadOf, nodeArguments;
     removeFrom = function(arg, args) {
@@ -369,7 +539,10 @@ exports.oldTerm = function (members) {
             customFds: [ 0, 1, 2 ]
         });
     };
-}).call(this);}, "macroDirectory": function(exports, require, module) {(function() {
+}).call(this);
+});
+require.register("pogoscript/lib/macroDirectory.js", function(exports, require, module){
+(function() {
     var self = this;
     var $class, _;
     $class = require("./class").class;
@@ -462,7 +635,10 @@ exports.oldTerm = function (members) {
             return new gen1_c;
         };
     };
-}).call(this);}, "memorystream": function(exports, require, module) {var MemoryStream = function () {
+}).call(this);
+});
+require.register("pogoscript/lib/memorystream.js", function(exports, require, module){
+var MemoryStream = function () {
   var buffer = [];
   
   this.write = function (str) {
@@ -494,7 +670,10 @@ exports.oldTerm = function (members) {
 };
 
 exports.MemoryStream = MemoryStream;
-}, "moduleConstants": function(exports, require, module) {(function() {
+
+});
+require.register("pogoscript/lib/moduleConstants.js", function(exports, require, module){
+(function() {
     var self = this;
     var $class, codegenUtils;
     $class = require("./class").class;
@@ -535,7 +714,10 @@ exports.MemoryStream = MemoryStream;
             }
         });
     };
-}).call(this);}, "optionParser": function(exports, require, module) {(function() {
+}).call(this);
+});
+require.register("pogoscript/lib/optionParser.js", function(exports, require, module){
+(function() {
     var self = this;
     var $class, BooleanOption, OptionParser;
     $class = require("./class").class;
@@ -702,7 +884,3420 @@ exports.MemoryStream = MemoryStream;
         var self = this;
         return new OptionParser;
     };
-}).call(this);}, "parser/basicExpression": function(exports, require, module) {var _ = require('underscore');
+}).call(this);
+});
+require.register("pogoscript/lib/symbolScope.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var UniqueNames, SymbolScope;
+    UniqueNames = function() {
+        var self = this;
+        var unique;
+        unique = 0;
+        self.generateName = function(name) {
+            var self = this;
+            unique = unique + 1;
+            return "gen" + unique + "_" + name;
+        };
+        return void 0;
+    };
+    SymbolScope = exports.SymbolScope = function(parentScope, gen1_options) {
+        var self = this;
+        var uniqueNames;
+        uniqueNames = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "uniqueNames") && gen1_options.uniqueNames !== void 0 ? gen1_options.uniqueNames : new UniqueNames();
+        var variables;
+        variables = {};
+        self.define = function(name) {
+            var self = this;
+            return variables[name] = true;
+        };
+        self.generateVariable = function(name) {
+            var self = this;
+            return uniqueNames.generateName(name);
+        };
+        self.isDefined = function(name) {
+            var self = this;
+            return variables.hasOwnProperty(name) || parentScope && parentScope.isDefined(name);
+        };
+        self.subScope = function() {
+            var self = this;
+            return new SymbolScope(self, {
+                uniqueNames: uniqueNames
+            });
+        };
+        return void 0;
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/versions.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var _;
+    _ = require("underscore");
+    exports.isLessThan = function(a, b) {
+        var self = this;
+        var parseVersion, compare, gen1_items, gen2_i, gen3_forResult;
+        parseVersion = function(v) {
+            if (v[0] === "v") {
+                v = v.substring(1);
+            }
+            return v.split(".");
+        };
+        compare = function(v1, v2) {
+            if (v1 > v2) {
+                return 1;
+            } else if (v2 > v1) {
+                return -1;
+            } else {
+                return 0;
+            }
+        };
+        gen1_items = _.zip(parseVersion(a), parseVersion(b));
+        for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
+            gen3_forResult = void 0;
+            if (function(gen2_i) {
+                var versionNumbers, comparison;
+                versionNumbers = gen1_items[gen2_i];
+                comparison = compare(versionNumbers[0], versionNumbers[1]);
+                if (comparison) {
+                    gen3_forResult = comparison < 0;
+                    return true;
+                }
+            }(gen2_i)) {
+                return gen3_forResult;
+            }
+        }
+        return false;
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/argumentList.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(args) {
+                var self = this;
+                self.isArgumentList = true;
+                return self.args = args;
+            },
+            arguments: function() {
+                var self = this;
+                return self.args;
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/argumentUtils.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return {
+            asyncifyArguments: function(arguments, optionalArguments) {
+                var self = this;
+                var gen1_items, gen2_i, arg, gen3_items, gen4_i, optArg;
+                gen1_items = arguments;
+                for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
+                    arg = gen1_items[gen2_i];
+                    arg.asyncify();
+                }
+                gen3_items = optionalArguments;
+                for (gen4_i = 0; gen4_i < gen3_items.length; ++gen4_i) {
+                    optArg = gen3_items[gen4_i];
+                    optArg.asyncify();
+                }
+                return void 0;
+            },
+            asyncifyBody: function(body, args) {
+                var self = this;
+                var closure;
+                if (body) {
+                    closure = terms.closure(args || [], body);
+                    closure.asyncify();
+                    return closure;
+                } else {
+                    return terms.nil();
+                }
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/asyncArgument.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function() {
+                var self = this;
+                return self.isAsyncArgument = true;
+            },
+            arguments: function() {
+                var self = this;
+                return [];
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/asyncCallback.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        var asyncCallback;
+        return asyncCallback = function(body, gen1_options) {
+            var resultVariable;
+            resultVariable = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "resultVariable") && gen1_options.resultVariable !== void 0 ? gen1_options.resultVariable : void 0;
+            var errorVariable, catchErrorVariable;
+            errorVariable = terms.generatedVariable([ "error" ]);
+            catchErrorVariable = terms.generatedVariable([ "exception" ]);
+            if (!body.containsContinuation()) {
+                body.rewriteResultTermInto(function(term) {
+                    if (!term.originallyAsync) {
+                        return terms.functionCall(terms.callbackFunction, [ terms.nil(), term ]);
+                    } else {
+                        return term;
+                    }
+                }, {
+                    async: true
+                });
+            }
+            return terms.closure([ errorVariable, resultVariable ], terms.statements([ terms.ifExpression([ {
+                condition: errorVariable,
+                body: terms.statements([ terms.functionCall(terms.callbackFunction, [ errorVariable ]) ])
+            } ], terms.statements([ terms.tryExpression(body, {
+                catchParameter: catchErrorVariable,
+                catchBody: terms.statements([ terms.functionCall(terms.callbackFunction, [ catchErrorVariable ]) ])
+            }) ])) ]), {
+                returnLastStatement: false
+            });
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/asyncResult.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        var asyncResult;
+        return asyncResult = function() {
+            var resultVariable;
+            resultVariable = terms.generatedVariable([ "async", "result" ]);
+            resultVariable.isAsyncResult = true;
+            return resultVariable;
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/asyncStatements.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var _, codegenUtils, statementsUtils;
+    _ = require("underscore");
+    codegenUtils = require("./codegenUtils");
+    statementsUtils = require("./statementsUtils");
+    module.exports = function(terms) {
+        var self = this;
+        var createCallbackWithStatements, putStatementsInCallbackForNextAsyncCall, asyncStatements;
+        createCallbackWithStatements = function(callbackStatements, gen1_options) {
+            var resultVariable, forceAsync, global, containsContinuation;
+            resultVariable = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "resultVariable") && gen1_options.resultVariable !== void 0 ? gen1_options.resultVariable : void 0;
+            forceAsync = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "forceAsync") && gen1_options.forceAsync !== void 0 ? gen1_options.forceAsync : false;
+            global = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "global") && gen1_options.global !== void 0 ? gen1_options.global : false;
+            containsContinuation = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "containsContinuation") && gen1_options.containsContinuation !== void 0 ? gen1_options.containsContinuation : containsContinuation;
+            var errorVariable, asyncStmts;
+            if (callbackStatements.length === 1 && callbackStatements[0].isAsyncResult) {
+                if (containsContinuation) {
+                    errorVariable = terms.generatedVariable([ "error" ]);
+                    return terms.closure([ errorVariable ], terms.statements([ terms.ifExpression([ {
+                        condition: errorVariable,
+                        body: terms.statements([ terms.functionCall(terms.callbackFunction, [ errorVariable ]) ])
+                    } ]) ]));
+                } else {
+                    return terms.callbackFunction;
+                }
+            } else {
+                asyncStmts = putStatementsInCallbackForNextAsyncCall(callbackStatements, {
+                    forceAsync: forceAsync,
+                    forceNotAsync: true,
+                    global: global
+                });
+                return terms.asyncCallback(asyncStmts, {
+                    resultVariable: resultVariable
+                });
+            }
+        };
+        putStatementsInCallbackForNextAsyncCall = function(statements, gen2_options) {
+            var forceAsync, forceNotAsync, global;
+            forceAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "forceAsync") && gen2_options.forceAsync !== void 0 ? gen2_options.forceAsync : false;
+            forceNotAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "forceNotAsync") && gen2_options.forceNotAsync !== void 0 ? gen2_options.forceNotAsync : false;
+            global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
+            var containsContinuation, n, gen3_forResult;
+            containsContinuation = function() {
+                if (statements.length > 0) {
+                    return function() {
+                        var gen4_results, gen5_items, gen6_i, stmt;
+                        gen4_results = [];
+                        gen5_items = statements;
+                        for (gen6_i = 0; gen6_i < gen5_items.length; ++gen6_i) {
+                            stmt = gen5_items[gen6_i];
+                            gen4_results.push(stmt.containsContinuation());
+                        }
+                        return gen4_results;
+                    }().reduce(function(l, r) {
+                        return l || r;
+                    });
+                } else {
+                    return false;
+                }
+            }();
+            for (n = 0; n < statements.length; ++n) {
+                gen3_forResult = void 0;
+                if (function(n) {
+                    var statement, asyncStatement, firstStatements;
+                    statement = statements[n];
+                    asyncStatement = statement.makeAsyncWithCallbackForResult(function(resultVariable) {
+                        return createCallbackWithStatements(statements.slice(n + 1), {
+                            resultVariable: resultVariable,
+                            forceAsync: forceAsync,
+                            global: global,
+                            containsContinuation: containsContinuation
+                        });
+                    });
+                    if (asyncStatement) {
+                        firstStatements = statements.slice(0, n);
+                        firstStatements.push(asyncStatement);
+                        gen3_forResult = terms.statements(firstStatements, {
+                            async: true && !forceNotAsync
+                        });
+                        return true;
+                    }
+                }(n)) {
+                    return gen3_forResult;
+                }
+            }
+            return terms.statements(statements, {
+                global: global,
+                async: forceAsync
+            });
+        };
+        return asyncStatements = function(statements, gen7_options) {
+            var forceAsync, global;
+            forceAsync = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "forceAsync") && gen7_options.forceAsync !== void 0 ? gen7_options.forceAsync : false;
+            global = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "global") && gen7_options.global !== void 0 ? gen7_options.global : false;
+            var serialisedStatements;
+            serialisedStatements = statementsUtils.serialiseStatements(statements);
+            return putStatementsInCallbackForNextAsyncCall(serialisedStatements, {
+                forceAsync: forceAsync,
+                global: global
+            });
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/boolean.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(cg) {
+        var self = this;
+        return cg.term({
+            constructor: function(value) {
+                var self = this;
+                self.boolean = value;
+                return self.isBoolean = true;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                if (self.boolean) {
+                    return buffer.write("true");
+                } else {
+                    return buffer.write("false");
+                }
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/breakStatement.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function() {
+                var self = this;
+                return self.isBreak = true;
+            },
+            generateJavaScriptStatement: function(buffer, scope) {
+                var self = this;
+                return buffer.write("break;");
+            },
+            rewriteResultTermInto: function(returnTerm) {
+                var self = this;
+                return self;
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/closure.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var _, codegenUtils, blockParameters, selfParameter, splatParameters, parseSplatParameters, takeFromWhile;
+    _ = require("underscore");
+    codegenUtils = require("./codegenUtils");
+    module.exports = function(terms) {
+        var self = this;
+        var optionalParameters, optional, asyncParameters, containsSplatParameter, createSplatParameterStrategyFor, createOptionalParameterStrategyFor;
+        optionalParameters = function(optionalParameters, next) {
+            if (optionalParameters.length > 0) {
+                return {
+                    options: terms.generatedVariable([ "options" ]),
+                    parameters: function() {
+                        var self = this;
+                        return next.parameters().concat([ self.options ]);
+                    },
+                    statements: function() {
+                        var self = this;
+                        var optionalStatements;
+                        optionalStatements = _.map(optionalParameters, function(parm) {
+                            return terms.definition(terms.variable(parm.field), optional(self.options, parm.field, parm.value), {
+                                shadow: true
+                            });
+                        });
+                        return optionalStatements.concat(next.statements());
+                    },
+                    hasOptionals: true
+                };
+            } else {
+                return next;
+            }
+        };
+        optional = terms.term({
+            constructor: function(options, name, defaultValue) {
+                var self = this;
+                self.options = options;
+                self.name = name;
+                return self.defaultValue = defaultValue;
+            },
+            properDefaultValue: function() {
+                var self = this;
+                if (self.defaultValue === void 0) {
+                    return terms.variable([ "undefined" ]);
+                } else {
+                    return self.defaultValue;
+                }
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                buffer.write("(");
+                self.options.generateJavaScript(buffer, scope);
+                buffer.write("&&");
+                self.options.generateJavaScript(buffer, scope);
+                buffer.write(".hasOwnProperty('" + codegenUtils.concatName(self.name) + "')&&");
+                self.options.generateJavaScript(buffer, scope);
+                buffer.write("." + codegenUtils.concatName(self.name) + "!==void 0)?");
+                self.options.generateJavaScript(buffer, scope);
+                buffer.write("." + codegenUtils.concatName(self.name) + ":");
+                return self.properDefaultValue().generateJavaScript(buffer, scope);
+            }
+        });
+        asyncParameters = function(closure, next) {
+            return {
+                parameters: function() {
+                    var self = this;
+                    if (closure.isAsync) {
+                        return next.parameters().concat([ terms.callbackFunction ]);
+                    } else {
+                        return next.parameters();
+                    }
+                },
+                statements: function() {
+                    var self = this;
+                    return next.statements();
+                }
+            };
+        };
+        containsSplatParameter = function(closure) {
+            return _.any(closure.parameters, function(parameter) {
+                return parameter.isSplat;
+            });
+        };
+        createSplatParameterStrategyFor = function(closure) {
+            var nonSplatParams, before, splat, after;
+            nonSplatParams = takeFromWhile(closure.parameters, function(parameter) {
+                return !parameter.isSplat;
+            });
+            before = nonSplatParams.slice(0, nonSplatParams.length - 1);
+            splat = nonSplatParams[nonSplatParams.length - 1];
+            after = closure.parameters.slice(nonSplatParams.length + 1);
+            return terms.closureParameterStrategies.splatStrategy({
+                before: before,
+                splat: splat,
+                after: after
+            });
+        };
+        createOptionalParameterStrategyFor = function(closure) {
+            return terms.closureParameterStrategies.optionalStrategy({
+                before: closure.parameters,
+                options: closure.optionalParameters
+            });
+        };
+        return terms.term({
+            constructor: function(parameters, body, gen1_options) {
+                var self = this;
+                var optionalParameters, returnLastStatement, redefinesSelf, async;
+                optionalParameters = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "optionalParameters") && gen1_options.optionalParameters !== void 0 ? gen1_options.optionalParameters : [];
+                returnLastStatement = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "returnLastStatement") && gen1_options.returnLastStatement !== void 0 ? gen1_options.returnLastStatement : true;
+                redefinesSelf = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "redefinesSelf") && gen1_options.redefinesSelf !== void 0 ? gen1_options.redefinesSelf : false;
+                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
+                self.isBlock = true;
+                self.isClosure = true;
+                self.parameters = parameters;
+                self.body = body;
+                self.redefinesSelf = redefinesSelf;
+                self.optionalParameters = optionalParameters;
+                self.isAsync = async || body.isAsync;
+                return self.returnLastStatement = returnLastStatement;
+            },
+            blockify: function(parameters, gen2_options) {
+                var self = this;
+                var optionalParameters, async;
+                optionalParameters = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "optionalParameters") && gen2_options.optionalParameters !== void 0 ? gen2_options.optionalParameters : [];
+                async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
+                self.parameters = parameters;
+                self.optionalParameters = optionalParameters;
+                self.isAsync = self.isAsync || async;
+                return self;
+            },
+            scopify: function() {
+                var self = this;
+                if (self.parameters.length === 0 && self.optionalParameters.length === 0) {
+                    if (self.isAsync) {
+                        return terms.functionCall(terms.subExpression(self), [], {
+                            async: true
+                        });
+                    } else {
+                        return terms.scope(self.body.statements, {
+                            async: self.isAsync
+                        });
+                    }
+                } else {
+                    return self;
+                }
+            },
+            parameterTransforms: function() {
+                var self = this;
+                var optionals, async, splat;
+                if (self._parameterTransforms) {
+                    return self._parameterTransforms;
+                }
+                optionals = optionalParameters(self.optionalParameters, selfParameter(terms, self.redefinesSelf, blockParameters(self)));
+                async = asyncParameters(self, optionals);
+                splat = splatParameters(terms, async);
+                if (optionals.hasOptionals && splat.hasSplat) {
+                    terms.errors.addTermsWithMessage(self.optionalParameters, "cannot have splat parameters with optional parameters");
+                }
+                return self._parameterTransforms = splat;
+            },
+            transformedStatements: function() {
+                var self = this;
+                return terms.statements(self.parameterTransforms().statements());
+            },
+            transformedParameters: function() {
+                var self = this;
+                return self.parameterTransforms().parameters();
+            },
+            declareParameters: function(scope, parameters) {
+                var self = this;
+                var gen3_items, gen4_i, parameter;
+                gen3_items = parameters;
+                for (gen4_i = 0; gen4_i < gen3_items.length; ++gen4_i) {
+                    parameter = gen3_items[gen4_i];
+                    scope.define(parameter.canonicalName(scope));
+                }
+                return void 0;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                var parametersStrategy, parameters, bodyScope;
+                parametersStrategy = self.parametersStrategy();
+                self.rewriteResultTermToReturn();
+                buffer.write("function(");
+                parameters = parametersStrategy.namedParameters();
+                parametersStrategy.generateJavaScriptParameters(buffer, scope);
+                buffer.write("){");
+                bodyScope = scope.subScope();
+                self.declareParameters(bodyScope, parameters);
+                self.generateSelfAssignment(buffer);
+                parametersStrategy.generateJavaScriptParameterStatements(buffer, scope, terms.variable([ "arguments" ]));
+                self.body.generateJavaScriptStatements(buffer, bodyScope, {
+                    inClosure: true
+                });
+                return buffer.write("}");
+            },
+            generateSelfAssignment: function(buffer) {
+                var self = this;
+                if (self.redefinesSelf) {
+                    return buffer.write("var self=this;");
+                }
+            },
+            rewriteResultTermToReturn: function() {
+                var self = this;
+                if (self.returnLastStatement && !self.body.isAsync) {
+                    return self.body.rewriteLastStatementToReturn({
+                        async: self.isAsync
+                    });
+                }
+            },
+            asyncify: function() {
+                var self = this;
+                self.body.asyncify();
+                return self.isAsync = true;
+            },
+            parametersStrategy: function() {
+                var self = this;
+                var innerStrategy, strategy;
+                innerStrategy = function() {
+                    if (containsSplatParameter(self)) {
+                        return createSplatParameterStrategyFor(self);
+                    } else if (self.optionalParameters.length > 0) {
+                        return createOptionalParameterStrategyFor(self);
+                    } else {
+                        return terms.closureParameterStrategies.normalStrategy(self.parameters);
+                    }
+                }();
+                strategy = function() {
+                    if (self.isAsync) {
+                        return terms.closureParameterStrategies.callbackStrategy(innerStrategy);
+                    } else {
+                        return innerStrategy;
+                    }
+                }();
+                return terms.closureParameterStrategies.functionStrategy(strategy);
+            }
+        });
+    };
+    blockParameters = function(block) {
+        return {
+            parameters: function() {
+                var self = this;
+                return block.parameters;
+            },
+            statements: function() {
+                var self = this;
+                return block.body.statements;
+            }
+        };
+    };
+    selfParameter = function(cg, redefinesSelf, next) {
+        if (redefinesSelf) {
+            return {
+                parameters: function() {
+                    var self = this;
+                    return next.parameters();
+                },
+                statements: function() {
+                    var self = this;
+                    return [ cg.definition(cg.selfExpression(), cg.variable([ "this" ]), {
+                        shadow: true
+                    }) ].concat(next.statements());
+                }
+            };
+        } else {
+            return next;
+        }
+    };
+    splatParameters = function(cg, next) {
+        var parsedSplatParameters;
+        parsedSplatParameters = parseSplatParameters(cg, next.parameters());
+        return {
+            parameters: function() {
+                var self = this;
+                return parsedSplatParameters.firstParameters;
+            },
+            statements: function() {
+                var self = this;
+                var splat, lastIndex, splatParameter, lastParameterStatements, n, param;
+                splat = parsedSplatParameters;
+                if (splat.splatParameter) {
+                    lastIndex = "arguments.length";
+                    if (splat.lastParameters.length > 0) {
+                        lastIndex = lastIndex + " - " + splat.lastParameters.length;
+                    }
+                    splatParameter = cg.definition(splat.splatParameter, cg.javascript("Array.prototype.slice.call(arguments, " + splat.firstParameters.length + ", " + lastIndex + ")"), {
+                        shadow: true
+                    });
+                    lastParameterStatements = [ splatParameter ];
+                    for (n = 0; n < splat.lastParameters.length; ++n) {
+                        param = splat.lastParameters[n];
+                        lastParameterStatements.push(cg.definition(param, cg.javascript("arguments[arguments.length - " + (splat.lastParameters.length - n) + "]"), {
+                            shadow: true
+                        }));
+                    }
+                    return lastParameterStatements.concat(next.statements());
+                } else {
+                    return next.statements();
+                }
+            },
+            hasSplat: parsedSplatParameters.splatParameter
+        };
+    };
+    parseSplatParameters = module.exports.parseSplatParameters = function(cg, parameters) {
+        var self = this;
+        var firstParameters, maybeSplat, splatParam, lastParameters;
+        firstParameters = takeFromWhile(parameters, function(param) {
+            return !param.isSplat;
+        });
+        maybeSplat = parameters[firstParameters.length];
+        splatParam = void 0;
+        lastParameters = void 0;
+        if (maybeSplat && maybeSplat.isSplat) {
+            splatParam = firstParameters.pop();
+            splatParam.shadow = true;
+            lastParameters = parameters.slice(firstParameters.length + 2);
+            lastParameters = _.filter(lastParameters, function(param) {
+                if (param.isSplat) {
+                    cg.errors.addTermWithMessage(param, "cannot have more than one splat parameter");
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+        } else {
+            lastParameters = [];
+        }
+        return {
+            firstParameters: firstParameters,
+            splatParameter: splatParam,
+            lastParameters: lastParameters
+        };
+    };
+    takeFromWhile = function(list, canTake) {
+        var takenList, gen5_items, gen6_i, gen7_forResult;
+        takenList = [];
+        gen5_items = list;
+        for (gen6_i = 0; gen6_i < gen5_items.length; ++gen6_i) {
+            gen7_forResult = void 0;
+            if (function(gen6_i) {
+                var item;
+                item = gen5_items[gen6_i];
+                if (canTake(item)) {
+                    takenList.push(item);
+                } else {
+                    gen7_forResult = takenList;
+                    return true;
+                }
+            }(gen6_i)) {
+                return gen7_forResult;
+            }
+        }
+        return takenList;
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/closureParameterStrategies.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var _, codegenUtils;
+    _ = require("underscore");
+    codegenUtils = require("./codegenUtils");
+    module.exports = function(terms) {
+        var self = this;
+        return {
+            functionStrategy: function(strategy) {
+                var self = this;
+                return {
+                    strategy: strategy,
+                    generateJavaScriptParameters: function(buffer, scope) {
+                        var self = this;
+                        return codegenUtils.writeToBufferWithDelimiter(self.strategy.namedParameters(), ",", buffer, scope);
+                    },
+                    generateJavaScriptParameterStatements: function(buffer, scope, args) {
+                        var self = this;
+                        return self.strategy.generateJavaScriptParameterStatements(buffer, scope, args);
+                    },
+                    namedParameters: function() {
+                        var self = this;
+                        return strategy.namedParameters();
+                    }
+                };
+            },
+            normalStrategy: function(parameters) {
+                var self = this;
+                return {
+                    parameters: parameters,
+                    namedParameters: function() {
+                        var self = this;
+                        return self.parameters;
+                    },
+                    generateJavaScriptParameterStatements: function(buffer, scope, args) {
+                        var self = this;
+                        return void 0;
+                    }
+                };
+            },
+            splatStrategy: function(gen1_options) {
+                var self = this;
+                var before, splat, after;
+                before = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "before") && gen1_options.before !== void 0 ? gen1_options.before : void 0;
+                splat = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "splat") && gen1_options.splat !== void 0 ? gen1_options.splat : void 0;
+                after = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "after") && gen1_options.after !== void 0 ? gen1_options.after : void 0;
+                return {
+                    before: before,
+                    splat: splat,
+                    after: after,
+                    namedParameters: function() {
+                        var self = this;
+                        return self.before;
+                    },
+                    generateJavaScriptParameterStatements: function(buffer, scope, args) {
+                        var self = this;
+                        var n, afterArg, argsIndex;
+                        buffer.write("var ");
+                        self.splat.generateJavaScript(buffer, scope);
+                        buffer.write("=Array.prototype.slice.call(");
+                        args.generateJavaScript(buffer, scope);
+                        buffer.write("," + self.before.length + ",");
+                        args.generateJavaScript(buffer, scope);
+                        buffer.write(".length");
+                        if (self.after.length > 0) {
+                            buffer.write("-" + self.after.length);
+                        }
+                        buffer.write(");");
+                        if (before.length > 0 && after.length > 0) {
+                            buffer.write("if(");
+                            args.generateJavaScript(buffer, scope);
+                            buffer.write(".length>" + before.length + "){");
+                        }
+                        for (n = 0; n < self.after.length; ++n) {
+                            afterArg = self.after[n];
+                            argsIndex = self.after.length - n;
+                            buffer.write("var ");
+                            afterArg.generateJavaScript(buffer, scope);
+                            buffer.write("=");
+                            args.generateJavaScript(buffer, scope);
+                            buffer.write("[");
+                            args.generateJavaScript(buffer, scope);
+                            buffer.write(".length-" + argsIndex + "];");
+                        }
+                        if (before.length > 0 && after.length > 0) {
+                            return buffer.write("}");
+                        }
+                    }
+                };
+            },
+            optionalStrategy: function(gen2_options) {
+                var self = this;
+                var before, options;
+                before = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "before") && gen2_options.before !== void 0 ? gen2_options.before : void 0;
+                options = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "options") && gen2_options.options !== void 0 ? gen2_options.options : void 0;
+                return {
+                    before: before,
+                    options: options,
+                    optionsVariable: terms.generatedVariable([ "options" ]),
+                    namedParameters: function() {
+                        var self = this;
+                        return self.before.concat([ self.optionsVariable ]);
+                    },
+                    generateJavaScriptParameterStatements: function(buffer, scope, args) {
+                        var self = this;
+                        var optionNames, gen3_items, gen4_i, option, optionName;
+                        optionNames = _.map(self.options, function(option) {
+                            return codegenUtils.concatName(option.field);
+                        });
+                        buffer.write("var ");
+                        buffer.write(optionNames.join(","));
+                        buffer.write(";");
+                        gen3_items = self.options;
+                        for (gen4_i = 0; gen4_i < gen3_items.length; ++gen4_i) {
+                            option = gen3_items[gen4_i];
+                            optionName = codegenUtils.concatName(option.field);
+                            buffer.write(optionName + "=");
+                            self.optionsVariable.generateJavaScript(buffer, scope);
+                            buffer.write("!==void 0&&Object.prototype.hasOwnProperty.call(");
+                            self.optionsVariable.generateJavaScript(buffer, scope);
+                            buffer.write(",'" + optionName + "')&&");
+                            self.optionsVariable.generateJavaScript(buffer, scope);
+                            buffer.write("." + optionName + "!==void 0?");
+                            self.optionsVariable.generateJavaScript(buffer, scope);
+                            buffer.write("." + optionName + ":");
+                            option.value.generateJavaScript(buffer, scope);
+                            buffer.write(";");
+                        }
+                        return void 0;
+                    }
+                };
+            },
+            callbackStrategy: function(strategy) {
+                var self = this;
+                return {
+                    strategy: strategy,
+                    namedParameters: function() {
+                        var self = this;
+                        return self.strategy.namedParameters().concat(terms.callbackFunction);
+                    },
+                    generateJavaScriptParameterStatements: function(buffer, scope, args) {
+                        var self = this;
+                        var innerArgs, namedParameters, n, namedParam;
+                        innerArgs = terms.generatedVariable([ "arguments" ]);
+                        buffer.write("var ");
+                        innerArgs.generateJavaScript(buffer, scope);
+                        buffer.write("=Array.prototype.slice.call(");
+                        args.generateJavaScript(buffer, scope);
+                        buffer.write(",0,");
+                        args.generateJavaScript(buffer, scope);
+                        buffer.write(".length-1);");
+                        terms.callbackFunction.generateJavaScript(buffer, scope);
+                        buffer.write("=");
+                        args.generateJavaScript(buffer, scope);
+                        buffer.write("[");
+                        args.generateJavaScript(buffer, scope);
+                        buffer.write(".length-1];");
+                        buffer.write("if(!(");
+                        terms.callbackFunction.generateJavaScript(buffer, scope);
+                        buffer.write(" instanceof Function)){throw new Error('asynchronous function called synchronously');}");
+                        namedParameters = self.strategy.namedParameters();
+                        for (n = 0; n < namedParameters.length; ++n) {
+                            namedParam = self.strategy.namedParameters()[n];
+                            namedParam.generateJavaScript(buffer, scope);
+                            buffer.write("=");
+                            innerArgs.generateJavaScript(buffer, scope);
+                            buffer.write("[" + n + "];");
+                        }
+                        return self.strategy.generateJavaScriptParameterStatements(buffer, scope, innerArgs);
+                    }
+                };
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/codegenUtils.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var _, actualCharacters, nameSegmentRenderedInJavaScript, operatorRenderedInJavaScript, capitalise, reservedWords, escapeReservedWord;
+    _ = require("underscore");
+    exports.writeToBufferWithDelimiter = function(array, delimiter, buffer, scope) {
+        var self = this;
+        var writer, first;
+        writer = void 0;
+        if (scope instanceof Function) {
+            writer = scope;
+        } else {
+            writer = function(item) {
+                return item.generateJavaScript(buffer, scope);
+            };
+        }
+        first = true;
+        return _(array).each(function(item) {
+            if (!first) {
+                buffer.write(delimiter);
+            }
+            first = false;
+            return writer(item);
+        });
+    };
+    actualCharacters = [ [ /\\/g, "\\\\" ], [ new RegExp("\b"), "\\b" ], [ /\f/g, "\\f" ], [ /\n/g, "\\n" ], [ /\0/g, "\\0" ], [ /\r/g, "\\r" ], [ /\t/g, "\\t" ], [ /\v/g, "\\v" ], [ /'/g, "\\'" ], [ /"/g, '\\"' ] ];
+    exports.formatJavaScriptString = function(s) {
+        var self = this;
+        var gen1_items, gen2_i, mapping;
+        gen1_items = actualCharacters;
+        for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
+            mapping = gen1_items[gen2_i];
+            s = s.replace(mapping[0], mapping[1]);
+        }
+        return "'" + s + "'";
+    };
+    exports.concatName = function(nameSegments, options) {
+        var self = this;
+        var name, n, segment;
+        name = "";
+        for (n = 0; n < nameSegments.length; ++n) {
+            segment = nameSegments[n];
+            name = name + nameSegmentRenderedInJavaScript(segment, n === 0);
+        }
+        if (options && options.hasOwnProperty("escape") && options.escape) {
+            return escapeReservedWord(name);
+        } else {
+            return name;
+        }
+    };
+    nameSegmentRenderedInJavaScript = function(nameSegment, isFirst) {
+        if (/[_$a-zA-Z0-9]+/.test(nameSegment)) {
+            if (isFirst) {
+                return nameSegment;
+            } else {
+                return capitalise(nameSegment);
+            }
+        } else {
+            return operatorRenderedInJavaScript(nameSegment);
+        }
+    };
+    operatorRenderedInJavaScript = function(operator) {
+        var javaScriptName, n;
+        javaScriptName = "";
+        for (n = 0; n < operator.length; ++n) {
+            javaScriptName = javaScriptName + "$" + operator.charCodeAt(n).toString(16);
+        }
+        return javaScriptName;
+    };
+    capitalise = function(s) {
+        return s[0].toUpperCase() + s.substring(1);
+    };
+    reservedWords = {
+        "class": true,
+        "function": true,
+        "else": true,
+        "case": true,
+        "switch": true
+    };
+    escapeReservedWord = function(word) {
+        if (reservedWords.hasOwnProperty(word)) {
+            return "$" + word;
+        } else {
+            return word;
+        }
+    };
+    exports.concatArgs = function(args, gen3_options) {
+        var self = this;
+        var optionalArgs, asyncCallbackArg, terms;
+        optionalArgs = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "optionalArgs") && gen3_options.optionalArgs !== void 0 ? gen3_options.optionalArgs : void 0;
+        asyncCallbackArg = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "asyncCallbackArg") && gen3_options.asyncCallbackArg !== void 0 ? gen3_options.asyncCallbackArg : void 0;
+        terms = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "terms") && gen3_options.terms !== void 0 ? gen3_options.terms : void 0;
+        var a;
+        a = args.slice();
+        if (optionalArgs && optionalArgs.length > 0) {
+            a.push(terms.hash(optionalArgs));
+        }
+        if (asyncCallbackArg) {
+            a.push(asyncCallbackArg);
+        }
+        return a;
+    };
+    exports.normaliseOperatorName = function(name) {
+        var self = this;
+        var match;
+        match = /^@([a-z_$]+)$/i.exec(name);
+        if (match) {
+            return match[1];
+        } else {
+            return name;
+        }
+    };
+    exports.declaredVariables = function(scope) {
+        var self = this;
+        return {
+            variables: [],
+            scope: scope,
+            declare: function(variable) {
+                var self = this;
+                scope.define(variable);
+                return self.variables.push(variable);
+            },
+            isDeclared: function(variable) {
+                var self = this;
+                return scope.isDefined(variable);
+            },
+            uniqueVariables: function() {
+                var self = this;
+                return _.uniq(self.variables);
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/continueStatement.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function() {
+                var self = this;
+                return self.isContinue = true;
+            },
+            generateJavaScriptStatement: function(buffer, scope) {
+                var self = this;
+                return buffer.write("continue;");
+            },
+            rewriteResultTermInto: function(returnTerm) {
+                var self = this;
+                return self;
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/definition.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(target, source, gen1_options) {
+                var self = this;
+                var async, shadow, assignment;
+                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
+                shadow = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "shadow") && gen1_options.shadow !== void 0 ? gen1_options.shadow : false;
+                assignment = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "assignment") && gen1_options.assignment !== void 0 ? gen1_options.assignment : false;
+                self.isDefinition = true;
+                self.target = target;
+                self.source = source;
+                self.isAsync = async;
+                self.shadow = shadow;
+                return self.isAssignment = assignment;
+            },
+            expression: function() {
+                var self = this;
+                return self;
+            },
+            hashEntry: function() {
+                var self = this;
+                return self.cg.hashEntry(self.target.hashEntryField(), self.source);
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                self.target.generateJavaScriptTarget(buffer, scope);
+                buffer.write("=");
+                return self.source.generateJavaScript(buffer, scope);
+            },
+            declareVariables: function(variables) {
+                var self = this;
+                var name;
+                name = self.target.canonicalName(variables.scope);
+                if (name) {
+                    if (!self.isAssignment) {
+                        if (self.shadow || !variables.isDeclared(name)) {
+                            return variables.declare(name);
+                        } else if (variables.isDeclared(name)) {
+                            return terms.errors.addTermWithMessage(self, "variable " + self.target.displayName() + " is already defined, use := to reassign it");
+                        }
+                    } else if (!variables.isDeclared(name)) {
+                        return terms.errors.addTermWithMessage(self, "variable " + self.target.displayName() + " is not defined, use = to define it");
+                    }
+                }
+            },
+            makeAsyncWithCallbackForResult: function(createCallbackForResult) {
+                var self = this;
+                var callback;
+                if (self.isAsync) {
+                    callback = createCallbackForResult(self.target);
+                    return self.source.makeAsyncCallWithCallback(callback);
+                }
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/fieldReference.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var codegenUtils;
+    codegenUtils = require("./codegenUtils");
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(object, name) {
+                var self = this;
+                self.object = object;
+                self.name = name;
+                return self.isFieldReference = true;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                self.object.generateJavaScript(buffer, scope);
+                buffer.write(".");
+                return buffer.write(codegenUtils.concatName(self.name));
+            },
+            generateJavaScriptTarget: function() {
+                var self = this;
+                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+                var gen1_o;
+                gen1_o = self;
+                return gen1_o.generateJavaScript.apply(gen1_o, args);
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/float.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(cg) {
+        var self = this;
+        return cg.term({
+            constructor: function(value) {
+                var self = this;
+                self.isFloat = true;
+                return self.float = value;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                return buffer.write(self.float.toString());
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/forEach.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        var forEach;
+        return forEach = function(collection, itemVariable, stmts) {
+            var itemsVar, indexVar, s, gen1_o, statementsWithItemAssignment, init, test, incr;
+            itemsVar = terms.generatedVariable([ "items" ]);
+            indexVar = terms.generatedVariable([ "i" ]);
+            s = [ terms.definition(itemVariable, terms.indexer(itemsVar, indexVar)) ];
+            gen1_o = s;
+            gen1_o.push.apply(gen1_o, stmts.statements);
+            statementsWithItemAssignment = terms.statements(s, {
+                async: stmts.isAsync
+            });
+            init = terms.definition(indexVar, terms.integer(0));
+            test = terms.operator("<", [ indexVar, terms.fieldReference(itemsVar, [ "length" ]) ]);
+            incr = terms.increment(indexVar);
+            return terms.subStatements([ terms.definition(itemsVar, collection), terms.forStatement(init, test, incr, statementsWithItemAssignment) ]);
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/forExpression.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var asyncControl;
+    asyncControl = require("../asyncControl");
+    module.exports = function(terms) {
+        var self = this;
+        var forExpressionTerm, forExpression;
+        forExpressionTerm = terms.term({
+            constructor: function(init, test, incr, stmts) {
+                var self = this;
+                self.isFor = true;
+                self.initialization = init;
+                self.test = test;
+                self.increment = incr;
+                self.indexVariable = init.target;
+                self.statements = stmts;
+                return self.statements = self._scopedBody();
+            },
+            _scopedBody: function() {
+                var self = this;
+                var containsReturn, forResultVariable, rewrittenStatements, loopStatements;
+                containsReturn = false;
+                forResultVariable = self.cg.generatedVariable([ "for", "result" ]);
+                rewrittenStatements = self.statements.rewrite({
+                    rewrite: function(term) {
+                        if (term.isReturn) {
+                            containsReturn = true;
+                            return terms.subStatements([ self.cg.definition(forResultVariable, term.expression, {
+                                assignment: true
+                            }), self.cg.returnStatement(self.cg.boolean(true)) ]);
+                        }
+                    },
+                    limit: function(term, gen1_options) {
+                        var path;
+                        path = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "path") && gen1_options.path !== void 0 ? gen1_options.path : path;
+                        return term.isClosure;
+                    }
+                }).serialiseAllStatements();
+                if (containsReturn) {
+                    loopStatements = [];
+                    loopStatements.push(self.cg.definition(forResultVariable, self.cg.nil()));
+                    loopStatements.push(self.cg.ifExpression([ {
+                        condition: self.cg.subExpression(self.cg.functionCall(self.cg.block([ self.indexVariable ], rewrittenStatements, {
+                            returnLastStatement: false
+                        }), [ self.indexVariable ])),
+                        body: self.cg.statements([ self.cg.returnStatement(forResultVariable) ])
+                    } ]));
+                    return self.cg.asyncStatements(loopStatements);
+                } else {
+                    return self.statements;
+                }
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                buffer.write("for(");
+                self.initialization.generateJavaScript(buffer, scope);
+                buffer.write(";");
+                self.test.generateJavaScript(buffer, scope);
+                buffer.write(";");
+                self.increment.generateJavaScript(buffer, scope);
+                buffer.write("){");
+                self.statements.generateJavaScriptStatements(buffer, scope);
+                return buffer.write("}");
+            },
+            generateJavaScriptStatement: function() {
+                var self = this;
+                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+                var gen2_o;
+                gen2_o = self;
+                return gen2_o.generateJavaScript.apply(gen2_o, args);
+            },
+            rewriteResultTermInto: function(returnTerm) {
+                var self = this;
+                return void 0;
+            }
+        });
+        return forExpression = function(init, test, incr, body) {
+            var initStatements, testStatements, incrStatements, asyncForFunction;
+            initStatements = terms.asyncStatements([ init ]);
+            testStatements = terms.asyncStatements([ test ]);
+            incrStatements = terms.asyncStatements([ incr ]);
+            if (initStatements.isAsync || testStatements.isAsync || incrStatements.isAsync || body.isAsync) {
+                asyncForFunction = terms.moduleConstants.defineAs([ "async", "for" ], terms.javascript(asyncControl.for.toString()));
+                return terms.scope([ init, terms.functionCall(asyncForFunction, [ terms.argumentUtils.asyncifyBody(testStatements), terms.argumentUtils.asyncifyBody(incrStatements), terms.argumentUtils.asyncifyBody(body) ], {
+                    async: true
+                }) ]);
+            } else {
+                return forExpressionTerm(init, test, incr, body);
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/forIn.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(iterator, collection, stmts) {
+                var self = this;
+                self.isForIn = true;
+                self.iterator = terms.definition(iterator, terms.nil());
+                self.collection = collection;
+                return self.statements = terms.subExpression(terms.functionCall(terms.block([ iterator ], stmts, {
+                    returnLastStatement: false
+                }), [ iterator ]));
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                buffer.write("for(");
+                self.iterator.target.generateJavaScript(buffer, scope);
+                buffer.write(" in ");
+                self.collection.generateJavaScript(buffer, scope);
+                buffer.write("){");
+                self.statements.generateJavaScriptStatement(buffer, scope);
+                return buffer.write("}");
+            },
+            generateJavaScriptStatement: function() {
+                var self = this;
+                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+                var gen1_o;
+                gen1_o = self;
+                return gen1_o.generateJavaScript.apply(gen1_o, args);
+            },
+            rewriteResultTermInto: function(returnTerm) {
+                var self = this;
+                return void 0;
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/functionCall.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var codegenUtils, argumentUtils, _;
+    codegenUtils = require("./codegenUtils");
+    argumentUtils = require("./argumentUtils");
+    _ = require("underscore");
+    module.exports = function(terms) {
+        var self = this;
+        var functionCallTerm, functionCall;
+        functionCallTerm = terms.term({
+            constructor: function(fun, args, gen1_options) {
+                var self = this;
+                var optionalArguments, async, passThisToApply, originallyAsync, asyncCallbackArgument;
+                optionalArguments = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "optionalArguments") && gen1_options.optionalArguments !== void 0 ? gen1_options.optionalArguments : [];
+                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
+                passThisToApply = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "passThisToApply") && gen1_options.passThisToApply !== void 0 ? gen1_options.passThisToApply : false;
+                originallyAsync = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "originallyAsync") && gen1_options.originallyAsync !== void 0 ? gen1_options.originallyAsync : false;
+                asyncCallbackArgument = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "asyncCallbackArgument") && gen1_options.asyncCallbackArgument !== void 0 ? gen1_options.asyncCallbackArgument : void 0;
+                self.isFunctionCall = true;
+                self.function = fun;
+                self.functionArguments = args;
+                self.optionalArguments = optionalArguments;
+                self.passThisToApply = passThisToApply;
+                self.isAsync = async;
+                self.originallyAsync = originallyAsync;
+                return self.asyncCallbackArgument = asyncCallbackArgument;
+            },
+            hasSplatArguments: function() {
+                var self = this;
+                return _.any(self.functionArguments, function(arg) {
+                    return arg.isSplat;
+                });
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                var args, splattedArguments;
+                self.function.generateJavaScript(buffer, scope);
+                args = codegenUtils.concatArgs(self.functionArguments, {
+                    optionalArgs: self.optionalArguments,
+                    asyncCallbackArg: self.asyncCallbackArgument,
+                    terms: terms
+                });
+                splattedArguments = self.cg.splatArguments(args);
+                if (splattedArguments && self.function.isIndexer) {
+                    buffer.write(".apply(");
+                    self.function.object.generateJavaScript(buffer, scope);
+                    buffer.write(",");
+                    splattedArguments.generateJavaScript(buffer, scope);
+                    return buffer.write(")");
+                } else if (splattedArguments) {
+                    buffer.write(".apply(");
+                    if (self.passThisToApply) {
+                        buffer.write("this");
+                    } else {
+                        buffer.write("null");
+                    }
+                    buffer.write(",");
+                    splattedArguments.generateJavaScript(buffer, scope);
+                    return buffer.write(")");
+                } else {
+                    buffer.write("(");
+                    codegenUtils.writeToBufferWithDelimiter(args, ",", buffer, scope);
+                    return buffer.write(")");
+                }
+            },
+            makeAsyncCallWithCallback: function(callback) {
+                var self = this;
+                self.asyncCallbackArgument = callback;
+                return self;
+            }
+        });
+        return functionCall = function(fun, args, gen2_options) {
+            var optionalArguments, async, passThisToApply, originallyAsync, asyncCallbackArgument, couldBeMacro;
+            optionalArguments = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "optionalArguments") && gen2_options.optionalArguments !== void 0 ? gen2_options.optionalArguments : [];
+            async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
+            passThisToApply = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "passThisToApply") && gen2_options.passThisToApply !== void 0 ? gen2_options.passThisToApply : false;
+            originallyAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "originallyAsync") && gen2_options.originallyAsync !== void 0 ? gen2_options.originallyAsync : false;
+            asyncCallbackArgument = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "asyncCallbackArgument") && gen2_options.asyncCallbackArgument !== void 0 ? gen2_options.asyncCallbackArgument : void 0;
+            couldBeMacro = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "couldBeMacro") && gen2_options.couldBeMacro !== void 0 ? gen2_options.couldBeMacro : true;
+            var asyncResult, name, macro, funCall;
+            if (async) {
+                asyncResult = terms.asyncResult();
+                terms.argumentUtils.asyncifyArguments(args, optionalArguments);
+                return terms.subStatements([ terms.definition(asyncResult, functionCallTerm(fun, args, {
+                    optionalArguments: optionalArguments,
+                    passThisToApply: passThisToApply,
+                    originallyAsync: true,
+                    asyncCallbackArgument: asyncCallbackArgument
+                }), {
+                    async: true
+                }), asyncResult ]);
+            } else if (fun.variable && couldBeMacro) {
+                name = fun.variable;
+                macro = terms.macros.findMacro(name);
+                funCall = functionCallTerm(fun, args, {
+                    optionalArguments: optionalArguments
+                });
+                if (macro) {
+                    return macro(funCall, name, args, optionalArguments);
+                }
+            }
+            return functionCallTerm(fun, args, {
+                optionalArguments: optionalArguments,
+                passThisToApply: passThisToApply,
+                originallyAsync: originallyAsync,
+                asyncCallbackArgument: asyncCallbackArgument
+            });
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/generatedVariable.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var codegenUtils;
+    codegenUtils = require("./codegenUtils");
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(name) {
+                var self = this;
+                self.name = name;
+                self.isVariable = true;
+                return self.genVar = void 0;
+            },
+            dontClone: true,
+            generatedName: function(scope) {
+                var self = this;
+                if (!self.genVar) {
+                    self.genVar = scope.generateVariable(codegenUtils.concatName(self.name));
+                }
+                return self.genVar;
+            },
+            canonicalName: function(scope) {
+                var self = this;
+                return self.generatedName(scope);
+            },
+            displayName: function() {
+                var self = this;
+                return self.name;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                return buffer.write(self.generatedName(scope));
+            },
+            generateJavaScriptParameter: function() {
+                var self = this;
+                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+                var gen1_o;
+                gen1_o = self;
+                return gen1_o.generateJavaScript.apply(gen1_o, args);
+            },
+            generateJavaScriptTarget: function() {
+                var self = this;
+                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+                var gen2_o;
+                gen2_o = self;
+                return gen2_o.generateJavaScript.apply(gen2_o, args);
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/hash.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var codegenUtils;
+    codegenUtils = require("./codegenUtils");
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(entries) {
+                var self = this;
+                self.isHash = true;
+                return self.entries = entries;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                buffer.write("{");
+                codegenUtils.writeToBufferWithDelimiter(self.entries, ",", buffer, function(item) {
+                    return item.generateJavaScriptHashEntry(buffer, scope);
+                });
+                return buffer.write("}");
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/hashEntry.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var codegenUtils, isLegalJavaScriptIdentifier;
+    codegenUtils = require("./codegenUtils");
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(field, value) {
+                var self = this;
+                self.isHashEntry = true;
+                self.field = field;
+                return self.value = value;
+            },
+            legalFieldName: function() {
+                var self = this;
+                var f;
+                if (self.field.isString) {
+                    return codegenUtils.formatJavaScriptString(self.field.string);
+                }
+                f = codegenUtils.concatName(self.field);
+                if (isLegalJavaScriptIdentifier(f)) {
+                    return f;
+                } else {
+                    return codegenUtils.formatJavaScriptString(f);
+                }
+            },
+            valueOrTrue: function() {
+                var self = this;
+                if (self.value === undefined) {
+                    return self.cg.boolean(true);
+                } else {
+                    return self.value;
+                }
+            },
+            generateJavaScriptHashEntry: function(buffer, scope) {
+                var self = this;
+                var f;
+                f = codegenUtils.concatName(self.field);
+                buffer.write(self.legalFieldName());
+                buffer.write(":");
+                return self.valueOrTrue().generateJavaScript(buffer, scope);
+            },
+            asyncify: function() {
+                var self = this;
+                return self.value.asyncify();
+            }
+        });
+    };
+    isLegalJavaScriptIdentifier = function(id) {
+        return /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(id);
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/identifier.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(cg) {
+        var self = this;
+        return cg.term({
+            constructor: function(name) {
+                var self = this;
+                self.isIdentifier = true;
+                return self.identifier = name;
+            },
+            arguments: function() {
+                var self = this;
+                return void 0;
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/ifExpression.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var codegenUtils, _, asyncControl;
+    codegenUtils = require("./codegenUtils");
+    _ = require("underscore");
+    asyncControl = require("../asyncControl");
+    module.exports = function(terms) {
+        var self = this;
+        var ifExpressionTerm, ifExpression;
+        ifExpressionTerm = terms.term({
+            constructor: function(cases, elseBody) {
+                var self = this;
+                self.isIfExpression = true;
+                self.cases = cases;
+                return self.elseBody = elseBody;
+            },
+            generateJavaScriptStatement: function(buffer, scope) {
+                var self = this;
+                codegenUtils.writeToBufferWithDelimiter(self.cases, "else ", buffer, function(case_) {
+                    buffer.write("if(");
+                    case_.condition.generateJavaScript(buffer, scope);
+                    buffer.write("){");
+                    case_.body.generateJavaScriptStatements(buffer, scope);
+                    return buffer.write("}");
+                });
+                if (self.elseBody) {
+                    buffer.write("else{");
+                    self.elseBody.generateJavaScriptStatements(buffer, scope);
+                    return buffer.write("}");
+                }
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                self.rewriteResultTermInto(function(term) {
+                    return terms.returnStatement(term);
+                });
+                buffer.write("(function(){");
+                self.generateJavaScriptStatement(buffer, scope);
+                return buffer.write("})()");
+            },
+            rewriteResultTermInto: function(returnTerm, gen1_options) {
+                var self = this;
+                var async;
+                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
+                var gen2_items, gen3_i, _case;
+                gen2_items = self.cases;
+                for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
+                    _case = gen2_items[gen3_i];
+                    _case.body.rewriteResultTermInto(returnTerm);
+                }
+                if (self.elseBody) {
+                    self.elseBody.rewriteResultTermInto(returnTerm);
+                } else if (async) {
+                    self.elseBody = terms.statements([ terms.functionCall(terms.callbackFunction, []) ]);
+                }
+                return self;
+            }
+        });
+        return ifExpression = function(cases, elseBody) {
+            var anyAsyncCases, caseForConditionAndBody, casesList, asyncIfElseIfElseFunction, asyncIfElseFunction, asyncIfFunction;
+            anyAsyncCases = _.any(cases, function(_case) {
+                return _case.body.isAsync;
+            });
+            if (anyAsyncCases || elseBody && elseBody.isAsync) {
+                if (cases.length > 1) {
+                    caseForConditionAndBody = function(condition, body) {
+                        return terms.hash([ terms.hashEntry([ "condition" ], condition), terms.hashEntry([ "body" ], terms.argumentUtils.asyncifyBody(body)) ]);
+                    };
+                    casesList = _.map(cases, function(_case) {
+                        return caseForConditionAndBody(_case.condition, _case.body);
+                    });
+                    if (elseBody) {
+                        casesList.push(caseForConditionAndBody(terms.boolean(true), elseBody));
+                    }
+                    asyncIfElseIfElseFunction = terms.moduleConstants.defineAs([ "async", "if", "else", "if", "else" ], terms.javascript(asyncControl.ifElseIfElse.toString()));
+                    return terms.functionCall(asyncIfElseIfElseFunction, [ terms.list(casesList) ], {
+                        async: true
+                    });
+                } else if (elseBody) {
+                    asyncIfElseFunction = terms.moduleConstants.defineAs([ "async", "if", "else" ], terms.javascript(asyncControl.ifElse.toString()));
+                    return terms.functionCall(asyncIfElseFunction, [ cases[0].condition, terms.argumentUtils.asyncifyBody(cases[0].body), terms.argumentUtils.asyncifyBody(elseBody) ], {
+                        async: true
+                    });
+                } else {
+                    asyncIfFunction = terms.moduleConstants.defineAs([ "async", "if" ], terms.javascript(asyncControl.if.toString()));
+                    return terms.functionCall(asyncIfFunction, [ cases[0].condition, terms.argumentUtils.asyncifyBody(cases[0].body) ], {
+                        async: true
+                    });
+                }
+            } else {
+                return ifExpressionTerm(cases, elseBody);
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/increment.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(expr) {
+                var self = this;
+                self.isIncrement = true;
+                return self.expression = expr;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                buffer.write("++");
+                return self.expression.generateJavaScript(buffer, scope);
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/indexer.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(object, indexer) {
+                var self = this;
+                self.object = object;
+                self.indexer = indexer;
+                return self.isIndexer = true;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                self.object.generateJavaScript(buffer, scope);
+                buffer.write("[");
+                self.indexer.generateJavaScript(buffer, scope);
+                return buffer.write("]");
+            },
+            generateJavaScriptTarget: function() {
+                var self = this;
+                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+                var gen1_o;
+                gen1_o = self;
+                return gen1_o.generateJavaScript.apply(gen1_o, args);
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/integer.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(cg) {
+        var self = this;
+        return cg.term({
+            constructor: function(value) {
+                var self = this;
+                self.isInteger = true;
+                return self.integer = value;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                return buffer.write(self.integer.toString());
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/interpolatedString.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var codegenUtils;
+    codegenUtils = require("./codegenUtils");
+    module.exports = function(terms) {
+        var self = this;
+        var createInterpolatedString, interpolatedString;
+        createInterpolatedString = terms.term({
+            constructor: function(components) {
+                var self = this;
+                self.isInterpolatedString = true;
+                return self.components = components;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                buffer.write("(");
+                codegenUtils.writeToBufferWithDelimiter(this.components, "+", buffer, scope);
+                return buffer.write(")");
+            }
+        });
+        return interpolatedString = function(components) {
+            if (components.length === 1) {
+                return components[0];
+            } else if (components.length === 0) {
+                return terms.string("");
+            } else {
+                return createInterpolatedString(components);
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/javascript.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(source) {
+                var self = this;
+                self.isJavaScript = true;
+                return self.source = source;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                return buffer.write(self.source);
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/list.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var codegenUtils, _;
+    codegenUtils = require("./codegenUtils");
+    _ = require("underscore");
+    module.exports = function(terms) {
+        var self = this;
+        var listTerm, list;
+        listTerm = terms.term({
+            constructor: function(items) {
+                var self = this;
+                self.isList = true;
+                return self.items = items;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                buffer.write("[");
+                codegenUtils.writeToBufferWithDelimiter(self.items, ",", buffer, scope);
+                return buffer.write("]");
+            }
+        });
+        return list = function(items) {
+            var hashEntry, macro;
+            hashEntry = _.find(items, function(item) {
+                return item.isHashEntry;
+            });
+            if (hashEntry) {
+                macro = terms.listMacros.findMacro(hashEntry.field);
+                if (macro) {
+                    return macro(listTerm(items), hashEntry.field);
+                } else {
+                    return terms.errors.addTermWithMessage(hashEntry, "no macro for " + hashEntry.field.join(" "));
+                }
+            } else {
+                return listTerm(items);
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/methodCall.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var codegenUtils, argumentUtils;
+    codegenUtils = require("./codegenUtils");
+    argumentUtils = require("./argumentUtils");
+    module.exports = function(terms) {
+        var self = this;
+        var methodCallTerm, methodCall;
+        methodCallTerm = terms.term({
+            constructor: function(object, name, args, gen1_options) {
+                var self = this;
+                var optionalArguments, async, originallyAsync, asyncCallbackArgument;
+                optionalArguments = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "optionalArguments") && gen1_options.optionalArguments !== void 0 ? gen1_options.optionalArguments : [];
+                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
+                originallyAsync = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "originallyAsync") && gen1_options.originallyAsync !== void 0 ? gen1_options.originallyAsync : false;
+                asyncCallbackArgument = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "asyncCallbackArgument") && gen1_options.asyncCallbackArgument !== void 0 ? gen1_options.asyncCallbackArgument : void 0;
+                self.isMethodCall = true;
+                self.object = object;
+                self.name = name;
+                self.methodArguments = args;
+                self.optionalArguments = optionalArguments;
+                self.isAsync = async;
+                self.originallyAsync = originallyAsync;
+                return self.asyncCallbackArgument = asyncCallbackArgument;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                var args;
+                self.object.generateJavaScript(buffer, scope);
+                buffer.write(".");
+                buffer.write(codegenUtils.concatName(self.name));
+                buffer.write("(");
+                args = codegenUtils.concatArgs(self.methodArguments, {
+                    optionalArgs: self.optionalArguments,
+                    terms: terms,
+                    asyncCallbackArg: self.asyncCallbackArgument
+                });
+                codegenUtils.writeToBufferWithDelimiter(args, ",", buffer, scope);
+                return buffer.write(")");
+            },
+            makeAsyncCallWithCallback: function(callback) {
+                var self = this;
+                self.asyncCallbackArgument = callback;
+                return self;
+            }
+        });
+        return methodCall = function(object, name, args, gen2_options) {
+            var optionalArguments, async;
+            optionalArguments = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "optionalArguments") && gen2_options.optionalArguments !== void 0 ? gen2_options.optionalArguments : [];
+            async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
+            var splattedArgs, objectVar, asyncResult;
+            splattedArgs = terms.splatArguments(args, optionalArguments);
+            if (splattedArgs) {
+                objectVar = terms.generatedVariable([ "o" ]);
+                return terms.subStatements([ terms.definition(objectVar, object), methodCall(terms.fieldReference(objectVar, name), [ "apply" ], [ objectVar, splattedArgs ], void 0, {
+                    async: async
+                }) ]);
+            } else if (async) {
+                terms.argumentUtils.asyncifyArguments(args, optionalArguments);
+                asyncResult = terms.asyncResult();
+                return terms.subStatements([ terms.definition(asyncResult, methodCallTerm(object, name, args, {
+                    optionalArguments: optionalArguments,
+                    async: async,
+                    originallyAsync: true
+                }), {
+                    async: true
+                }), asyncResult ]);
+            } else {
+                return methodCallTerm(object, name, args, {
+                    optionalArguments: optionalArguments,
+                    async: async
+                });
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/module.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        var moduleTerm, module;
+        moduleTerm = terms.term({
+            constructor: function(statements, gen1_options) {
+                var self = this;
+                var global, returnLastStatement, bodyStatements;
+                global = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "global") && gen1_options.global !== void 0 ? gen1_options.global : false;
+                returnLastStatement = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "returnLastStatement") && gen1_options.returnLastStatement !== void 0 ? gen1_options.returnLastStatement : false;
+                bodyStatements = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "bodyStatements") && gen1_options.bodyStatements !== void 0 ? gen1_options.bodyStatements : void 0;
+                self.statements = statements;
+                self.isModule = true;
+                self.global = global;
+                return self.bodyStatements = bodyStatements || statements;
+            },
+            generateJavaScriptModule: function(buffer) {
+                var self = this;
+                var scope, definitions, gen2_o;
+                scope = new terms.SymbolScope(void 0);
+                definitions = terms.moduleConstants.definitions();
+                gen2_o = self.bodyStatements.statements;
+                gen2_o.unshift.apply(gen2_o, definitions);
+                return self.statements.generateJavaScriptStatements(buffer, scope, {
+                    global: self.global,
+                    inClosure: true
+                });
+            }
+        });
+        return module = function(statements, gen3_options) {
+            var inScope, global, returnLastStatement, bodyStatements;
+            inScope = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "inScope") && gen3_options.inScope !== void 0 ? gen3_options.inScope : true;
+            global = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "global") && gen3_options.global !== void 0 ? gen3_options.global : false;
+            returnLastStatement = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "returnLastStatement") && gen3_options.returnLastStatement !== void 0 ? gen3_options.returnLastStatement : false;
+            bodyStatements = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "bodyStatements") && gen3_options.bodyStatements !== void 0 ? gen3_options.bodyStatements : bodyStatements;
+            var scope, args, errorVariable, throwIfError, methodCall;
+            if (returnLastStatement) {
+                statements.rewriteLastStatementToReturn({
+                    async: false
+                });
+            }
+            if (inScope) {
+                scope = terms.closure([], statements, {
+                    returnLastStatement: returnLastStatement,
+                    redefinesSelf: true
+                });
+                args = [ terms.variable([ "this" ]) ];
+                if (statements.isAsync) {
+                    errorVariable = terms.generatedVariable([ "error" ]);
+                    throwIfError = terms.ifExpression([ {
+                        condition: errorVariable,
+                        body: terms.statements([ terms.functionCall(terms.variable([ "set", "timeout" ]), [ terms.closure([], terms.statements([ terms.throwStatement(errorVariable) ])), terms.integer(0) ]) ])
+                    } ]);
+                    args.push(terms.closure([ errorVariable ], terms.statements([ throwIfError ])));
+                }
+                methodCall = terms.methodCall(terms.subExpression(scope), [ "call" ], args);
+                return moduleTerm(terms.statements([ methodCall ]), {
+                    bodyStatements: statements,
+                    global: global
+                });
+            } else {
+                return moduleTerm(statements, {
+                    global: global,
+                    returnLastStatement: returnLastStatement,
+                    bodyStatements: bodyStatements
+                });
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/newOperator.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        var newOperatorTerm, newOperator;
+        newOperatorTerm = terms.term({
+            constructor: function(fn) {
+                var self = this;
+                self.isNewOperator = true;
+                return self.functionCall = fn;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                buffer.write("new ");
+                if (self.functionCall.isVariable) {
+                    return terms.functionCall(self.functionCall, []).generateJavaScript(buffer, scope);
+                } else if (self.functionCall.isFunctionCall && self.functionCall.hasSplatArguments()) {
+                    return self.cg.block([], self.cg.statements([ self.functionCall ]), {
+                        returnLastStatement: false
+                    }).generateJavaScript(buffer, scope);
+                } else {
+                    return self.functionCall.generateJavaScript(buffer, scope);
+                }
+            }
+        });
+        return newOperator = function(fn) {
+            var statements, constructor, constructorVariable;
+            if (fn.isFunctionCall && fn.hasSplatArguments()) {
+                statements = [];
+                fn.passThisToApply = true;
+                constructor = terms.block([], terms.statements([ fn ]), {
+                    returnLastStatement: false
+                });
+                constructorVariable = terms.generatedVariable([ "c" ]);
+                statements.push(terms.definition(constructorVariable, constructor));
+                statements.push(terms.definition(terms.fieldReference(constructorVariable, [ "prototype" ]), terms.fieldReference(fn.function, [ "prototype" ])));
+                statements.push(terms.newOperator(constructorVariable));
+                return terms.subStatements(statements);
+            } else {
+                return newOperatorTerm(fn);
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/nil.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function() {
+                var self = this;
+                return self.isNil = true;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                return terms.javascript("void 0").generateJavaScript(buffer, scope);
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/normalParameters.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(parameters) {
+                var self = this;
+                return self.parameters = parameters;
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/operator.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(op, args) {
+                var self = this;
+                self.isOperator = true;
+                self.operator = op;
+                return self.operatorArguments = args;
+            },
+            isOperatorAlpha: function() {
+                var self = this;
+                return /[a-zA-Z]+/.test(self.operator);
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                var alpha, n;
+                buffer.write("(");
+                if (self.operatorArguments.length === 1) {
+                    buffer.write(self.operator);
+                    if (self.isOperatorAlpha()) {
+                        buffer.write(" ");
+                    }
+                    self.operatorArguments[0].generateJavaScript(buffer, scope);
+                } else {
+                    alpha = self.isOperatorAlpha();
+                    self.operatorArguments[0].generateJavaScript(buffer, scope);
+                    for (n = 1; n < self.operatorArguments.length; ++n) {
+                        if (alpha) {
+                            buffer.write(" ");
+                        }
+                        buffer.write(self.operator);
+                        if (alpha) {
+                            buffer.write(" ");
+                        }
+                        self.operatorArguments[n].generateJavaScript(buffer, scope);
+                    }
+                }
+                return buffer.write(")");
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/parameters.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(parms) {
+                var self = this;
+                self.isParameters = true;
+                return self.parameters = parms;
+            },
+            arguments: function() {
+                var self = this;
+                return [];
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/regExp.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(patternOptions) {
+                var self = this;
+                self.isRegExp = true;
+                self.pattern = patternOptions.pattern;
+                return self.options = patternOptions.options;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                var options;
+                options = function() {
+                    if (self.options) {
+                        return "/" + self.options;
+                    } else {
+                        return "/";
+                    }
+                }();
+                return buffer.write("/" + this.pattern.replace(/\//g, "\\/") + options);
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/returnStatement.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(expr, gen1_options) {
+                var self = this;
+                var implicit;
+                implicit = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "implicit") && gen1_options.implicit !== void 0 ? gen1_options.implicit : false;
+                self.isReturn = true;
+                self.expression = expr;
+                return self.isImplicit = implicit;
+            },
+            generateJavaScriptStatement: function(buffer, scope) {
+                var self = this;
+                if (self.expression) {
+                    buffer.write("return ");
+                    self.expression.generateJavaScript(buffer, scope);
+                    return buffer.write(";");
+                } else {
+                    return buffer.write("return;");
+                }
+            },
+            rewriteResultTermInto: function(returnTerm, gen2_options) {
+                var self = this;
+                var async;
+                async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
+                var arguments;
+                if (async) {
+                    arguments = function() {
+                        if (self.expression) {
+                            return [ terms.nil(), self.expression ];
+                        } else {
+                            return [];
+                        }
+                    }();
+                    return terms.functionCall(terms.callbackFunction, arguments);
+                } else {
+                    return self;
+                }
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/scope.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        var scope;
+        return scope = function(statementList) {
+            var statement, statements;
+            if (statementList.length === 1) {
+                statement = statementList[0];
+                if (statement.isReturn) {
+                    return statement.expression;
+                } else {
+                    return statement;
+                }
+            } else {
+                statements = terms.asyncStatements(statementList);
+                return terms.functionCall(terms.subExpression(terms.block([], statements)), [], {
+                    async: statements.isAsync
+                });
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/selfExpression.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        var selfExpression;
+        return selfExpression = function() {
+            return terms.variable([ "self" ], {
+                shadow: true
+            });
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/semanticError.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(errorTerms, message) {
+                var self = this;
+                self.isSemanticError = true;
+                self.errorTerms = errorTerms;
+                return self.message = message;
+            },
+            generateJavaScript: function() {
+                var self = this;
+                return void 0;
+            },
+            printError: function(sourceFile, buffer) {
+                var self = this;
+                sourceFile.printLocation(self.errorTerms[0].location(), buffer);
+                return buffer.write(this.message + "\n");
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/splat.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function() {
+                var self = this;
+                return self.isSplat = true;
+            },
+            parameter: function() {
+                var self = this;
+                return self;
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/splatArguments.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var _;
+    _ = require("underscore");
+    module.exports = function(terms) {
+        var self = this;
+        var splatArgumentsTerm, splatArguments;
+        splatArgumentsTerm = terms.term({
+            constructor: function(splatArguments) {
+                var self = this;
+                return self.splatArguments = splatArguments;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                var i, splatArgument;
+                for (i = 0; i < self.splatArguments.length; ++i) {
+                    splatArgument = self.splatArguments[i];
+                    if (i === 0) {
+                        splatArgument.generateJavaScript(buffer, scope);
+                    } else {
+                        buffer.write(".concat(");
+                        splatArgument.generateJavaScript(buffer, scope);
+                        buffer.write(")");
+                    }
+                }
+                return void 0;
+            }
+        });
+        return splatArguments = function(args, optionalArgs) {
+            var splatArgs, previousArgs, foundSplat, i, current, next, concat;
+            splatArgs = [];
+            previousArgs = [];
+            foundSplat = false;
+            i = 0;
+            while (i < args.length) {
+                current = args[i];
+                next = args[i + 1];
+                if (next && next.isSplat) {
+                    foundSplat = true;
+                    if (previousArgs.length > 0) {
+                        splatArgs.push(terms.list(previousArgs));
+                        previousArgs = [];
+                    }
+                    splatArgs.push(current);
+                    ++i;
+                } else if (current.isSplat) {
+                    terms.errors.addTermWithMessage(current, "splat keyword with no argument to splat");
+                } else {
+                    previousArgs.push(current);
+                }
+                ++i;
+            }
+            if (optionalArgs && optionalArgs.length > 0) {
+                previousArgs.push(terms.hash(optionalArgs));
+            }
+            if (previousArgs.length > 0) {
+                splatArgs.push(terms.list(previousArgs));
+            }
+            if (foundSplat) {
+                concat = function(initial, last) {
+                    if (initial.length > 0) {
+                        return terms.methodCall(concat(_.initial(initial), _.last(initial)), [ "concat" ], [ last ]);
+                    } else {
+                        return last;
+                    }
+                };
+                return concat(_.initial(splatArgs), _.last(splatArgs));
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/splatParameters.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(parameters) {
+                var self = this;
+                return self.parameters = parameters;
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/statements.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var _, codegenUtils, statementsUtils;
+    _ = require("underscore");
+    codegenUtils = require("./codegenUtils");
+    statementsUtils = require("./statementsUtils");
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(statements, gen1_options) {
+                var self = this;
+                var async;
+                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
+                self.isStatements = true;
+                self.statements = statements;
+                return self.isAsync = async;
+            },
+            generateStatements: function(statements, buffer, scope, gen2_options) {
+                var self = this;
+                var inClosure, global;
+                inClosure = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "inClosure") && gen2_options.inClosure !== void 0 ? gen2_options.inClosure : false;
+                global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
+                var declaredVariables, s, statement;
+                if (inClosure) {
+                    declaredVariables = self.findDeclaredVariables(scope);
+                    self.generateVariableDeclarations(declaredVariables, buffer, scope, {
+                        global: global
+                    });
+                }
+                for (s = 0; s < statements.length; ++s) {
+                    statement = statements[s];
+                    statement.generateJavaScriptStatement(buffer, scope);
+                }
+                return void 0;
+            },
+            rewriteResultTermInto: function(returnTerm, gen3_options) {
+                var self = this;
+                var async;
+                async = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "async") && gen3_options.async !== void 0 ? gen3_options.async : false;
+                var lastStatement, rewrittenLastStatement;
+                if (self.statements.length > 0) {
+                    lastStatement = self.statements[self.statements.length - 1];
+                    rewrittenLastStatement = lastStatement.rewriteResultTermInto(function(term) {
+                        return returnTerm(term);
+                    }, {
+                        async: async
+                    });
+                    if (rewrittenLastStatement) {
+                        return self.statements[self.statements.length - 1] = rewrittenLastStatement;
+                    } else {
+                        return self.statements.push(returnTerm(terms.nil()));
+                    }
+                }
+            },
+            rewriteLastStatementToReturn: function(gen4_options) {
+                var self = this;
+                var async;
+                async = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "async") && gen4_options.async !== void 0 ? gen4_options.async : false;
+                var containsContinuation;
+                containsContinuation = self.containsContinuation();
+                return self.rewriteResultTermInto(function(term) {
+                    if (async && !containsContinuation) {
+                        return terms.functionCall(terms.callbackFunction, [ terms.nil(), term ]);
+                    } else {
+                        return terms.returnStatement(term, {
+                            implicit: true
+                        });
+                    }
+                }, {
+                    async: async
+                });
+            },
+            generateVariableDeclarations: function(variables, buffer, scope, gen5_options) {
+                var self = this;
+                var global;
+                global = gen5_options !== void 0 && Object.prototype.hasOwnProperty.call(gen5_options, "global") && gen5_options.global !== void 0 ? gen5_options.global : false;
+                if (variables.length > 0) {
+                    _(variables).each(function(name) {
+                        return scope.define(name);
+                    });
+                    if (!global) {
+                        buffer.write("var ");
+                        codegenUtils.writeToBufferWithDelimiter(variables, ",", buffer, function(variable) {
+                            return buffer.write(variable);
+                        });
+                        return buffer.write(";");
+                    }
+                }
+            },
+            findDeclaredVariables: function(scope) {
+                var self = this;
+                var variables;
+                variables = codegenUtils.declaredVariables(scope);
+                self.walkDescendantsNotBelowIf(function(subterm, path) {
+                    return subterm.declareVariables(variables, scope);
+                }, function(subterm, path) {
+                    return subterm.isClosure;
+                });
+                return variables.uniqueVariables();
+            },
+            generateJavaScriptStatements: function(buffer, scope, gen6_options) {
+                var self = this;
+                var inClosure, global;
+                inClosure = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "inClosure") && gen6_options.inClosure !== void 0 ? gen6_options.inClosure : false;
+                global = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "global") && gen6_options.global !== void 0 ? gen6_options.global : false;
+                return self.generateStatements(self.statements, buffer, scope, {
+                    inClosure: inClosure,
+                    global: global
+                });
+            },
+            blockify: function(parameters, gen7_options) {
+                var self = this;
+                var optionalParameters, async;
+                optionalParameters = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "optionalParameters") && gen7_options.optionalParameters !== void 0 ? gen7_options.optionalParameters : void 0;
+                async = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "async") && gen7_options.async !== void 0 ? gen7_options.async : false;
+                var statements;
+                statements = function() {
+                    if (self.isExpressionStatements) {
+                        return self.cg.statements([ self ]);
+                    } else {
+                        return self;
+                    }
+                }();
+                return terms.block(parameters, statements, {
+                    optionalParameters: optionalParameters,
+                    async: async
+                });
+            },
+            scopify: function() {
+                var self = this;
+                return self.cg.functionCall(self.cg.block([], self), []);
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                if (self.statements.length > 0) {
+                    return self.statements[self.statements.length - 1].generateJavaScript(buffer, scope);
+                }
+            },
+            generateJavaScriptStatement: function(buffer, scope) {
+                var self = this;
+                if (self.statements.length > 0) {
+                    return self.statements[self.statements.length - 1].generateJavaScriptStatement(buffer, scope);
+                }
+            },
+            definitions: function(scope) {
+                var self = this;
+                return _(self.statements).reduce(function(list, statement) {
+                    var defs;
+                    defs = statement.definitions(scope);
+                    return list.concat(defs);
+                }, []);
+            },
+            serialiseStatements: function() {
+                var self = this;
+                self.statements = statementsUtils.serialiseStatements(self.statements);
+                return void 0;
+            },
+            asyncify: function() {
+                var self = this;
+                if (!self.isAsync) {
+                    self.rewriteLastStatementToReturn({
+                        async: true
+                    });
+                    return self.isAsync = true;
+                }
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/statementsUtils.js", function(exports, require, module){
+(function() {
+    var self = this;
+    exports.serialiseStatements = function(statements) {
+        var self = this;
+        var serialisedStatements, n, statement;
+        serialisedStatements = [];
+        for (n = 0; n < statements.length; ++n) {
+            statement = statements[n].rewrite({
+                rewrite: function(term, gen1_options) {
+                    var rewrite;
+                    rewrite = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "rewrite") && gen1_options.rewrite !== void 0 ? gen1_options.rewrite : void 0;
+                    return term.serialiseSubStatements(serialisedStatements, {
+                        rewrite: rewrite
+                    });
+                },
+                limit: function(term) {
+                    return term.isStatements;
+                }
+            });
+            serialisedStatements.push(statement);
+        }
+        return serialisedStatements;
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/string.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var codegenUtils;
+    codegenUtils = require("./codegenUtils");
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(value) {
+                var self = this;
+                self.isString = true;
+                return self.string = value;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                return buffer.write(codegenUtils.formatJavaScriptString(this.string));
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/subExpression.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(expression) {
+                var self = this;
+                self.isSubExpression = true;
+                return self.expression = expression;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                buffer.write("(");
+                self.expression.generateJavaScript(buffer, scope);
+                return buffer.write(")");
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/subStatements.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var _, codegenUtils;
+    _ = require("underscore");
+    codegenUtils = require("./codegenUtils");
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(statements) {
+                var self = this;
+                self.isSubStatements = true;
+                return self.statements = statements;
+            },
+            serialiseSubStatements: function(statements, gen1_options) {
+                var self = this;
+                var rewrite;
+                rewrite = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "rewrite") && gen1_options.rewrite !== void 0 ? gen1_options.rewrite : void 0;
+                var firstStatements, rewrittenStatements, gen2_o, lastStatement;
+                firstStatements = self.statements.slice(0, self.statements.length - 1);
+                rewrittenStatements = _.map(firstStatements, function(statement) {
+                    return rewrite(statement);
+                });
+                gen2_o = statements;
+                gen2_o.push.apply(gen2_o, rewrittenStatements);
+                lastStatement = self.statements[self.statements.length - 1];
+                if (lastStatement.isSubStatements) {
+                    return lastStatement.serialiseSubStatements(statements, {
+                        rewrite: rewrite
+                    });
+                } else {
+                    return lastStatement;
+                }
+            },
+            generateJavaScript: function() {
+                var self = this;
+                self.show();
+                throw new Error("sub statements does not generate java script");
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/terms.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var $class, classExtending, _;
+    $class = require("../class").class;
+    classExtending = require("../class").classExtending;
+    _ = require("underscore");
+    module.exports = function(cg) {
+        var self = this;
+        var Node, Term, termPrototype, term;
+        Node = $class({
+            cg: cg,
+            constructor: function(members) {
+                var self = this;
+                var member;
+                if (members) {
+                    for (member in members) {
+                        (function(member) {
+                            if (members.hasOwnProperty(member)) {
+                                self[member] = members[member];
+                            }
+                        })(member);
+                    }
+                    return void 0;
+                }
+            },
+            setLocation: function(newLocation) {
+                var self = this;
+                return Object.defineProperty(self, "_location", {
+                    value: newLocation,
+                    writable: true
+                });
+            },
+            location: function() {
+                var self = this;
+                var children, locations, firstLine, lastLine, locationsOnFirstLine, locationsOnLastLine;
+                if (self._location) {
+                    return self._location;
+                } else {
+                    children = self.children();
+                    locations = _.filter(_.map(children, function(child) {
+                        return child.location();
+                    }), function(location) {
+                        return location;
+                    });
+                    if (locations.length > 0) {
+                        firstLine = _.min(_.map(locations, function(location) {
+                            return location.firstLine;
+                        }));
+                        lastLine = _.max(_.map(locations, function(location) {
+                            return location.lastLine;
+                        }));
+                        locationsOnFirstLine = _.filter(locations, function(location) {
+                            return location.firstLine === firstLine;
+                        });
+                        locationsOnLastLine = _.filter(locations, function(location) {
+                            return location.lastLine === lastLine;
+                        });
+                        return {
+                            firstLine: firstLine,
+                            lastLine: lastLine,
+                            firstColumn: _.min(_.map(locationsOnFirstLine, function(location) {
+                                return location.firstColumn;
+                            })),
+                            lastColumn: _.max(_.map(locationsOnLastLine, function(location) {
+                                return location.lastColumn;
+                            }))
+                        };
+                    } else {
+                        return void 0;
+                    }
+                }
+            },
+            clone: function(gen1_options) {
+                var self = this;
+                var rewrite, limit, createObject;
+                rewrite = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "rewrite") && gen1_options.rewrite !== void 0 ? gen1_options.rewrite : function(subterm) {
+                    return void 0;
+                };
+                limit = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "limit") && gen1_options.limit !== void 0 ? gen1_options.limit : function(subterm) {
+                    return false;
+                };
+                createObject = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "createObject") && gen1_options.createObject !== void 0 ? gen1_options.createObject : function(node) {
+                    return Object.create(Object.getPrototypeOf(node));
+                };
+                var cloneObject, cloneNode, cloneArray, cloneSubterm;
+                cloneObject = function(node, allowRewrite, path) {
+                    var t, member;
+                    t = createObject(node);
+                    for (member in node) {
+                        (function(member) {
+                            if (node.hasOwnProperty(member)) {
+                                t[member] = cloneSubterm(node[member], allowRewrite, path);
+                            }
+                        })(member);
+                    }
+                    return t;
+                };
+                cloneNode = function(originalNode, allowRewrite, path) {
+                    var rewrittenNode, subClone;
+                    if (originalNode.dontClone) {
+                        return originalNode;
+                    } else {
+                        try {
+                            path.push(originalNode);
+                            rewrittenNode = function() {
+                                if (originalNode instanceof Node && allowRewrite) {
+                                    subClone = function(node) {
+                                        if (node) {
+                                            return cloneSubterm(node, allowRewrite, path);
+                                        } else {
+                                            return cloneObject(originalNode, allowRewrite, path);
+                                        }
+                                    };
+                                    return rewrite(originalNode, {
+                                        path: path,
+                                        clone: subClone,
+                                        rewrite: subClone
+                                    });
+                                } else {
+                                    return void 0;
+                                }
+                            }();
+                            if (!rewrittenNode) {
+                                return cloneObject(originalNode, allowRewrite, path);
+                            } else {
+                                if (!(rewrittenNode instanceof Node)) {
+                                    throw new Error("rewritten node not an instance of Node");
+                                }
+                                rewrittenNode.isDerivedFrom(originalNode);
+                                return rewrittenNode;
+                            }
+                        } finally {
+                            path.pop();
+                        }
+                    }
+                };
+                cloneArray = function(terms, allowRewrite, path) {
+                    try {
+                        path.push(terms);
+                        return _.map(terms, function(node) {
+                            return cloneSubterm(node, allowRewrite, path);
+                        });
+                    } finally {
+                        path.pop();
+                    }
+                };
+                cloneSubterm = function(subterm, allowRewrite, path) {
+                    if (subterm instanceof Array) {
+                        return cloneArray(subterm, allowRewrite, path);
+                    } else if (subterm instanceof Function) {
+                        return subterm;
+                    } else if (subterm instanceof Object) {
+                        return cloneNode(subterm, allowRewrite && !limit(subterm, {
+                            path: path
+                        }), path);
+                    } else {
+                        return subterm;
+                    }
+                };
+                return cloneSubterm(self, true, []);
+            },
+            isDerivedFrom: function(ancestorNode) {
+                var self = this;
+                return self.setLocation(ancestorNode.location());
+            },
+            rewrite: function(options) {
+                var self = this;
+                options = options || {};
+                options.createObject = function(node) {
+                    var self = this;
+                    return node;
+                };
+                return self.clone(options);
+            },
+            children: function() {
+                var self = this;
+                var children, addMember, addMembersInObject;
+                children = [];
+                addMember = function(member) {
+                    var gen2_items, gen3_i, item;
+                    if (member instanceof Node) {
+                        return children.push(member);
+                    } else if (member instanceof Array) {
+                        gen2_items = member;
+                        for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
+                            item = gen2_items[gen3_i];
+                            addMember(item);
+                        }
+                        return void 0;
+                    } else if (member instanceof Object) {
+                        return addMembersInObject(member);
+                    }
+                };
+                addMembersInObject = function(object) {
+                    var property;
+                    for (property in object) {
+                        (function(property) {
+                            var member;
+                            if (object.hasOwnProperty(property)) {
+                                member = object[property];
+                                addMember(member);
+                            }
+                        })(property);
+                    }
+                    return void 0;
+                };
+                addMembersInObject(self);
+                return children;
+            },
+            walkDescendants: function(walker, gen4_options) {
+                var self = this;
+                var limit;
+                limit = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "limit") && gen4_options.limit !== void 0 ? gen4_options.limit : function() {
+                    return false;
+                };
+                var path, walkChildren;
+                path = [];
+                walkChildren = function(node) {
+                    var gen5_items, gen6_i, child;
+                    try {
+                        path.push(node);
+                        gen5_items = node.children();
+                        for (gen6_i = 0; gen6_i < gen5_items.length; ++gen6_i) {
+                            child = gen5_items[gen6_i];
+                            walker(child, path);
+                            if (!limit(child, path)) {
+                                walkChildren(child);
+                            }
+                        }
+                        return void 0;
+                    } finally {
+                        path.pop();
+                    }
+                };
+                return walkChildren(self);
+            },
+            walkDescendantsNotBelowIf: function(walker, limit) {
+                var self = this;
+                return self.walkDescendants(walker, {
+                    limit: limit
+                });
+            },
+            reduceWithReducedChildrenInto: function(reducer, gen7_options) {
+                var self = this;
+                var limit, cacheName;
+                limit = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "limit") && gen7_options.limit !== void 0 ? gen7_options.limit : function(term) {
+                    return false;
+                };
+                cacheName = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "cacheName") && gen7_options.cacheName !== void 0 ? gen7_options.cacheName : void 0;
+                var path, cachingReducer, mapReduceChildren;
+                path = [];
+                cachingReducer = function() {
+                    if (cacheName) {
+                        return function(node, reducedChildren) {
+                            var reducedValue;
+                            if (node.hasOwnProperty("reductionCache")) {
+                                if (node.reductionCache.hasOwnProperty(cacheName)) {
+                                    return node.reductionCache[cacheName];
+                                }
+                            } else {
+                                reducedValue = reducer(node, reducedChildren);
+                                if (!node.hasOwnProperty("reductionCache")) {
+                                    node.reductionCache = {};
+                                }
+                                node.reductionCache[cacheName] = reducedValue;
+                                return reducedValue;
+                            }
+                        };
+                    } else {
+                        return reducer;
+                    }
+                }();
+                mapReduceChildren = function(node) {
+                    var mappedChildren, gen8_items, gen9_i, child;
+                    try {
+                        path.push(node);
+                        mappedChildren = [];
+                        gen8_items = node.children();
+                        for (gen9_i = 0; gen9_i < gen8_items.length; ++gen9_i) {
+                            child = gen8_items[gen9_i];
+                            if (!limit(child, path)) {
+                                mappedChildren.push(mapReduceChildren(child));
+                            }
+                        }
+                        return cachingReducer(node, mappedChildren);
+                    } finally {
+                        path.pop();
+                    }
+                };
+                return mapReduceChildren(self);
+            }
+        });
+        Term = classExtending(Node, {
+            generateJavaScriptStatement: function(buffer, scope) {
+                var self = this;
+                self.generateJavaScript(buffer, scope);
+                return buffer.write(";");
+            },
+            arguments: function() {
+                var self = this;
+                return self;
+            },
+            inspectTerm: function(gen10_options) {
+                var self = this;
+                var depth;
+                depth = gen10_options !== void 0 && Object.prototype.hasOwnProperty.call(gen10_options, "depth") && gen10_options.depth !== void 0 ? gen10_options.depth : 20;
+                var util;
+                util = require("util");
+                return util.inspect(self, false, depth);
+            },
+            show: function(gen11_options) {
+                var self = this;
+                var desc, depth;
+                desc = gen11_options !== void 0 && Object.prototype.hasOwnProperty.call(gen11_options, "desc") && gen11_options.desc !== void 0 ? gen11_options.desc : void 0;
+                depth = gen11_options !== void 0 && Object.prototype.hasOwnProperty.call(gen11_options, "depth") && gen11_options.depth !== void 0 ? gen11_options.depth : 20;
+                if (desc) {
+                    return console.log(desc, self.inspectTerm({
+                        depth: depth
+                    }));
+                } else {
+                    return console.log(self.inspectTerm({
+                        depth: depth
+                    }));
+                }
+            },
+            hashEntry: function() {
+                var self = this;
+                return self.cg.errors.addTermWithMessage(self, "cannot be used as a hash entry");
+            },
+            hashEntryField: function() {
+                var self = this;
+                return self.cg.errors.addTermWithMessage(self, "cannot be used as a field name");
+            },
+            blockify: function(parameters, gen12_options) {
+                var self = this;
+                var optionalParameters, async;
+                optionalParameters = gen12_options !== void 0 && Object.prototype.hasOwnProperty.call(gen12_options, "optionalParameters") && gen12_options.optionalParameters !== void 0 ? gen12_options.optionalParameters : void 0;
+                async = gen12_options !== void 0 && Object.prototype.hasOwnProperty.call(gen12_options, "async") && gen12_options.async !== void 0 ? gen12_options.async : false;
+                return self.cg.block(parameters, self.cg.asyncStatements([ self ]), {
+                    optionalParameters: optionalParameters,
+                    async: async
+                });
+            },
+            scopify: function() {
+                var self = this;
+                return self;
+            },
+            parameter: function() {
+                var self = this;
+                return this.cg.errors.addTermWithMessage(self, "this cannot be used as a parameter");
+            },
+            subterms: function() {
+                var self = this;
+                return void 0;
+            },
+            expandMacro: function() {
+                var self = this;
+                return void 0;
+            },
+            expandMacros: function() {
+                var self = this;
+                return self.clone({
+                    rewrite: function(term, gen13_options) {
+                        var clone;
+                        clone = gen13_options !== void 0 && Object.prototype.hasOwnProperty.call(gen13_options, "clone") && gen13_options.clone !== void 0 ? gen13_options.clone : void 0;
+                        return term.expandMacro(clone);
+                    }
+                });
+            },
+            rewriteStatements: function() {
+                var self = this;
+                return void 0;
+            },
+            rewriteAllStatements: function() {
+                var self = this;
+                return self.clone({
+                    rewrite: function(term, gen14_options) {
+                        var clone;
+                        clone = gen14_options !== void 0 && Object.prototype.hasOwnProperty.call(gen14_options, "clone") && gen14_options.clone !== void 0 ? gen14_options.clone : void 0;
+                        return term.rewriteStatements(clone);
+                    }
+                });
+            },
+            serialiseSubStatements: function() {
+                var self = this;
+                return void 0;
+            },
+            serialiseStatements: function() {
+                var self = this;
+                return void 0;
+            },
+            serialiseAllStatements: function() {
+                var self = this;
+                return self.rewrite({
+                    rewrite: function(term) {
+                        return term.serialiseStatements();
+                    }
+                });
+            },
+            declareVariables: function() {
+                var self = this;
+                return void 0;
+            },
+            canonicalName: function() {
+                var self = this;
+                return void 0;
+            },
+            makeAsyncWithCallbackForResult: function(createCallbackForResult) {
+                var self = this;
+                return void 0;
+            },
+            containsContinuation: function() {
+                var self = this;
+                var found;
+                found = false;
+                self.walkDescendants(function(term) {
+                    return found = term.isContinuation || found;
+                }, {
+                    limit: function(term) {
+                        return term.isClosure && term.isAsync;
+                    }
+                });
+                return found;
+            },
+            rewriteResultTermInto: function(returnTerm) {
+                var self = this;
+                if (self.containsContinuation()) {
+                    return self;
+                } else {
+                    return returnTerm(self);
+                }
+            },
+            asyncify: function() {
+                var self = this;
+                return void 0;
+            }
+        });
+        termPrototype = new Term();
+        term = function(members) {
+            var termConstructor;
+            termConstructor = classExtending(Term, members);
+            return function() {
+                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+                var gen15_c;
+                gen15_c = function() {
+                    termConstructor.apply(this, args);
+                };
+                gen15_c.prototype = termConstructor.prototype;
+                return new gen15_c();
+            };
+        };
+        return {
+            Node: Node,
+            Term: Term,
+            term: term,
+            termPrototype: termPrototype
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/throwStatement.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(expr) {
+                var self = this;
+                self.isThrow = true;
+                return self.expression = expr;
+            },
+            generateJavaScriptStatement: function(buffer, scope) {
+                var self = this;
+                buffer.write("throw ");
+                self.expression.generateJavaScript(buffer, scope);
+                return buffer.write(";");
+            },
+            rewriteResultTermInto: function(returnTerm) {
+                var self = this;
+                return self;
+            }
+        });
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/tryExpression.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var asyncControl;
+    asyncControl = require("../asyncControl");
+    module.exports = function(terms) {
+        var self = this;
+        var tryExpressionTerm, tryExpression;
+        tryExpressionTerm = terms.term({
+            constructor: function(body, gen1_options) {
+                var self = this;
+                var catchBody, catchParameter, finallyBody;
+                catchBody = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "catchBody") && gen1_options.catchBody !== void 0 ? gen1_options.catchBody : void 0;
+                catchParameter = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "catchParameter") && gen1_options.catchParameter !== void 0 ? gen1_options.catchParameter : void 0;
+                finallyBody = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "finallyBody") && gen1_options.finallyBody !== void 0 ? gen1_options.finallyBody : void 0;
+                self.isTryExpression = true;
+                self.body = body;
+                self.catchBody = catchBody;
+                self.catchParameter = catchParameter;
+                return self.finallyBody = finallyBody;
+            },
+            generateJavaScriptStatement: function(buffer, scope, returnStatements) {
+                var self = this;
+                buffer.write("try{");
+                if (returnStatements) {
+                    self.body.generateJavaScriptStatementsReturn(buffer, scope);
+                } else {
+                    self.body.generateJavaScriptStatements(buffer, scope);
+                }
+                buffer.write("}");
+                if (self.catchBody) {
+                    buffer.write("catch(");
+                    self.catchParameter.generateJavaScript(buffer, scope);
+                    buffer.write("){");
+                    if (returnStatements) {
+                        self.catchBody.generateJavaScriptStatementsReturn(buffer, scope);
+                    } else {
+                        self.catchBody.generateJavaScriptStatements(buffer, scope);
+                    }
+                    buffer.write("}");
+                }
+                if (self.finallyBody) {
+                    buffer.write("finally{");
+                    self.finallyBody.generateJavaScriptStatements(buffer, scope);
+                    return buffer.write("}");
+                }
+            },
+            generateJavaScript: function(buffer, symbolScope) {
+                var self = this;
+                if (self.alreadyCalled) {
+                    throw new Error("stuff");
+                }
+                self.alreadyCalled = true;
+                return self.cg.scope([ self ], {
+                    alwaysGenerateFunction: true
+                }).generateJavaScript(buffer, symbolScope);
+            },
+            rewriteResultTermInto: function(returnTerm) {
+                var self = this;
+                self.body.rewriteResultTermInto(returnTerm);
+                if (self.catchBody) {
+                    self.catchBody.rewriteResultTermInto(returnTerm);
+                }
+                return self;
+            }
+        });
+        return tryExpression = function(body, gen2_options) {
+            var catchBody, catchParameter, finallyBody;
+            catchBody = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "catchBody") && gen2_options.catchBody !== void 0 ? gen2_options.catchBody : void 0;
+            catchParameter = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "catchParameter") && gen2_options.catchParameter !== void 0 ? gen2_options.catchParameter : void 0;
+            finallyBody = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "finallyBody") && gen2_options.finallyBody !== void 0 ? gen2_options.finallyBody : void 0;
+            var asyncTryFunction;
+            if (body.isAsync || catchBody && catchBody.isAsync || finallyBody && finallyBody.isAsync) {
+                asyncTryFunction = terms.moduleConstants.defineAs([ "async", "try" ], terms.javascript(asyncControl.try.toString()));
+                return terms.functionCall(asyncTryFunction, [ terms.argumentUtils.asyncifyBody(body), terms.argumentUtils.asyncifyBody(catchBody, [ catchParameter ]), terms.argumentUtils.asyncifyBody(finallyBody) ], {
+                    async: true
+                });
+            } else {
+                return tryExpressionTerm(body, {
+                    catchBody: catchBody,
+                    catchParameter: catchParameter,
+                    finallyBody: finallyBody
+                });
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/typeof.js", function(exports, require, module){
+exports.typeof = function (expression, type) {
+  return this.term(function () {
+    this.isInstanceOf = true;
+    this.expression = expression;
+    this.type = type;
+
+    this.generateJavaScript = function (buffer, scope) {
+        buffer.write("(typeof(");
+        this.expression.generateJavaScript(buffer, scope);
+        buffer.write(") === '" + this.type + "')");
+    };
+  });
+};
+
+});
+require.register("pogoscript/lib/terms/variable.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var codegenUtils;
+    codegenUtils = require("./codegenUtils");
+    module.exports = function(terms) {
+        var self = this;
+        var variableTerm, variable;
+        variableTerm = terms.term({
+            constructor: function(name, gen1_options) {
+                var self = this;
+                var location;
+                location = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "location") && gen1_options.location !== void 0 ? gen1_options.location : void 0;
+                self.variable = name;
+                self.isVariable = true;
+                return self.setLocation(location);
+            },
+            canonicalName: function() {
+                var self = this;
+                return codegenUtils.concatName(self.variable, {
+                    escape: true
+                });
+            },
+            displayName: function() {
+                var self = this;
+                return self.variable.join(" ");
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                return buffer.write(this.canonicalName());
+            },
+            generateJavaScriptTarget: function() {
+                var self = this;
+                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+                var gen2_o;
+                gen2_o = self;
+                return gen2_o.generateJavaScript.apply(gen2_o, args);
+            },
+            hashEntryField: function() {
+                var self = this;
+                return self.variable;
+            },
+            generateJavaScriptParameter: function() {
+                var self = this;
+                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+                var gen3_o;
+                gen3_o = self;
+                return gen3_o.generateJavaScript.apply(gen3_o, args);
+            },
+            parameter: function() {
+                var self = this;
+                return self;
+            }
+        });
+        return variable = function(name, gen4_options) {
+            var couldBeMacro, location;
+            couldBeMacro = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "couldBeMacro") && gen4_options.couldBeMacro !== void 0 ? gen4_options.couldBeMacro : true;
+            location = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "location") && gen4_options.location !== void 0 ? gen4_options.location : void 0;
+            var v, macro;
+            v = variableTerm(name, {
+                location: location
+            });
+            if (couldBeMacro) {
+                macro = terms.macros.findMacro(name);
+                if (macro) {
+                    return macro(v, name);
+                }
+            }
+            return v;
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/whileExpression.js", function(exports, require, module){
+(function() {
+    var self = this;
+    var asyncControl;
+    asyncControl = require("../asyncControl");
+    module.exports = function(terms) {
+        var self = this;
+        var whileExpressionTerm, whileExpression;
+        whileExpressionTerm = terms.term({
+            constructor: function(condition, statements) {
+                var self = this;
+                self.isWhile = true;
+                self.condition = condition;
+                return self.statements = statements;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                buffer.write("while(");
+                self.condition.generateJavaScript(buffer, scope);
+                buffer.write("){");
+                self.statements.generateJavaScriptStatements(buffer, scope);
+                return buffer.write("}");
+            },
+            generateJavaScriptStatement: function() {
+                var self = this;
+                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+                var gen1_o;
+                gen1_o = self;
+                return gen1_o.generateJavaScript.apply(gen1_o, args);
+            },
+            rewriteResultTermInto: function(returnTerm) {
+                var self = this;
+                return void 0;
+            }
+        });
+        return whileExpression = function(condition, statements) {
+            var conditionStatements, asyncWhileFunction;
+            conditionStatements = terms.asyncStatements([ condition ]);
+            if (statements.isAsync || conditionStatements.isAsync) {
+                asyncWhileFunction = terms.moduleConstants.defineAs([ "async", "while" ], terms.javascript(asyncControl.while.toString()));
+                return terms.functionCall(asyncWhileFunction, [ terms.argumentUtils.asyncifyBody(conditionStatements), terms.argumentUtils.asyncifyBody(statements) ], {
+                    async: true
+                });
+            } else {
+                return whileExpressionTerm(condition, statements);
+            }
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/terms/withExpression.js", function(exports, require, module){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        var withExpressionTerm, withExpression;
+        withExpressionTerm = terms.term({
+            constructor: function(subject, statements) {
+                var self = this;
+                self.isWith = true;
+                self.subject = subject;
+                return self.statements = statements;
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                buffer.write("with(");
+                self.subject.generateJavaScript(buffer, scope);
+                buffer.write("){");
+                self.statements.generateJavaScriptStatements(buffer, scope);
+                return buffer.write("}");
+            },
+            generateJavaScriptStatement: function() {
+                var self = this;
+                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
+                var gen1_o;
+                gen1_o = self;
+                return gen1_o.generateJavaScript.apply(gen1_o, args);
+            },
+            rewriteResultTermInto: function(returnTerm) {
+                var self = this;
+                return self;
+            }
+        });
+        return withExpression = function(subject, statements) {
+            return withExpressionTerm(subject, statements);
+        };
+    };
+}).call(this);
+});
+require.register("pogoscript/lib/parser/basicExpression.js", function(exports, require, module){
+var _ = require('underscore');
 
 module.exports = function (terminals) {
   var cg = this;
@@ -860,10 +4455,16 @@ module.exports = function (terminals) {
     }
   });
 };
-}, "parser/browser": function(exports, require, module) {(function() {
+
+});
+require.register("pogoscript/lib/parser/browser.js", function(exports, require, module){
+(function() {
     var self = this;
     window.pogoscript = require("./compiler");
-}).call(this);}, "parser/codeGenerator": function(exports, require, module) {var cg = require('../codeGenerator');
+}).call(this);
+});
+require.register("pogoscript/lib/parser/codeGenerator.js", function(exports, require, module){
+var cg = require('../codeGenerator');
 
 exports.codeGenerator = function () {
   var codegen = {};
@@ -983,7 +4584,10 @@ var loc = function (term, location) {
   
   return term;
 };
-}, "parser/commandLine": function(exports, require, module) {(function() {
+
+});
+require.register("pogoscript/lib/parser/commandLine.js", function(exports, require, module){
+(function() {
     var self = this;
     var fs, createParser, Module, path, repl, vm, versions, compiler, createTerms, runningOnNodeOrHigher, compileFile, whenChanges, jsFilenameFromPogoFilename, compileFromFile;
     fs = require("fs");
@@ -1140,7 +4744,10 @@ var loc = function (term, location) {
     };
     exports.compile = compiler.compile;
     exports.evaluate = compiler.evaluate;
-}).call(this);}, "parser/compiler": function(exports, require, module) {(function() {
+}).call(this);
+});
+require.register("pogoscript/lib/parser/compiler.js", function(exports, require, module){
+(function() {
     var self = this;
     var ms, createParser, createTerms, object, beautify, generateCode, sourceLocationPrinter;
     ms = require("../memorystream");
@@ -1297,7 +4904,10 @@ var loc = function (term, location) {
             };
         });
     };
-}).call(this);}, "parser/complexExpression": function(exports, require, module) {var _ = require('underscore');
+}).call(this);
+});
+require.register("pogoscript/lib/parser/complexExpression.js", function(exports, require, module){
+var _ = require('underscore');
 
 module.exports = function (listOfTerminals) {
   var cg = this;
@@ -1521,7 +5131,10 @@ module.exports = function (listOfTerminals) {
     };
   });
 };
-}, "parser/dynamicLexer": function(exports, require, module) {(function() {
+
+});
+require.register("pogoscript/lib/parser/dynamicLexer.js", function(exports, require, module){
+(function() {
     var self = this;
     var object, createDynamicLexer;
     object = require("./runtime").object;
@@ -1563,7 +5176,10 @@ module.exports = function (listOfTerminals) {
             }
         });
     };
-}).call(this);}, "parser/errors": function(exports, require, module) {var _ = require('underscore');
+}).call(this);
+});
+require.register("pogoscript/lib/parser/errors.js", function(exports, require, module){
+var _ = require('underscore');
 
 exports.errors = function (terms) {
   return new function () {
@@ -1594,7 +5210,10 @@ exports.errors = function (terms) {
     };
   };
 };
-}, "parser/grammar": function(exports, require, module) {(function() {
+
+});
+require.register("pogoscript/lib/parser/grammar.js", function(exports, require, module){
+(function() {
     var self = this;
     var comments;
     comments = "\\s*((\\/\\*([^*](\\*[^\\/]|))*(\\*\\/|$)|\\/\\/[^\\n]*)\\s*)+";
@@ -1638,7 +5257,10 @@ exports.errors = function (terms) {
             interpolated_string_component: [ [ "interpolated_terminal", "$$ = $1;" ], [ "interpolated_string_body", "$$ = yy.terms.string($1);" ], [ "escaped_interpolated_string_terminal_start", '$$ = yy.terms.string("#");' ], [ "escape_sequence", "$$ = yy.terms.string(yy.normaliseInterpolatedString($1));" ] ]
         }
     };
-}).call(this);}, "parser/indentStack": function(exports, require, module) {(function() {
+}).call(this);
+});
+require.register("pogoscript/lib/parser/indentStack.js", function(exports, require, module){
+(function() {
     var self = this;
     var object, createIndentStack;
     object = require("./runtime").object;
@@ -1732,7 +5354,10 @@ exports.errors = function (terms) {
             };
         });
     };
-}).call(this);}, "parser/interpolation": function(exports, require, module) {(function() {
+}).call(this);
+});
+require.register("pogoscript/lib/parser/interpolation.js", function(exports, require, module){
+(function() {
     var self = this;
     exports.createInterpolation = function() {
         var self = this;
@@ -1766,7 +5391,10 @@ exports.errors = function (terms) {
             }
         };
     };
-}).call(this);}, "parser/jisonParser": function(exports, require, module) {/* Jison generated parser */
+}).call(this);
+});
+require.register("pogoscript/lib/parser/jisonParser.js", function(exports, require, module){
+/* Jison generated parser */
 var parser = (function(){
 var parser = {trace: function trace() { },
 yy: {},
@@ -2263,7 +5891,10 @@ exports.parser = parser;
 exports.Parser = parser.Parser;
 exports.parse = function () { return parser.parse.apply(parser, arguments); }
 }
-}, "parser/listMacros": function(exports, require, module) {(function() {
+
+});
+require.register("pogoscript/lib/parser/listMacros.js", function(exports, require, module){
+(function() {
     var self = this;
     var _;
     _ = require("underscore");
@@ -2409,7 +6040,10 @@ exports.parse = function () { return parser.parse.apply(parser, arguments); }
         });
         return macros;
     };
-}).call(this);}, "parser/macros": function(exports, require, module) {var _ = require('underscore');
+}).call(this);
+});
+require.register("pogoscript/lib/parser/macros.js", function(exports, require, module){
+var _ = require('underscore');
 var errors = require('./errors');
 var codegenUtils = require('../terms/codegenUtils');
 
@@ -2731,7 +6365,10 @@ exports.macros = function (cg) {
   
   return macros;
 };
-}, "parser/operatorExpression": function(exports, require, module) {(function() {
+
+});
+require.register("pogoscript/lib/parser/operatorExpression.js", function(exports, require, module){
+(function() {
     var self = this;
     var _, codegenUtils;
     _ = require("underscore");
@@ -2893,7 +6530,10 @@ exports.macros = function (cg) {
             }
         });
     };
-}).call(this);}, "parser/parser": function(exports, require, module) {(function() {
+}).call(this);
+});
+require.register("pogoscript/lib/parser/parser.js", function(exports, require, module){
+(function() {
     var self = this;
     var ms, createParserContext, createDynamicLexer, parser, jisonLexer;
     ms = require("../memorystream");
@@ -2969,7 +6609,10 @@ exports.macros = function (cg) {
             }
         };
     };
-}).call(this);}, "parser/parserContext": function(exports, require, module) {(function() {
+}).call(this);
+});
+require.register("pogoscript/lib/parser/parserContext.js", function(exports, require, module){
+(function() {
     var self = this;
     var object, _, createIndentStack, createInterpolation, createParserContext;
     object = require("./runtime").object;
@@ -3117,7 +6760,10 @@ exports.macros = function (cg) {
             };
         });
     };
-}).call(this);}, "parser/runtime": function(exports, require, module) {(function() {
+}).call(this);
+});
+require.register("pogoscript/lib/parser/runtime.js", function(exports, require, module){
+(function() {
     var self = this;
     var constructor;
     constructor = function(members) {
@@ -3155,7 +6801,10 @@ exports.macros = function (cg) {
         c.prototype = base;
         return new c();
     };
-}).call(this);}, "parser/unaryOperatorExpression": function(exports, require, module) {(function() {
+}).call(this);
+});
+require.register("pogoscript/lib/parser/unaryOperatorExpression.js", function(exports, require, module){
+(function() {
     var self = this;
     var codegenUtils;
     codegenUtils = require("../terms/codegenUtils");
@@ -3184,3241 +6833,10 @@ exports.macros = function (cg) {
             }
         });
     };
-}).call(this);}, "symbolScope": function(exports, require, module) {(function() {
-    var self = this;
-    var UniqueNames, SymbolScope;
-    UniqueNames = function() {
-        var self = this;
-        var unique;
-        unique = 0;
-        self.generateName = function(name) {
-            var self = this;
-            unique = unique + 1;
-            return "gen" + unique + "_" + name;
-        };
-        return void 0;
-    };
-    SymbolScope = exports.SymbolScope = function(parentScope, gen1_options) {
-        var self = this;
-        var uniqueNames;
-        uniqueNames = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "uniqueNames") && gen1_options.uniqueNames !== void 0 ? gen1_options.uniqueNames : new UniqueNames();
-        var variables;
-        variables = {};
-        self.define = function(name) {
-            var self = this;
-            return variables[name] = true;
-        };
-        self.generateVariable = function(name) {
-            var self = this;
-            return uniqueNames.generateName(name);
-        };
-        self.isDefined = function(name) {
-            var self = this;
-            return variables.hasOwnProperty(name) || parentScope && parentScope.isDefined(name);
-        };
-        self.subScope = function() {
-            var self = this;
-            return new SymbolScope(self, {
-                uniqueNames: uniqueNames
-            });
-        };
-        return void 0;
-    };
-}).call(this);}, "terms/argumentList": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(args) {
-                var self = this;
-                self.isArgumentList = true;
-                return self.args = args;
-            },
-            arguments: function() {
-                var self = this;
-                return self.args;
-            }
-        });
-    };
-}).call(this);}, "terms/argumentUtils": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return {
-            asyncifyArguments: function(arguments, optionalArguments) {
-                var self = this;
-                var gen1_items, gen2_i, arg, gen3_items, gen4_i, optArg;
-                gen1_items = arguments;
-                for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
-                    arg = gen1_items[gen2_i];
-                    arg.asyncify();
-                }
-                gen3_items = optionalArguments;
-                for (gen4_i = 0; gen4_i < gen3_items.length; ++gen4_i) {
-                    optArg = gen3_items[gen4_i];
-                    optArg.asyncify();
-                }
-                return void 0;
-            },
-            asyncifyBody: function(body, args) {
-                var self = this;
-                var closure;
-                if (body) {
-                    closure = terms.closure(args || [], body);
-                    closure.asyncify();
-                    return closure;
-                } else {
-                    return terms.nil();
-                }
-            }
-        };
-    };
-}).call(this);}, "terms/asyncArgument": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function() {
-                var self = this;
-                return self.isAsyncArgument = true;
-            },
-            arguments: function() {
-                var self = this;
-                return [];
-            }
-        });
-    };
-}).call(this);}, "terms/asyncCallback": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        var asyncCallback;
-        return asyncCallback = function(body, gen1_options) {
-            var resultVariable;
-            resultVariable = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "resultVariable") && gen1_options.resultVariable !== void 0 ? gen1_options.resultVariable : void 0;
-            var errorVariable, catchErrorVariable;
-            errorVariable = terms.generatedVariable([ "error" ]);
-            catchErrorVariable = terms.generatedVariable([ "exception" ]);
-            if (!body.containsContinuation()) {
-                body.rewriteResultTermInto(function(term) {
-                    if (!term.originallyAsync) {
-                        return terms.functionCall(terms.callbackFunction, [ terms.nil(), term ]);
-                    } else {
-                        return term;
-                    }
-                }, {
-                    async: true
-                });
-            }
-            return terms.closure([ errorVariable, resultVariable ], terms.statements([ terms.ifExpression([ {
-                condition: errorVariable,
-                body: terms.statements([ terms.functionCall(terms.callbackFunction, [ errorVariable ]) ])
-            } ], terms.statements([ terms.tryExpression(body, {
-                catchParameter: catchErrorVariable,
-                catchBody: terms.statements([ terms.functionCall(terms.callbackFunction, [ catchErrorVariable ]) ])
-            }) ])) ]), {
-                returnLastStatement: false
-            });
-        };
-    };
-}).call(this);}, "terms/asyncResult": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        var asyncResult;
-        return asyncResult = function() {
-            var resultVariable;
-            resultVariable = terms.generatedVariable([ "async", "result" ]);
-            resultVariable.isAsyncResult = true;
-            return resultVariable;
-        };
-    };
-}).call(this);}, "terms/asyncStatements": function(exports, require, module) {(function() {
-    var self = this;
-    var _, codegenUtils, statementsUtils;
-    _ = require("underscore");
-    codegenUtils = require("./codegenUtils");
-    statementsUtils = require("./statementsUtils");
-    module.exports = function(terms) {
-        var self = this;
-        var createCallbackWithStatements, putStatementsInCallbackForNextAsyncCall, asyncStatements;
-        createCallbackWithStatements = function(callbackStatements, gen1_options) {
-            var resultVariable, forceAsync, global, containsContinuation;
-            resultVariable = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "resultVariable") && gen1_options.resultVariable !== void 0 ? gen1_options.resultVariable : void 0;
-            forceAsync = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "forceAsync") && gen1_options.forceAsync !== void 0 ? gen1_options.forceAsync : false;
-            global = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "global") && gen1_options.global !== void 0 ? gen1_options.global : false;
-            containsContinuation = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "containsContinuation") && gen1_options.containsContinuation !== void 0 ? gen1_options.containsContinuation : containsContinuation;
-            var errorVariable, asyncStmts;
-            if (callbackStatements.length === 1 && callbackStatements[0].isAsyncResult) {
-                if (containsContinuation) {
-                    errorVariable = terms.generatedVariable([ "error" ]);
-                    return terms.closure([ errorVariable ], terms.statements([ terms.ifExpression([ {
-                        condition: errorVariable,
-                        body: terms.statements([ terms.functionCall(terms.callbackFunction, [ errorVariable ]) ])
-                    } ]) ]));
-                } else {
-                    return terms.callbackFunction;
-                }
-            } else {
-                asyncStmts = putStatementsInCallbackForNextAsyncCall(callbackStatements, {
-                    forceAsync: forceAsync,
-                    forceNotAsync: true,
-                    global: global
-                });
-                return terms.asyncCallback(asyncStmts, {
-                    resultVariable: resultVariable
-                });
-            }
-        };
-        putStatementsInCallbackForNextAsyncCall = function(statements, gen2_options) {
-            var forceAsync, forceNotAsync, global;
-            forceAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "forceAsync") && gen2_options.forceAsync !== void 0 ? gen2_options.forceAsync : false;
-            forceNotAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "forceNotAsync") && gen2_options.forceNotAsync !== void 0 ? gen2_options.forceNotAsync : false;
-            global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
-            var containsContinuation, n, gen3_forResult;
-            containsContinuation = function() {
-                if (statements.length > 0) {
-                    return function() {
-                        var gen4_results, gen5_items, gen6_i, stmt;
-                        gen4_results = [];
-                        gen5_items = statements;
-                        for (gen6_i = 0; gen6_i < gen5_items.length; ++gen6_i) {
-                            stmt = gen5_items[gen6_i];
-                            gen4_results.push(stmt.containsContinuation());
-                        }
-                        return gen4_results;
-                    }().reduce(function(l, r) {
-                        return l || r;
-                    });
-                } else {
-                    return false;
-                }
-            }();
-            for (n = 0; n < statements.length; ++n) {
-                gen3_forResult = void 0;
-                if (function(n) {
-                    var statement, asyncStatement, firstStatements;
-                    statement = statements[n];
-                    asyncStatement = statement.makeAsyncWithCallbackForResult(function(resultVariable) {
-                        return createCallbackWithStatements(statements.slice(n + 1), {
-                            resultVariable: resultVariable,
-                            forceAsync: forceAsync,
-                            global: global,
-                            containsContinuation: containsContinuation
-                        });
-                    });
-                    if (asyncStatement) {
-                        firstStatements = statements.slice(0, n);
-                        firstStatements.push(asyncStatement);
-                        gen3_forResult = terms.statements(firstStatements, {
-                            async: true && !forceNotAsync
-                        });
-                        return true;
-                    }
-                }(n)) {
-                    return gen3_forResult;
-                }
-            }
-            return terms.statements(statements, {
-                global: global,
-                async: forceAsync
-            });
-        };
-        return asyncStatements = function(statements, gen7_options) {
-            var forceAsync, global;
-            forceAsync = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "forceAsync") && gen7_options.forceAsync !== void 0 ? gen7_options.forceAsync : false;
-            global = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "global") && gen7_options.global !== void 0 ? gen7_options.global : false;
-            var serialisedStatements;
-            serialisedStatements = statementsUtils.serialiseStatements(statements);
-            return putStatementsInCallbackForNextAsyncCall(serialisedStatements, {
-                forceAsync: forceAsync,
-                global: global
-            });
-        };
-    };
-}).call(this);}, "terms/boolean": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(cg) {
-        var self = this;
-        return cg.term({
-            constructor: function(value) {
-                var self = this;
-                self.boolean = value;
-                return self.isBoolean = true;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                if (self.boolean) {
-                    return buffer.write("true");
-                } else {
-                    return buffer.write("false");
-                }
-            }
-        });
-    };
-}).call(this);}, "terms/breakStatement": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function() {
-                var self = this;
-                return self.isBreak = true;
-            },
-            generateJavaScriptStatement: function(buffer, scope) {
-                var self = this;
-                return buffer.write("break;");
-            },
-            rewriteResultTermInto: function(returnTerm) {
-                var self = this;
-                return self;
-            }
-        });
-    };
-}).call(this);}, "terms/closure": function(exports, require, module) {(function() {
-    var self = this;
-    var _, codegenUtils, blockParameters, selfParameter, splatParameters, parseSplatParameters, takeFromWhile;
-    _ = require("underscore");
-    codegenUtils = require("./codegenUtils");
-    module.exports = function(terms) {
-        var self = this;
-        var optionalParameters, optional, asyncParameters, containsSplatParameter, createSplatParameterStrategyFor, createOptionalParameterStrategyFor;
-        optionalParameters = function(optionalParameters, next) {
-            if (optionalParameters.length > 0) {
-                return {
-                    options: terms.generatedVariable([ "options" ]),
-                    parameters: function() {
-                        var self = this;
-                        return next.parameters().concat([ self.options ]);
-                    },
-                    statements: function() {
-                        var self = this;
-                        var optionalStatements;
-                        optionalStatements = _.map(optionalParameters, function(parm) {
-                            return terms.definition(terms.variable(parm.field), optional(self.options, parm.field, parm.value), {
-                                shadow: true
-                            });
-                        });
-                        return optionalStatements.concat(next.statements());
-                    },
-                    hasOptionals: true
-                };
-            } else {
-                return next;
-            }
-        };
-        optional = terms.term({
-            constructor: function(options, name, defaultValue) {
-                var self = this;
-                self.options = options;
-                self.name = name;
-                return self.defaultValue = defaultValue;
-            },
-            properDefaultValue: function() {
-                var self = this;
-                if (self.defaultValue === void 0) {
-                    return terms.variable([ "undefined" ]);
-                } else {
-                    return self.defaultValue;
-                }
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                buffer.write("(");
-                self.options.generateJavaScript(buffer, scope);
-                buffer.write("&&");
-                self.options.generateJavaScript(buffer, scope);
-                buffer.write(".hasOwnProperty('" + codegenUtils.concatName(self.name) + "')&&");
-                self.options.generateJavaScript(buffer, scope);
-                buffer.write("." + codegenUtils.concatName(self.name) + "!==void 0)?");
-                self.options.generateJavaScript(buffer, scope);
-                buffer.write("." + codegenUtils.concatName(self.name) + ":");
-                return self.properDefaultValue().generateJavaScript(buffer, scope);
-            }
-        });
-        asyncParameters = function(closure, next) {
-            return {
-                parameters: function() {
-                    var self = this;
-                    if (closure.isAsync) {
-                        return next.parameters().concat([ terms.callbackFunction ]);
-                    } else {
-                        return next.parameters();
-                    }
-                },
-                statements: function() {
-                    var self = this;
-                    return next.statements();
-                }
-            };
-        };
-        containsSplatParameter = function(closure) {
-            return _.any(closure.parameters, function(parameter) {
-                return parameter.isSplat;
-            });
-        };
-        createSplatParameterStrategyFor = function(closure) {
-            var nonSplatParams, before, splat, after;
-            nonSplatParams = takeFromWhile(closure.parameters, function(parameter) {
-                return !parameter.isSplat;
-            });
-            before = nonSplatParams.slice(0, nonSplatParams.length - 1);
-            splat = nonSplatParams[nonSplatParams.length - 1];
-            after = closure.parameters.slice(nonSplatParams.length + 1);
-            return terms.closureParameterStrategies.splatStrategy({
-                before: before,
-                splat: splat,
-                after: after
-            });
-        };
-        createOptionalParameterStrategyFor = function(closure) {
-            return terms.closureParameterStrategies.optionalStrategy({
-                before: closure.parameters,
-                options: closure.optionalParameters
-            });
-        };
-        return terms.term({
-            constructor: function(parameters, body, gen1_options) {
-                var self = this;
-                var optionalParameters, returnLastStatement, redefinesSelf, async;
-                optionalParameters = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "optionalParameters") && gen1_options.optionalParameters !== void 0 ? gen1_options.optionalParameters : [];
-                returnLastStatement = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "returnLastStatement") && gen1_options.returnLastStatement !== void 0 ? gen1_options.returnLastStatement : true;
-                redefinesSelf = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "redefinesSelf") && gen1_options.redefinesSelf !== void 0 ? gen1_options.redefinesSelf : false;
-                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
-                self.isBlock = true;
-                self.isClosure = true;
-                self.parameters = parameters;
-                self.body = body;
-                self.redefinesSelf = redefinesSelf;
-                self.optionalParameters = optionalParameters;
-                self.isAsync = async || body.isAsync;
-                return self.returnLastStatement = returnLastStatement;
-            },
-            blockify: function(parameters, gen2_options) {
-                var self = this;
-                var optionalParameters, async;
-                optionalParameters = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "optionalParameters") && gen2_options.optionalParameters !== void 0 ? gen2_options.optionalParameters : [];
-                async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
-                self.parameters = parameters;
-                self.optionalParameters = optionalParameters;
-                self.isAsync = self.isAsync || async;
-                return self;
-            },
-            scopify: function() {
-                var self = this;
-                if (self.parameters.length === 0 && self.optionalParameters.length === 0) {
-                    if (self.isAsync) {
-                        return terms.functionCall(terms.subExpression(self), [], {
-                            async: true
-                        });
-                    } else {
-                        return terms.scope(self.body.statements, {
-                            async: self.isAsync
-                        });
-                    }
-                } else {
-                    return self;
-                }
-            },
-            parameterTransforms: function() {
-                var self = this;
-                var optionals, async, splat;
-                if (self._parameterTransforms) {
-                    return self._parameterTransforms;
-                }
-                optionals = optionalParameters(self.optionalParameters, selfParameter(terms, self.redefinesSelf, blockParameters(self)));
-                async = asyncParameters(self, optionals);
-                splat = splatParameters(terms, async);
-                if (optionals.hasOptionals && splat.hasSplat) {
-                    terms.errors.addTermsWithMessage(self.optionalParameters, "cannot have splat parameters with optional parameters");
-                }
-                return self._parameterTransforms = splat;
-            },
-            transformedStatements: function() {
-                var self = this;
-                return terms.statements(self.parameterTransforms().statements());
-            },
-            transformedParameters: function() {
-                var self = this;
-                return self.parameterTransforms().parameters();
-            },
-            declareParameters: function(scope, parameters) {
-                var self = this;
-                var gen3_items, gen4_i, parameter;
-                gen3_items = parameters;
-                for (gen4_i = 0; gen4_i < gen3_items.length; ++gen4_i) {
-                    parameter = gen3_items[gen4_i];
-                    scope.define(parameter.canonicalName(scope));
-                }
-                return void 0;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                var parametersStrategy, parameters, bodyScope;
-                parametersStrategy = self.parametersStrategy();
-                self.rewriteResultTermToReturn();
-                buffer.write("function(");
-                parameters = parametersStrategy.namedParameters();
-                parametersStrategy.generateJavaScriptParameters(buffer, scope);
-                buffer.write("){");
-                bodyScope = scope.subScope();
-                self.declareParameters(bodyScope, parameters);
-                self.generateSelfAssignment(buffer);
-                parametersStrategy.generateJavaScriptParameterStatements(buffer, scope, terms.variable([ "arguments" ]));
-                self.body.generateJavaScriptStatements(buffer, bodyScope, {
-                    inClosure: true
-                });
-                return buffer.write("}");
-            },
-            generateSelfAssignment: function(buffer) {
-                var self = this;
-                if (self.redefinesSelf) {
-                    return buffer.write("var self=this;");
-                }
-            },
-            rewriteResultTermToReturn: function() {
-                var self = this;
-                if (self.returnLastStatement && !self.body.isAsync) {
-                    return self.body.rewriteLastStatementToReturn({
-                        async: self.isAsync
-                    });
-                }
-            },
-            asyncify: function() {
-                var self = this;
-                self.body.asyncify();
-                return self.isAsync = true;
-            },
-            parametersStrategy: function() {
-                var self = this;
-                var innerStrategy, strategy;
-                innerStrategy = function() {
-                    if (containsSplatParameter(self)) {
-                        return createSplatParameterStrategyFor(self);
-                    } else if (self.optionalParameters.length > 0) {
-                        return createOptionalParameterStrategyFor(self);
-                    } else {
-                        return terms.closureParameterStrategies.normalStrategy(self.parameters);
-                    }
-                }();
-                strategy = function() {
-                    if (self.isAsync) {
-                        return terms.closureParameterStrategies.callbackStrategy(innerStrategy);
-                    } else {
-                        return innerStrategy;
-                    }
-                }();
-                return terms.closureParameterStrategies.functionStrategy(strategy);
-            }
-        });
-    };
-    blockParameters = function(block) {
-        return {
-            parameters: function() {
-                var self = this;
-                return block.parameters;
-            },
-            statements: function() {
-                var self = this;
-                return block.body.statements;
-            }
-        };
-    };
-    selfParameter = function(cg, redefinesSelf, next) {
-        if (redefinesSelf) {
-            return {
-                parameters: function() {
-                    var self = this;
-                    return next.parameters();
-                },
-                statements: function() {
-                    var self = this;
-                    return [ cg.definition(cg.selfExpression(), cg.variable([ "this" ]), {
-                        shadow: true
-                    }) ].concat(next.statements());
-                }
-            };
-        } else {
-            return next;
-        }
-    };
-    splatParameters = function(cg, next) {
-        var parsedSplatParameters;
-        parsedSplatParameters = parseSplatParameters(cg, next.parameters());
-        return {
-            parameters: function() {
-                var self = this;
-                return parsedSplatParameters.firstParameters;
-            },
-            statements: function() {
-                var self = this;
-                var splat, lastIndex, splatParameter, lastParameterStatements, n, param;
-                splat = parsedSplatParameters;
-                if (splat.splatParameter) {
-                    lastIndex = "arguments.length";
-                    if (splat.lastParameters.length > 0) {
-                        lastIndex = lastIndex + " - " + splat.lastParameters.length;
-                    }
-                    splatParameter = cg.definition(splat.splatParameter, cg.javascript("Array.prototype.slice.call(arguments, " + splat.firstParameters.length + ", " + lastIndex + ")"), {
-                        shadow: true
-                    });
-                    lastParameterStatements = [ splatParameter ];
-                    for (n = 0; n < splat.lastParameters.length; ++n) {
-                        param = splat.lastParameters[n];
-                        lastParameterStatements.push(cg.definition(param, cg.javascript("arguments[arguments.length - " + (splat.lastParameters.length - n) + "]"), {
-                            shadow: true
-                        }));
-                    }
-                    return lastParameterStatements.concat(next.statements());
-                } else {
-                    return next.statements();
-                }
-            },
-            hasSplat: parsedSplatParameters.splatParameter
-        };
-    };
-    parseSplatParameters = module.exports.parseSplatParameters = function(cg, parameters) {
-        var self = this;
-        var firstParameters, maybeSplat, splatParam, lastParameters;
-        firstParameters = takeFromWhile(parameters, function(param) {
-            return !param.isSplat;
-        });
-        maybeSplat = parameters[firstParameters.length];
-        splatParam = void 0;
-        lastParameters = void 0;
-        if (maybeSplat && maybeSplat.isSplat) {
-            splatParam = firstParameters.pop();
-            splatParam.shadow = true;
-            lastParameters = parameters.slice(firstParameters.length + 2);
-            lastParameters = _.filter(lastParameters, function(param) {
-                if (param.isSplat) {
-                    cg.errors.addTermWithMessage(param, "cannot have more than one splat parameter");
-                    return false;
-                } else {
-                    return true;
-                }
-            });
-        } else {
-            lastParameters = [];
-        }
-        return {
-            firstParameters: firstParameters,
-            splatParameter: splatParam,
-            lastParameters: lastParameters
-        };
-    };
-    takeFromWhile = function(list, canTake) {
-        var takenList, gen5_items, gen6_i, gen7_forResult;
-        takenList = [];
-        gen5_items = list;
-        for (gen6_i = 0; gen6_i < gen5_items.length; ++gen6_i) {
-            gen7_forResult = void 0;
-            if (function(gen6_i) {
-                var item;
-                item = gen5_items[gen6_i];
-                if (canTake(item)) {
-                    takenList.push(item);
-                } else {
-                    gen7_forResult = takenList;
-                    return true;
-                }
-            }(gen6_i)) {
-                return gen7_forResult;
-            }
-        }
-        return takenList;
-    };
-}).call(this);}, "terms/closureParameterStrategies": function(exports, require, module) {(function() {
-    var self = this;
-    var _, codegenUtils;
-    _ = require("underscore");
-    codegenUtils = require("./codegenUtils");
-    module.exports = function(terms) {
-        var self = this;
-        return {
-            functionStrategy: function(strategy) {
-                var self = this;
-                return {
-                    strategy: strategy,
-                    generateJavaScriptParameters: function(buffer, scope) {
-                        var self = this;
-                        return codegenUtils.writeToBufferWithDelimiter(self.strategy.namedParameters(), ",", buffer, scope);
-                    },
-                    generateJavaScriptParameterStatements: function(buffer, scope, args) {
-                        var self = this;
-                        return self.strategy.generateJavaScriptParameterStatements(buffer, scope, args);
-                    },
-                    namedParameters: function() {
-                        var self = this;
-                        return strategy.namedParameters();
-                    }
-                };
-            },
-            normalStrategy: function(parameters) {
-                var self = this;
-                return {
-                    parameters: parameters,
-                    namedParameters: function() {
-                        var self = this;
-                        return self.parameters;
-                    },
-                    generateJavaScriptParameterStatements: function(buffer, scope, args) {
-                        var self = this;
-                        return void 0;
-                    }
-                };
-            },
-            splatStrategy: function(gen1_options) {
-                var self = this;
-                var before, splat, after;
-                before = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "before") && gen1_options.before !== void 0 ? gen1_options.before : void 0;
-                splat = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "splat") && gen1_options.splat !== void 0 ? gen1_options.splat : void 0;
-                after = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "after") && gen1_options.after !== void 0 ? gen1_options.after : void 0;
-                return {
-                    before: before,
-                    splat: splat,
-                    after: after,
-                    namedParameters: function() {
-                        var self = this;
-                        return self.before;
-                    },
-                    generateJavaScriptParameterStatements: function(buffer, scope, args) {
-                        var self = this;
-                        var n, afterArg, argsIndex;
-                        buffer.write("var ");
-                        self.splat.generateJavaScript(buffer, scope);
-                        buffer.write("=Array.prototype.slice.call(");
-                        args.generateJavaScript(buffer, scope);
-                        buffer.write("," + self.before.length + ",");
-                        args.generateJavaScript(buffer, scope);
-                        buffer.write(".length");
-                        if (self.after.length > 0) {
-                            buffer.write("-" + self.after.length);
-                        }
-                        buffer.write(");");
-                        if (before.length > 0 && after.length > 0) {
-                            buffer.write("if(");
-                            args.generateJavaScript(buffer, scope);
-                            buffer.write(".length>" + before.length + "){");
-                        }
-                        for (n = 0; n < self.after.length; ++n) {
-                            afterArg = self.after[n];
-                            argsIndex = self.after.length - n;
-                            buffer.write("var ");
-                            afterArg.generateJavaScript(buffer, scope);
-                            buffer.write("=");
-                            args.generateJavaScript(buffer, scope);
-                            buffer.write("[");
-                            args.generateJavaScript(buffer, scope);
-                            buffer.write(".length-" + argsIndex + "];");
-                        }
-                        if (before.length > 0 && after.length > 0) {
-                            return buffer.write("}");
-                        }
-                    }
-                };
-            },
-            optionalStrategy: function(gen2_options) {
-                var self = this;
-                var before, options;
-                before = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "before") && gen2_options.before !== void 0 ? gen2_options.before : void 0;
-                options = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "options") && gen2_options.options !== void 0 ? gen2_options.options : void 0;
-                return {
-                    before: before,
-                    options: options,
-                    optionsVariable: terms.generatedVariable([ "options" ]),
-                    namedParameters: function() {
-                        var self = this;
-                        return self.before.concat([ self.optionsVariable ]);
-                    },
-                    generateJavaScriptParameterStatements: function(buffer, scope, args) {
-                        var self = this;
-                        var optionNames, gen3_items, gen4_i, option, optionName;
-                        optionNames = _.map(self.options, function(option) {
-                            return codegenUtils.concatName(option.field);
-                        });
-                        buffer.write("var ");
-                        buffer.write(optionNames.join(","));
-                        buffer.write(";");
-                        gen3_items = self.options;
-                        for (gen4_i = 0; gen4_i < gen3_items.length; ++gen4_i) {
-                            option = gen3_items[gen4_i];
-                            optionName = codegenUtils.concatName(option.field);
-                            buffer.write(optionName + "=");
-                            self.optionsVariable.generateJavaScript(buffer, scope);
-                            buffer.write("!==void 0&&Object.prototype.hasOwnProperty.call(");
-                            self.optionsVariable.generateJavaScript(buffer, scope);
-                            buffer.write(",'" + optionName + "')&&");
-                            self.optionsVariable.generateJavaScript(buffer, scope);
-                            buffer.write("." + optionName + "!==void 0?");
-                            self.optionsVariable.generateJavaScript(buffer, scope);
-                            buffer.write("." + optionName + ":");
-                            option.value.generateJavaScript(buffer, scope);
-                            buffer.write(";");
-                        }
-                        return void 0;
-                    }
-                };
-            },
-            callbackStrategy: function(strategy) {
-                var self = this;
-                return {
-                    strategy: strategy,
-                    namedParameters: function() {
-                        var self = this;
-                        return self.strategy.namedParameters().concat(terms.callbackFunction);
-                    },
-                    generateJavaScriptParameterStatements: function(buffer, scope, args) {
-                        var self = this;
-                        var innerArgs, namedParameters, n, namedParam;
-                        innerArgs = terms.generatedVariable([ "arguments" ]);
-                        buffer.write("var ");
-                        innerArgs.generateJavaScript(buffer, scope);
-                        buffer.write("=Array.prototype.slice.call(");
-                        args.generateJavaScript(buffer, scope);
-                        buffer.write(",0,");
-                        args.generateJavaScript(buffer, scope);
-                        buffer.write(".length-1);");
-                        terms.callbackFunction.generateJavaScript(buffer, scope);
-                        buffer.write("=");
-                        args.generateJavaScript(buffer, scope);
-                        buffer.write("[");
-                        args.generateJavaScript(buffer, scope);
-                        buffer.write(".length-1];");
-                        buffer.write("if(!(");
-                        terms.callbackFunction.generateJavaScript(buffer, scope);
-                        buffer.write(" instanceof Function)){throw new Error('asynchronous function called synchronously');}");
-                        namedParameters = self.strategy.namedParameters();
-                        for (n = 0; n < namedParameters.length; ++n) {
-                            namedParam = self.strategy.namedParameters()[n];
-                            namedParam.generateJavaScript(buffer, scope);
-                            buffer.write("=");
-                            innerArgs.generateJavaScript(buffer, scope);
-                            buffer.write("[" + n + "];");
-                        }
-                        return self.strategy.generateJavaScriptParameterStatements(buffer, scope, innerArgs);
-                    }
-                };
-            }
-        };
-    };
-}).call(this);}, "terms/codegenUtils": function(exports, require, module) {(function() {
-    var self = this;
-    var _, actualCharacters, nameSegmentRenderedInJavaScript, operatorRenderedInJavaScript, capitalise, reservedWords, escapeReservedWord;
-    _ = require("underscore");
-    exports.writeToBufferWithDelimiter = function(array, delimiter, buffer, scope) {
-        var self = this;
-        var writer, first;
-        writer = void 0;
-        if (scope instanceof Function) {
-            writer = scope;
-        } else {
-            writer = function(item) {
-                return item.generateJavaScript(buffer, scope);
-            };
-        }
-        first = true;
-        return _(array).each(function(item) {
-            if (!first) {
-                buffer.write(delimiter);
-            }
-            first = false;
-            return writer(item);
-        });
-    };
-    actualCharacters = [ [ /\\/g, "\\\\" ], [ new RegExp("\b"), "\\b" ], [ /\f/g, "\\f" ], [ /\n/g, "\\n" ], [ /\0/g, "\\0" ], [ /\r/g, "\\r" ], [ /\t/g, "\\t" ], [ /\v/g, "\\v" ], [ /'/g, "\\'" ], [ /"/g, '\\"' ] ];
-    exports.formatJavaScriptString = function(s) {
-        var self = this;
-        var gen1_items, gen2_i, mapping;
-        gen1_items = actualCharacters;
-        for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
-            mapping = gen1_items[gen2_i];
-            s = s.replace(mapping[0], mapping[1]);
-        }
-        return "'" + s + "'";
-    };
-    exports.concatName = function(nameSegments, options) {
-        var self = this;
-        var name, n, segment;
-        name = "";
-        for (n = 0; n < nameSegments.length; ++n) {
-            segment = nameSegments[n];
-            name = name + nameSegmentRenderedInJavaScript(segment, n === 0);
-        }
-        if (options && options.hasOwnProperty("escape") && options.escape) {
-            return escapeReservedWord(name);
-        } else {
-            return name;
-        }
-    };
-    nameSegmentRenderedInJavaScript = function(nameSegment, isFirst) {
-        if (/[_$a-zA-Z0-9]+/.test(nameSegment)) {
-            if (isFirst) {
-                return nameSegment;
-            } else {
-                return capitalise(nameSegment);
-            }
-        } else {
-            return operatorRenderedInJavaScript(nameSegment);
-        }
-    };
-    operatorRenderedInJavaScript = function(operator) {
-        var javaScriptName, n;
-        javaScriptName = "";
-        for (n = 0; n < operator.length; ++n) {
-            javaScriptName = javaScriptName + "$" + operator.charCodeAt(n).toString(16);
-        }
-        return javaScriptName;
-    };
-    capitalise = function(s) {
-        return s[0].toUpperCase() + s.substring(1);
-    };
-    reservedWords = {
-        "class": true,
-        "function": true,
-        "else": true,
-        "case": true,
-        "switch": true
-    };
-    escapeReservedWord = function(word) {
-        if (reservedWords.hasOwnProperty(word)) {
-            return "$" + word;
-        } else {
-            return word;
-        }
-    };
-    exports.concatArgs = function(args, gen3_options) {
-        var self = this;
-        var optionalArgs, asyncCallbackArg, terms;
-        optionalArgs = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "optionalArgs") && gen3_options.optionalArgs !== void 0 ? gen3_options.optionalArgs : void 0;
-        asyncCallbackArg = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "asyncCallbackArg") && gen3_options.asyncCallbackArg !== void 0 ? gen3_options.asyncCallbackArg : void 0;
-        terms = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "terms") && gen3_options.terms !== void 0 ? gen3_options.terms : void 0;
-        var a;
-        a = args.slice();
-        if (optionalArgs && optionalArgs.length > 0) {
-            a.push(terms.hash(optionalArgs));
-        }
-        if (asyncCallbackArg) {
-            a.push(asyncCallbackArg);
-        }
-        return a;
-    };
-    exports.normaliseOperatorName = function(name) {
-        var self = this;
-        var match;
-        match = /^@([a-z_$]+)$/i.exec(name);
-        if (match) {
-            return match[1];
-        } else {
-            return name;
-        }
-    };
-    exports.declaredVariables = function(scope) {
-        var self = this;
-        return {
-            variables: [],
-            scope: scope,
-            declare: function(variable) {
-                var self = this;
-                scope.define(variable);
-                return self.variables.push(variable);
-            },
-            isDeclared: function(variable) {
-                var self = this;
-                return scope.isDefined(variable);
-            },
-            uniqueVariables: function() {
-                var self = this;
-                return _.uniq(self.variables);
-            }
-        };
-    };
-}).call(this);}, "terms/continueStatement": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function() {
-                var self = this;
-                return self.isContinue = true;
-            },
-            generateJavaScriptStatement: function(buffer, scope) {
-                var self = this;
-                return buffer.write("continue;");
-            },
-            rewriteResultTermInto: function(returnTerm) {
-                var self = this;
-                return self;
-            }
-        });
-    };
-}).call(this);}, "terms/definition": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(target, source, gen1_options) {
-                var self = this;
-                var async, shadow, assignment;
-                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
-                shadow = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "shadow") && gen1_options.shadow !== void 0 ? gen1_options.shadow : false;
-                assignment = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "assignment") && gen1_options.assignment !== void 0 ? gen1_options.assignment : false;
-                self.isDefinition = true;
-                self.target = target;
-                self.source = source;
-                self.isAsync = async;
-                self.shadow = shadow;
-                return self.isAssignment = assignment;
-            },
-            expression: function() {
-                var self = this;
-                return self;
-            },
-            hashEntry: function() {
-                var self = this;
-                return self.cg.hashEntry(self.target.hashEntryField(), self.source);
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                self.target.generateJavaScriptTarget(buffer, scope);
-                buffer.write("=");
-                return self.source.generateJavaScript(buffer, scope);
-            },
-            declareVariables: function(variables) {
-                var self = this;
-                var name;
-                name = self.target.canonicalName(variables.scope);
-                if (name) {
-                    if (!self.isAssignment) {
-                        if (self.shadow || !variables.isDeclared(name)) {
-                            return variables.declare(name);
-                        } else if (variables.isDeclared(name)) {
-                            return terms.errors.addTermWithMessage(self, "variable " + self.target.displayName() + " is already defined, use := to reassign it");
-                        }
-                    } else if (!variables.isDeclared(name)) {
-                        return terms.errors.addTermWithMessage(self, "variable " + self.target.displayName() + " is not defined, use = to define it");
-                    }
-                }
-            },
-            makeAsyncWithCallbackForResult: function(createCallbackForResult) {
-                var self = this;
-                var callback;
-                if (self.isAsync) {
-                    callback = createCallbackForResult(self.target);
-                    return self.source.makeAsyncCallWithCallback(callback);
-                }
-            }
-        });
-    };
-}).call(this);}, "terms/fieldReference": function(exports, require, module) {(function() {
-    var self = this;
-    var codegenUtils;
-    codegenUtils = require("./codegenUtils");
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(object, name) {
-                var self = this;
-                self.object = object;
-                self.name = name;
-                return self.isFieldReference = true;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                self.object.generateJavaScript(buffer, scope);
-                buffer.write(".");
-                return buffer.write(codegenUtils.concatName(self.name));
-            },
-            generateJavaScriptTarget: function() {
-                var self = this;
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen1_o;
-                gen1_o = self;
-                return gen1_o.generateJavaScript.apply(gen1_o, args);
-            }
-        });
-    };
-}).call(this);}, "terms/float": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(cg) {
-        var self = this;
-        return cg.term({
-            constructor: function(value) {
-                var self = this;
-                self.isFloat = true;
-                return self.float = value;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                return buffer.write(self.float.toString());
-            }
-        });
-    };
-}).call(this);}, "terms/forEach": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        var forEach;
-        return forEach = function(collection, itemVariable, stmts) {
-            var itemsVar, indexVar, s, gen1_o, statementsWithItemAssignment, init, test, incr;
-            itemsVar = terms.generatedVariable([ "items" ]);
-            indexVar = terms.generatedVariable([ "i" ]);
-            s = [ terms.definition(itemVariable, terms.indexer(itemsVar, indexVar)) ];
-            gen1_o = s;
-            gen1_o.push.apply(gen1_o, stmts.statements);
-            statementsWithItemAssignment = terms.statements(s, {
-                async: stmts.isAsync
-            });
-            init = terms.definition(indexVar, terms.integer(0));
-            test = terms.operator("<", [ indexVar, terms.fieldReference(itemsVar, [ "length" ]) ]);
-            incr = terms.increment(indexVar);
-            return terms.subStatements([ terms.definition(itemsVar, collection), terms.forStatement(init, test, incr, statementsWithItemAssignment) ]);
-        };
-    };
-}).call(this);}, "terms/forExpression": function(exports, require, module) {(function() {
-    var self = this;
-    var asyncControl;
-    asyncControl = require("../asyncControl");
-    module.exports = function(terms) {
-        var self = this;
-        var forExpressionTerm, forExpression;
-        forExpressionTerm = terms.term({
-            constructor: function(init, test, incr, stmts) {
-                var self = this;
-                self.isFor = true;
-                self.initialization = init;
-                self.test = test;
-                self.increment = incr;
-                self.indexVariable = init.target;
-                self.statements = stmts;
-                return self.statements = self._scopedBody();
-            },
-            _scopedBody: function() {
-                var self = this;
-                var containsReturn, forResultVariable, rewrittenStatements, loopStatements;
-                containsReturn = false;
-                forResultVariable = self.cg.generatedVariable([ "for", "result" ]);
-                rewrittenStatements = self.statements.rewrite({
-                    rewrite: function(term) {
-                        if (term.isReturn) {
-                            containsReturn = true;
-                            return terms.subStatements([ self.cg.definition(forResultVariable, term.expression, {
-                                assignment: true
-                            }), self.cg.returnStatement(self.cg.boolean(true)) ]);
-                        }
-                    },
-                    limit: function(term, gen1_options) {
-                        var path;
-                        path = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "path") && gen1_options.path !== void 0 ? gen1_options.path : path;
-                        return term.isClosure;
-                    }
-                }).serialiseAllStatements();
-                if (containsReturn) {
-                    loopStatements = [];
-                    loopStatements.push(self.cg.definition(forResultVariable, self.cg.nil()));
-                    loopStatements.push(self.cg.ifExpression([ {
-                        condition: self.cg.subExpression(self.cg.functionCall(self.cg.block([ self.indexVariable ], rewrittenStatements, {
-                            returnLastStatement: false
-                        }), [ self.indexVariable ])),
-                        body: self.cg.statements([ self.cg.returnStatement(forResultVariable) ])
-                    } ]));
-                    return self.cg.asyncStatements(loopStatements);
-                } else {
-                    return self.statements;
-                }
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                buffer.write("for(");
-                self.initialization.generateJavaScript(buffer, scope);
-                buffer.write(";");
-                self.test.generateJavaScript(buffer, scope);
-                buffer.write(";");
-                self.increment.generateJavaScript(buffer, scope);
-                buffer.write("){");
-                self.statements.generateJavaScriptStatements(buffer, scope);
-                return buffer.write("}");
-            },
-            generateJavaScriptStatement: function() {
-                var self = this;
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen2_o;
-                gen2_o = self;
-                return gen2_o.generateJavaScript.apply(gen2_o, args);
-            },
-            rewriteResultTermInto: function(returnTerm) {
-                var self = this;
-                return void 0;
-            }
-        });
-        return forExpression = function(init, test, incr, body) {
-            var initStatements, testStatements, incrStatements, asyncForFunction;
-            initStatements = terms.asyncStatements([ init ]);
-            testStatements = terms.asyncStatements([ test ]);
-            incrStatements = terms.asyncStatements([ incr ]);
-            if (initStatements.isAsync || testStatements.isAsync || incrStatements.isAsync || body.isAsync) {
-                asyncForFunction = terms.moduleConstants.defineAs([ "async", "for" ], terms.javascript(asyncControl.for.toString()));
-                return terms.scope([ init, terms.functionCall(asyncForFunction, [ terms.argumentUtils.asyncifyBody(testStatements), terms.argumentUtils.asyncifyBody(incrStatements), terms.argumentUtils.asyncifyBody(body) ], {
-                    async: true
-                }) ]);
-            } else {
-                return forExpressionTerm(init, test, incr, body);
-            }
-        };
-    };
-}).call(this);}, "terms/forIn": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(iterator, collection, stmts) {
-                var self = this;
-                self.isForIn = true;
-                self.iterator = terms.definition(iterator, terms.nil());
-                self.collection = collection;
-                return self.statements = terms.subExpression(terms.functionCall(terms.block([ iterator ], stmts, {
-                    returnLastStatement: false
-                }), [ iterator ]));
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                buffer.write("for(");
-                self.iterator.target.generateJavaScript(buffer, scope);
-                buffer.write(" in ");
-                self.collection.generateJavaScript(buffer, scope);
-                buffer.write("){");
-                self.statements.generateJavaScriptStatement(buffer, scope);
-                return buffer.write("}");
-            },
-            generateJavaScriptStatement: function() {
-                var self = this;
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen1_o;
-                gen1_o = self;
-                return gen1_o.generateJavaScript.apply(gen1_o, args);
-            },
-            rewriteResultTermInto: function(returnTerm) {
-                var self = this;
-                return void 0;
-            }
-        });
-    };
-}).call(this);}, "terms/functionCall": function(exports, require, module) {(function() {
-    var self = this;
-    var codegenUtils, argumentUtils, _;
-    codegenUtils = require("./codegenUtils");
-    argumentUtils = require("./argumentUtils");
-    _ = require("underscore");
-    module.exports = function(terms) {
-        var self = this;
-        var functionCallTerm, functionCall;
-        functionCallTerm = terms.term({
-            constructor: function(fun, args, gen1_options) {
-                var self = this;
-                var optionalArguments, async, passThisToApply, originallyAsync, asyncCallbackArgument;
-                optionalArguments = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "optionalArguments") && gen1_options.optionalArguments !== void 0 ? gen1_options.optionalArguments : [];
-                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
-                passThisToApply = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "passThisToApply") && gen1_options.passThisToApply !== void 0 ? gen1_options.passThisToApply : false;
-                originallyAsync = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "originallyAsync") && gen1_options.originallyAsync !== void 0 ? gen1_options.originallyAsync : false;
-                asyncCallbackArgument = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "asyncCallbackArgument") && gen1_options.asyncCallbackArgument !== void 0 ? gen1_options.asyncCallbackArgument : void 0;
-                self.isFunctionCall = true;
-                self.function = fun;
-                self.functionArguments = args;
-                self.optionalArguments = optionalArguments;
-                self.passThisToApply = passThisToApply;
-                self.isAsync = async;
-                self.originallyAsync = originallyAsync;
-                return self.asyncCallbackArgument = asyncCallbackArgument;
-            },
-            hasSplatArguments: function() {
-                var self = this;
-                return _.any(self.functionArguments, function(arg) {
-                    return arg.isSplat;
-                });
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                var args, splattedArguments;
-                self.function.generateJavaScript(buffer, scope);
-                args = codegenUtils.concatArgs(self.functionArguments, {
-                    optionalArgs: self.optionalArguments,
-                    asyncCallbackArg: self.asyncCallbackArgument,
-                    terms: terms
-                });
-                splattedArguments = self.cg.splatArguments(args);
-                if (splattedArguments && self.function.isIndexer) {
-                    buffer.write(".apply(");
-                    self.function.object.generateJavaScript(buffer, scope);
-                    buffer.write(",");
-                    splattedArguments.generateJavaScript(buffer, scope);
-                    return buffer.write(")");
-                } else if (splattedArguments) {
-                    buffer.write(".apply(");
-                    if (self.passThisToApply) {
-                        buffer.write("this");
-                    } else {
-                        buffer.write("null");
-                    }
-                    buffer.write(",");
-                    splattedArguments.generateJavaScript(buffer, scope);
-                    return buffer.write(")");
-                } else {
-                    buffer.write("(");
-                    codegenUtils.writeToBufferWithDelimiter(args, ",", buffer, scope);
-                    return buffer.write(")");
-                }
-            },
-            makeAsyncCallWithCallback: function(callback) {
-                var self = this;
-                self.asyncCallbackArgument = callback;
-                return self;
-            }
-        });
-        return functionCall = function(fun, args, gen2_options) {
-            var optionalArguments, async, passThisToApply, originallyAsync, asyncCallbackArgument, couldBeMacro;
-            optionalArguments = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "optionalArguments") && gen2_options.optionalArguments !== void 0 ? gen2_options.optionalArguments : [];
-            async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
-            passThisToApply = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "passThisToApply") && gen2_options.passThisToApply !== void 0 ? gen2_options.passThisToApply : false;
-            originallyAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "originallyAsync") && gen2_options.originallyAsync !== void 0 ? gen2_options.originallyAsync : false;
-            asyncCallbackArgument = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "asyncCallbackArgument") && gen2_options.asyncCallbackArgument !== void 0 ? gen2_options.asyncCallbackArgument : void 0;
-            couldBeMacro = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "couldBeMacro") && gen2_options.couldBeMacro !== void 0 ? gen2_options.couldBeMacro : true;
-            var asyncResult, name, macro, funCall;
-            if (async) {
-                asyncResult = terms.asyncResult();
-                terms.argumentUtils.asyncifyArguments(args, optionalArguments);
-                return terms.subStatements([ terms.definition(asyncResult, functionCallTerm(fun, args, {
-                    optionalArguments: optionalArguments,
-                    passThisToApply: passThisToApply,
-                    originallyAsync: true,
-                    asyncCallbackArgument: asyncCallbackArgument
-                }), {
-                    async: true
-                }), asyncResult ]);
-            } else if (fun.variable && couldBeMacro) {
-                name = fun.variable;
-                macro = terms.macros.findMacro(name);
-                funCall = functionCallTerm(fun, args, {
-                    optionalArguments: optionalArguments
-                });
-                if (macro) {
-                    return macro(funCall, name, args, optionalArguments);
-                }
-            }
-            return functionCallTerm(fun, args, {
-                optionalArguments: optionalArguments,
-                passThisToApply: passThisToApply,
-                originallyAsync: originallyAsync,
-                asyncCallbackArgument: asyncCallbackArgument
-            });
-        };
-    };
-}).call(this);}, "terms/generatedVariable": function(exports, require, module) {(function() {
-    var self = this;
-    var codegenUtils;
-    codegenUtils = require("./codegenUtils");
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(name) {
-                var self = this;
-                self.name = name;
-                self.isVariable = true;
-                return self.genVar = void 0;
-            },
-            dontClone: true,
-            generatedName: function(scope) {
-                var self = this;
-                if (!self.genVar) {
-                    self.genVar = scope.generateVariable(codegenUtils.concatName(self.name));
-                }
-                return self.genVar;
-            },
-            canonicalName: function(scope) {
-                var self = this;
-                return self.generatedName(scope);
-            },
-            displayName: function() {
-                var self = this;
-                return self.name;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                return buffer.write(self.generatedName(scope));
-            },
-            generateJavaScriptParameter: function() {
-                var self = this;
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen1_o;
-                gen1_o = self;
-                return gen1_o.generateJavaScript.apply(gen1_o, args);
-            },
-            generateJavaScriptTarget: function() {
-                var self = this;
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen2_o;
-                gen2_o = self;
-                return gen2_o.generateJavaScript.apply(gen2_o, args);
-            }
-        });
-    };
-}).call(this);}, "terms/hash": function(exports, require, module) {(function() {
-    var self = this;
-    var codegenUtils;
-    codegenUtils = require("./codegenUtils");
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(entries) {
-                var self = this;
-                self.isHash = true;
-                return self.entries = entries;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                buffer.write("{");
-                codegenUtils.writeToBufferWithDelimiter(self.entries, ",", buffer, function(item) {
-                    return item.generateJavaScriptHashEntry(buffer, scope);
-                });
-                return buffer.write("}");
-            }
-        });
-    };
-}).call(this);}, "terms/hashEntry": function(exports, require, module) {(function() {
-    var self = this;
-    var codegenUtils, isLegalJavaScriptIdentifier;
-    codegenUtils = require("./codegenUtils");
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(field, value) {
-                var self = this;
-                self.isHashEntry = true;
-                self.field = field;
-                return self.value = value;
-            },
-            legalFieldName: function() {
-                var self = this;
-                var f;
-                if (self.field.isString) {
-                    return codegenUtils.formatJavaScriptString(self.field.string);
-                }
-                f = codegenUtils.concatName(self.field);
-                if (isLegalJavaScriptIdentifier(f)) {
-                    return f;
-                } else {
-                    return codegenUtils.formatJavaScriptString(f);
-                }
-            },
-            valueOrTrue: function() {
-                var self = this;
-                if (self.value === undefined) {
-                    return self.cg.boolean(true);
-                } else {
-                    return self.value;
-                }
-            },
-            generateJavaScriptHashEntry: function(buffer, scope) {
-                var self = this;
-                var f;
-                f = codegenUtils.concatName(self.field);
-                buffer.write(self.legalFieldName());
-                buffer.write(":");
-                return self.valueOrTrue().generateJavaScript(buffer, scope);
-            },
-            asyncify: function() {
-                var self = this;
-                return self.value.asyncify();
-            }
-        });
-    };
-    isLegalJavaScriptIdentifier = function(id) {
-        return /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(id);
-    };
-}).call(this);}, "terms/identifier": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(cg) {
-        var self = this;
-        return cg.term({
-            constructor: function(name) {
-                var self = this;
-                self.isIdentifier = true;
-                return self.identifier = name;
-            },
-            arguments: function() {
-                var self = this;
-                return void 0;
-            }
-        });
-    };
-}).call(this);}, "terms/ifExpression": function(exports, require, module) {(function() {
-    var self = this;
-    var codegenUtils, _, asyncControl;
-    codegenUtils = require("./codegenUtils");
-    _ = require("underscore");
-    asyncControl = require("../asyncControl");
-    module.exports = function(terms) {
-        var self = this;
-        var ifExpressionTerm, ifExpression;
-        ifExpressionTerm = terms.term({
-            constructor: function(cases, elseBody) {
-                var self = this;
-                self.isIfExpression = true;
-                self.cases = cases;
-                return self.elseBody = elseBody;
-            },
-            generateJavaScriptStatement: function(buffer, scope) {
-                var self = this;
-                codegenUtils.writeToBufferWithDelimiter(self.cases, "else ", buffer, function(case_) {
-                    buffer.write("if(");
-                    case_.condition.generateJavaScript(buffer, scope);
-                    buffer.write("){");
-                    case_.body.generateJavaScriptStatements(buffer, scope);
-                    return buffer.write("}");
-                });
-                if (self.elseBody) {
-                    buffer.write("else{");
-                    self.elseBody.generateJavaScriptStatements(buffer, scope);
-                    return buffer.write("}");
-                }
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                self.rewriteResultTermInto(function(term) {
-                    return terms.returnStatement(term);
-                });
-                buffer.write("(function(){");
-                self.generateJavaScriptStatement(buffer, scope);
-                return buffer.write("})()");
-            },
-            rewriteResultTermInto: function(returnTerm, gen1_options) {
-                var self = this;
-                var async;
-                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
-                var gen2_items, gen3_i, _case;
-                gen2_items = self.cases;
-                for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
-                    _case = gen2_items[gen3_i];
-                    _case.body.rewriteResultTermInto(returnTerm);
-                }
-                if (self.elseBody) {
-                    self.elseBody.rewriteResultTermInto(returnTerm);
-                } else if (async) {
-                    self.elseBody = terms.statements([ terms.functionCall(terms.callbackFunction, []) ]);
-                }
-                return self;
-            }
-        });
-        return ifExpression = function(cases, elseBody) {
-            var anyAsyncCases, caseForConditionAndBody, casesList, asyncIfElseIfElseFunction, asyncIfElseFunction, asyncIfFunction;
-            anyAsyncCases = _.any(cases, function(_case) {
-                return _case.body.isAsync;
-            });
-            if (anyAsyncCases || elseBody && elseBody.isAsync) {
-                if (cases.length > 1) {
-                    caseForConditionAndBody = function(condition, body) {
-                        return terms.hash([ terms.hashEntry([ "condition" ], condition), terms.hashEntry([ "body" ], terms.argumentUtils.asyncifyBody(body)) ]);
-                    };
-                    casesList = _.map(cases, function(_case) {
-                        return caseForConditionAndBody(_case.condition, _case.body);
-                    });
-                    if (elseBody) {
-                        casesList.push(caseForConditionAndBody(terms.boolean(true), elseBody));
-                    }
-                    asyncIfElseIfElseFunction = terms.moduleConstants.defineAs([ "async", "if", "else", "if", "else" ], terms.javascript(asyncControl.ifElseIfElse.toString()));
-                    return terms.functionCall(asyncIfElseIfElseFunction, [ terms.list(casesList) ], {
-                        async: true
-                    });
-                } else if (elseBody) {
-                    asyncIfElseFunction = terms.moduleConstants.defineAs([ "async", "if", "else" ], terms.javascript(asyncControl.ifElse.toString()));
-                    return terms.functionCall(asyncIfElseFunction, [ cases[0].condition, terms.argumentUtils.asyncifyBody(cases[0].body), terms.argumentUtils.asyncifyBody(elseBody) ], {
-                        async: true
-                    });
-                } else {
-                    asyncIfFunction = terms.moduleConstants.defineAs([ "async", "if" ], terms.javascript(asyncControl.if.toString()));
-                    return terms.functionCall(asyncIfFunction, [ cases[0].condition, terms.argumentUtils.asyncifyBody(cases[0].body) ], {
-                        async: true
-                    });
-                }
-            } else {
-                return ifExpressionTerm(cases, elseBody);
-            }
-        };
-    };
-}).call(this);}, "terms/increment": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(expr) {
-                var self = this;
-                self.isIncrement = true;
-                return self.expression = expr;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                buffer.write("++");
-                return self.expression.generateJavaScript(buffer, scope);
-            }
-        });
-    };
-}).call(this);}, "terms/indexer": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(object, indexer) {
-                var self = this;
-                self.object = object;
-                self.indexer = indexer;
-                return self.isIndexer = true;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                self.object.generateJavaScript(buffer, scope);
-                buffer.write("[");
-                self.indexer.generateJavaScript(buffer, scope);
-                return buffer.write("]");
-            },
-            generateJavaScriptTarget: function() {
-                var self = this;
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen1_o;
-                gen1_o = self;
-                return gen1_o.generateJavaScript.apply(gen1_o, args);
-            }
-        });
-    };
-}).call(this);}, "terms/integer": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(cg) {
-        var self = this;
-        return cg.term({
-            constructor: function(value) {
-                var self = this;
-                self.isInteger = true;
-                return self.integer = value;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                return buffer.write(self.integer.toString());
-            }
-        });
-    };
-}).call(this);}, "terms/interpolatedString": function(exports, require, module) {(function() {
-    var self = this;
-    var codegenUtils;
-    codegenUtils = require("./codegenUtils");
-    module.exports = function(terms) {
-        var self = this;
-        var createInterpolatedString, interpolatedString;
-        createInterpolatedString = terms.term({
-            constructor: function(components) {
-                var self = this;
-                self.isInterpolatedString = true;
-                return self.components = components;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                buffer.write("(");
-                codegenUtils.writeToBufferWithDelimiter(this.components, "+", buffer, scope);
-                return buffer.write(")");
-            }
-        });
-        return interpolatedString = function(components) {
-            if (components.length === 1) {
-                return components[0];
-            } else if (components.length === 0) {
-                return terms.string("");
-            } else {
-                return createInterpolatedString(components);
-            }
-        };
-    };
-}).call(this);}, "terms/javascript": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(source) {
-                var self = this;
-                self.isJavaScript = true;
-                return self.source = source;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                return buffer.write(self.source);
-            }
-        });
-    };
-}).call(this);}, "terms/list": function(exports, require, module) {(function() {
-    var self = this;
-    var codegenUtils, _;
-    codegenUtils = require("./codegenUtils");
-    _ = require("underscore");
-    module.exports = function(terms) {
-        var self = this;
-        var listTerm, list;
-        listTerm = terms.term({
-            constructor: function(items) {
-                var self = this;
-                self.isList = true;
-                return self.items = items;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                buffer.write("[");
-                codegenUtils.writeToBufferWithDelimiter(self.items, ",", buffer, scope);
-                return buffer.write("]");
-            }
-        });
-        return list = function(items) {
-            var hashEntry, macro;
-            hashEntry = _.find(items, function(item) {
-                return item.isHashEntry;
-            });
-            if (hashEntry) {
-                macro = terms.listMacros.findMacro(hashEntry.field);
-                if (macro) {
-                    return macro(listTerm(items), hashEntry.field);
-                } else {
-                    return terms.errors.addTermWithMessage(hashEntry, "no macro for " + hashEntry.field.join(" "));
-                }
-            } else {
-                return listTerm(items);
-            }
-        };
-    };
-}).call(this);}, "terms/methodCall": function(exports, require, module) {(function() {
-    var self = this;
-    var codegenUtils, argumentUtils;
-    codegenUtils = require("./codegenUtils");
-    argumentUtils = require("./argumentUtils");
-    module.exports = function(terms) {
-        var self = this;
-        var methodCallTerm, methodCall;
-        methodCallTerm = terms.term({
-            constructor: function(object, name, args, gen1_options) {
-                var self = this;
-                var optionalArguments, async, originallyAsync, asyncCallbackArgument;
-                optionalArguments = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "optionalArguments") && gen1_options.optionalArguments !== void 0 ? gen1_options.optionalArguments : [];
-                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
-                originallyAsync = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "originallyAsync") && gen1_options.originallyAsync !== void 0 ? gen1_options.originallyAsync : false;
-                asyncCallbackArgument = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "asyncCallbackArgument") && gen1_options.asyncCallbackArgument !== void 0 ? gen1_options.asyncCallbackArgument : void 0;
-                self.isMethodCall = true;
-                self.object = object;
-                self.name = name;
-                self.methodArguments = args;
-                self.optionalArguments = optionalArguments;
-                self.isAsync = async;
-                self.originallyAsync = originallyAsync;
-                return self.asyncCallbackArgument = asyncCallbackArgument;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                var args;
-                self.object.generateJavaScript(buffer, scope);
-                buffer.write(".");
-                buffer.write(codegenUtils.concatName(self.name));
-                buffer.write("(");
-                args = codegenUtils.concatArgs(self.methodArguments, {
-                    optionalArgs: self.optionalArguments,
-                    terms: terms,
-                    asyncCallbackArg: self.asyncCallbackArgument
-                });
-                codegenUtils.writeToBufferWithDelimiter(args, ",", buffer, scope);
-                return buffer.write(")");
-            },
-            makeAsyncCallWithCallback: function(callback) {
-                var self = this;
-                self.asyncCallbackArgument = callback;
-                return self;
-            }
-        });
-        return methodCall = function(object, name, args, gen2_options) {
-            var optionalArguments, async;
-            optionalArguments = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "optionalArguments") && gen2_options.optionalArguments !== void 0 ? gen2_options.optionalArguments : [];
-            async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
-            var splattedArgs, objectVar, asyncResult;
-            splattedArgs = terms.splatArguments(args, optionalArguments);
-            if (splattedArgs) {
-                objectVar = terms.generatedVariable([ "o" ]);
-                return terms.subStatements([ terms.definition(objectVar, object), methodCall(terms.fieldReference(objectVar, name), [ "apply" ], [ objectVar, splattedArgs ], void 0, {
-                    async: async
-                }) ]);
-            } else if (async) {
-                terms.argumentUtils.asyncifyArguments(args, optionalArguments);
-                asyncResult = terms.asyncResult();
-                return terms.subStatements([ terms.definition(asyncResult, methodCallTerm(object, name, args, {
-                    optionalArguments: optionalArguments,
-                    async: async,
-                    originallyAsync: true
-                }), {
-                    async: true
-                }), asyncResult ]);
-            } else {
-                return methodCallTerm(object, name, args, {
-                    optionalArguments: optionalArguments,
-                    async: async
-                });
-            }
-        };
-    };
-}).call(this);}, "terms/module": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        var moduleTerm, module;
-        moduleTerm = terms.term({
-            constructor: function(statements, gen1_options) {
-                var self = this;
-                var global, returnLastStatement, bodyStatements;
-                global = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "global") && gen1_options.global !== void 0 ? gen1_options.global : false;
-                returnLastStatement = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "returnLastStatement") && gen1_options.returnLastStatement !== void 0 ? gen1_options.returnLastStatement : false;
-                bodyStatements = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "bodyStatements") && gen1_options.bodyStatements !== void 0 ? gen1_options.bodyStatements : void 0;
-                self.statements = statements;
-                self.isModule = true;
-                self.global = global;
-                return self.bodyStatements = bodyStatements || statements;
-            },
-            generateJavaScriptModule: function(buffer) {
-                var self = this;
-                var scope, definitions, gen2_o;
-                scope = new terms.SymbolScope(void 0);
-                definitions = terms.moduleConstants.definitions();
-                gen2_o = self.bodyStatements.statements;
-                gen2_o.unshift.apply(gen2_o, definitions);
-                return self.statements.generateJavaScriptStatements(buffer, scope, {
-                    global: self.global,
-                    inClosure: true
-                });
-            }
-        });
-        return module = function(statements, gen3_options) {
-            var inScope, global, returnLastStatement, bodyStatements;
-            inScope = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "inScope") && gen3_options.inScope !== void 0 ? gen3_options.inScope : true;
-            global = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "global") && gen3_options.global !== void 0 ? gen3_options.global : false;
-            returnLastStatement = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "returnLastStatement") && gen3_options.returnLastStatement !== void 0 ? gen3_options.returnLastStatement : false;
-            bodyStatements = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "bodyStatements") && gen3_options.bodyStatements !== void 0 ? gen3_options.bodyStatements : bodyStatements;
-            var scope, args, errorVariable, throwIfError, methodCall;
-            if (returnLastStatement) {
-                statements.rewriteLastStatementToReturn({
-                    async: false
-                });
-            }
-            if (inScope) {
-                scope = terms.closure([], statements, {
-                    returnLastStatement: returnLastStatement,
-                    redefinesSelf: true
-                });
-                args = [ terms.variable([ "this" ]) ];
-                if (statements.isAsync) {
-                    errorVariable = terms.generatedVariable([ "error" ]);
-                    throwIfError = terms.ifExpression([ {
-                        condition: errorVariable,
-                        body: terms.statements([ terms.functionCall(terms.variable([ "set", "timeout" ]), [ terms.closure([], terms.statements([ terms.throwStatement(errorVariable) ])), terms.integer(0) ]) ])
-                    } ]);
-                    args.push(terms.closure([ errorVariable ], terms.statements([ throwIfError ])));
-                }
-                methodCall = terms.methodCall(terms.subExpression(scope), [ "call" ], args);
-                return moduleTerm(terms.statements([ methodCall ]), {
-                    bodyStatements: statements,
-                    global: global
-                });
-            } else {
-                return moduleTerm(statements, {
-                    global: global,
-                    returnLastStatement: returnLastStatement,
-                    bodyStatements: bodyStatements
-                });
-            }
-        };
-    };
-}).call(this);}, "terms/newOperator": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        var newOperatorTerm, newOperator;
-        newOperatorTerm = terms.term({
-            constructor: function(fn) {
-                var self = this;
-                self.isNewOperator = true;
-                return self.functionCall = fn;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                buffer.write("new ");
-                if (self.functionCall.isVariable) {
-                    return terms.functionCall(self.functionCall, []).generateJavaScript(buffer, scope);
-                } else if (self.functionCall.isFunctionCall && self.functionCall.hasSplatArguments()) {
-                    return self.cg.block([], self.cg.statements([ self.functionCall ]), {
-                        returnLastStatement: false
-                    }).generateJavaScript(buffer, scope);
-                } else {
-                    return self.functionCall.generateJavaScript(buffer, scope);
-                }
-            }
-        });
-        return newOperator = function(fn) {
-            var statements, constructor, constructorVariable;
-            if (fn.isFunctionCall && fn.hasSplatArguments()) {
-                statements = [];
-                fn.passThisToApply = true;
-                constructor = terms.block([], terms.statements([ fn ]), {
-                    returnLastStatement: false
-                });
-                constructorVariable = terms.generatedVariable([ "c" ]);
-                statements.push(terms.definition(constructorVariable, constructor));
-                statements.push(terms.definition(terms.fieldReference(constructorVariable, [ "prototype" ]), terms.fieldReference(fn.function, [ "prototype" ])));
-                statements.push(terms.newOperator(constructorVariable));
-                return terms.subStatements(statements);
-            } else {
-                return newOperatorTerm(fn);
-            }
-        };
-    };
-}).call(this);}, "terms/nil": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function() {
-                var self = this;
-                return self.isNil = true;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                return terms.javascript("void 0").generateJavaScript(buffer, scope);
-            }
-        });
-    };
-}).call(this);}, "terms/normalParameters": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(parameters) {
-                var self = this;
-                return self.parameters = parameters;
-            }
-        });
-    };
-}).call(this);}, "terms/operator": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(op, args) {
-                var self = this;
-                self.isOperator = true;
-                self.operator = op;
-                return self.operatorArguments = args;
-            },
-            isOperatorAlpha: function() {
-                var self = this;
-                return /[a-zA-Z]+/.test(self.operator);
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                var alpha, n;
-                buffer.write("(");
-                if (self.operatorArguments.length === 1) {
-                    buffer.write(self.operator);
-                    if (self.isOperatorAlpha()) {
-                        buffer.write(" ");
-                    }
-                    self.operatorArguments[0].generateJavaScript(buffer, scope);
-                } else {
-                    alpha = self.isOperatorAlpha();
-                    self.operatorArguments[0].generateJavaScript(buffer, scope);
-                    for (n = 1; n < self.operatorArguments.length; ++n) {
-                        if (alpha) {
-                            buffer.write(" ");
-                        }
-                        buffer.write(self.operator);
-                        if (alpha) {
-                            buffer.write(" ");
-                        }
-                        self.operatorArguments[n].generateJavaScript(buffer, scope);
-                    }
-                }
-                return buffer.write(")");
-            }
-        });
-    };
-}).call(this);}, "terms/parameters": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(parms) {
-                var self = this;
-                self.isParameters = true;
-                return self.parameters = parms;
-            },
-            arguments: function() {
-                var self = this;
-                return [];
-            }
-        });
-    };
-}).call(this);}, "terms/regExp": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(patternOptions) {
-                var self = this;
-                self.isRegExp = true;
-                self.pattern = patternOptions.pattern;
-                return self.options = patternOptions.options;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                var options;
-                options = function() {
-                    if (self.options) {
-                        return "/" + self.options;
-                    } else {
-                        return "/";
-                    }
-                }();
-                return buffer.write("/" + this.pattern.replace(/\//g, "\\/") + options);
-            }
-        });
-    };
-}).call(this);}, "terms/returnStatement": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(expr, gen1_options) {
-                var self = this;
-                var implicit;
-                implicit = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "implicit") && gen1_options.implicit !== void 0 ? gen1_options.implicit : false;
-                self.isReturn = true;
-                self.expression = expr;
-                return self.isImplicit = implicit;
-            },
-            generateJavaScriptStatement: function(buffer, scope) {
-                var self = this;
-                if (self.expression) {
-                    buffer.write("return ");
-                    self.expression.generateJavaScript(buffer, scope);
-                    return buffer.write(";");
-                } else {
-                    return buffer.write("return;");
-                }
-            },
-            rewriteResultTermInto: function(returnTerm, gen2_options) {
-                var self = this;
-                var async;
-                async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
-                var arguments;
-                if (async) {
-                    arguments = function() {
-                        if (self.expression) {
-                            return [ terms.nil(), self.expression ];
-                        } else {
-                            return [];
-                        }
-                    }();
-                    return terms.functionCall(terms.callbackFunction, arguments);
-                } else {
-                    return self;
-                }
-            }
-        });
-    };
-}).call(this);}, "terms/scope": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        var scope;
-        return scope = function(statementList) {
-            var statement, statements;
-            if (statementList.length === 1) {
-                statement = statementList[0];
-                if (statement.isReturn) {
-                    return statement.expression;
-                } else {
-                    return statement;
-                }
-            } else {
-                statements = terms.asyncStatements(statementList);
-                return terms.functionCall(terms.subExpression(terms.block([], statements)), [], {
-                    async: statements.isAsync
-                });
-            }
-        };
-    };
-}).call(this);}, "terms/selfExpression": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        var selfExpression;
-        return selfExpression = function() {
-            return terms.variable([ "self" ], {
-                shadow: true
-            });
-        };
-    };
-}).call(this);}, "terms/semanticError": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(errorTerms, message) {
-                var self = this;
-                self.isSemanticError = true;
-                self.errorTerms = errorTerms;
-                return self.message = message;
-            },
-            generateJavaScript: function() {
-                var self = this;
-                return void 0;
-            },
-            printError: function(sourceFile, buffer) {
-                var self = this;
-                sourceFile.printLocation(self.errorTerms[0].location(), buffer);
-                return buffer.write(this.message + "\n");
-            }
-        });
-    };
-}).call(this);}, "terms/splat": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function() {
-                var self = this;
-                return self.isSplat = true;
-            },
-            parameter: function() {
-                var self = this;
-                return self;
-            }
-        });
-    };
-}).call(this);}, "terms/splatArguments": function(exports, require, module) {(function() {
-    var self = this;
-    var _;
-    _ = require("underscore");
-    module.exports = function(terms) {
-        var self = this;
-        var splatArgumentsTerm, splatArguments;
-        splatArgumentsTerm = terms.term({
-            constructor: function(splatArguments) {
-                var self = this;
-                return self.splatArguments = splatArguments;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                var i, splatArgument;
-                for (i = 0; i < self.splatArguments.length; ++i) {
-                    splatArgument = self.splatArguments[i];
-                    if (i === 0) {
-                        splatArgument.generateJavaScript(buffer, scope);
-                    } else {
-                        buffer.write(".concat(");
-                        splatArgument.generateJavaScript(buffer, scope);
-                        buffer.write(")");
-                    }
-                }
-                return void 0;
-            }
-        });
-        return splatArguments = function(args, optionalArgs) {
-            var splatArgs, previousArgs, foundSplat, i, current, next, concat;
-            splatArgs = [];
-            previousArgs = [];
-            foundSplat = false;
-            i = 0;
-            while (i < args.length) {
-                current = args[i];
-                next = args[i + 1];
-                if (next && next.isSplat) {
-                    foundSplat = true;
-                    if (previousArgs.length > 0) {
-                        splatArgs.push(terms.list(previousArgs));
-                        previousArgs = [];
-                    }
-                    splatArgs.push(current);
-                    ++i;
-                } else if (current.isSplat) {
-                    terms.errors.addTermWithMessage(current, "splat keyword with no argument to splat");
-                } else {
-                    previousArgs.push(current);
-                }
-                ++i;
-            }
-            if (optionalArgs && optionalArgs.length > 0) {
-                previousArgs.push(terms.hash(optionalArgs));
-            }
-            if (previousArgs.length > 0) {
-                splatArgs.push(terms.list(previousArgs));
-            }
-            if (foundSplat) {
-                concat = function(initial, last) {
-                    if (initial.length > 0) {
-                        return terms.methodCall(concat(_.initial(initial), _.last(initial)), [ "concat" ], [ last ]);
-                    } else {
-                        return last;
-                    }
-                };
-                return concat(_.initial(splatArgs), _.last(splatArgs));
-            }
-        };
-    };
-}).call(this);}, "terms/splatParameters": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(parameters) {
-                var self = this;
-                return self.parameters = parameters;
-            }
-        });
-    };
-}).call(this);}, "terms/statements": function(exports, require, module) {(function() {
-    var self = this;
-    var _, codegenUtils, statementsUtils;
-    _ = require("underscore");
-    codegenUtils = require("./codegenUtils");
-    statementsUtils = require("./statementsUtils");
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(statements, gen1_options) {
-                var self = this;
-                var async;
-                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
-                self.isStatements = true;
-                self.statements = statements;
-                return self.isAsync = async;
-            },
-            generateStatements: function(statements, buffer, scope, gen2_options) {
-                var self = this;
-                var inClosure, global;
-                inClosure = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "inClosure") && gen2_options.inClosure !== void 0 ? gen2_options.inClosure : false;
-                global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
-                var declaredVariables, s, statement;
-                if (inClosure) {
-                    declaredVariables = self.findDeclaredVariables(scope);
-                    self.generateVariableDeclarations(declaredVariables, buffer, scope, {
-                        global: global
-                    });
-                }
-                for (s = 0; s < statements.length; ++s) {
-                    statement = statements[s];
-                    statement.generateJavaScriptStatement(buffer, scope);
-                }
-                return void 0;
-            },
-            rewriteResultTermInto: function(returnTerm, gen3_options) {
-                var self = this;
-                var async;
-                async = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "async") && gen3_options.async !== void 0 ? gen3_options.async : false;
-                var lastStatement, rewrittenLastStatement;
-                if (self.statements.length > 0) {
-                    lastStatement = self.statements[self.statements.length - 1];
-                    rewrittenLastStatement = lastStatement.rewriteResultTermInto(function(term) {
-                        return returnTerm(term);
-                    }, {
-                        async: async
-                    });
-                    if (rewrittenLastStatement) {
-                        return self.statements[self.statements.length - 1] = rewrittenLastStatement;
-                    } else {
-                        return self.statements.push(returnTerm(terms.nil()));
-                    }
-                }
-            },
-            rewriteLastStatementToReturn: function(gen4_options) {
-                var self = this;
-                var async;
-                async = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "async") && gen4_options.async !== void 0 ? gen4_options.async : false;
-                var containsContinuation;
-                containsContinuation = self.containsContinuation();
-                return self.rewriteResultTermInto(function(term) {
-                    if (async && !containsContinuation) {
-                        return terms.functionCall(terms.callbackFunction, [ terms.nil(), term ]);
-                    } else {
-                        return terms.returnStatement(term, {
-                            implicit: true
-                        });
-                    }
-                }, {
-                    async: async
-                });
-            },
-            generateVariableDeclarations: function(variables, buffer, scope, gen5_options) {
-                var self = this;
-                var global;
-                global = gen5_options !== void 0 && Object.prototype.hasOwnProperty.call(gen5_options, "global") && gen5_options.global !== void 0 ? gen5_options.global : false;
-                if (variables.length > 0) {
-                    _(variables).each(function(name) {
-                        return scope.define(name);
-                    });
-                    if (!global) {
-                        buffer.write("var ");
-                        codegenUtils.writeToBufferWithDelimiter(variables, ",", buffer, function(variable) {
-                            return buffer.write(variable);
-                        });
-                        return buffer.write(";");
-                    }
-                }
-            },
-            findDeclaredVariables: function(scope) {
-                var self = this;
-                var variables;
-                variables = codegenUtils.declaredVariables(scope);
-                self.walkDescendantsNotBelowIf(function(subterm, path) {
-                    return subterm.declareVariables(variables, scope);
-                }, function(subterm, path) {
-                    return subterm.isClosure;
-                });
-                return variables.uniqueVariables();
-            },
-            generateJavaScriptStatements: function(buffer, scope, gen6_options) {
-                var self = this;
-                var inClosure, global;
-                inClosure = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "inClosure") && gen6_options.inClosure !== void 0 ? gen6_options.inClosure : false;
-                global = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "global") && gen6_options.global !== void 0 ? gen6_options.global : false;
-                return self.generateStatements(self.statements, buffer, scope, {
-                    inClosure: inClosure,
-                    global: global
-                });
-            },
-            blockify: function(parameters, gen7_options) {
-                var self = this;
-                var optionalParameters, async;
-                optionalParameters = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "optionalParameters") && gen7_options.optionalParameters !== void 0 ? gen7_options.optionalParameters : void 0;
-                async = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "async") && gen7_options.async !== void 0 ? gen7_options.async : false;
-                var statements;
-                statements = function() {
-                    if (self.isExpressionStatements) {
-                        return self.cg.statements([ self ]);
-                    } else {
-                        return self;
-                    }
-                }();
-                return terms.block(parameters, statements, {
-                    optionalParameters: optionalParameters,
-                    async: async
-                });
-            },
-            scopify: function() {
-                var self = this;
-                return self.cg.functionCall(self.cg.block([], self), []);
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                if (self.statements.length > 0) {
-                    return self.statements[self.statements.length - 1].generateJavaScript(buffer, scope);
-                }
-            },
-            generateJavaScriptStatement: function(buffer, scope) {
-                var self = this;
-                if (self.statements.length > 0) {
-                    return self.statements[self.statements.length - 1].generateJavaScriptStatement(buffer, scope);
-                }
-            },
-            definitions: function(scope) {
-                var self = this;
-                return _(self.statements).reduce(function(list, statement) {
-                    var defs;
-                    defs = statement.definitions(scope);
-                    return list.concat(defs);
-                }, []);
-            },
-            serialiseStatements: function() {
-                var self = this;
-                self.statements = statementsUtils.serialiseStatements(self.statements);
-                return void 0;
-            },
-            asyncify: function() {
-                var self = this;
-                if (!self.isAsync) {
-                    self.rewriteLastStatementToReturn({
-                        async: true
-                    });
-                    return self.isAsync = true;
-                }
-            }
-        });
-    };
-}).call(this);}, "terms/statementsUtils": function(exports, require, module) {(function() {
-    var self = this;
-    exports.serialiseStatements = function(statements) {
-        var self = this;
-        var serialisedStatements, n, statement;
-        serialisedStatements = [];
-        for (n = 0; n < statements.length; ++n) {
-            statement = statements[n].rewrite({
-                rewrite: function(term, gen1_options) {
-                    var rewrite;
-                    rewrite = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "rewrite") && gen1_options.rewrite !== void 0 ? gen1_options.rewrite : void 0;
-                    return term.serialiseSubStatements(serialisedStatements, {
-                        rewrite: rewrite
-                    });
-                },
-                limit: function(term) {
-                    return term.isStatements;
-                }
-            });
-            serialisedStatements.push(statement);
-        }
-        return serialisedStatements;
-    };
-}).call(this);}, "terms/string": function(exports, require, module) {(function() {
-    var self = this;
-    var codegenUtils;
-    codegenUtils = require("./codegenUtils");
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(value) {
-                var self = this;
-                self.isString = true;
-                return self.string = value;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                return buffer.write(codegenUtils.formatJavaScriptString(this.string));
-            }
-        });
-    };
-}).call(this);}, "terms/subExpression": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(expression) {
-                var self = this;
-                self.isSubExpression = true;
-                return self.expression = expression;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                buffer.write("(");
-                self.expression.generateJavaScript(buffer, scope);
-                return buffer.write(")");
-            }
-        });
-    };
-}).call(this);}, "terms/subStatements": function(exports, require, module) {(function() {
-    var self = this;
-    var _, codegenUtils;
-    _ = require("underscore");
-    codegenUtils = require("./codegenUtils");
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(statements) {
-                var self = this;
-                self.isSubStatements = true;
-                return self.statements = statements;
-            },
-            serialiseSubStatements: function(statements, gen1_options) {
-                var self = this;
-                var rewrite;
-                rewrite = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "rewrite") && gen1_options.rewrite !== void 0 ? gen1_options.rewrite : void 0;
-                var firstStatements, rewrittenStatements, gen2_o, lastStatement;
-                firstStatements = self.statements.slice(0, self.statements.length - 1);
-                rewrittenStatements = _.map(firstStatements, function(statement) {
-                    return rewrite(statement);
-                });
-                gen2_o = statements;
-                gen2_o.push.apply(gen2_o, rewrittenStatements);
-                lastStatement = self.statements[self.statements.length - 1];
-                if (lastStatement.isSubStatements) {
-                    return lastStatement.serialiseSubStatements(statements, {
-                        rewrite: rewrite
-                    });
-                } else {
-                    return lastStatement;
-                }
-            },
-            generateJavaScript: function() {
-                var self = this;
-                self.show();
-                throw new Error("sub statements does not generate java script");
-            }
-        });
-    };
-}).call(this);}, "terms/terms": function(exports, require, module) {(function() {
-    var self = this;
-    var $class, classExtending, _;
-    $class = require("../class").class;
-    classExtending = require("../class").classExtending;
-    _ = require("underscore");
-    module.exports = function(cg) {
-        var self = this;
-        var Node, Term, termPrototype, term;
-        Node = $class({
-            cg: cg,
-            constructor: function(members) {
-                var self = this;
-                var member;
-                if (members) {
-                    for (member in members) {
-                        (function(member) {
-                            if (members.hasOwnProperty(member)) {
-                                self[member] = members[member];
-                            }
-                        })(member);
-                    }
-                    return void 0;
-                }
-            },
-            setLocation: function(newLocation) {
-                var self = this;
-                return Object.defineProperty(self, "_location", {
-                    value: newLocation,
-                    writable: true
-                });
-            },
-            location: function() {
-                var self = this;
-                var children, locations, firstLine, lastLine, locationsOnFirstLine, locationsOnLastLine;
-                if (self._location) {
-                    return self._location;
-                } else {
-                    children = self.children();
-                    locations = _.filter(_.map(children, function(child) {
-                        return child.location();
-                    }), function(location) {
-                        return location;
-                    });
-                    if (locations.length > 0) {
-                        firstLine = _.min(_.map(locations, function(location) {
-                            return location.firstLine;
-                        }));
-                        lastLine = _.max(_.map(locations, function(location) {
-                            return location.lastLine;
-                        }));
-                        locationsOnFirstLine = _.filter(locations, function(location) {
-                            return location.firstLine === firstLine;
-                        });
-                        locationsOnLastLine = _.filter(locations, function(location) {
-                            return location.lastLine === lastLine;
-                        });
-                        return {
-                            firstLine: firstLine,
-                            lastLine: lastLine,
-                            firstColumn: _.min(_.map(locationsOnFirstLine, function(location) {
-                                return location.firstColumn;
-                            })),
-                            lastColumn: _.max(_.map(locationsOnLastLine, function(location) {
-                                return location.lastColumn;
-                            }))
-                        };
-                    } else {
-                        return void 0;
-                    }
-                }
-            },
-            clone: function(gen1_options) {
-                var self = this;
-                var rewrite, limit, createObject;
-                rewrite = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "rewrite") && gen1_options.rewrite !== void 0 ? gen1_options.rewrite : function(subterm) {
-                    return void 0;
-                };
-                limit = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "limit") && gen1_options.limit !== void 0 ? gen1_options.limit : function(subterm) {
-                    return false;
-                };
-                createObject = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "createObject") && gen1_options.createObject !== void 0 ? gen1_options.createObject : function(node) {
-                    return Object.create(Object.getPrototypeOf(node));
-                };
-                var cloneObject, cloneNode, cloneArray, cloneSubterm;
-                cloneObject = function(node, allowRewrite, path) {
-                    var t, member;
-                    t = createObject(node);
-                    for (member in node) {
-                        (function(member) {
-                            if (node.hasOwnProperty(member)) {
-                                t[member] = cloneSubterm(node[member], allowRewrite, path);
-                            }
-                        })(member);
-                    }
-                    return t;
-                };
-                cloneNode = function(originalNode, allowRewrite, path) {
-                    var rewrittenNode, subClone;
-                    if (originalNode.dontClone) {
-                        return originalNode;
-                    } else {
-                        try {
-                            path.push(originalNode);
-                            rewrittenNode = function() {
-                                if (originalNode instanceof Node && allowRewrite) {
-                                    subClone = function(node) {
-                                        if (node) {
-                                            return cloneSubterm(node, allowRewrite, path);
-                                        } else {
-                                            return cloneObject(originalNode, allowRewrite, path);
-                                        }
-                                    };
-                                    return rewrite(originalNode, {
-                                        path: path,
-                                        clone: subClone,
-                                        rewrite: subClone
-                                    });
-                                } else {
-                                    return void 0;
-                                }
-                            }();
-                            if (!rewrittenNode) {
-                                return cloneObject(originalNode, allowRewrite, path);
-                            } else {
-                                if (!(rewrittenNode instanceof Node)) {
-                                    throw new Error("rewritten node not an instance of Node");
-                                }
-                                rewrittenNode.isDerivedFrom(originalNode);
-                                return rewrittenNode;
-                            }
-                        } finally {
-                            path.pop();
-                        }
-                    }
-                };
-                cloneArray = function(terms, allowRewrite, path) {
-                    try {
-                        path.push(terms);
-                        return _.map(terms, function(node) {
-                            return cloneSubterm(node, allowRewrite, path);
-                        });
-                    } finally {
-                        path.pop();
-                    }
-                };
-                cloneSubterm = function(subterm, allowRewrite, path) {
-                    if (subterm instanceof Array) {
-                        return cloneArray(subterm, allowRewrite, path);
-                    } else if (subterm instanceof Function) {
-                        return subterm;
-                    } else if (subterm instanceof Object) {
-                        return cloneNode(subterm, allowRewrite && !limit(subterm, {
-                            path: path
-                        }), path);
-                    } else {
-                        return subterm;
-                    }
-                };
-                return cloneSubterm(self, true, []);
-            },
-            isDerivedFrom: function(ancestorNode) {
-                var self = this;
-                return self.setLocation(ancestorNode.location());
-            },
-            rewrite: function(options) {
-                var self = this;
-                options = options || {};
-                options.createObject = function(node) {
-                    var self = this;
-                    return node;
-                };
-                return self.clone(options);
-            },
-            children: function() {
-                var self = this;
-                var children, addMember, addMembersInObject;
-                children = [];
-                addMember = function(member) {
-                    var gen2_items, gen3_i, item;
-                    if (member instanceof Node) {
-                        return children.push(member);
-                    } else if (member instanceof Array) {
-                        gen2_items = member;
-                        for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
-                            item = gen2_items[gen3_i];
-                            addMember(item);
-                        }
-                        return void 0;
-                    } else if (member instanceof Object) {
-                        return addMembersInObject(member);
-                    }
-                };
-                addMembersInObject = function(object) {
-                    var property;
-                    for (property in object) {
-                        (function(property) {
-                            var member;
-                            if (object.hasOwnProperty(property)) {
-                                member = object[property];
-                                addMember(member);
-                            }
-                        })(property);
-                    }
-                    return void 0;
-                };
-                addMembersInObject(self);
-                return children;
-            },
-            walkDescendants: function(walker, gen4_options) {
-                var self = this;
-                var limit;
-                limit = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "limit") && gen4_options.limit !== void 0 ? gen4_options.limit : function() {
-                    return false;
-                };
-                var path, walkChildren;
-                path = [];
-                walkChildren = function(node) {
-                    var gen5_items, gen6_i, child;
-                    try {
-                        path.push(node);
-                        gen5_items = node.children();
-                        for (gen6_i = 0; gen6_i < gen5_items.length; ++gen6_i) {
-                            child = gen5_items[gen6_i];
-                            walker(child, path);
-                            if (!limit(child, path)) {
-                                walkChildren(child);
-                            }
-                        }
-                        return void 0;
-                    } finally {
-                        path.pop();
-                    }
-                };
-                return walkChildren(self);
-            },
-            walkDescendantsNotBelowIf: function(walker, limit) {
-                var self = this;
-                return self.walkDescendants(walker, {
-                    limit: limit
-                });
-            },
-            reduceWithReducedChildrenInto: function(reducer, gen7_options) {
-                var self = this;
-                var limit, cacheName;
-                limit = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "limit") && gen7_options.limit !== void 0 ? gen7_options.limit : function(term) {
-                    return false;
-                };
-                cacheName = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "cacheName") && gen7_options.cacheName !== void 0 ? gen7_options.cacheName : void 0;
-                var path, cachingReducer, mapReduceChildren;
-                path = [];
-                cachingReducer = function() {
-                    if (cacheName) {
-                        return function(node, reducedChildren) {
-                            var reducedValue;
-                            if (node.hasOwnProperty("reductionCache")) {
-                                if (node.reductionCache.hasOwnProperty(cacheName)) {
-                                    return node.reductionCache[cacheName];
-                                }
-                            } else {
-                                reducedValue = reducer(node, reducedChildren);
-                                if (!node.hasOwnProperty("reductionCache")) {
-                                    node.reductionCache = {};
-                                }
-                                node.reductionCache[cacheName] = reducedValue;
-                                return reducedValue;
-                            }
-                        };
-                    } else {
-                        return reducer;
-                    }
-                }();
-                mapReduceChildren = function(node) {
-                    var mappedChildren, gen8_items, gen9_i, child;
-                    try {
-                        path.push(node);
-                        mappedChildren = [];
-                        gen8_items = node.children();
-                        for (gen9_i = 0; gen9_i < gen8_items.length; ++gen9_i) {
-                            child = gen8_items[gen9_i];
-                            if (!limit(child, path)) {
-                                mappedChildren.push(mapReduceChildren(child));
-                            }
-                        }
-                        return cachingReducer(node, mappedChildren);
-                    } finally {
-                        path.pop();
-                    }
-                };
-                return mapReduceChildren(self);
-            }
-        });
-        Term = classExtending(Node, {
-            generateJavaScriptStatement: function(buffer, scope) {
-                var self = this;
-                self.generateJavaScript(buffer, scope);
-                return buffer.write(";");
-            },
-            arguments: function() {
-                var self = this;
-                return self;
-            },
-            inspectTerm: function(gen10_options) {
-                var self = this;
-                var depth;
-                depth = gen10_options !== void 0 && Object.prototype.hasOwnProperty.call(gen10_options, "depth") && gen10_options.depth !== void 0 ? gen10_options.depth : 20;
-                var util;
-                util = require("util");
-                return util.inspect(self, false, depth);
-            },
-            show: function(gen11_options) {
-                var self = this;
-                var desc, depth;
-                desc = gen11_options !== void 0 && Object.prototype.hasOwnProperty.call(gen11_options, "desc") && gen11_options.desc !== void 0 ? gen11_options.desc : void 0;
-                depth = gen11_options !== void 0 && Object.prototype.hasOwnProperty.call(gen11_options, "depth") && gen11_options.depth !== void 0 ? gen11_options.depth : 20;
-                if (desc) {
-                    return console.log(desc, self.inspectTerm({
-                        depth: depth
-                    }));
-                } else {
-                    return console.log(self.inspectTerm({
-                        depth: depth
-                    }));
-                }
-            },
-            hashEntry: function() {
-                var self = this;
-                return self.cg.errors.addTermWithMessage(self, "cannot be used as a hash entry");
-            },
-            hashEntryField: function() {
-                var self = this;
-                return self.cg.errors.addTermWithMessage(self, "cannot be used as a field name");
-            },
-            blockify: function(parameters, gen12_options) {
-                var self = this;
-                var optionalParameters, async;
-                optionalParameters = gen12_options !== void 0 && Object.prototype.hasOwnProperty.call(gen12_options, "optionalParameters") && gen12_options.optionalParameters !== void 0 ? gen12_options.optionalParameters : void 0;
-                async = gen12_options !== void 0 && Object.prototype.hasOwnProperty.call(gen12_options, "async") && gen12_options.async !== void 0 ? gen12_options.async : false;
-                return self.cg.block(parameters, self.cg.asyncStatements([ self ]), {
-                    optionalParameters: optionalParameters,
-                    async: async
-                });
-            },
-            scopify: function() {
-                var self = this;
-                return self;
-            },
-            parameter: function() {
-                var self = this;
-                return this.cg.errors.addTermWithMessage(self, "this cannot be used as a parameter");
-            },
-            subterms: function() {
-                var self = this;
-                return void 0;
-            },
-            expandMacro: function() {
-                var self = this;
-                return void 0;
-            },
-            expandMacros: function() {
-                var self = this;
-                return self.clone({
-                    rewrite: function(term, gen13_options) {
-                        var clone;
-                        clone = gen13_options !== void 0 && Object.prototype.hasOwnProperty.call(gen13_options, "clone") && gen13_options.clone !== void 0 ? gen13_options.clone : void 0;
-                        return term.expandMacro(clone);
-                    }
-                });
-            },
-            rewriteStatements: function() {
-                var self = this;
-                return void 0;
-            },
-            rewriteAllStatements: function() {
-                var self = this;
-                return self.clone({
-                    rewrite: function(term, gen14_options) {
-                        var clone;
-                        clone = gen14_options !== void 0 && Object.prototype.hasOwnProperty.call(gen14_options, "clone") && gen14_options.clone !== void 0 ? gen14_options.clone : void 0;
-                        return term.rewriteStatements(clone);
-                    }
-                });
-            },
-            serialiseSubStatements: function() {
-                var self = this;
-                return void 0;
-            },
-            serialiseStatements: function() {
-                var self = this;
-                return void 0;
-            },
-            serialiseAllStatements: function() {
-                var self = this;
-                return self.rewrite({
-                    rewrite: function(term) {
-                        return term.serialiseStatements();
-                    }
-                });
-            },
-            declareVariables: function() {
-                var self = this;
-                return void 0;
-            },
-            canonicalName: function() {
-                var self = this;
-                return void 0;
-            },
-            makeAsyncWithCallbackForResult: function(createCallbackForResult) {
-                var self = this;
-                return void 0;
-            },
-            containsContinuation: function() {
-                var self = this;
-                var found;
-                found = false;
-                self.walkDescendants(function(term) {
-                    return found = term.isContinuation || found;
-                }, {
-                    limit: function(term) {
-                        return term.isClosure && term.isAsync;
-                    }
-                });
-                return found;
-            },
-            rewriteResultTermInto: function(returnTerm) {
-                var self = this;
-                if (self.containsContinuation()) {
-                    return self;
-                } else {
-                    return returnTerm(self);
-                }
-            },
-            asyncify: function() {
-                var self = this;
-                return void 0;
-            }
-        });
-        termPrototype = new Term();
-        term = function(members) {
-            var termConstructor;
-            termConstructor = classExtending(Term, members);
-            return function() {
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen15_c;
-                gen15_c = function() {
-                    termConstructor.apply(this, args);
-                };
-                gen15_c.prototype = termConstructor.prototype;
-                return new gen15_c();
-            };
-        };
-        return {
-            Node: Node,
-            Term: Term,
-            term: term,
-            termPrototype: termPrototype
-        };
-    };
-}).call(this);}, "terms/throwStatement": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        return terms.term({
-            constructor: function(expr) {
-                var self = this;
-                self.isThrow = true;
-                return self.expression = expr;
-            },
-            generateJavaScriptStatement: function(buffer, scope) {
-                var self = this;
-                buffer.write("throw ");
-                self.expression.generateJavaScript(buffer, scope);
-                return buffer.write(";");
-            },
-            rewriteResultTermInto: function(returnTerm) {
-                var self = this;
-                return self;
-            }
-        });
-    };
-}).call(this);}, "terms/tryExpression": function(exports, require, module) {(function() {
-    var self = this;
-    var asyncControl;
-    asyncControl = require("../asyncControl");
-    module.exports = function(terms) {
-        var self = this;
-        var tryExpressionTerm, tryExpression;
-        tryExpressionTerm = terms.term({
-            constructor: function(body, gen1_options) {
-                var self = this;
-                var catchBody, catchParameter, finallyBody;
-                catchBody = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "catchBody") && gen1_options.catchBody !== void 0 ? gen1_options.catchBody : void 0;
-                catchParameter = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "catchParameter") && gen1_options.catchParameter !== void 0 ? gen1_options.catchParameter : void 0;
-                finallyBody = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "finallyBody") && gen1_options.finallyBody !== void 0 ? gen1_options.finallyBody : void 0;
-                self.isTryExpression = true;
-                self.body = body;
-                self.catchBody = catchBody;
-                self.catchParameter = catchParameter;
-                return self.finallyBody = finallyBody;
-            },
-            generateJavaScriptStatement: function(buffer, scope, returnStatements) {
-                var self = this;
-                buffer.write("try{");
-                if (returnStatements) {
-                    self.body.generateJavaScriptStatementsReturn(buffer, scope);
-                } else {
-                    self.body.generateJavaScriptStatements(buffer, scope);
-                }
-                buffer.write("}");
-                if (self.catchBody) {
-                    buffer.write("catch(");
-                    self.catchParameter.generateJavaScript(buffer, scope);
-                    buffer.write("){");
-                    if (returnStatements) {
-                        self.catchBody.generateJavaScriptStatementsReturn(buffer, scope);
-                    } else {
-                        self.catchBody.generateJavaScriptStatements(buffer, scope);
-                    }
-                    buffer.write("}");
-                }
-                if (self.finallyBody) {
-                    buffer.write("finally{");
-                    self.finallyBody.generateJavaScriptStatements(buffer, scope);
-                    return buffer.write("}");
-                }
-            },
-            generateJavaScript: function(buffer, symbolScope) {
-                var self = this;
-                if (self.alreadyCalled) {
-                    throw new Error("stuff");
-                }
-                self.alreadyCalled = true;
-                return self.cg.scope([ self ], {
-                    alwaysGenerateFunction: true
-                }).generateJavaScript(buffer, symbolScope);
-            },
-            rewriteResultTermInto: function(returnTerm) {
-                var self = this;
-                self.body.rewriteResultTermInto(returnTerm);
-                if (self.catchBody) {
-                    self.catchBody.rewriteResultTermInto(returnTerm);
-                }
-                return self;
-            }
-        });
-        return tryExpression = function(body, gen2_options) {
-            var catchBody, catchParameter, finallyBody;
-            catchBody = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "catchBody") && gen2_options.catchBody !== void 0 ? gen2_options.catchBody : void 0;
-            catchParameter = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "catchParameter") && gen2_options.catchParameter !== void 0 ? gen2_options.catchParameter : void 0;
-            finallyBody = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "finallyBody") && gen2_options.finallyBody !== void 0 ? gen2_options.finallyBody : void 0;
-            var asyncTryFunction;
-            if (body.isAsync || catchBody && catchBody.isAsync || finallyBody && finallyBody.isAsync) {
-                asyncTryFunction = terms.moduleConstants.defineAs([ "async", "try" ], terms.javascript(asyncControl.try.toString()));
-                return terms.functionCall(asyncTryFunction, [ terms.argumentUtils.asyncifyBody(body), terms.argumentUtils.asyncifyBody(catchBody, [ catchParameter ]), terms.argumentUtils.asyncifyBody(finallyBody) ], {
-                    async: true
-                });
-            } else {
-                return tryExpressionTerm(body, {
-                    catchBody: catchBody,
-                    catchParameter: catchParameter,
-                    finallyBody: finallyBody
-                });
-            }
-        };
-    };
-}).call(this);}, "terms/typeof": function(exports, require, module) {exports.typeof = function (expression, type) {
-  return this.term(function () {
-    this.isInstanceOf = true;
-    this.expression = expression;
-    this.type = type;
-
-    this.generateJavaScript = function (buffer, scope) {
-        buffer.write("(typeof(");
-        this.expression.generateJavaScript(buffer, scope);
-        buffer.write(") === '" + this.type + "')");
-    };
-  });
-};
-}, "terms/variable": function(exports, require, module) {(function() {
-    var self = this;
-    var codegenUtils;
-    codegenUtils = require("./codegenUtils");
-    module.exports = function(terms) {
-        var self = this;
-        var variableTerm, variable;
-        variableTerm = terms.term({
-            constructor: function(name, gen1_options) {
-                var self = this;
-                var location;
-                location = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "location") && gen1_options.location !== void 0 ? gen1_options.location : void 0;
-                self.variable = name;
-                self.isVariable = true;
-                return self.setLocation(location);
-            },
-            canonicalName: function() {
-                var self = this;
-                return codegenUtils.concatName(self.variable, {
-                    escape: true
-                });
-            },
-            displayName: function() {
-                var self = this;
-                return self.variable.join(" ");
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                return buffer.write(this.canonicalName());
-            },
-            generateJavaScriptTarget: function() {
-                var self = this;
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen2_o;
-                gen2_o = self;
-                return gen2_o.generateJavaScript.apply(gen2_o, args);
-            },
-            hashEntryField: function() {
-                var self = this;
-                return self.variable;
-            },
-            generateJavaScriptParameter: function() {
-                var self = this;
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen3_o;
-                gen3_o = self;
-                return gen3_o.generateJavaScript.apply(gen3_o, args);
-            },
-            parameter: function() {
-                var self = this;
-                return self;
-            }
-        });
-        return variable = function(name, gen4_options) {
-            var couldBeMacro, location;
-            couldBeMacro = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "couldBeMacro") && gen4_options.couldBeMacro !== void 0 ? gen4_options.couldBeMacro : true;
-            location = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "location") && gen4_options.location !== void 0 ? gen4_options.location : void 0;
-            var v, macro;
-            v = variableTerm(name, {
-                location: location
-            });
-            if (couldBeMacro) {
-                macro = terms.macros.findMacro(name);
-                if (macro) {
-                    return macro(v, name);
-                }
-            }
-            return v;
-        };
-    };
-}).call(this);}, "terms/whileExpression": function(exports, require, module) {(function() {
-    var self = this;
-    var asyncControl;
-    asyncControl = require("../asyncControl");
-    module.exports = function(terms) {
-        var self = this;
-        var whileExpressionTerm, whileExpression;
-        whileExpressionTerm = terms.term({
-            constructor: function(condition, statements) {
-                var self = this;
-                self.isWhile = true;
-                self.condition = condition;
-                return self.statements = statements;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                buffer.write("while(");
-                self.condition.generateJavaScript(buffer, scope);
-                buffer.write("){");
-                self.statements.generateJavaScriptStatements(buffer, scope);
-                return buffer.write("}");
-            },
-            generateJavaScriptStatement: function() {
-                var self = this;
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen1_o;
-                gen1_o = self;
-                return gen1_o.generateJavaScript.apply(gen1_o, args);
-            },
-            rewriteResultTermInto: function(returnTerm) {
-                var self = this;
-                return void 0;
-            }
-        });
-        return whileExpression = function(condition, statements) {
-            var conditionStatements, asyncWhileFunction;
-            conditionStatements = terms.asyncStatements([ condition ]);
-            if (statements.isAsync || conditionStatements.isAsync) {
-                asyncWhileFunction = terms.moduleConstants.defineAs([ "async", "while" ], terms.javascript(asyncControl.while.toString()));
-                return terms.functionCall(asyncWhileFunction, [ terms.argumentUtils.asyncifyBody(conditionStatements), terms.argumentUtils.asyncifyBody(statements) ], {
-                    async: true
-                });
-            } else {
-                return whileExpressionTerm(condition, statements);
-            }
-        };
-    };
-}).call(this);}, "terms/withExpression": function(exports, require, module) {(function() {
-    var self = this;
-    module.exports = function(terms) {
-        var self = this;
-        var withExpressionTerm, withExpression;
-        withExpressionTerm = terms.term({
-            constructor: function(subject, statements) {
-                var self = this;
-                self.isWith = true;
-                self.subject = subject;
-                return self.statements = statements;
-            },
-            generateJavaScript: function(buffer, scope) {
-                var self = this;
-                buffer.write("with(");
-                self.subject.generateJavaScript(buffer, scope);
-                buffer.write("){");
-                self.statements.generateJavaScriptStatements(buffer, scope);
-                return buffer.write("}");
-            },
-            generateJavaScriptStatement: function() {
-                var self = this;
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen1_o;
-                gen1_o = self;
-                return gen1_o.generateJavaScript.apply(gen1_o, args);
-            },
-            rewriteResultTermInto: function(returnTerm) {
-                var self = this;
-                return self;
-            }
-        });
-        return withExpression = function(subject, statements) {
-            return withExpressionTerm(subject, statements);
-        };
-    };
-}).call(this);}, "versions": function(exports, require, module) {(function() {
-    var self = this;
-    var _;
-    _ = require("underscore");
-    exports.isLessThan = function(a, b) {
-        var self = this;
-        var parseVersion, compare, gen1_items, gen2_i, gen3_forResult;
-        parseVersion = function(v) {
-            if (v[0] === "v") {
-                v = v.substring(1);
-            }
-            return v.split(".");
-        };
-        compare = function(v1, v2) {
-            if (v1 > v2) {
-                return 1;
-            } else if (v2 > v1) {
-                return -1;
-            } else {
-                return 0;
-            }
-        };
-        gen1_items = _.zip(parseVersion(a), parseVersion(b));
-        for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
-            gen3_forResult = void 0;
-            if (function(gen2_i) {
-                var versionNumbers, comparison;
-                versionNumbers = gen1_items[gen2_i];
-                comparison = compare(versionNumbers[0], versionNumbers[1]);
-                if (comparison) {
-                    gen3_forResult = comparison < 0;
-                    return true;
-                }
-            }(gen2_i)) {
-                return gen3_forResult;
-            }
-        }
-        return false;
-    };
-}).call(this);}, "index": function(exports, require, module) {module.exports = require('./underscore');
-}, "underscore-min": function(exports, require, module) {(function(){var n=this,t=n._,r={},e=Array.prototype,u=Object.prototype,i=Function.prototype,a=e.push,o=e.slice,c=e.concat,l=u.toString,f=u.hasOwnProperty,s=e.forEach,p=e.map,h=e.reduce,v=e.reduceRight,d=e.filter,g=e.every,m=e.some,y=e.indexOf,b=e.lastIndexOf,x=Array.isArray,_=Object.keys,j=i.bind,w=function(n){return n instanceof w?n:this instanceof w?(this._wrapped=n,void 0):new w(n)};"undefined"!=typeof exports?("undefined"!=typeof module&&module.exports&&(exports=module.exports=w),exports._=w):n._=w,w.VERSION="1.4.4";var A=w.each=w.forEach=function(n,t,e){if(null!=n)if(s&&n.forEach===s)n.forEach(t,e);else if(n.length===+n.length){for(var u=0,i=n.length;i>u;u++)if(t.call(e,n[u],u,n)===r)return}else for(var a in n)if(w.has(n,a)&&t.call(e,n[a],a,n)===r)return};w.map=w.collect=function(n,t,r){var e=[];return null==n?e:p&&n.map===p?n.map(t,r):(A(n,function(n,u,i){e[e.length]=t.call(r,n,u,i)}),e)};var O="Reduce of empty array with no initial value";w.reduce=w.foldl=w.inject=function(n,t,r,e){var u=arguments.length>2;if(null==n&&(n=[]),h&&n.reduce===h)return e&&(t=w.bind(t,e)),u?n.reduce(t,r):n.reduce(t);if(A(n,function(n,i,a){u?r=t.call(e,r,n,i,a):(r=n,u=!0)}),!u)throw new TypeError(O);return r},w.reduceRight=w.foldr=function(n,t,r,e){var u=arguments.length>2;if(null==n&&(n=[]),v&&n.reduceRight===v)return e&&(t=w.bind(t,e)),u?n.reduceRight(t,r):n.reduceRight(t);var i=n.length;if(i!==+i){var a=w.keys(n);i=a.length}if(A(n,function(o,c,l){c=a?a[--i]:--i,u?r=t.call(e,r,n[c],c,l):(r=n[c],u=!0)}),!u)throw new TypeError(O);return r},w.find=w.detect=function(n,t,r){var e;return E(n,function(n,u,i){return t.call(r,n,u,i)?(e=n,!0):void 0}),e},w.filter=w.select=function(n,t,r){var e=[];return null==n?e:d&&n.filter===d?n.filter(t,r):(A(n,function(n,u,i){t.call(r,n,u,i)&&(e[e.length]=n)}),e)},w.reject=function(n,t,r){return w.filter(n,function(n,e,u){return!t.call(r,n,e,u)},r)},w.every=w.all=function(n,t,e){t||(t=w.identity);var u=!0;return null==n?u:g&&n.every===g?n.every(t,e):(A(n,function(n,i,a){return(u=u&&t.call(e,n,i,a))?void 0:r}),!!u)};var E=w.some=w.any=function(n,t,e){t||(t=w.identity);var u=!1;return null==n?u:m&&n.some===m?n.some(t,e):(A(n,function(n,i,a){return u||(u=t.call(e,n,i,a))?r:void 0}),!!u)};w.contains=w.include=function(n,t){return null==n?!1:y&&n.indexOf===y?n.indexOf(t)!=-1:E(n,function(n){return n===t})},w.invoke=function(n,t){var r=o.call(arguments,2),e=w.isFunction(t);return w.map(n,function(n){return(e?t:n[t]).apply(n,r)})},w.pluck=function(n,t){return w.map(n,function(n){return n[t]})},w.where=function(n,t,r){return w.isEmpty(t)?r?null:[]:w[r?"find":"filter"](n,function(n){for(var r in t)if(t[r]!==n[r])return!1;return!0})},w.findWhere=function(n,t){return w.where(n,t,!0)},w.max=function(n,t,r){if(!t&&w.isArray(n)&&n[0]===+n[0]&&65535>n.length)return Math.max.apply(Math,n);if(!t&&w.isEmpty(n))return-1/0;var e={computed:-1/0,value:-1/0};return A(n,function(n,u,i){var a=t?t.call(r,n,u,i):n;a>=e.computed&&(e={value:n,computed:a})}),e.value},w.min=function(n,t,r){if(!t&&w.isArray(n)&&n[0]===+n[0]&&65535>n.length)return Math.min.apply(Math,n);if(!t&&w.isEmpty(n))return 1/0;var e={computed:1/0,value:1/0};return A(n,function(n,u,i){var a=t?t.call(r,n,u,i):n;e.computed>a&&(e={value:n,computed:a})}),e.value},w.shuffle=function(n){var t,r=0,e=[];return A(n,function(n){t=w.random(r++),e[r-1]=e[t],e[t]=n}),e};var k=function(n){return w.isFunction(n)?n:function(t){return t[n]}};w.sortBy=function(n,t,r){var e=k(t);return w.pluck(w.map(n,function(n,t,u){return{value:n,index:t,criteria:e.call(r,n,t,u)}}).sort(function(n,t){var r=n.criteria,e=t.criteria;if(r!==e){if(r>e||r===void 0)return 1;if(e>r||e===void 0)return-1}return n.index<t.index?-1:1}),"value")};var F=function(n,t,r,e){var u={},i=k(t||w.identity);return A(n,function(t,a){var o=i.call(r,t,a,n);e(u,o,t)}),u};w.groupBy=function(n,t,r){return F(n,t,r,function(n,t,r){(w.has(n,t)?n[t]:n[t]=[]).push(r)})},w.countBy=function(n,t,r){return F(n,t,r,function(n,t){w.has(n,t)||(n[t]=0),n[t]++})},w.sortedIndex=function(n,t,r,e){r=null==r?w.identity:k(r);for(var u=r.call(e,t),i=0,a=n.length;a>i;){var o=i+a>>>1;u>r.call(e,n[o])?i=o+1:a=o}return i},w.toArray=function(n){return n?w.isArray(n)?o.call(n):n.length===+n.length?w.map(n,w.identity):w.values(n):[]},w.size=function(n){return null==n?0:n.length===+n.length?n.length:w.keys(n).length},w.first=w.head=w.take=function(n,t,r){return null==n?void 0:null==t||r?n[0]:o.call(n,0,t)},w.initial=function(n,t,r){return o.call(n,0,n.length-(null==t||r?1:t))},w.last=function(n,t,r){return null==n?void 0:null==t||r?n[n.length-1]:o.call(n,Math.max(n.length-t,0))},w.rest=w.tail=w.drop=function(n,t,r){return o.call(n,null==t||r?1:t)},w.compact=function(n){return w.filter(n,w.identity)};var R=function(n,t,r){return A(n,function(n){w.isArray(n)?t?a.apply(r,n):R(n,t,r):r.push(n)}),r};w.flatten=function(n,t){return R(n,t,[])},w.without=function(n){return w.difference(n,o.call(arguments,1))},w.uniq=w.unique=function(n,t,r,e){w.isFunction(t)&&(e=r,r=t,t=!1);var u=r?w.map(n,r,e):n,i=[],a=[];return A(u,function(r,e){(t?e&&a[a.length-1]===r:w.contains(a,r))||(a.push(r),i.push(n[e]))}),i},w.union=function(){return w.uniq(c.apply(e,arguments))},w.intersection=function(n){var t=o.call(arguments,1);return w.filter(w.uniq(n),function(n){return w.every(t,function(t){return w.indexOf(t,n)>=0})})},w.difference=function(n){var t=c.apply(e,o.call(arguments,1));return w.filter(n,function(n){return!w.contains(t,n)})},w.zip=function(){for(var n=o.call(arguments),t=w.max(w.pluck(n,"length")),r=Array(t),e=0;t>e;e++)r[e]=w.pluck(n,""+e);return r},w.object=function(n,t){if(null==n)return{};for(var r={},e=0,u=n.length;u>e;e++)t?r[n[e]]=t[e]:r[n[e][0]]=n[e][1];return r},w.indexOf=function(n,t,r){if(null==n)return-1;var e=0,u=n.length;if(r){if("number"!=typeof r)return e=w.sortedIndex(n,t),n[e]===t?e:-1;e=0>r?Math.max(0,u+r):r}if(y&&n.indexOf===y)return n.indexOf(t,r);for(;u>e;e++)if(n[e]===t)return e;return-1},w.lastIndexOf=function(n,t,r){if(null==n)return-1;var e=null!=r;if(b&&n.lastIndexOf===b)return e?n.lastIndexOf(t,r):n.lastIndexOf(t);for(var u=e?r:n.length;u--;)if(n[u]===t)return u;return-1},w.range=function(n,t,r){1>=arguments.length&&(t=n||0,n=0),r=arguments[2]||1;for(var e=Math.max(Math.ceil((t-n)/r),0),u=0,i=Array(e);e>u;)i[u++]=n,n+=r;return i},w.bind=function(n,t){if(n.bind===j&&j)return j.apply(n,o.call(arguments,1));var r=o.call(arguments,2);return function(){return n.apply(t,r.concat(o.call(arguments)))}},w.partial=function(n){var t=o.call(arguments,1);return function(){return n.apply(this,t.concat(o.call(arguments)))}},w.bindAll=function(n){var t=o.call(arguments,1);return 0===t.length&&(t=w.functions(n)),A(t,function(t){n[t]=w.bind(n[t],n)}),n},w.memoize=function(n,t){var r={};return t||(t=w.identity),function(){var e=t.apply(this,arguments);return w.has(r,e)?r[e]:r[e]=n.apply(this,arguments)}},w.delay=function(n,t){var r=o.call(arguments,2);return setTimeout(function(){return n.apply(null,r)},t)},w.defer=function(n){return w.delay.apply(w,[n,1].concat(o.call(arguments,1)))},w.throttle=function(n,t){var r,e,u,i,a=0,o=function(){a=new Date,u=null,i=n.apply(r,e)};return function(){var c=new Date,l=t-(c-a);return r=this,e=arguments,0>=l?(clearTimeout(u),u=null,a=c,i=n.apply(r,e)):u||(u=setTimeout(o,l)),i}},w.debounce=function(n,t,r){var e,u;return function(){var i=this,a=arguments,o=function(){e=null,r||(u=n.apply(i,a))},c=r&&!e;return clearTimeout(e),e=setTimeout(o,t),c&&(u=n.apply(i,a)),u}},w.once=function(n){var t,r=!1;return function(){return r?t:(r=!0,t=n.apply(this,arguments),n=null,t)}},w.wrap=function(n,t){return function(){var r=[n];return a.apply(r,arguments),t.apply(this,r)}},w.compose=function(){var n=arguments;return function(){for(var t=arguments,r=n.length-1;r>=0;r--)t=[n[r].apply(this,t)];return t[0]}},w.after=function(n,t){return 0>=n?t():function(){return 1>--n?t.apply(this,arguments):void 0}},w.keys=_||function(n){if(n!==Object(n))throw new TypeError("Invalid object");var t=[];for(var r in n)w.has(n,r)&&(t[t.length]=r);return t},w.values=function(n){var t=[];for(var r in n)w.has(n,r)&&t.push(n[r]);return t},w.pairs=function(n){var t=[];for(var r in n)w.has(n,r)&&t.push([r,n[r]]);return t},w.invert=function(n){var t={};for(var r in n)w.has(n,r)&&(t[n[r]]=r);return t},w.functions=w.methods=function(n){var t=[];for(var r in n)w.isFunction(n[r])&&t.push(r);return t.sort()},w.extend=function(n){return A(o.call(arguments,1),function(t){if(t)for(var r in t)n[r]=t[r]}),n},w.pick=function(n){var t={},r=c.apply(e,o.call(arguments,1));return A(r,function(r){r in n&&(t[r]=n[r])}),t},w.omit=function(n){var t={},r=c.apply(e,o.call(arguments,1));for(var u in n)w.contains(r,u)||(t[u]=n[u]);return t},w.defaults=function(n){return A(o.call(arguments,1),function(t){if(t)for(var r in t)null==n[r]&&(n[r]=t[r])}),n},w.clone=function(n){return w.isObject(n)?w.isArray(n)?n.slice():w.extend({},n):n},w.tap=function(n,t){return t(n),n};var I=function(n,t,r,e){if(n===t)return 0!==n||1/n==1/t;if(null==n||null==t)return n===t;n instanceof w&&(n=n._wrapped),t instanceof w&&(t=t._wrapped);var u=l.call(n);if(u!=l.call(t))return!1;switch(u){case"[object String]":return n==t+"";case"[object Number]":return n!=+n?t!=+t:0==n?1/n==1/t:n==+t;case"[object Date]":case"[object Boolean]":return+n==+t;case"[object RegExp]":return n.source==t.source&&n.global==t.global&&n.multiline==t.multiline&&n.ignoreCase==t.ignoreCase}if("object"!=typeof n||"object"!=typeof t)return!1;for(var i=r.length;i--;)if(r[i]==n)return e[i]==t;r.push(n),e.push(t);var a=0,o=!0;if("[object Array]"==u){if(a=n.length,o=a==t.length)for(;a--&&(o=I(n[a],t[a],r,e)););}else{var c=n.constructor,f=t.constructor;if(c!==f&&!(w.isFunction(c)&&c instanceof c&&w.isFunction(f)&&f instanceof f))return!1;for(var s in n)if(w.has(n,s)&&(a++,!(o=w.has(t,s)&&I(n[s],t[s],r,e))))break;if(o){for(s in t)if(w.has(t,s)&&!a--)break;o=!a}}return r.pop(),e.pop(),o};w.isEqual=function(n,t){return I(n,t,[],[])},w.isEmpty=function(n){if(null==n)return!0;if(w.isArray(n)||w.isString(n))return 0===n.length;for(var t in n)if(w.has(n,t))return!1;return!0},w.isElement=function(n){return!(!n||1!==n.nodeType)},w.isArray=x||function(n){return"[object Array]"==l.call(n)},w.isObject=function(n){return n===Object(n)},A(["Arguments","Function","String","Number","Date","RegExp"],function(n){w["is"+n]=function(t){return l.call(t)=="[object "+n+"]"}}),w.isArguments(arguments)||(w.isArguments=function(n){return!(!n||!w.has(n,"callee"))}),"function"!=typeof/./&&(w.isFunction=function(n){return"function"==typeof n}),w.isFinite=function(n){return isFinite(n)&&!isNaN(parseFloat(n))},w.isNaN=function(n){return w.isNumber(n)&&n!=+n},w.isBoolean=function(n){return n===!0||n===!1||"[object Boolean]"==l.call(n)},w.isNull=function(n){return null===n},w.isUndefined=function(n){return n===void 0},w.has=function(n,t){return f.call(n,t)},w.noConflict=function(){return n._=t,this},w.identity=function(n){return n},w.times=function(n,t,r){for(var e=Array(n),u=0;n>u;u++)e[u]=t.call(r,u);return e},w.random=function(n,t){return null==t&&(t=n,n=0),n+Math.floor(Math.random()*(t-n+1))};var M={escape:{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#x27;","/":"&#x2F;"}};M.unescape=w.invert(M.escape);var S={escape:RegExp("["+w.keys(M.escape).join("")+"]","g"),unescape:RegExp("("+w.keys(M.unescape).join("|")+")","g")};w.each(["escape","unescape"],function(n){w[n]=function(t){return null==t?"":(""+t).replace(S[n],function(t){return M[n][t]})}}),w.result=function(n,t){if(null==n)return null;var r=n[t];return w.isFunction(r)?r.call(n):r},w.mixin=function(n){A(w.functions(n),function(t){var r=w[t]=n[t];w.prototype[t]=function(){var n=[this._wrapped];return a.apply(n,arguments),D.call(this,r.apply(w,n))}})};var N=0;w.uniqueId=function(n){var t=++N+"";return n?n+t:t},w.templateSettings={evaluate:/<%([\s\S]+?)%>/g,interpolate:/<%=([\s\S]+?)%>/g,escape:/<%-([\s\S]+?)%>/g};var T=/(.)^/,q={"'":"'","\\":"\\","\r":"r","\n":"n","	":"t","\u2028":"u2028","\u2029":"u2029"},B=/\\|'|\r|\n|\t|\u2028|\u2029/g;w.template=function(n,t,r){var e;r=w.defaults({},r,w.templateSettings);var u=RegExp([(r.escape||T).source,(r.interpolate||T).source,(r.evaluate||T).source].join("|")+"|$","g"),i=0,a="__p+='";n.replace(u,function(t,r,e,u,o){return a+=n.slice(i,o).replace(B,function(n){return"\\"+q[n]}),r&&(a+="'+\n((__t=("+r+"))==null?'':_.escape(__t))+\n'"),e&&(a+="'+\n((__t=("+e+"))==null?'':__t)+\n'"),u&&(a+="';\n"+u+"\n__p+='"),i=o+t.length,t}),a+="';\n",r.variable||(a="with(obj||{}){\n"+a+"}\n"),a="var __t,__p='',__j=Array.prototype.join,"+"print=function(){__p+=__j.call(arguments,'');};\n"+a+"return __p;\n";try{e=Function(r.variable||"obj","_",a)}catch(o){throw o.source=a,o}if(t)return e(t,w);var c=function(n){return e.call(this,n,w)};return c.source="function("+(r.variable||"obj")+"){\n"+a+"}",c},w.chain=function(n){return w(n).chain()};var D=function(n){return this._chain?w(n).chain():n};w.mixin(w),A(["pop","push","reverse","shift","sort","splice","unshift"],function(n){var t=e[n];w.prototype[n]=function(){var r=this._wrapped;return t.apply(r,arguments),"shift"!=n&&"splice"!=n||0!==r.length||delete r[0],D.call(this,r)}}),A(["concat","join","slice"],function(n){var t=e[n];w.prototype[n]=function(){return D.call(this,t.apply(this._wrapped,arguments))}}),w.extend(w.prototype,{chain:function(){return this._chain=!0,this},value:function(){return this._wrapped}})}).call(this);}, "underscore": function(exports, require, module) {//     Underscore.js 1.4.4
+}).call(this);
+});
+require.register("pogoscript/deps/underscore.js", function(exports, require, module){
+//     Underscore.js 1.4.4
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud Inc.
 //     Underscore may be freely distributed under the MIT license.
@@ -7644,4 +8062,18 @@ exports.macros = function (cg) {
   });
 
 }).call(this);
-}});
+
+});
+require.register("pogoscript/index.js", function(exports, require, module){
+module.exports = require('./lib/parser/compiler');
+});
+
+
+  if (typeof exports == 'object') {
+    module.exports = require('pogoscript');
+  } else if (typeof define == 'function' && define.amd) {
+    define(function(){ return require('pogoscript'); });
+  } else {
+    window['pogoscript'] = require('pogoscript');
+  }
+})();
