@@ -9,11 +9,11 @@ constructor (members) =
         if (members.has own property (member))
           self.(member) = members.(member)
 
-global.object (members) =
+exports.object (members) =
     c = constructor (members)
     new (c ())
 
-global.object extending (base, members) =
+exports.object extending (base, members) =
   c = constructor (members)
   c.prototype = base
   new (c ())

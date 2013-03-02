@@ -1,3 +1,4 @@
+object = require './runtime'.object
 _ = require 'underscore'
 create indent stack = require './indentStack'.create indent stack
 create interpolation = require './interpolation'.create interpolation

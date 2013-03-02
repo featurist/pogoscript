@@ -1,4 +1,4 @@
-ms = require '../../lib/memorystream'
+ms = require '../memorystream'
 create parser context = require './parserContext'.create parser context
 create dynamic lexer = require './dynamicLexer'.create dynamic lexer
 parser = require './jisonParser'.parser

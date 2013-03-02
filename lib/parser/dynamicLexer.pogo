@@ -1,3 +1,5 @@
+object = require './runtime'.object
+
 exports.create dynamic lexer = create dynamic lexer (next lexer: nil, source: nil) = object =>
     self.tokens = []
     self.next lexer = next lexer

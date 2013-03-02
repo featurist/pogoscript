@@ -4,7 +4,7 @@ Module = require 'module'
 path = require 'path'
 repl = require 'repl'
 vm = require 'vm'
-versions = require '../../lib/versions'
+versions = require '../versions'
 compiler = require './compiler'
 
 create terms () = require './codeGenerator'.code generator ()

@@ -1,4 +1,6 @@
-require '../lib/parser/runtime'
+runtime = require '../lib/parser/runtime'
+object = runtime.object
+object extending = runtime.object extending
 
 describe 'runtime'
     it 'creates objects with constructor'
