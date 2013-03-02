@@ -31,8 +31,8 @@
         "mocha": "",
         "should": "",
         "jison": "",
-        "browserify": "",
-        "glob": ""
+        "glob": "",
+        "component-builder": ""
     },
     "dependencies": {
         "underscore": "1.4.4",
