@@ -19,5 +19,25 @@ three</textarea>
   <script src="underscore/underscore.js" type="text/javascript"></script>
   <script src="pogo.js" type="text/javascript"></script>
   <script src="index.js" type="text/javascript"></script>
+
+  <script>
+    require('parser/browser');
+    try {
+      var js = pogoscript.compile('x = 5', {ugly: true});
+      console.log('compiled `x = 5`: ');
+      console.log(js);
+    } catch (err) {
+      console.log(err);
+      console.log(err.stack);
+    }
+    try {
+      var js = pogoscript.evaluate('x = 5, f (n) = n + 2, f (x)');
+      console.log('evaluated `x = 5, f (n) = n + 2, f (x)`: ');
+      console.log(js);
+    } catch (err) {
+      console.log(err);
+      console.log(err.stack);
+    }
+  </script>
 </body>
 </html>
