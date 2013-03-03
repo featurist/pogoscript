@@ -33,6 +33,8 @@ build script from builder! (builder) with global name (name) =
          module.exports = require('#(name)');
        } else if (typeof define == 'function' && define.amd) {
          define(function(){ return require('#(name)'); });
+       } else if (typeof window == 'undefined') {
+         this['#(name)'] = require('#(name)');
        } else {
          window['#(name)'] = require('#(name)');
        }

@@ -4460,7 +4460,15 @@ module.exports = function (terminals) {
 require.register("pogoscript/lib/parser/browser.js", function(exports, require, module){
 (function() {
     var self = this;
-    window.pogoscript = require("./compiler");
+    var target;
+    target = function() {
+        if (typeof window === "undefined") {
+            return this;
+        } else {
+            return window;
+        }
+    }();
+    target.pogoscript = require("./compiler");
 }).call(this);
 });
 require.register("pogoscript/lib/parser/codeGenerator.js", function(exports, require, module){
@@ -8073,6 +8081,8 @@ module.exports = require('./lib/parser/compiler');
     module.exports = require('pogoscript');
   } else if (typeof define == 'function' && define.amd) {
     define(function(){ return require('pogoscript'); });
+  } else if (typeof window == 'undefined') {
+    this['pogoscript'] = require('pogoscript');
   } else {
     window['pogoscript'] = require('pogoscript');
   }
