@@ -50,7 +50,7 @@ end
       tar_io.write(contents)
     end
 
-    contents = File.read("extras/pogo-script.js")
+    contents = File.read("html/pogo.js")
     path = "lib/pogo_script/pogo-script.js"
     pkg.add_file_simple(path, 0644, contents.size) do |tar_io|
       tar_io.write(contents)
