@@ -26,7 +26,8 @@ builder.add file ('scripts', 'index.js', "module.exports = require('./lib/parser
 
 build script from builder! (builder) with global name (name) =
     package = builder.build!
-    ";(function(){
+    "/* PogoScript Compiler */
+     ;(function(){
        #(package.require)
        #(package.js)
        if (typeof exports == 'object') {

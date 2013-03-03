@@ -1,3 +1,4 @@
+/* PogoScript Compiler */
 ;(function(){
   
 
