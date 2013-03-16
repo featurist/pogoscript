@@ -50,7 +50,7 @@ Or
 
     sum (numbers, ...)
 
-## Block Arguments
+## [Block](guide/blocks.html) Arguments
 
     set timeout
         console.log "hi!"
@@ -60,7 +60,7 @@ Or all on one line:
 
     set timeout @{console.log "hi!"} 1000
 
-## Block Parameters
+## [Block](guide/blocks.html) Parameters
 
     map each @(name) in (names) into
         "<div class='name'>#(name)</div>"
