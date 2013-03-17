@@ -8,6 +8,12 @@
     <div class="header doc">
       <h1>The <a href="/">PogoScript</a> {{ page.title }}</h1>
     </div>
-    {% include content.html %}
+    <div class="content">
+      <h1>{{ page.guide }}</h1>
+      {{ content }}
+    </div>
+
+    {% include analytics.html %}
+    {% include scripts.html %}
   </body>
 </html>

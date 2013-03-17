@@ -1,9 +1,8 @@
 ---
 layout: doc
 title: Guide
+guide: Blocks
 ---
-
-# Blocks
 
 Blocks are arguments to functions that are also functions themselves. In effect, blocks allow you to pass some custom behaviour to a function, for example, to run a bit of code if an event occurs or to answer some question required during the function's execution. This is a classic functional programming design pattern, and a function that takes an other function as an argument is often called a higher-order function.
 
