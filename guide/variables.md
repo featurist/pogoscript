@@ -1,7 +1,7 @@
 ---
 layout: doc
 guide: Variables
-permalink: variables.html
+weight: 1
 ---
 
 The first, most basic, and most surprising feature of the language is variables. In PogoScript variable names can contain spaces, ala:

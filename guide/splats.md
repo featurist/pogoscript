@@ -1,7 +1,7 @@
 ---
 layout: doc
 guide: Splat Arguments
-permalink: splats.html
+weight: 5
 ---
 
 Some functions can accept an arbitrary number of arguments. Our hypothetical `sum` above was one of them. To acheive this, we use *splats*, which is some Ruby terminology for being able to access a number of arguments as one.

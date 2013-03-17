@@ -7,9 +7,13 @@ title: Guide
 
 Ok, so you want to know what this pogoscript thing is all about… It's a programming langauge, you probably knew that already. It compiles to JavaScript too, you probably also knew that. Because it compiles to JavaScript it's like JavaScript. Most, if not all of the language's behaviour is identical to JavaScript, pogoscript is merely a new syntax for JavaScript, plus a few interesting things which we'll get to.
 
+{% for weight in (1..site.pages.size) %}
 {% for guide in site.pages %}
 {% if guide.guide %}
+{% if weight == guide.weight %}
 {% assign content = guide.content %}
 {% include guide.html %}
 {% endif %}
+{% endif %}
+{% endfor %}
 {% endfor %}

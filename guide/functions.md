@@ -1,7 +1,7 @@
 ---
 layout: doc
 guide: Functions
-permalink: functions.html
+weight: 2
 ---
 
 Variables are the building blocks, but functions have all the fun. In PogoScript functions are called by passing arguments. Arguments can be numbers, strings or other expressions like variables or indeed the results of other functions.

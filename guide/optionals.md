@@ -1,7 +1,7 @@
 ---
 layout: doc
 guide: Optional Arguments
-permalink: optionals.html
+weight: 4
 ---
 
 Some function calls can get away with just having good defaults, and not require everything to be configured ad tedium. For these sorts of functions, optional arguments can be used.

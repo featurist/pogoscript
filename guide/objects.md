@@ -1,7 +1,7 @@
 ---
 layout: doc
 guide: Objects
-permalink: objects.html
+weight: 6
 ---
 
 Functions are of course objects in their own way: they can encapsulate state (by referring to variables in lexical scope); they offer an abstract interface (you can call them by passing arguments); they are polymorphic (you can't really tell what implementation you're calling, and nor should you); and they can inherit the behaviour of other functions in delegation, arguably an analogue to object oriented inheritance.
