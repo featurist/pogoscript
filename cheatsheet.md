@@ -3,6 +3,15 @@ layout: doc
 title: Cheat Sheet
 ---
 
+# Statements
+
+    statement 1
+    statement 2
+
+Or separated by commas:
+
+    statement 1, statement 2
+
 # Variables
 
 Variables can contain alphas, spaces, numbers, `$` and `_`.
