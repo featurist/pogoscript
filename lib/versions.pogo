@@ -5,7 +5,8 @@ exports.(a) is less than (b) =
         if (v.0 == 'v')
             v := v.substring (1)
 
-        v.split '.'
+        _.map (v.split '.') @(n)
+            parse int (n)
 
     compare (v1, v2) =
         if (v1 > v2)
