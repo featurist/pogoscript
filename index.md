@@ -150,10 +150,10 @@ What about a multi-line control structure?
     render each in (list, render) if none (none) =
         if (list.length > 0)
             content = ''
-            
+
             for each @(item) in (items)
-                content = content + render (item)
-            
+                content := content + render (item)
+
             content
         else
             none ()
