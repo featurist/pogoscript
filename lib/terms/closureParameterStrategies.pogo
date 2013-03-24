@@ -5,18 +5,20 @@ module.exports (terms) = {
     function strategy (strategy) = {
         strategy = strategy
         generate java script parameters (buffer, scope) =
-            codegen utils.write (self.strategy.named parameters (), ',') to buffer (buffer, scope) with delimiter
+            codegen utils.write (self.strategy.function parameters (), ',') to buffer (buffer, scope) with delimiter
 
         generate java script parameter statements (buffer, scope, args) =
             self.strategy.generate java script parameter statements (buffer, scope, args)
 
-        named parameters () = strategy.named parameters ()
+        function parameters () = strategy.function parameters ()
+        defined parameters () = strategy.defined parameters ()
     }
 
     normal strategy (parameters) = {
         parameters = parameters
-        named parameters () = self.parameters
+        function parameters () = self.parameters
         generate java script parameter statements (buffer, scope, args) = nil
+        defined parameters () = self.parameters
     }
 
     splat strategy (before: nil, splat: nil, after: nil) = {
@@ -24,7 +26,9 @@ module.exports (terms) = {
         splat = splat
         after = after
 
-        named parameters () = self.before
+        function parameters () = self.before
+
+        defined parameters () = self.before.concat [self.splat].concat (self.after)
 
         generate java script parameter statements (buffer, scope, args) =
             buffer.write "var "
@@ -67,7 +71,8 @@ module.exports (terms) = {
             options = options
             options variable = terms.generated variable ['options']
 
-            named parameters () = self.before.concat [self.options variable]
+            function parameters () = self.before.concat [self.options variable]
+            defined parameters () = before.concat [param, where: option <- self.options, param = terms.variable (option.field)]
 
             generate java script parameter statements (buffer, scope, args) =
                 option names = _.map (self.options) @(option)
@@ -95,8 +100,10 @@ module.exports (terms) = {
     callback strategy (strategy) = {
         strategy = strategy
 
-        named parameters () =
-            self.strategy.named parameters ().concat (terms.callback function)
+        function parameters () =
+            self.strategy.function parameters ().concat (terms.callback function)
+
+        defined parameters () = strategy.defined parameters ().concat [terms.callback function]
 
         generate java script parameter statements (buffer, scope, args) =
             inner args = terms.generated variable ['arguments']
@@ -117,9 +124,9 @@ module.exports (terms) = {
             terms.callback function.generate java script (buffer, scope)
             buffer.write " instanceof Function)){throw new Error('asynchronous function called synchronously');}"
 
-            named parameters = self.strategy.named parameters ()
-            for (n = 0, n < named parameters.length, ++n)
-                named param = self.strategy.named parameters ().(n)
+            function parameters = self.strategy.function parameters ()
+            for (n = 0, n < function parameters.length, ++n)
+                named param = self.strategy.function parameters ().(n)
                 named param.generate java script (buffer, scope)
                 buffer.write "="
                 inner args.generate java script (buffer, scope)

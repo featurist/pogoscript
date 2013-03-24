@@ -24,7 +24,12 @@ describe 'closure parameter strategies'
 
             before each
                 fs := strategies.function strategy {
-                    named parameters () = [
+                    function parameters () = [
+                        terms.variable ['a']
+                        terms.variable ['b']
+                    ]
+
+                    defined parameters () = [
                         terms.variable ['a']
                         terms.variable ['b']
                     ]
@@ -40,8 +45,11 @@ describe 'closure parameter strategies'
             it "generates statements of underlying strategy"
                 generate statements from (fs).should.equal 'args;'
 
-            it "requires underlying named parameters"
-                should.deep equal (fs.named parameters (), [terms.variable ['a'], terms.variable ['b']])
+            it "requires underlying function parameters"
+                should.deep equal (fs.function parameters (), [terms.variable ['a'], terms.variable ['b']])
+
+            it "requires underlying defined parameters"
+                should.deep equal (fs.defined parameters (), [terms.variable ['a'], terms.variable ['b']])
 
     describe 'normal strategy'
         context 'when there are two parameters'
@@ -54,7 +62,10 @@ describe 'closure parameter strategies'
                 ]
 
             it 'requires those parameters'
-                should.deep equal (n.named parameters (), [terms.variable ['a'], terms.variable ['b']])
+                should.deep equal (n.function parameters (), [terms.variable ['a'], terms.variable ['b']])
+
+            it 'defines those parameters'
+                should.deep equal (n.defined parameters (), [terms.variable ['a'], terms.variable ['b']])
 
             it "doesn't generate any statements"
                 generate statements from (n).should.equal ''
@@ -71,10 +82,13 @@ describe 'closure parameter strategies'
                 )
 
             it "doesn't require any parameters"
-                should.deep equal (splat.named parameters (), [])
+                should.deep equal (splat.function parameters (), [])
 
             it 'generates full slice of arguments'
                 generate statements from (splat).should.equal 'var a=Array.prototype.slice.call(args,0,args.length);'
+
+            it 'defines that splat parameter'
+                should.deep equal (splat.defined parameters (), [terms.variable ['a']])
 
         context 'when there is one argument before the splat parameter'
             splat = nil
@@ -87,10 +101,13 @@ describe 'closure parameter strategies'
                 )
 
             it "doesn't require any parameters"
-                should.deep equal (splat.named parameters (), [terms.variable ['a']])
+                should.deep equal (splat.function parameters (), [terms.variable ['a']])
 
             it 'generates full slice of arguments'
                 generate statements from (splat).should.equal 'var b=Array.prototype.slice.call(args,1,args.length);'
+
+            it 'defines the one before and the splat parameter'
+                should.deep equal (splat.defined parameters (), [terms.variable ['a'], terms.variable ['b']])
 
         context 'when there is one argument after the splat parameter'
             splat = nil
@@ -103,10 +120,13 @@ describe 'closure parameter strategies'
                 )
 
             it "doesn't require any parameters"
-                should.deep equal (splat.named parameters (), [])
+                should.deep equal (splat.function parameters (), [])
 
             it 'generates full slice of arguments'
                 generate statements from (splat).should.equal 'var a=Array.prototype.slice.call(args,0,args.length-1);var b=args[args.length-1];'
+
+            it 'defines the one before, the splat parameter and the one after'
+                should.deep equal (splat.defined parameters (), [terms.variable ['a'], terms.variable ['b']])
 
         context 'when there is one argument, a splat argument, then another argument'
             splat = nil
@@ -119,10 +139,20 @@ describe 'closure parameter strategies'
                 )
 
             it "doesn't require any parameters"
-                should.deep equal (splat.named parameters (), [terms.variable ['a']])
+                should.deep equal (splat.function parameters (), [terms.variable ['a']])
 
             it 'generates full slice of arguments'
                 generate statements from (splat).should.equal 'var b=Array.prototype.slice.call(args,1,args.length-1);if(args.length>1){var c=args[args.length-1];}'
+
+            it 'defines the one before, the splat parameter and the one after'
+                should.deep equal (
+                    splat.defined parameters ()
+                    [
+                        terms.variable ['a']
+                        terms.variable ['b']
+                        terms.variable ['c']
+                    ]
+                )
 
     describe 'optional strategy'
         context 'when there are no other arguments'
@@ -138,10 +168,19 @@ describe 'closure parameter strategies'
                 )
 
             it 'requires only an options parameter'
-                should.deep equal (opts.named parameters (), [terms.generated variable ['options']])
+                should.deep equal (opts.function parameters (), [terms.generated variable ['options']])
 
             it 'generates code to extract each named option from the options variable'
                 generate statements from (opts).should.equal "var a,b;a=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'a')&&gen1_options.a!==void 0?gen1_options.a:10;b=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'b')&&gen1_options.b!==void 0?gen1_options.b:'asdf';"
+
+            it 'defines the optional parameters'
+                should.deep equal (
+                    opts.defined parameters ()
+                    [
+                        terms.variable ['a']
+                        terms.variable ['b']
+                    ]
+                )
 
         context 'when there are two other parameters'
             opts = nil
@@ -156,10 +195,21 @@ describe 'closure parameter strategies'
                 )
 
             it 'requires the normal parameters and the options parameter'
-                should.deep equal (opts.named parameters (), [terms.variable ['a'], terms.variable ['b'], terms.generated variable ['options']])
+                should.deep equal (opts.function parameters (), [terms.variable ['a'], terms.variable ['b'], terms.generated variable ['options']])
 
             it 'generates code to extract each named option from the options variable'
                 generate statements from (opts).should.equal "var c,d;c=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'c')&&gen1_options.c!==void 0?gen1_options.c:10;d=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'d')&&gen1_options.d!==void 0?gen1_options.d:'asdf';"
+
+            it 'defines the optional parameters, and those before'
+                should.deep equal (
+                    opts.defined parameters ()
+                    [
+                        terms.variable ['a']
+                        terms.variable ['b']
+                        terms.variable ['c']
+                        terms.variable ['d']
+                    ]
+                )
 
     describe 'callback strategy'
         context "with two other parameters"
@@ -167,7 +217,8 @@ describe 'closure parameter strategies'
 
             before each
                 cb := strategies.callback strategy {
-                    named parameters () = [terms.variable ['a'], terms.variable ['b']]
+                    function parameters () = [terms.variable ['a'], terms.variable ['b']]
+                    defined parameters () = [terms.variable ['a'], terms.variable ['b']]
 
                     generate java script parameter statements (buffer, scope, args) =
                         args.generate java script (buffer, scope)
@@ -175,7 +226,17 @@ describe 'closure parameter strategies'
                 }
 
             it 'requires the inner parameters and the callback'
-                should.deep equal (cb.named parameters (), [terms.variable ['a'], terms.variable ['b'], terms.callback function])
+                should.deep equal (cb.function parameters (), [terms.variable ['a'], terms.variable ['b'], terms.callback function])
 
             it 'generates code to extract the callback and the other parameters'
                 generate statements from (cb).should.equal "var gen1_arguments=Array.prototype.slice.call(args,0,args.length-1);continuation=args[args.length-1];if(!(continuation instanceof Function)){throw new Error('asynchronous function called synchronously');}a=gen1_arguments[0];b=gen1_arguments[1];gen1_arguments;"
+
+            it 'defines continuation and those of the inner strategy'
+                should.deep equal (
+                    cb.defined parameters ()
+                    [
+                        terms.variable ['a']
+                        terms.variable ['b']
+                        terms.callback function
+                    ]
+                )

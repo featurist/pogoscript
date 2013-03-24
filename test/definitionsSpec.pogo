@@ -28,3 +28,14 @@ describe 'definitions'
 
         it "throws when an assignment is made to a variable that hasn't been defined yet"
             @{evaluate script 'a := 1'}.should.throw r/variable a is not defined/
+
+        context 'when in functions'
+            describe 'parameters cannot be redefined'
+                it 'throws when a function redefines a parameter'
+                    @{evaluate script 'f (a) =
+                                           a = 6'}.should.throw r/variable a is already defined/
+
+            describe 'parameters cannot be redefined'
+                it 'throws when a function redefines an optional parameter'
+                    @{evaluate script 'f (a: nil) =
+                                           a = 6'}.should.throw r/variable a is already defined/

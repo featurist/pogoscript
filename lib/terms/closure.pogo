@@ -151,11 +151,11 @@ module.exports (terms) =
             self.rewrite result term to return ()
 
             buffer.write ('function(')
-            parameters = parameters strategy.named parameters ()
+            defined parameters = parameters strategy.defined parameters ()
             parameters strategy.generate java script parameters (buffer, scope)
             buffer.write ('){')
             body scope = scope.sub scope ()
-            self.declare parameters (body scope, parameters)
+            self.declare parameters (body scope, defined parameters)
 
             self.generate self assignment (buffer)
 
