@@ -21,12 +21,12 @@ wip-tests :
 test/pogo.js : browser-test
 
 browser-test :
-	pogo tools/bundle.pogo --test
+	pogo tools/bundle-pogo-tests.pogo > test/pogo.js
 
 html/pogo.js : browser
 
 browser : all
-	pogo tools/bundle.pogo
+	pogo tools/bundle-pogo.pogo > html/pogo.js
 
 clean:
 	for subdir in src/bootstrap lib; do \

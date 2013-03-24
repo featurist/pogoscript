@@ -2,7 +2,7 @@ cg = require '../lib/parser/codeGenerator'.code generator ()
 require './assertions'
 Term = (require '../lib/terms/terms') {}.Term
 _ = require 'underscore'
-assert = require 'assert'
+should = require 'should'
 
 (actual list) should only have (expected list) =
     actual list.length.should.equal (expected list.length)
@@ -366,7 +366,7 @@ describe 'terms'
         it 'if there are no children then the location is nil'
             t = new (Term)
 
-            assert.(t.location ()) strict equal (nil)
+            should.(t.location ()) strict equal (nil)
 
         it 'if there are no children with locations then the location is nil'
             left = new (Term)
@@ -377,7 +377,7 @@ describe 'terms'
                 right = right
             })
 
-            assert.(t.location ()) strict equal (nil)
+            should.(t.location ()) strict equal (nil)
 
         it 'can compute location from children, smallest first column, largest last column when on same line'
             left = new (Term)

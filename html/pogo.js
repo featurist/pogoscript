@@ -4458,20 +4458,6 @@ module.exports = function (terminals) {
 };
 
 });
-require.register("pogoscript/lib/parser/browser.js", function(exports, require, module){
-(function() {
-    var self = this;
-    var target;
-    target = function() {
-        if (typeof window === "undefined") {
-            return this;
-        } else {
-            return window;
-        }
-    }();
-    target.pogoscript = require("./compiler");
-}).call(this);
-});
 require.register("pogoscript/lib/parser/codeGenerator.js", function(exports, require, module){
 var cg = require('../codeGenerator');
 

@@ -1,4 +1,4 @@
-assert = require 'assert'
+should = require 'should'
 compiler = require '../lib/parser/compiler'
 util = require 'util'
 _ = require 'underscore'
@@ -19,7 +19,7 @@ exports.evaluate script (script) =
     .join "\n"
 
 exports.(script) should output (expected output) =
-    assert.equal (chomp (exports.evaluate script (script)), chomp (expected output))
+    should.equal (chomp (exports.evaluate script (script)), chomp (expected output))
 
 exports.evaluate async script (script, done) =
     printed items = []
@@ -51,7 +51,7 @@ exports.async (script) should output (expected output, done) =
             done (error)
         else
             try
-                assert.equal (chomp (result), chomp (expected output))
+                should.equal (chomp (result), chomp (expected output))
                 done ()
             catch (ex)
                 done (ex)
@@ -63,8 +63,8 @@ exports.(script) should throw (expected error) =
         exports.evaluate script (script)
         failed := true
     catch (ex)
-        assert.equal (ex.to string () , expected error)
+        should.equal (ex.to string () , expected error)
     
     if (failed)
-        assert.fail "expected #(expected error)"
+        should.fail "expected #(expected error)"
     

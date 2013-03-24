@@ -1,4 +1,4 @@
-assert = require 'assert'
+should = require 'should'
 fs = require 'fs'
 spawn = require 'child_process'.spawn
 crypto = require 'crypto'
@@ -34,8 +34,8 @@ execute script (script) with args (args, callback, script filename: filename for
 exports.(script) with args (args) should output (expected output, done, script filename: nil) =
     execute script (script) with args (args, script filename: script filename) @(error, actual output)
         if (error)
-            assert.fail (error)
+            should.fail (error)
         else
-            assert.equal (chomp (actual output), chomp (expected output))
+            should.equal (chomp (actual output), chomp (expected output))
 
         done ()
