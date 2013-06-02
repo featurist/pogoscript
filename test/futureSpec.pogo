@@ -9,3 +9,11 @@ describe 'futures'
                 f = x?
                 print (f!)
                 done ()' should output '5'
+
+    it 'can defer the result of an asynchronous method call'
+        async! 'o = {
+                    x! = 5
+                }
+                f = o.x?
+                print (f!)
+                done ()' should output '5'

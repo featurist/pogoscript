@@ -17,6 +17,7 @@ block = cg.block [] (cg.statements [variable 'x'])
 string (value) = cg.string (value)
 
 async argument = cg.async argument ()
+future argument = cg.future argument ()
 
 describe 'complex expression'
   describe 'has arguments'
@@ -28,6 +29,9 @@ describe 'complex expression'
     
     it 'with async argument'
       expression [[id 'a', async argument]] should have arguments
+    
+    it 'with future argument'
+      expression [[id 'a', future argument]] should have arguments
     
     it 'with tail block'
       expression [[id 'a'], [id 'readonly', block]] should have arguments
@@ -99,6 +103,19 @@ describe 'complex expression'
             ]
           }
 
+    describe 'future functions'
+        it 'one argument and future argument is future function call'
+          expression [[variable 'z', future argument]] should contain fields {
+              is function call
+              is async = false
+          }
+
+        it 'name and future argument is function call'
+          expression [[id 'z', future argument]] should contain fields {
+              is function call
+              is async = false
+          }
+
     it 'with name is variable'
       expression [[id 'a', id 'variable']] should contain fields {
         is variable
@@ -162,24 +179,80 @@ describe 'complex expression'
         is async = false
       }
   
-    it 'async method call'
-      expression (variable 'a') [[id 'method', int 10, async argument]] should contain fields {
-        is sub statements
-        statements [
-          {
-            is definition
-            is async
-            target {is variable, name ['async', 'result']}
-            source {
-              is method call
-              object {variable ['a']}
-              name ['method']
-              method arguments [{integer 10}]
+    describe 'future calls'
+      it 'future method call'
+        expression (variable 'a') [[id 'method', int 10, future argument]] should contain fields {
+          is function call
+        }
+
+      it 'future index call with arguments'
+      it 'future index call with no arguments'
+
+    describe 'async calls'
+      it 'async method call'
+        expression (variable 'a') [[id 'method', int 10, async argument]] should contain fields {
+          is sub statements
+          statements [
+            {
+              is definition
+              is async
+              target {is variable, name ['async', 'result']}
+              source {
+                is method call
+                object {variable ['a']}
+                name ['method']
+                method arguments [{integer 10}]
+              }
             }
-          }
-          {is variable, name ['async', 'result']}
-        ]
-      }
+            {is variable, name ['async', 'result']}
+          ]
+        }
+
+      it 'async index call with arguments'
+        expression (variable 'a') [[variable 'z', int 10, async argument]] should contain fields {
+          is sub statements
+          statements [
+            {
+              is definition
+              is async
+              target {is variable, name ['async', 'result']}
+              source {
+                is function call
+                function {
+                  is indexer
+                  object {variable ['a']}
+                  indexer {variable ['z']}
+                }
+                
+                function arguments [{integer 10}]
+              }
+            }
+            {is variable, name ['async', 'result']}
+          ]
+        }
+
+      it 'async index call with no arguments'
+        expression (variable 'a') [[variable 'z', async argument]] should contain fields {
+          is sub statements
+          statements [
+            {
+              is definition
+              is async
+              target {is variable, name ['async', 'result']}
+              source {
+                is function call
+                function {
+                  is indexer
+                  object {variable ['a']}
+                  indexer {variable ['z']}
+                }
+                
+                function arguments []
+              }
+            }
+            {is variable, name ['async', 'result']}
+          ]
+        }
   
     it 'method call with optional arguments'
       expression (variable 'a') [[id 'method', int 10], [id 'port', int 80]] should contain fields {
@@ -209,52 +282,6 @@ describe 'complex expression'
         }
         
         function arguments [{integer 10}]
-      }
-
-    it 'async index call with arguments'
-      expression (variable 'a') [[variable 'z', int 10, async argument]] should contain fields {
-        is sub statements
-        statements [
-          {
-            is definition
-            is async
-            target {is variable, name ['async', 'result']}
-            source {
-              is function call
-              function {
-                is indexer
-                object {variable ['a']}
-                indexer {variable ['z']}
-              }
-              
-              function arguments [{integer 10}]
-            }
-          }
-          {is variable, name ['async', 'result']}
-        ]
-      }
-
-    it 'async index call with no arguments'
-      expression (variable 'a') [[variable 'z', async argument]] should contain fields {
-        is sub statements
-        statements [
-          {
-            is definition
-            is async
-            target {is variable, name ['async', 'result']}
-            source {
-              is function call
-              function {
-                is indexer
-                object {variable ['a']}
-                indexer {variable ['z']}
-              }
-              
-              function arguments []
-            }
-          }
-          {is variable, name ['async', 'result']}
-        ]
       }
 
     it 'index call with no arguments'
@@ -439,31 +466,35 @@ describe 'complex expression'
         }
       }
     
-    it 'async index method definition with no args'
-      definition (variable 'object') [[cg.string 'xyz', async argument]] (variable 'y') should contain fields {
-        is definition
-        is assignment
-        target {
-          is indexer
-          indexer {string 'xyz'}
-          object {variable ['object']}
-        }
-        
-        source {
-          is block
-          body {
-            statements [
-              {
-                is variable
-                variable ['y']
-              }
-            ]
+    describe 'future definitions'
+      it 'future index method definition with no args'
+    
+    describe 'async definitions'
+      it 'async index method definition with no args'
+        definition (variable 'object') [[cg.string 'xyz', async argument]] (variable 'y') should contain fields {
+          is definition
+          is assignment
+          target {
+            is indexer
+            indexer {string 'xyz'}
+            object {variable ['object']}
           }
           
-          parameters [
-          ]
+          source {
+            is block
+            body {
+              statements [
+                {
+                  is variable
+                  variable ['y']
+                }
+              ]
+            }
+            
+            parameters [
+            ]
+          }
         }
-      }
 
   describe 'definition'
     definition (target, source) should contain fields (fields) =
@@ -555,22 +586,26 @@ describe 'complex expression'
           body {statements [{variable ['y']}]}
         }
       }
-    
-    it 'async function definition'
-      definition [[id 'function', async argument]] (variable 'y') should contain fields {
-        is definition
-        target {
-          is variable
-          variable ['function']
+      
+    describe 'future'
+      it 'future function definition'
+
+    describe 'async'
+      it 'async function definition'
+        definition [[id 'function', async argument]] (variable 'y') should contain fields {
+          is definition
+          target {
+            is variable
+            variable ['function']
+          }
+          
+          source {
+            is block
+            parameters []
+            body {statements [{variable ['y']}]}
+            is async = true
+          }
         }
-        
-        source {
-          is block
-          parameters []
-          body {statements [{variable ['y']}]}
-          is async = true
-        }
-      }
     
     it 'function definition with empty param list'
       definition [[id 'function', cg.argument list []]] (variable 'y') should contain fields {

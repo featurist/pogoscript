@@ -1,6 +1,7 @@
 codegen utils = require './codegenUtils'
 argument utils = require './argumentUtils'
 _ = require 'underscore'
+async control = require '../asyncControl'
 
 module.exports (terms) =
     function call term = terms.term {
@@ -30,6 +31,7 @@ module.exports (terms) =
         generate java script (buffer, scope) =
             self.function.generate java script (buffer, scope)
 
+            debugger
             args = codegen utils.concat args (
                 self.function arguments
                 optional args: self.optional arguments
@@ -75,6 +77,7 @@ module.exports (terms) =
         originally async: false
         async callback argument: nil
         could be macro: true
+        future: false
     ) =
         if (async)
             async result = terms.async result ()
@@ -97,6 +100,33 @@ module.exports (terms) =
                     )
                     async result
                 ]
+            )
+        else if (future)
+            future function =
+                terms.module constants.define ['future'] as (
+                    terms.javascript (async control.future.to string ())
+                )
+
+            return (
+                terms.function call (
+                    future function
+                    [
+                        terms.closure (
+                            [terms.callback function]
+                            terms.statements [
+                                terms.function call (
+                                    fun
+                                    args
+                                    optional arguments: optional arguments
+                                    pass this to apply: pass this to apply
+                                    originally async: true
+                                    async callback argument: terms.callback function
+                                    could be macro: could be macro
+                                )
+                            ]
+                        )
+                    ]
+                )
             )
         else if (fun.variable @and could be macro)
             name = fun.variable

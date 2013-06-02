@@ -1,5 +1,6 @@
 codegen utils = require './codegenUtils'
 argument utils = require './argumentUtils'
+async control = require '../asyncControl'
 
 module.exports (terms) =
     method call term = terms.term {
@@ -40,7 +41,7 @@ module.exports (terms) =
             self
     }
 
-    method call (object, name, args, optional arguments: [], async: false) =
+    method call (object, name, args, optional arguments: [], async: false, future: false) =
         splatted args = terms.splat arguments (args, optional arguments)
   
         if (splatted args)
@@ -75,5 +76,31 @@ module.exports (terms) =
                 )
                 async result
             ]
+        else if (future)
+            future function =
+                terms.module constants.define ['future'] as (
+                    terms.javascript (async control.future.to string ())
+                )
+
+            return (
+                terms.function call (
+                    future function
+                    [
+                        terms.closure (
+                            [terms.callback function]
+                            terms.statements [
+                                method call term (
+                                    object
+                                    name
+                                    args
+                                    optional arguments: optional arguments
+                                    originally async: true
+                                    async callback argument: terms.callback function
+                                )
+                            ]
+                        )
+                    ]
+                )
+            )
         else
             method call term (object, name, args, optional arguments: optional arguments, async: async)

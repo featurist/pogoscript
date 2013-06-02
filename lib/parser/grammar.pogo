@@ -120,11 +120,12 @@ exports.grammar = {
         ]
         terminal_list [
             ['terminal_list terminal', '$1.push($2); $$ = $1;']
-            ['terminal_list async_operator', '$1.push($2); $$ = $1;']
+            ['terminal_list call_operator', '$1.push($2); $$ = $1;']
             ['terminal', '$$ = [$1];']
         ]
-        async_operator [
+        call_operator [
             ['!', '$$ = yy.loc(yy.terms.asyncArgument(), @$);']
+            ['?', '$$ = yy.loc(yy.terms.futureArgument(), @$);']
         ]
         terminal [
             ['( arguments )', '$$ = yy.loc(yy.terms.argumentList($arguments), @$);']
