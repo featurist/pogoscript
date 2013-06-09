@@ -1,28 +1,28 @@
-cg = require '../lib/parser/codeGenerator'.code generator ()
+terms = require '../lib/parser/codeGenerator'.code generator ()
 require './assertions'
 
 int (n) =
-  cg.integer (n)
+  terms.integer (n)
 
 loc = {first line 1, last line 1, first column 7, last column 13}
 
-id (name) = cg.loc (cg.identifier (name), loc)
+id (name) = terms.loc (terms.identifier (name), loc)
 
-variable (name) = cg.variable [name]
+variable (name) = terms.variable [name]
 
-parameter (name) = cg.parameter [name]
+parameter (name) = terms.parameter [name]
 
-block = cg.block [] (cg.statements [variable 'x'])
+block = terms.block [] (terms.statements [variable 'x'])
 
-string (value) = cg.string (value)
+string (value) = terms.string (value)
 
-async argument = cg.async argument ()
-future argument = cg.future argument ()
+async argument = terms.async argument ()
+future argument = terms.future argument ()
 
 describe 'complex expression'
   describe 'has arguments'
     expression (e) should have arguments =
-      (cg.complex expression (e).has arguments ()) should be truthy
+      (terms.complex expression (e).has arguments ()) should be truthy
     
     it 'with arguments in head'
       expression [[id 'a', int 10]] should have arguments
@@ -38,7 +38,7 @@ describe 'complex expression'
       
   describe 'arguments'
     expression (e) should have arguments (a) =
-      (cg.complex expression (e).arguments ()) should contain fields (a)
+      (terms.complex expression (e).arguments ()) should contain fields (a)
     
     it 'with arguments in head'
       expression [[id 'a', int 10]] should have arguments [{integer 10}]
@@ -50,7 +50,7 @@ describe 'complex expression'
 
   describe 'expression'
     expression (e) should contain fields (f) =
-      (cg.complex expression (e).expression ()) should contain fields (f)
+      (terms.complex expression (e).expression ()) should contain fields (f)
 
     it 'with just one argument is that argument'
       expression [[int 9]] should contain fields {
@@ -105,16 +105,14 @@ describe 'complex expression'
 
     describe 'future functions'
         it 'one argument and future argument is future function call'
-          expression [[variable 'z', future argument]] should contain fields {
-              is function call
-              is async = false
-          }
+            expression [[variable 'z', future argument]] should contain fields (
+                terms.function call (terms.variable ['z'], [], future: true)
+            )
 
         it 'name and future argument is function call'
-          expression [[id 'z', future argument]] should contain fields {
-              is function call
-              is async = false
-          }
+            expression [[id 'z', future argument]] should contain fields (
+                terms.function call (terms.variable ['z'], [], future: true)
+            )
 
     it 'with name is variable'
       expression [[id 'a', id 'variable']] should contain fields {
@@ -131,7 +129,7 @@ describe 'complex expression'
       }
 
     it 'hash entries as arguments are optional'
-      expression [[id 'a', int 10, cg.hash entry ['port'] (int 80)]] should contain fields {
+      expression [[id 'a', int 10, terms.hash entry ['port'] (int 80)]] should contain fields {
         is function call
         is async = false
         function {is variable, variable ['a']}
@@ -168,7 +166,7 @@ describe 'complex expression'
 
   describe 'object operation -> expression'
     expression (object, operation) should contain fields (fields) =
-      (cg.complex expression (operation).object operation (object).expression ()) should contain fields (fields)
+      (terms.complex expression (operation).object operation (object).expression ()) should contain fields (fields)
   
     it 'method call'
       expression (variable 'a') [[id 'method', int 10]] should contain fields {
@@ -180,13 +178,20 @@ describe 'complex expression'
       }
   
     describe 'future calls'
-      it 'future method call'
-        expression (variable 'a') [[id 'method', int 10, future argument]] should contain fields {
-          is function call
-        }
+        it 'future method call'
+            expression (variable 'a') [[id 'method', int 10, future argument]] should contain fields (
+                terms.method call (terms.variable ['a'], ['method'], [terms.integer 10], future: true)
+            )
+  
+        it 'future index call with arguments'
+            expression (variable 'a') [[variable 'z', int 10, future argument]] should contain fields (
+                terms.function call (terms.indexer (terms.variable ['a'], terms.variable ['z']), [terms.integer 10], future: true)
+            )
 
-      it 'future index call with arguments'
-      it 'future index call with no arguments'
+        it 'future index call with no arguments'
+            expression (variable 'a') [[variable 'z', future argument]] should contain fields (
+                terms.function call (terms.indexer (terms.variable ['a'], terms.variable ['z']), [], future: true)
+            )
 
     describe 'async calls'
       it 'async method call'
@@ -285,7 +290,7 @@ describe 'complex expression'
       }
 
     it 'index call with no arguments'
-      expression (variable 'a') [[variable 'z', cg.argument list []]] should contain fields {
+      expression (variable 'a') [[variable 'z', terms.argument list []]] should contain fields {
         is function call
         is async = false
         function {
@@ -306,7 +311,7 @@ describe 'complex expression'
 
   describe 'hash entry'
     hash entry (expression) should contain fields (fields) =
-      (cg.complex expression (expression).hash entry ()) should contain fields (fields)
+      (terms.complex expression (expression).hash entry ()) should contain fields (fields)
     
     it 'if contains one component that is the hash entry'
       hash entry [[id 'field']] should contain fields {
@@ -322,7 +327,7 @@ describe 'complex expression'
 
   describe 'definition -> hash entry'
     it 'string key'
-      hash entry = cg.complex expression [[string 'port']].definition (cg.variable ['a']).hash entry ()
+      hash entry = terms.complex expression [[string 'port']].definition (terms.variable ['a']).hash entry ()
       
       (hash entry) should contain fields {
         is hash entry
@@ -331,7 +336,7 @@ describe 'complex expression'
       }
       
     it 'identifier key'
-      hash entry = cg.complex expression [[id 'port']].definition (cg.variable ['a']).hash entry ()
+      hash entry = terms.complex expression [[id 'port']].definition (terms.variable ['a']).hash entry ()
       
       (hash entry) should contain fields {
         is hash entry
@@ -340,7 +345,7 @@ describe 'complex expression'
       }
       
     it "field's value can be on a new indented line"
-      hash entry = cg.complex expression [[id 'port']].definition (cg.block ([], cg.statements [cg.variable ['a']])).hash entry ()
+      hash entry = terms.complex expression [[id 'port']].definition (terms.block ([], terms.statements [terms.variable ['a']])).hash entry ()
       
       (hash entry) should contain fields {
         is hash entry
@@ -349,11 +354,11 @@ describe 'complex expression'
       }
       
     it 'can define a method as a hash key'
-      hash entry = cg.complex expression [[id 'name', variable 'name']].definition (cg.variable ['name']).hash entry (true)
+      hash entry = terms.complex expression [[id 'field', variable 'param']].definition (terms.variable ['name']).hash entry (true)
       
       (hash entry) should contain fields {
         is hash entry
-        field ['name']
+        field ['field']
         value {
             is block
 
@@ -363,7 +368,7 @@ describe 'complex expression'
                 ]
             }
 
-            parameters [{variable ['name']}]
+            parameters [{variable ['param']}]
 
             redefines self = false
         }
@@ -371,7 +376,7 @@ describe 'complex expression'
 
   describe 'object operation -> definition'
     definition (object, operation, source) should contain fields (fields) =
-      (cg.complex expression (operation).object operation (object).definition (source).expression ()) should contain fields (fields)
+      (terms.complex expression (operation).object operation (object).definition (source).expression ()) should contain fields (fields)
     
     it 'method definition'
       definition (variable 'object') [[id 'method', variable 'x']] (block) should contain fields {
@@ -440,7 +445,7 @@ describe 'complex expression'
       }
     
     it 'index method definition'
-      definition (variable 'object') [[cg.string 'xyz', variable 'p']] (variable 'y') should contain fields {
+      definition (variable 'object') [[terms.string 'xyz', variable 'p']] (variable 'y') should contain fields {
         is definition
         is assignment
         target {
@@ -468,10 +473,26 @@ describe 'complex expression'
     
     describe 'future definitions'
       it 'future index method definition with no args'
+        definition (variable 'object') [[terms.string 'method', future argument]] (variable 'result') should contain fields (
+            terms.definition (
+                terms.indexer (terms.variable ['object'], terms.string 'method')
+                terms.variable ['result']
+                assignment: true
+            )
+        )
+
+      it 'future index method definition with args'
+        definition (variable 'object') [[terms.string 'method', terms.variable ['arg'], future argument]] (variable 'result') should contain fields (
+            terms.definition (
+                terms.indexer (terms.variable ['object'], terms.string 'method')
+                terms.variable ['result'].blockify ([terms.variable ['arg']], redefines self: true)
+                assignment: true
+            )
+        )
     
     describe 'async definitions'
       it 'async index method definition with no args'
-        definition (variable 'object') [[cg.string 'xyz', async argument]] (variable 'y') should contain fields {
+        definition (variable 'object') [[terms.string 'xyz', async argument]] (variable 'y') should contain fields {
           is definition
           is assignment
           target {
@@ -498,10 +519,10 @@ describe 'complex expression'
 
   describe 'definition'
     definition (target, source) should contain fields (fields) =
-      (cg.complex expression (target).definition (source).expression ()) should contain fields (fields)
+      (terms.complex expression (target).definition (source).expression ()) should contain fields (fields)
 
     assignment (target, source) should contain fields (fields) =
-      (cg.complex expression (target).definition (source, assignment: true).expression ()) should contain fields (fields)
+      (terms.complex expression (target).definition (source, assignment: true).expression ()) should contain fields (fields)
     
     it 'function definition'
       definition [[id 'function', variable 'x']] (block) should contain fields {
@@ -554,7 +575,7 @@ describe 'complex expression'
       }
     
     it 'function definition with optional parameter'
-      definition [[id 'function', variable 'x', cg.hash entry ['port'] (int 80), cg.hash entry ['name'] (variable 'nil')]] (variable 'y') should contain fields {
+      definition [[id 'function', variable 'x', terms.hash entry ['port'] (int 80), terms.hash entry ['name'] (variable 'nil')]] (variable 'y') should contain fields {
         is definition
         target {
           is variable
@@ -608,7 +629,7 @@ describe 'complex expression'
         }
     
     it 'function definition with empty param list'
-      definition [[id 'function', cg.argument list []]] (variable 'y') should contain fields {
+      definition [[id 'function', terms.argument list []]] (variable 'y') should contain fields {
         is definition
         target {
           is variable
@@ -652,7 +673,7 @@ describe 'complex expression'
       }
 
     it 'variable definition with scope'
-      definition [[id 'function']] (cg.block [] (cg.statements [variable 'y'])) should contain fields {
+      definition [[id 'function']] (terms.block [] (terms.statements [variable 'y'])) should contain fields {
         is definition
         target {
           is variable
@@ -664,7 +685,7 @@ describe 'complex expression'
 
     describe 'parameter'
         parameter (p) should contain fields (fields) =
-            (cg.complex expression (p).expression ().parameter ()) should contain fields (fields)
+            (terms.complex expression (p).expression ().parameter ()) should contain fields (fields)
         
         it 'variable'
             parameter [[id 'a']] should contain fields {variable ['a']}

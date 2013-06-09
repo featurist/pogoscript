@@ -11,9 +11,17 @@ describe 'futures'
                 done ()' should output '5'
 
     it 'can defer the result of an asynchronous method call'
-        async! 'o = {
-                    x! = 5
+        async! 'object = {
+                    method! = 5
                 }
-                f = o.x?
-                print (f!)
+                future = object.method?
+                print (future!)
+                done ()' should output '5'
+
+    it 'can defer the result of an asynchronous index call'
+        async! 'object = {
+                }
+                object."method"! = 5
+                future = object."method"?
+                print (future!)
                 done ()' should output '5'

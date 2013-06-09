@@ -171,3 +171,27 @@ describe 'method call'
                     )
 
                 (method call) should contain fields (expected method call)
+
+    context 'when a method call is a future'
+        it 'returns a call to future, making the method call asynchronous and passing it as a closure to future'
+            future method call = terms.method call (terms.variable ['object'], ['method'], [terms.variable ['arg']], future: true)
+
+            (future method call) should contain fields (
+                terms.function call (
+                    terms.generated variable ['future']
+                    [
+                        terms.closure (
+                            [terms.callback function]
+                            terms.statements [
+                                terms.method call (
+                                    terms.variable ['object']
+                                    ['method']
+                                    [terms.variable ['arg']]
+                                    originally async: true
+                                    async callback argument: terms.callback function
+                                )
+                            ]
+                        )
+                    ]
+                )
+            )

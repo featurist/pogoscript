@@ -63,13 +63,13 @@ module.exports (terms) = terms.term {
     generate java script statements (buffer, scope, in closure: false, global: false) =
         self.generate statements (self.statements, buffer, scope, in closure: in closure, global: global)
 
-    blockify (parameters, optional parameters: nil, async: false) =
+    blockify (parameters, options) =
         statements = if (self.is expression statements)
             self.cg.statements ([self])
         else
             self
 
-        terms.block (parameters, statements, optional parameters: optional parameters, async: async)
+        terms.block (parameters, statements, options)
 
     scopify () =
         self.cg.function call (self.cg.block([], self), [])

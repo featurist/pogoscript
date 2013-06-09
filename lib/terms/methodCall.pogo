@@ -41,7 +41,7 @@ module.exports (terms) =
             self
     }
 
-    method call (object, name, args, optional arguments: [], async: false, future: false) =
+    method call (object, name, args, optional arguments: [], async: false, future: false, originally async: false, async callback argument: nil) =
         splatted args = terms.splat arguments (args, optional arguments)
   
         if (splatted args)
@@ -103,4 +103,12 @@ module.exports (terms) =
                 )
             )
         else
-            method call term (object, name, args, optional arguments: optional arguments, async: async)
+            method call term (
+                object
+                name
+                args
+                optional arguments: optional arguments
+                async: async
+                originally async: originally async
+                async callback argument: async callback argument
+            )

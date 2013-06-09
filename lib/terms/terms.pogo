@@ -212,8 +212,8 @@ module.exports (cg) =
         hash entry field () =
             self.cg.errors.add term (self) with message 'cannot be used as a field name'
 
-        blockify (parameters, optional parameters: nil, async: false) =
-            self.cg.block (parameters, self.cg.async statements [self], optional parameters: optional parameters, async: async)
+        blockify (parameters, options) =
+            self.cg.block (parameters, self.cg.async statements [self], options)
 
         scopify () = self
 

@@ -98,3 +98,25 @@ describe 'function call'
                     )
 
                 (function call) should contain fields (expected function call)
+
+    context 'when the function call is a future'
+        it 'returns a call to future, making the function call async and passing it as a block'
+            future call = terms.function call (terms.variable ['f'], [terms.variable ['arg']], future: true)
+
+            (future call) should contain fields {
+                is function call
+                function = {is variable, name ['future']}
+                function arguments = [
+                    terms.closure (
+                        [terms.callback function]
+                        terms.statements [
+                            terms.function call (
+                                terms.variable ['f']
+                                [terms.variable ['arg']]
+                                originally async: true
+                                async callback argument: terms.callback function
+                            )
+                        ]
+                    )
+                ]
+            }
