@@ -31,7 +31,6 @@ module.exports (terms) =
         generate java script (buffer, scope) =
             self.function.generate java script (buffer, scope)
 
-            debugger
             args = codegen utils.concat args (
                 self.function arguments
                 optional args: self.optional arguments

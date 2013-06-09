@@ -374,6 +374,37 @@ describe 'complex expression'
         }
       }
 
+    describe 'async hash methods'
+      it 'can define an async method with no arguments as a hash key'
+        hash entry = terms.complex expression [[id 'field', async argument]].definition (terms.variable ['name']).hash entry (true)
+
+        (hash entry) should contain fields (
+          terms.hash entry (
+            ['field']
+            terms.variable ['name'].blockify ([], async: true)
+          )
+        )
+
+      it 'can define an async method with arguments as a hash key'
+        hash entry = terms.complex expression [[id 'field', variable 'param', async argument]].definition (terms.variable ['name']).hash entry (true)
+
+        (hash entry) should contain fields (
+          terms.hash entry (
+            ['field']
+            terms.variable ['name'].blockify ([terms.variable ['param']], async: true)
+          )
+        )
+
+      it 'can define an async index with no arguments as a hash key'
+        hash entry = terms.complex expression [[string 'field', async argument]].definition (terms.variable ['name']).hash entry (true)
+
+        (hash entry) should contain fields (
+          terms.hash entry (
+            string 'field'
+            terms.variable ['name'].blockify ([], async: true)
+          )
+        )
+
   describe 'object operation -> definition'
     definition (object, operation, source) should contain fields (fields) =
       (terms.complex expression (operation).object operation (object).definition (source).expression ()) should contain fields (fields)

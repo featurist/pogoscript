@@ -20,8 +20,8 @@ describe 'futures'
 
     it 'can defer the result of an asynchronous index call'
         async! 'object = {
+                    "method"! = 5
                 }
-                object."method"! = 5
                 future = object."method"?
                 print (future!)
                 done ()' should output '5'

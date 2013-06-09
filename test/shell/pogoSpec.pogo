@@ -159,7 +159,6 @@ describe '`pogo` (interactive)'
             if (r/^> $/m.test (current output))
                 command output = current output.replace (r/\n?> $/, '')
                 current output := ''
-                debugger
                 if (first prompt)
                     first prompt := false
                 else
