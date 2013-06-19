@@ -206,6 +206,16 @@ describe 'async'
 
                    print "finished"
                    done ()' should output ("'one'\n'finally'\n'finished'", done)
+
+        it "continues even if there is nothing in the catch" @(done)
+            async 'throw something! = continuation "something"
+
+                   try
+                       throw something!
+                   catch (error) @{}
+
+                   print "finished"
+                   done ()' should output ("'finished'", done)
             
     describe 'while expression'
         it 'executes each loop one after the other' @(done)

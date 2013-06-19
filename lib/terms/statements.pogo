@@ -27,6 +27,8 @@ module.exports (terms) = terms.term {
                 self.statements.(self.statements.length - 1) = rewritten last statement
             else
                 self.statements.push (return term (terms.nil ()))
+        else
+            self.statements.push(terms.function call (terms.callback function, []))
 
     rewrite last statement to return (async: false) =
         contains continuation = self.contains continuation ()
