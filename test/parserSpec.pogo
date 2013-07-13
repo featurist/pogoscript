@@ -979,6 +979,13 @@ describe 'parser'
                     ]
                 }
 
+            it 'when it contains contiguous * characters'
+                (statements "a /* what a **** of bol***ks */ b") should contain fields {
+                    statements [
+                        {variable ['a', 'b']}
+                    ]
+                }
+
             it 'when it covers two lines'
                 (statements "a /* line one\nline two */ b") should contain fields {
                     statements [{
