@@ -6,6 +6,8 @@ Pogoscript is a programming language that emphasises readability, is friendly to
 
 [![NPM version](https://badge.fury.io/js/pogo.png)](http://badge.fury.io/js/pogo)
 
+[![NPM dependencies](https://david-dm.org/featurist/pogoscript.png)](https://david-dm.org/featurist/pogoscript)
+
 # Installation
 
 Pogoscript requires [node.js](http://nodejs.org/) and [npm](http://npmjs.org/).
