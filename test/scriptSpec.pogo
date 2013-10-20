@@ -13,7 +13,7 @@ describe 'script'
             'print (new (Array))' should output '[]'
             
         it 'new operator can be called with 1 argument'
-            'print (new (Date 2010 10 9).value of())' should output '1289260800000'
+            'print (new (Array 1 2 3))' should output '[ 1, 2, 3 ]'
     
     describe '== has semantics equivalent to === in JS'
         it 'returns false for equality of "" with 0'

@@ -22,6 +22,11 @@ describe 'parser'
                     integer 9
                 }
 
+            it 'can parse hex 0x1234abcd'
+                (expression '0xBad1') should contain fields {
+                    integer 47825
+                }
+
         it 'float'
             (expression '5.6') should contain fields {
                 float 5.6
