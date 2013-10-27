@@ -38,6 +38,11 @@ describe 'parser'
                     variable ['total', 'weight']
                 }
 
+            it 'cjk'
+                (expression '你好') should contain fields {
+                    variable ['你好']
+                }
+
             it 'can use $ as a variable'
                 (expression '$') should contain fields {
                     variable ['$']

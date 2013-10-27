@@ -1,4 +1,7 @@
 comments = '\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/[^\n]*)\s*)+'
+exports.identifier = identifier =
+    ranges = 'a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$'
+    "[#(ranges)][#(ranges)0-9]*"
 
 exports.grammar = {
     lex {
@@ -20,12 +23,12 @@ exports.grammar = {
             ['0x[0-9a-fA-F]+', 'return ''hex'';']
             ['[0-9]+\.[0-9]+', 'return ''float'';']
             ['[0-9]+', 'return ''integer'';']
-            ['@[a-zA-Z_$][a-zA-Z_$0-9]*', 'return "operator";']
+            ['@' + identifier, 'return "operator";']
             ['\.\.\.', 'return "...";']
             ['([:;=?!.@~#%^&*+<>\/?\\|-])+', 'return yy.lexOperator(yy, yytext);']
             [',', 'return ",";']
             ['r\/([^\\\/]*\\.)*[^\/]*\/(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|)', 'return ''reg_exp'';']
-            ['[a-zA-Z_$][a-zA-Z_$0-9]*', 'return ''identifier'';']
+            [identifier, 'return ''identifier'';']
             ['$', 'return ''eof'';']
             ['''([^'']*'''')*[^'']*''', 'return ''string'';']
             ['"', 'this.begin(''interpolated_string''); return ''start_interpolated_string'';']

@@ -99,9 +99,24 @@ describe 'operator expression'
                 )
             )
 
+        it "parses @custom binary operator as function call"
+            (expression "a @custom b") should contain fields (
+                terms.function call (terms.variable ['custom'], [terms.variable ['a'], terms.variable ['b']])
+            )
+
+        it "parses @你好 binary operator as function call"
+            (expression "a @你好 b") should contain fields (
+                terms.function call (terms.variable ['你好'], [terms.variable ['a'], terms.variable ['b']])
+            )
+
         it "parses @custom unary operator as function call"
             (expression "@custom a") should contain fields (
                 terms.function call (terms.variable ['custom'], [terms.variable ['a']])
+            )
+
+        it "parses @你好 unary operator as function call"
+            (expression "@你好 a") should contain fields (
+                terms.function call (terms.variable ['你好'], [terms.variable ['a']])
             )
 
         it "parses camel case custom operators"

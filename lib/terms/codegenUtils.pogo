@@ -1,4 +1,5 @@
 _ = require 'underscore'
+grammar = require '../parser/grammar'
 
 exports.write to buffer with delimiter (array, delimiter, buffer, scope) =
   writer = nil
@@ -93,7 +94,8 @@ exports.concat args (args, optional args: nil, async callback arg: nil, terms: n
     a
 
 exports.normalise operator name (name) =
-        match = r/^@([a-z_$]+)$/i.exec (name)
+        op = @new RegExp "^@(#(grammar.identifier))$"
+        match = op.exec (name)
         if (match)
             match.1
         else
