@@ -836,6 +836,7 @@ body {
 .header ul li pre {
   border: solid 1pt rgba(69, 147, 229, 0.3);
   padding: 0.5em 1em;
+  overflow-x: inherit;
 }
 .header ul li a i {
   font-size: 1.2em;
