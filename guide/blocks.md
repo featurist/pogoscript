@@ -43,17 +43,17 @@ Of course, we'd have to change our definition of `loop times` to pass the loop n
         for (n = 1, n <= times, ++n)
             block (n)
 
-Multiple parameters are also allowed and they can be separate, as in `@(a) @(b)`, or together separated by commas, as in `@(a, b)`. So, lets imagine we have a list of items that we want to loop through, one for each item, but we want the index too:
-
-    primes = [1, 2, 3, 5, 7, 11, 13]
-    for each item @(prime) and index @(index) in (primes)
-        console.log "Prime number #(index + 1) is #(prime)"
-
-We can define `for each item and index in` like this:
+Multiple parameters are also allowed and they can be separate, as in `@(a) @(b)`, or together separated by commas, as in `@(a, b)`. So, lets imagine we have a list of items that we want to loop through, one for each item, but we want the index too. First let's define `for each item and index in`:
 
     for each item and index in (list, block) =
         for (index = 0, index < list.length, ++index)
             block (list.(index), index)
+
+Then:
+
+    primes = [1, 2, 3, 5, 7, 11, 13]
+    for each item @(prime) and index @(index) in (primes)
+        console.log "Prime number #(index + 1) is #(prime)"
 
 ## Passing multiple blocks
 

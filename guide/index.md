@@ -11,6 +11,7 @@ Ok, so you want to know what this pogoscript thing is all about… It's a progra
 {% for guide in site.pages %}
 {% if guide.guide %}
 {% if weight == guide.weight %}
+{{ '' }}
 {% assign content = guide.content %}
 {% include guide.html %}
 {% endif %}

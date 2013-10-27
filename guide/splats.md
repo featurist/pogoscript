@@ -12,7 +12,7 @@ Lets (finally) implement our `sum` function:
         sum so far = 0
 
         for each @(number) in (numbers)
-            sum so far = sum so far + number
+            sum so far := sum so far + number
 
         sum so far
 
