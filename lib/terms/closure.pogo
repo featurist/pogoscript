@@ -145,7 +145,7 @@ module.exports (terms) =
         transformed parameters () =
             self.parameter transforms ().parameters ()
       
-        declare parameters (scope, parameters) =
+        define parameters (scope, parameters) =
             for each @(parameter) in (parameters)
                 scope.define (parameter.canonical name (scope))
 
@@ -159,7 +159,7 @@ module.exports (terms) =
             parameters strategy.generate java script parameters (buffer, scope)
             buffer.write ('){')
             body scope = scope.sub scope ()
-            self.declare parameters (body scope, defined parameters)
+            self.define parameters (body scope, defined parameters)
 
             self.generate self assignment (buffer)
 

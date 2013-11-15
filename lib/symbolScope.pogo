@@ -17,7 +17,10 @@ Symbol Scope = exports.Symbol Scope (parent scope, unique names: new (UniqueName
         unique names.generate name (name)
   
     self.is defined (name) =
-        variables.has own property (name) || (parent scope && parent scope.is defined (name))
+        self.is (name) defined in this scope || (parent scope && parent scope.is defined (name))
+
+    self.is (name) defined in this scope =
+        variables.has own property (name)
   
     self.sub scope () =
         new (Symbol Scope (self, unique names: unique names))

@@ -101,15 +101,16 @@ exports.normalise operator name (name) =
         else
             name
 
-exports.declared variables (scope) = {
+exports.defined variables (scope) = {
     variables = []
     scope = scope
 
-    declare (variable) =
+    define (variable) =
         scope.define (variable)
         self.variables.push (variable)
 
-    is declared (variable) = scope.is defined (variable)
+    is (variable) defined = scope.is (variable) defined
+    is (variable) defined in this scope = scope.is (variable) defined in this scope
 
     unique variables () = _.uniq (self.variables)
 }

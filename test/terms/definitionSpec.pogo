@@ -10,11 +10,11 @@ describe 'definitions'
 
     before each
         scope := @new terms.Symbol Scope (nil)
-        variables := codegen utils.declared variables (scope)
+        variables := codegen utils.defined variables (scope)
         variable := terms.variable ['a', 'b']
         terms.errors.clear ()
 
-    describe 'declare variables'
+    describe 'define variables'
         def = nil
 
         before each
@@ -24,20 +24,21 @@ describe 'definitions'
             before each
                 def := terms.definition (variable, terms.nil (), shadow: true)
 
-            it 'should declare the variable'
-                def.declare variables (variables, scope)
+            it 'should define the variable'
+                def.define variables (variables, scope)
                 (variables.unique variables ()) equals ['aB']
 
             context 'and when already in scope'
                 before each
                     scope.define 'aB'
 
-                it 'should still declare the variable'
-                    def.declare variables (variables, scope)
+                it 'should still define the variable'
+                    debugger
+                    def.define variables (variables, scope)
                     (variables.unique variables ()) equals ['aB']
 
-        it 'should declare the variable'
-            def.declare variables (variables, scope)
+        it 'should define the variable'
+            def.define variables (variables, scope)
             (variables.unique variables ()) equals ['aB']
 
         context 'and when already in scope'
@@ -45,7 +46,7 @@ describe 'definitions'
                 scope.define 'aB'
 
             it 'should add an error saying that variable is already defined'
-                def.declare variables (variables, scope)
+                def.define variables (variables, scope)
                 should.equal (terms.errors.has errors (), true)
                 terms.errors.errors.0.message.should.match r/variable a b is already defined/
 
@@ -54,7 +55,7 @@ describe 'definitions'
                 def := terms.definition (variable, terms.nil (), assignment: true)
 
             it 'should add an error saying that variable is not yet defined'
-                def.declare variables (variables, scope)
+                def.define variables (variables, scope)
                 should.equal (terms.errors.has errors (), true)
                 terms.errors.errors.0.message.should.match r/variable a b is not defined/
 
@@ -62,6 +63,6 @@ describe 'definitions'
                 before each
                     scope.define 'aB'
 
-                it 'should not declare the variable'
-                    def.declare variables (variables, scope)
+                it 'should not define the variable'
+                    def.define variables (variables, scope)
                     (variables.unique variables ()) equals []

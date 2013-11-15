@@ -10,8 +10,8 @@ module.exports (terms) = terms.term {
 
     generate statements (statements, buffer, scope, in closure: false, global: false) =
         if (in closure)
-            declared variables = self.find declared variables (scope)
-            self.generate variable declarations (declared variables, buffer, scope, global: global)
+            defined variables = self.find defined variables (scope)
+            self.generate variable declarations (defined variables, buffer, scope, global: global)
 
         for (s = 0, s < statements.length, ++s)
             statement = statements.(s)
@@ -52,11 +52,11 @@ module.exports (terms) = terms.term {
 
                 buffer.write (';')
         
-    find declared variables (scope) =
-        variables = codegen utils.declared variables (scope)
+    find defined variables (scope) =
+        variables = codegen utils.defined variables (scope)
 
         self.walk descendants @(subterm, path)
-            subterm.declare variables (variables, scope)
+            subterm.define variables (variables, scope)
         not below @(subterm, path) if
             subterm.is closure
 

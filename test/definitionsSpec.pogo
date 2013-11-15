@@ -5,11 +5,20 @@ evaluate script = script.evaluate script
 
 describe 'definitions'
     describe 'definitions cannot shadow other definitions'
-        it 'throws when an inner scope defines a variable of the same name as defined in outer scope'
+        it 'definitions can shadow other definitions'
+            'a = 1
+            
+             f () =
+                 a = 3
+                 print (a)
+             
+             f ()
+             print (a)' should output "3
+                                       1"
+
+        it 'throws when a variable has already been defined in the same scope'
             @{evaluate script 'a = 1
-                      
-                               f () =
-                                   a = 3'}.should.throw r/variable a is already defined/
+                               a = 3'}.should.throw r/variable a is already defined/
 
         it 'can assign to a variable after it has been defined'
             'a = 1
@@ -35,7 +44,6 @@ describe 'definitions'
                     @{evaluate script 'f (a) =
                                            a = 6'}.should.throw r/variable a is already defined/
 
-            describe 'parameters cannot be redefined'
                 it 'throws when a function redefines an optional parameter'
                     @{evaluate script 'f (a: nil) =
                                            a = 6'}.should.throw r/variable a is already defined/

@@ -263,7 +263,7 @@ describe('code generator', function () {
       generatesExpression(b, 'function(){}');
     });
     
-    it('declares its parameters', function () {
+    it('defines its parameters', function () {
       var b = cg.block([cg.variable(['x'])], cg.statements([cg.definition(cg.variable(['x']), cg.integer(8))]));
       
       generatesExpression(b, 'function(x){return x=8;}');
@@ -623,7 +623,7 @@ describe('code generator', function () {
   });
   
   describe('symbol scope', function () {
-    it('variable defined in outer scope, assigned to in inner scope', function () {
+    it('variable defined in outer scope, redefined in inner scope', function () {
       var s = cg.statements([
         cg.definition(cg.variable(['x']), cg.integer(1)),
         cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
@@ -632,7 +632,7 @@ describe('code generator', function () {
         ]))])
       ]);
       
-      generatesStatements(s, 'var x;x=1;f(function(){x=2;return x;});');
+      generatesStatements(s, 'var x;x=1;f(function(){var x;x=2;return x;});');
     });
   });
   

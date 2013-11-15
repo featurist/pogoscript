@@ -244,7 +244,7 @@ module.exports (cg) =
                     term.serialise statements ()
             )
 
-        declare variables () = nil
+        define variables () = nil
         canonical name () = nil
 
         make async with callback for result (create callback for result) = nil
