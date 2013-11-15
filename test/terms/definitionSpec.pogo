@@ -33,7 +33,6 @@ describe 'definitions'
                     scope.define 'aB'
 
                 it 'should still define the variable'
-                    debugger
                     def.define variables (variables, scope)
                     (variables.unique variables ()) equals ['aB']
 

@@ -23,37 +23,60 @@ module.exports (terms) =
             self.async callback argument = async callback argument
 
         generate java script (buffer, scope) =
-            self.object.generate java script (buffer, scope)
-            buffer.write ('.')
-            buffer.write (codegen utils.concat name (self.name))
-            buffer.write ('(')
             args = codegen utils.concat args (
                 self.method arguments
                 optional args: self.optional arguments
                 terms: terms
                 async callback arg: self.async callback argument
             )
-            codegen utils.write to buffer with delimiter (args, ',', buffer, scope)
-            buffer.write (')')
+
+            splatted arguments = terms.splat arguments (args)
+
+            if (splatted arguments)
+                self.object.generate java script (buffer, scope)
+                buffer.write(".#(self.name).apply(")
+                self.object.generate java script (buffer, scope)
+                buffer.write(',')
+                splatted arguments.generate java script (buffer, scope)
+                buffer.write (')')
+            else
+                self.object.generate java script (buffer, scope)
+                buffer.write ('.')
+                buffer.write (codegen utils.concat name (self.name))
+                buffer.write ('(')
+                codegen utils.write to buffer with delimiter (args, ',', buffer, scope)
+                buffer.write (')')
 
         make async call with callback (callback) =
             self.async callback argument = callback
             self
     }
 
-    method call (object, name, args, optional arguments: [], async: false, future: false, originally async: false, async callback argument: nil) =
+    method call (
+        object
+        name
+        args
+        optional arguments: []
+        async: false
+        future: false
+        originally async: false
+        async callback argument: nil
+        contains splat arguments: false
+    ) =
         splatted args = terms.splat arguments (args, optional arguments)
   
-        if (splatted args)
+        if (splatted args @and @not contains splat arguments)
             object var = terms.generated variable ['o']
             terms.sub statements [
-              terms.definition (objectVar, object)
+              terms.definition (object var, object)
               method call (
-                terms.field reference (objectVar, name)
-                ['apply']
-                [object var, splatted args]
-                nil
+                object
+                name
+                args
                 async: async
+                future: false
+                async callback argument: nil
+                contains splat arguments: true
               )
             ]
         else if (async)

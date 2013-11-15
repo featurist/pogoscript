@@ -315,6 +315,32 @@ describe 'async'
                    print (f! (1, 2, 3))
                    done ()" should output ("[ 1, 2, 3 ]", done)
 
+        it 'can handle splat arguments in an async method' @(done)
+            async "obj = {
+                       f! (a, ...) =
+                           a
+                   }
+
+                   print (obj.f! (1, 2, 3))
+                   done ()" should output ("[ 1, 2, 3 ]", done)
+
+    describe 'splat calls'
+        it 'can call an async function with splat arguments' @(done)
+            async "f! (a, ...) =
+                       a
+
+                   print (f! ([1, 2, 3], ...))
+                   done ()" should output ("[ 1, 2, 3 ]", done)
+
+        it 'can call an async method with splat arguments' @(done)
+            async "obj = {
+                       f! (a, ...) =
+                           a
+                   }
+
+                   print (obj.f! ([1, 2, 3], ...))
+                   done ()" should output ("[ 1, 2, 3 ]", done)
+
     describe 'return'
         context 'when in an async function'
             it 'is rewritten to call the callback' @(done)
