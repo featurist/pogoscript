@@ -85,11 +85,6 @@ describe 'async'
                print (one!().two!())
                done ()" should output ("'finished'", done)
 
-    it 'throws if async function is not called asynchronously'
-        @{"f!() = 12
-
-           print (f ())" should output ("'finished'")}.should.throw 'asynchronous function called synchronously'
-
     it "an async function returns its result in a callback" @(done)
         async 'as (f) =
                    process.next tick
