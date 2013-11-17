@@ -134,6 +134,8 @@ describe 'pogo --compile --if-stale'
 
 describe 'debugging'
     describe '--debug'
+        this.timeout 3000
+
         it 'starts remote debugging'
             write file! "toDebug.pogo" "console.log 'bug!'"
             pogo output = run! 'pogo --debug toDebug.pogo'
