@@ -223,13 +223,13 @@ describe 'closure parameter strategies'
                     generate java script parameter statements (buffer, scope, args) =
                         args.generate java script (buffer, scope)
                         buffer.write ";"
-                }
+                } (continuation or default: terms.javascript 'continuationOrDefault')
 
             it 'requires the inner parameters and the callback'
                 should.deep equal (cb.function parameters (), [terms.variable ['a'], terms.variable ['b'], terms.callback function])
 
             it 'generates code to extract the callback and the other parameters'
-                generate statements from (cb).should.equal "var gen1_arguments=Array.prototype.slice.call(args,0,args.length-1);continuation=args[args.length-1];a=gen1_arguments[0];b=gen1_arguments[1];gen1_arguments;"
+                generate statements from (cb).should.equal "var gen1_arguments=Array.prototype.slice.call(args,0,args.length-1);continuation=continuationOrDefault(args);a=gen1_arguments[0];b=gen1_arguments[1];gen1_arguments;"
 
             it 'defines continuation and those of the inner strategy'
                 should.deep equal (

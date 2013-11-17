@@ -6,32 +6,24 @@ module.exports (terms) =
         if (@not body.contains continuation ())
             body.rewrite result term @(term) into (async: true)
                 if (@not term.originally async)
-                    terms.function call (terms.callback function, [terms.nil (), term])
+                    terms.return statement (terms.function call (terms.callback function, [terms.nil (), term]), implicit: true)
                 else
                     term
+
+
+        rethrow errors =
+            terms.module constants.define ['rethrow', 'errors'] as (
+                terms.javascript "function (continuation,block){return function(error,result){if(error){return continuation(error);}else{try{return block(result);}catch(ex){return continuation(ex);}}}}"
+            )
             
-        terms.closure (
-            [error variable, result variable]
-            terms.statements [
-                terms.if expression (
-                    [
-                        {
-                            condition = error variable
-                            body = terms.statements [
-                                terms.function call (terms.callback function, [error variable])
-                            ]
-                        }
-                    ]
-                    terms.statements [
-                        terms.try expression (
-                            body
-                            catch parameter: catch error variable
-                            catch body: terms.statements [
-                                terms.function call (terms.callback function, [catch error variable])
-                            ]
-                        )
-                    ]
+        terms.function call (
+            rethrow errors
+            [
+                terms.callback function
+                terms.closure (
+                    [result variable]
+                    body
+                    return last statement: false
                 )
             ]
-            return last statement: false
         )

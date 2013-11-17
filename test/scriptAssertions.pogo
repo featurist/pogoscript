@@ -25,12 +25,14 @@ exports.evaluate async script (script, done) =
     printed items = []
     
     print (arg) =
+        debugger
         printed items.push (arg)
 
     async (callback) =
         process.next tick (callback)
 
     return printed output (error) =
+        debugger
         done (
             error
             _.map (printed items) @(item)

@@ -96,6 +96,13 @@ describe 'async'
                print (fn ()!)
                done ()' should output ("4", done)
 
+    it 'calls default continuation if no continuation is passed' @(done)
+        async 'five! = 5
+
+               print (five ())
+               done ()' should output ("5", done)
+        
+
     it "an async function can be passed an async block, which in turn returns its result in a callback" @(done)
         async 'tick (callback) =
                    process.next tick

@@ -19,7 +19,10 @@ describe 'closure'
                         []
                         terms.statements (
                             [
-                                terms.function call (terms.callback function, [terms.nil (), terms.variable ['asdf']])
+                                terms.return statement (
+                                    terms.function call (terms.callback function, [terms.nil (), terms.variable ['asdf']])
+                                    implicit: true
+                                )
                             ]
                             async: true
                         )

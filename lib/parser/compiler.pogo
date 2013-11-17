@@ -29,7 +29,7 @@ exports.compile (
     statements = parser.parse (pogo)
 
     if (async)
-        statements.asyncify ()
+        statements.asyncify (return call to continuation: return result)
 
     module term = terms.module (
         statements

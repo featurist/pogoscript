@@ -8,8 +8,6 @@ module.exports (terms) =
 
         generate java script module (buffer) =
             scope = new (terms.Symbol Scope (nil))
-            definitions = terms.module constants.definitions ()
-            self.body statements.statements.unshift (definitions, ...)
             self.statements.generate java script statements (buffer, scope, global: self.global, in closure: true)
     }
 
@@ -18,7 +16,7 @@ module.exports (terms) =
             statements.rewrite last statement to return (async: false)
 
         if (in scope)
-            scope = terms.closure ([], statements, return last statement: return last statement, redefines self: true)
+            scope = terms.closure ([], statements, return last statement: return last statement, redefines self: true, defines module constants: true)
             args = [terms.variable (['this'])]
 
             if (statements.is async)

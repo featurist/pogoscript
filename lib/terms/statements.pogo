@@ -30,12 +30,17 @@ module.exports (terms) = terms.term {
         else if (async)
             self.statements.push(terms.function call (terms.callback function, []))
 
-    rewrite last statement to return (async: false) =
+    rewrite last statement to return (async: false, return call to continuation: true) =
         contains continuation = self.contains continuation ()
 
         self.rewrite result term @(term) into (async: async)
             if (async @and @not contains continuation)
-                terms.function call (terms.callback function, [terms.nil (), term])
+                call to continuation = terms.function call (terms.callback function, [terms.nil (), term])
+
+                if (return call to continuation)
+                    terms.return statement (call to continuation, implicit: true)
+                else
+                    call to continuation
             else
                 terms.return statement (term, implicit: true)
 
@@ -94,8 +99,8 @@ module.exports (terms) = terms.term {
         self.statements = statements utils.serialise statements (self.statements)
         nil
 
-    asyncify () =
+    asyncify (return call to continuation: true) =
         if (!self.is async)
-            self.rewrite last statement to return (async: true)
+            self.rewrite last statement to return (async: true, return call to continuation: return call to continuation)
             self.is async = true
 }

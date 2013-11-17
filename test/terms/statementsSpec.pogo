@@ -30,14 +30,17 @@ describe 'statements term'
 
                 (statements) should contain fields (
                     terms.statements [
-                        terms.function call (
-                            terms.callback function
-                            [terms.nil (), terms.variable ['a']]
+                        terms.return statement (
+                            terms.function call (
+                                terms.callback function
+                                [terms.nil (), terms.variable ['a']]
+                            )
+                            implicit: true
                         )
                     ]
                 )
 
-            context "when last statement doesn't return a value"
+            it "when last statement doesn't return a value"
                 statements = terms.statements [
                     terms.while expression (
                         terms.variable ['a']
@@ -52,9 +55,12 @@ describe 'statements term'
                             terms.variable ['a']
                             terms.statements [terms.variable ['b']]
                         )
-                        terms.function call (
-                            terms.callback function
-                            [terms.nil (), terms.nil ()]
+                        terms.return statement (
+                            terms.function call (
+                                terms.callback function
+                                [terms.nil (), terms.nil ()]
+                            )
+                            implicit: true
                         )
                     ]
                 )

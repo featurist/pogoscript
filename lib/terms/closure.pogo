@@ -82,25 +82,40 @@ module.exports (terms) =
         )
 
     terms.term {
-        constructor (parameters, body, optional parameters: [], return last statement: true, redefines self: false, async: false) =
+        constructor (
+            parameters
+            body
+            optional parameters: []
+            return last statement: true
+            redefines self: false
+            async: false
+            defines module constants: false
+        ) =
             self.is block = true
             self.is closure = true
             self.parameters = parameters
             self.body = body
             self.redefines self = redefines self
             self.optional parameters = optional parameters
-            self.is async = async || body.is async
+            self.make async (async || body.is async)
             self.return last statement = return last statement
+            self.defines module constants = defines module constants
 
         blockify (parameters, optional parameters: [], async: false, redefines self: nil) =
             self.parameters = parameters
             self.optional parameters = optional parameters
-            self.is async = self.is async || async
+            self.make async (self.is async || async)
 
             if (redefines self != nil)
                 self.redefines self = redefines self
 
             self
+
+        make async (a) =
+            self.is async = a
+
+            if (a)
+                self.continuation or default = terms.continuation or default ()
       
         scopify () =
             if ((self.parameters.length == 0) && (self.optional parameters.length == 0))
@@ -161,6 +176,9 @@ module.exports (terms) =
             body scope = scope.sub scope ()
             self.define parameters (body scope, defined parameters)
 
+            if (self.defines module constants)
+                terms.module constants.generate java script (buffer, scope)
+
             self.generate self assignment (buffer)
 
             parameters strategy.generate java script parameter statements (buffer, scope, terms.variable ['arguments'])
@@ -177,8 +195,8 @@ module.exports (terms) =
                 self.body.rewrite last statement to return (async: self.is async)
 
         asyncify () =
-            self.body.asyncify ()
-            self.is async = true
+            self.body.asyncify (return call to continuation: self.return last statement)
+            self.make async (true)
 
         parameters strategy () =
             inner strategy = if ((self) contains splat parameter)
@@ -189,7 +207,7 @@ module.exports (terms) =
                 terms.closure parameter strategies.normal strategy (self.parameters)
 
             strategy = if (self.is async)
-                terms.closure parameter strategies.callback strategy (inner strategy)
+                terms.closure parameter strategies.callback strategy (inner strategy, continuation or default: self.continuation or default)
             else
                 inner strategy
 

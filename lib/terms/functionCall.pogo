@@ -64,7 +64,7 @@ module.exports (terms) =
 
         make async call with callback (callback) =
             self.async callback argument = callback
-            self
+            terms.return statement (self, implicit: true)
     }
 
     function call (

@@ -1,4 +1,5 @@
-terms = require '../../lib/parser/codeGenerator'.code generator ()
+code generator = require '../../lib/parser/codeGenerator'.code generator
+terms = code generator ()
 require '../assertions'
 require '../codeGeneratorAssertions'
 
@@ -29,6 +30,7 @@ describe 'module term'
                                 body statements
                                 return last statement: false
                                 redefines self: true
+                                defines module constants: true
                             )
                         )
                         ['call']
@@ -69,6 +71,7 @@ describe 'module term'
                                     body statements
                                     return last statement: false
                                     redefines self: true
+                                    defines module constants: true
                                 )
                             )
                             ['call']
@@ -189,6 +192,7 @@ describe 'module term'
             (module) should generate module ('a;b;c;')
 
         it 'generates module constants'
+            terms = code generator ()
             module = terms.module (
                 terms.statements [
                     terms.variable ['a']
@@ -197,4 +201,4 @@ describe 'module term'
 
             terms.module constants.define ['pi'] as (terms.float 3.142)
 
-            (module) should generate module ('(function(){var self=this;var gen1_pi;gen1_pi=3.142;a;}).call(this);')
+            (module) should generate module ('(function(){var gen1_pi=3.142;var self=this;a;}).call(this);')

@@ -31,4 +31,10 @@ module.exports (terms) =
                 defs.push (definition)
 
             defs
+
+        generate java script (buffer, scope) =
+            for each @(def) in (self.definitions ())
+                buffer.write 'var '
+                def.generate java script (buffer, scope)
+                buffer.write ';'
     }
