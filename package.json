@@ -23,8 +23,7 @@
         "test": "mocha --invert --grep @wip test/*Spec.* test/*/*Spec.*"
     },
     "bin": {
-        "pogo": "bin/pogo",
-        "mogo": "bin/mogo"
+        "pogo": "bin/pogo"
     },
     "main": "index.js",
     "devDependencies": {
