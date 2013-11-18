@@ -1,9 +1,9 @@
 ms = require '../../lib/memorystream'
 create parser = require './parser'.create parser
-uglify = require 'uglify-js'
 create terms () = require './codeGenerator'.code generator ()
 
 beautify (code) =
+    uglify = require 'uglify-js'
     ast = uglify.parse (code)
     stream = uglify.Output Stream (beautify: true)
     ast.print (stream)
