@@ -65,16 +65,16 @@ exports.evaluate (pogo, definitions: {}, ugly: true, global: false) =
     run script.apply (undefined) (definition values)
 
 source location printer (filename: nil, source: nil) =
-    object =>
-        self.lines in range (range) =
+    {
+        lines in range (range) =
             lines = source.split r/\n/
             lines.slice (range.from - 1) (range.to)
 
-        self.print lines in range (prefix: '', from: nil, to: nil, buffer: buffer) =
+        print lines in range (prefix: '', from: nil, to: nil, buffer: buffer) =
             for each @(line) in (self.lines in range (from: from, to: to))
                 buffer.write (prefix + line + "\n")
 
-        self.print location (location, buffer) =
+        print location (location, buffer) =
             buffer.write (filename + ':' + location.first line + "\n")
 
             if (location.first line == location.last line)
@@ -85,9 +85,14 @@ source location printer (filename: nil, source: nil) =
             else
                 self.print lines in range (prefix: '> ', from: location.first line, to: location.last line, buffer: buffer)
 
-        self.(s) times (n) =
+        (s) times (n) =
             strings = []
             for (i = 0, i < n, ++i)
                 strings.push (s)
 
             strings.join ''
+    }
+
+exports.lex (pogo) =
+    parser = create parser (terms: create terms ())
+    parser.lex (source)

@@ -3,33 +3,33 @@ create indent stack = require './indentStack'.create indent stack
 create interpolation = require './interpolation'.create interpolation
 
 exports.create parser context =
-    create parser context (terms: nil) = object =>
-        self.terms = terms
+    create parser context (terms: nil) = {
+        terms = terms
 
-        self.indent stack = create indent stack ()
+        indent stack = create indent stack ()
 
-        self.tokens (tokens) =
+        tokens (tokens) =
             self.lexer.tokens = tokens
             tokens.shift ()
 
-        self.set indentation (text) =
+        set indentation (text) =
             self.indent stack.set indentation (text)
 
-        self.unset indentation (token) =
+        unset indentation (token) =
             tokens = self.indent stack.unset indentation ()
             tokens.push (token)
             self.tokens (tokens)
 
-        self.indentation (text) =
+        indentation (text) =
             tokens = self.indent stack.tokens for new line (text)
             self.tokens (tokens)
 
-        self.eof () =
+        eof () =
             self.tokens (self.indent stack.tokens for eof ())
 
-        self.interpolation = create interpolation ()
+        interpolation = create interpolation ()
         
-        self.lex operator (parser context, op) =
+        lex operator (parser context, op) =
           if (r/[?!][.;]/.test (op))
             parser context.tokens [op.0, op.1]
           else if (r/^(=>|\.\.\.|@:|[#@:!?,.=;]|:=)$/.test (op))
@@ -37,7 +37,7 @@ exports.create parser context =
           else
             'operator'
         
-        self.loc (term, location) =
+        loc (term, location) =
           loc = {
             first line = location.first_line
             last line = location.last_line
@@ -50,15 +50,15 @@ exports.create parser context =
 
           term
 
-        self.unindent (string) by (columns) =
+        unindent (string) by (columns) =
           r = new (RegExp "\\n {#(columns)}" 'g')
 
           string.replace (r, "\n")
 
-        self.normalise string (s) =
+        normalise string (s) =
           s.substring (1, s.length - 1).replace (r/''/g, "'")
 
-        self.parse reg exp (s) =
+        parse reg exp (s) =
           match = r/^r\/((\n|.)*)\/([^\/]*)$/.exec(s)
 
           {
@@ -66,7 +66,7 @@ exports.create parser context =
             options = match.3
           }
 
-        self.actual characters = [
+        actual characters = [
           [r/\\\\/g, "\\"]
           [r/\\b/g, "\b"]
           [r/\\f/g, "\f"]
@@ -79,13 +79,13 @@ exports.create parser context =
           [r/\\"/g, '"']
         ]
         
-        self.normalise interpolated string (s) =
+        normalise interpolated string (s) =
           for each @(mapping) in (self.actual characters)
             s := s.replace (mapping.0, mapping.1)
 
           s
 
-        self.compress interpolated string components (components) =
+        compress interpolated string components (components) =
             compressed components = []
             last string = nil
 
@@ -101,14 +101,14 @@ exports.create parser context =
 
             compressed components
 
-        self.unindent string components (components) by (columns) =
+        unindent string components (components) by (columns) =
             _.map (components) @(component)
                 if (component.is string)
                     self.terms.string (self.unindent (component.string) by (columns))
                 else
                     component
 
-        self.separate expression components (components) with strings =
+        separate expression components (components) with strings =
             separated components = []
             last component was expression = false
 
@@ -121,9 +121,10 @@ exports.create parser context =
 
             separated components
 
-        self.normalise string components (components) unindenting by (indent columns) =
+        normalise string components (components) unindenting by (indent columns) =
             self.separate expression components (
                 self.compress interpolated string components (
                     self.unindent string components (components) by (indent columns)
                 )
             ) with strings
+    }

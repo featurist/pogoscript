@@ -1,5 +1,4 @@
 fs = require 'fs'
-create parser = require './parser'.create parser
 Module = require 'module'
 path = require 'path'
 repl = require 'repl'
@@ -48,8 +47,7 @@ exports.compile file if stale (filename, options) =
 
 exports.lex file (filename) =
     source = fs.read file sync (filename) 'utf-8'
-    parser = create parser (terms: create terms ())
-    tokens = parser.lex (source)
+    tokens = exports.lex (source)
 
     for each @(token) in (tokens)
         text = (token.1 && "'#(token.1)'") || ''
@@ -117,3 +115,4 @@ compile from file (filename, ugly: false) =
 
 exports.compile = compiler.compile
 exports.evaluate = compiler.evaluate
+exports.lex = compiler.lex
