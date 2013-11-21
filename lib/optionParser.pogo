@@ -1,4 +1,4 @@
-require './class'
+class = require './class'.class
 
 Boolean Option = class {
     constructor (short name: nil, long name: nil, description: nil) =

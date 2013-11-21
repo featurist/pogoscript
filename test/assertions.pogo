@@ -1,6 +1,6 @@
-assert = require 'assert'
+should = require 'should'
 
 global.should contain fields = (require './containsFields').contains fields
-global.(x) should equal (y) = assert.equal (x) (y)
-global.(x) should be truthy = assert.ok (x)
-global.(x) should be falsy = assert.ok (not (x))
+global.(x) should equal (y) = should.equal (x) (y)
+global.(x) should be truthy = should.ok (x)
+global.(x) should be falsy = should.ok (@not x)

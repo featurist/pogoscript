@@ -1,5 +1,5 @@
 var util = require('util');
-var assert = require('assert');
+var should = require('should');
 var _ = require('underscore');
 
 var inspect = function (o) {
@@ -28,14 +28,14 @@ var containsFields = exports.containsFields = function (actual, expected, key, o
   };
 
   if (_.isArray(expected)) {
-    assert.ok(actual, message());
+    should.exist(actual, message());
 
     containsFields(actual.length, expected.length, field('length'), originalActual);
     for (var n = 0; n < expected.length; n++) {
       containsFields(actual[n], expected[n], index(n), originalActual);
     }
   } else if (_.isObject(expected)) {
-    assert.ok(actual, message());
+    should.exist(actual, message());
 
     for (var n in expected) {
       if (expected.hasOwnProperty(n)) {
@@ -43,6 +43,6 @@ var containsFields = exports.containsFields = function (actual, expected, key, o
       }
     }
   } else {
-    assert.deepEqual(actual, expected, message());
+    should.deepEqual(actual, expected, message());
   }
 };

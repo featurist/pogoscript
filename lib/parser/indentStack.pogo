@@ -1,4 +1,4 @@
-require './runtime'
+object = require './runtime'.object
 
 exports.create indent stack = create indent stack () = {
     indents = [0]

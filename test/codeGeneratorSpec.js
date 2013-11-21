@@ -1,6 +1,6 @@
 var cg = require('../lib/parser/codeGenerator').codeGenerator();
 var MemoryStream = require('../lib/memorystream').MemoryStream;
-var assert = require('assert');
+var should = require('should');
 var _ = require('underscore');
 
 var shouldContainFields = require('./containsFields.js').containsFields;
@@ -13,13 +13,13 @@ describe('code generator', function () {
     if (print) {
       console.log(code);
     }
-    assert.equal(code, expectedGeneratedCode);
+    should.equal(code, expectedGeneratedCode);
   };
   
   var generatesStatement = function(term, expectedGeneratedCode) {
     var stream = new MemoryStream();
     term.generateJavaScriptStatement(stream, new cg.SymbolScope());
-    assert.equal(stream.toString(), expectedGeneratedCode);
+    should.equal(stream.toString(), expectedGeneratedCode);
   };
   
   var generatesStatements = function(term, expectedGeneratedCode, global, print) {
@@ -27,7 +27,7 @@ describe('code generator', function () {
     term.generateJavaScriptStatements(stream, new cg.SymbolScope(), {inClosure: true, global: global});
     if (print)
         console.log(stream.toString())
-    assert.equal(stream.toString(), expectedGeneratedCode);
+    should.equal(stream.toString(), expectedGeneratedCode);
   };
   
   describe('variable', function () {
@@ -247,7 +247,7 @@ describe('code generator', function () {
       
       it('with parameters', function () {
         var b = cg.block([cg.parameters([cg.variable(['a'])])], cg.statements([cg.variable(['a'])]));
-        assert.equal(b.scopify(), b);
+        should.equal(b.scopify(), b);
       });
     });
     

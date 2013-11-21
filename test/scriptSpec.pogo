@@ -1,5 +1,4 @@
 script = require './scriptAssertions'
-assert = require 'assert'
 
 should output = script.should output
 

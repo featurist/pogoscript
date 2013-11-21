@@ -10,7 +10,7 @@ subdirs:
 
 test : non-wip-tests
 
-non-wip-tests :
+non-wip-tests : all
 	npm test
 
 wip : wip-tests
@@ -21,11 +21,11 @@ wip-tests :
 test/pogo.js : browser-test
 
 browser-test :
-	pogo lib/tools/bundle.pogo --test > test/pogo.js
+	pogo tools/bundle-pogo-tests.pogo > test/pogo.js
 
 html/pogo.js : browser
 
-browser :
+browser : all
 	browserify -t pogoify -x fs -x uglify-js lib/parser/browser.js > html/pogo.js
 
 clean:

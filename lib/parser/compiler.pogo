@@ -1,6 +1,7 @@
-ms = require '../../lib/memorystream'
+ms = require '../memorystream'
 create parser = require './parser'.create parser
 create terms () = require './codeGenerator'.code generator ()
+object = require './runtime'.object
 
 beautify (code) =
     uglify = require 'uglify-js'

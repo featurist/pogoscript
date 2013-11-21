@@ -1,6 +1,6 @@
 cg = require '../lib/parser/codeGenerator'.code generator ()
 require './assertions'
-assert = require 'assert'
+should = require 'should'
 
 describe 'basic expression'
   with terminals (terminals) should not have arguments =
@@ -202,10 +202,10 @@ describe 'basic expression'
       }
 
     it 'without block'
-      assert.(cg.basic expression [id 'port', int 10].hash entry block ()) equal (undefined)
+      should.(cg.basic expression [id 'port', int 10].hash entry block ()) equal (undefined)
 
     it 'without hash'
-      assert.(cg.basic expression [id 'port'].hash entry block ()) equal (undefined)
+      should.(cg.basic expression [id 'port'].hash entry block ()) equal (undefined)
 
   describe 'hash key'
     it 'if string then should return string'

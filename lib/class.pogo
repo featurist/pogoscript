@@ -1,4 +1,4 @@
-global.$class (prototype) =
+exports.class (prototype) =
   constructor (args, ...) = =>
     prototype.constructor.apply (self, args)
     nil
@@ -6,7 +6,7 @@ global.$class (prototype) =
   constructor.prototype = prototype
   constructor
 
-global.class extending (base constructor, prototype members) =
+exports.class extending (base constructor, prototype members) =
   prototype constructor () = =>
     for @(field) in (prototype members)
       if (prototype members.has own property (field))

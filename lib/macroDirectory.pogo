@@ -1,3 +1,4 @@
+class = require './class'.class
 _ = require 'underscore'
 
 module.exports (terms) =

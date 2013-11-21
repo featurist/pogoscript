@@ -1,1 +1,0 @@
-window.pogoscript = require './compiler'
