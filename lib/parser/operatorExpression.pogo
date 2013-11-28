@@ -64,6 +64,7 @@ module.exports (terms) =
             | left
             && @and left
             || @or left
+            <- left
         "
 
         {

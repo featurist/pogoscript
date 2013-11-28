@@ -15,6 +15,8 @@ module.exports (terms) =
 
     list (items) =
         hash entry = _.find (items) @(item) @{item.is hash entry}
+        has generator = _.find (items) @(item) @{item.is generator}
+
         if (hash entry)
             macro = terms.list macros.find macro (hash entry.field)
 
@@ -22,5 +24,7 @@ module.exports (terms) =
                 macro (list term (items), hash entry.field)
             else
                 terms.errors.add term (hash entry) with message "no macro for #(hash entry.field.join ' ')"
+        else if (has generator)
+            terms.list comprehension (items)
         else
             list term (items)

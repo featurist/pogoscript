@@ -135,6 +135,7 @@ describe 'operator expression'
         '|'
         ['&&', '@and']
         ['||', '@or']
+        ['<-']
     ]
 
     the left operator (left) has higher precedence than the right operator (right) =

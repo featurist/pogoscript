@@ -9,14 +9,14 @@ module.exports (terms) =
 
         first item is not hash entry () = @not term.items.0.is hash entry
         second item is where hash entry () = term.items.1.is hash entry @and term.items.1.field.length == 1 @and term.items.1.field.0 == 'where'
-        second item is iterator () = is (term.items.1.value) iterator
+        second item is generator () = term.items.1.value.is generator
         the rest of the items are not hash entries () = @not _.any (term.items.slice 2) @(item) @{item.is hash entry}
 
-        first item is not hash entry () @and second item is where hash entry () @and second item is iterator () @and the rest of the items are not hash entries ()
+        first item is not hash entry () @and second item is where hash entry () @and second item is generator () @and the rest of the items are not hash entries ()
 
     comprehension expression for (expr) =
-        if (is (expr) iterator)
-            iterator (expr)
+        if (expr.is generator)
+            generator (expr)
         else if (is (expr) definition)
             definition (expr)
         else
@@ -30,10 +30,10 @@ module.exports (terms) =
         comprehension exprs.push (map (term.items.0, results variable))
         expressions (comprehension exprs)
 
-    iterator (expression) = {
-        is iterator
-        iterator = expression.function arguments.0
-        collection = expression.function arguments.1
+    generator (expression) = {
+        is generator
+        iterator = expression.operator arguments.0
+        collection = expression.operator arguments.1
 
         generate (rest) =
             [terms.for each (self.collection, self.iterator, terms.async statements (rest.generate ()))]
@@ -67,13 +67,6 @@ module.exports (terms) =
             else
                 []
     }
-
-    is (expression) iterator =
-        if (expression.is function call)
-            function = expression.function
-            if (function.is variable)
-                if (function.variable.length == 1 @and function.variable.0 == '<-')
-                    true
 
     is (expression) definition =
         expression.is definition
