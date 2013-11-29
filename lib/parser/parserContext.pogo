@@ -46,8 +46,7 @@ exports.create parser context =
             last column = location.last_column
           }
 
-          term.location () =
-            loc
+          term.set location (loc)
 
           term
 

@@ -58,6 +58,14 @@ describe 'list comprehensions'
     describe 'combinations'
         it 'iterate, then filter, then map, then iterate, then map'
             'print [x <- [1, 2, 3, 4], @not (x % 2), y = x * x, z <- [1, y], z]' should output '[ 1, 4, 1, 16 ]'
+
+    describe 'empty arrays'
+        it 'returns an empty array'
+            'print [x <- [], x]' should output '[]'
+
+        it 'async returns an empty array'
+            async! 'print [x <- [], f (x)!]
+                    done()' should output '[]'
             
     describe 'concurrency'
         it 'can start all async processes, then wait for futures'
