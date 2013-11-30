@@ -64,7 +64,11 @@ Arguments and parameters can be placed anywhere in the name of a function or met
 
 A short-hand for map/select:
 
-    [[x, y], where: x <- [1, 2, 3], y <- [1, 2, 3], x < y]
+    [x <- [1, 2, 3], y <- [1, 2, 3], x < y, [x, y]]
+
+Asynchronous calls are executed concurrently:
+
+    documents = [id <- doc ids, http.get "/documents/#(id)"!]
 
 ## Blocks
 
@@ -90,6 +94,18 @@ Make async operations behave as though they were synchronous with the `!` operat
 Async calls also play nicely with `try catch finally`, `if else`, `for`, `while` and friends, and it even works in the REPL. Even though the async operator mimics synchronous behaviour, it is intended to facilitate truly asynchronous code, such as this simple [async `ls` implementation](https://gist.github.com/3770212), or more freakily: [continuations](https://github.com/featurist/pogoscript/blob/master/src/samples/continuations.pogo).
 
 See [the rules](https://github.com/featurist/pogoscript/wiki/Async-Rules).
+
+## Futures
+
+Make concurrent requests with the `?` operator:
+
+    future book = http.get "/books/1"?
+    future author = http.get "/authors/1"?
+
+Then wait for the results with the `!` operator:
+
+    book = future book!
+    author = future author!
 
 ## Self
 
@@ -216,6 +232,12 @@ Will produce `helloWorld.js`.
 ## Watching and Compiling
 
     pogo -cw *.pogo
+
+# Tools
+
+[grunt-pogo](https://github.com/leecrossley/grunt-pogo) by [Lee Crossley](https://github.com/leecrossley) for compiling your pogoscripts with Grunt.js.
+
+[pogoify](https://github.com/featurist/pogoify) by [Josh Chisholm](https://github.com/joshski), a plugin for browserify that compiles your pogoscript files into browserify bundles. Really really useful.
 
 # Credits
 

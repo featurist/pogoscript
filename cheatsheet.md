@@ -198,15 +198,15 @@ use `=>` to allow self to be redefined by the caller of the block:
 
 Simple map:
 
-    [x * x, where: x <- [1, 2, 3]]
+    [x <- [1, 2, 3], x * x]
 
 Filter:
 
-    [x, where: x <- [1, 2, 3], x > 1]
+    [x <- [1, 2, 3], x > 1, x]
 
 Combinations:
 
-    [x * y, where: x <- [1, 2, 3], y <- [4, 5, 6]]
+    [x <- [1, 2, 3], y <- [4, 5, 6], [x, y]]
 
 # Objects
 

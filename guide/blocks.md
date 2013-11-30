@@ -94,15 +94,15 @@ Which is the same as this:
 
 As a side note, the above can be written using list comprehensions like this:
 
-    [first name, where: contact <- address book, first name = contact.first name, first name.match r/^a/i]
+    [contact <- address book, first name = contact.first name, first name.match r/^a/i, first name]
 
 Or this might be better:
 
     [
-        first name
-        where: contact <- address book
+        contact <- address book
         first name = contact.first name
         first name.match r/^a/i
+        first name
     ]
 
 ## After the block
