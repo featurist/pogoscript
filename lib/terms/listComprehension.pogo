@@ -12,69 +12,115 @@ module.exports (terms) =
         else
             filter (expr)
 
-    comprehension expressions from (items, results variable) =
+    comprehension expression from (items) =
         exprs = items.slice (0, items.length - 1)
         comprehension exprs = [comprehension expression for (expr), where: expr <- exprs]
 
-        comprehension exprs.push (map (items.(items.length - 1), results variable))
-        expressions (comprehension exprs)
+        comprehension exprs.push (map (items.(items.length - 1)))
+        comprehension exprs.unshift (sort each ())
+
+        for (n = 0, n < comprehension exprs.length - 1, ++n)
+            comprehension exprs.(n).next = comprehension exprs.(n + 1)
+
+        comprehension exprs.(0)
 
     generator (expression) = {
         is generator
         iterator = expression.operator arguments.0
         collection = expression.operator arguments.1
 
-        generate (rest) =
-            statements = terms.async statements (rest.generate ())
-
-            if (statements.is async)
+        generate (is async, result, indexes) =
+            if (is async)
                 generate =
                     terms.module constants.define ['generate'] as (
                         terms.javascript (async control.generate.to string ())
                     )
-                
-                [terms.function call (generate, [self.collection, terms.closure ([self.iterator], statements)], async: true)]
+
+                index = terms.generated variable ['index']
+                indexes.push (index)
+
+                async statements = terms.async statements (self.next.generate (is async, result, indexes))
+
+                [terms.function call (generate, [self.collection, terms.closure ([index, self.iterator], async statements)], async: true)]
             else
-                [terms.for each (self.collection, self.iterator, statements)]
+                [
+                    terms.for each (
+                        self.collection
+                        self.iterator
+                        terms.async statements (self.next.generate (is async, result, indexes))
+                    )
+                ]
     }
 
-    map (expression, results variable) = {
+    sort each () = {
+        is sort each
+
+        generate list comprehension (is async) =
+            if (is async)
+                sort each =
+                    terms.module constants.define ['sort', 'each'] as (
+                        terms.javascript (async control.sort each.to string ())
+                    )
+
+                result = terms.generated variable ['result']
+
+                async statements = terms.async statements (self.next.generate (is async, result, []))
+
+                terms.function call (sort each, [terms.closure ([result], async statements)], async: true)
+            else
+                results variable = terms.generated variable ['results']
+
+                statements = [terms.definition (results variable, terms.list [])]
+                statements.push (self.next.generate (is async, results variable), ...)
+                statements.push (results variable)
+
+                terms.scope (statements)
+    }
+
+    map (expression) = {
         is map
-        generate () =
-            [terms.method call (results variable, ['push'], [expression])]
+
+        index string (indexes) =
+            components = []
+
+            for each @(index) in (indexes)
+                if (components.length > 0)
+                    components.push (terms.string '.')
+
+                components.push (index)
+
+            terms.interpolated string (components)
+
+        generate (is async, result, indexes) =
+            if (is async)
+                [terms.function call (result, [self.index string (indexes), expression])]
+            else
+                [terms.method call (result, ['push'], [expression])]
     }
 
     definition (expression) = {
         is definition
-        generate (rest) =
+
+        generate (is async, result, indexes) =
             statements = [expression]
-            statements.push (rest.generate(), ...)
+            statements.push (self.next.generate (is async, result, indexes), ...)
             statements
     }
 
     filter (expression) = {
         is filter
-        generate (rest) =
-            [terms.if expression [{condition = expression, body = terms.async statements (rest.generate ())}]]
-    }
 
-    expressions (exprs) = {
-        expressions = exprs
-        generate () =
-            if (exprs.length > 0)
-                exprs.0.generate (expressions (exprs.slice (1)))
-            else
-                []
+        generate (is async, result, indexes) =
+            [terms.if expression [{condition = expression, body = terms.async statements (self.next.generate (is async, result, indexes))}]]
     }
 
     is (expression) definition =
         expression.is definition
 
     list comprehension (items) =
-        results variable = terms.generated variable ['results']
-        exprs = comprehension expressions from (items, results variable)
+        is async = _.any (items) @(item)
+            item.contains async ()
 
-        statements = [terms.definition (results variable, terms.list [])]
-        statements.push (exprs.generate (), ...)
-        statements.push (results variable)
-        terms.scope (statements)
+        expr = comprehension expression from (items)
+
+        expr.generate list comprehension (is async)

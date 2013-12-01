@@ -259,6 +259,15 @@ module.exports (cg) =
 
             found
 
+        contains async () =
+            is async = false
+
+            self.walk descendants @(term)
+                is async := is async @or (term.is definition @and term.is async)
+            (limit (term): term.is closure)
+
+            is async
+
         rewrite result term into (return term) =
             if (self.contains continuation ())
                 self

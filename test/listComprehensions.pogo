@@ -102,6 +102,26 @@ describe 'list comprehensions'
                                             'finished 3'
                                             [ 1, 2, 3 ]"
 
+        context 'when async processes finish at different times'
+            it 'still orders the results respecting the input list'
+
+                async! 'wait (n, cb) = set timeout (cb, n)
+
+                        a (x)! =
+                            wait (x)!
+                            x
+                        
+                        print [x <- [30, 10, 20], y <- [3, 1, 2], [a (x)!, a (y)!]]
+                        done ()' should output "[ [ 30, 3 ],
+                                                  [ 30, 1 ],
+                                                  [ 30, 2 ],
+                                                  [ 10, 3 ],
+                                                  [ 10, 1 ],
+                                                  [ 10, 2 ],
+                                                  [ 20, 3 ],
+                                                  [ 20, 1 ],
+                                                  [ 20, 2 ] ]"
+
 describe 'list comprehensions old'
     describe 'map'
         it 'can do the identity map'
