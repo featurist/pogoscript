@@ -33,19 +33,9 @@ module.exports (terms) =
 
         generate (is async, result, index) =
             if (is async)
-                sort results =
-                    if (self.next.has generator ())
-                        terms.module constants.define ['sort', 'result', 'ranges'] as (
-                            terms.javascript (async control.sort result ranges.to string ())
-                        )
-                    else
-                        terms.module constants.define ['sort', 'results'] as (
-                            terms.javascript (async control.sort results.to string ())
-                        )
-
-                generate =
-                    terms.module constants.define ['generate'] as (
-                        terms.javascript (async control.generate.to string ())
+                list comprehension =
+                    terms.module constants.define ['list', 'comprehension'] as (
+                        terms.javascript (async control.list comprehension.to string ())
                     )
 
                 inner result = terms.generated variable ['result']
@@ -53,34 +43,28 @@ module.exports (terms) =
 
                 async statements = terms.async statements (self.next.generate (is async, inner result, inner index))
 
-                generate call =
+                call =
                     terms.function call (
-                        generate
+                        list comprehension
                         [
                             self.collection
-                            terms.closure ([inner index, self.iterator], async statements)
-                        ]
-                        async: true
-                    )
-
-                sort call =
-                    terms.function call (
-                        sort results
-                        [
+                            terms.boolean (self.next.has generator ())
                             terms.closure (
-                                [inner result]
-                                terms.async statements [
-                                    generate call
+                                [
+                                    inner index
+                                    self.iterator
+                                    inner result
                                 ]
+                                async statements
                             )
                         ]
                         async: true
                     )
 
                 if (result)
-                    [terms.function call (result, [sort call, index])]
+                    [terms.function call (result, [call, index])]
                 else
-                    [sort call]
+                    [call]
             else
                 [
                     terms.for each (
