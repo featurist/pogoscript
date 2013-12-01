@@ -36,29 +36,29 @@ describe 'generate'
 
             (loops) should contain fields []
 
-describe 'list comprehension'
-    it 'takes results with indexes and sorts them'
-        results = async.sort each @(result)!
-            result (3, 'three')
+describe 'sort each'
+    it 'takes each result with an index and sorts them'
+        results = async.sort results @(add result with index)!
+            add result 'three' with index 3
             process.next tick!
 
-            result (2, 'two')
+            add result 'two' with index 2
             process.next tick!
 
-            result (4, 'four')
-            process.next tick!
-
-        (results).should.eql ['two', 'three', 'four']
-
-    it 'takes results with compound indexes and sorts them'
-        results = async.sort each @(result)!
-            result ('0.1', 'three')
-            process.next tick!
-
-            result ('0.0', 'two')
-            process.next tick!
-
-            result ('1.1', 'four')
+            add result 'four' with index 4
             process.next tick!
 
         (results).should.eql ['two', 'three', 'four']
+
+    it 'takes each result as a range with an index and sorts them'
+        results = async.sort result ranges @(add results with index)!
+            add results ['three', 'four'] with index 3
+            process.next tick!
+
+            add results ['six', 'eight'] with index 2
+            process.next tick!
+
+            add results ['eleven', 'fourteen'] with index 6
+            process.next tick!
+
+        (results).should.eql ['six', 'eight', 'three', 'four', 'eleven', 'fourteen']

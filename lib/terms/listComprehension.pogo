@@ -29,25 +29,64 @@ module.exports (terms) =
         iterator = expression.operator arguments.0
         collection = expression.operator arguments.1
 
-        generate (is async, result, indexes) =
+        has generator () = true
+
+        generate (is async, result, index) =
             if (is async)
+                sort results =
+                    if (self.next.has generator ())
+                        terms.module constants.define ['sort', 'result', 'ranges'] as (
+                            terms.javascript (async control.sort result ranges.to string ())
+                        )
+                    else
+                        terms.module constants.define ['sort', 'results'] as (
+                            terms.javascript (async control.sort results.to string ())
+                        )
+
                 generate =
                     terms.module constants.define ['generate'] as (
                         terms.javascript (async control.generate.to string ())
                     )
 
-                index = terms.generated variable ['index']
-                indexes.push (index)
+                inner result = terms.generated variable ['result']
+                inner index = terms.generated variable ['index']
 
-                async statements = terms.async statements (self.next.generate (is async, result, indexes))
+                async statements = terms.async statements (self.next.generate (is async, inner result, inner index))
 
-                [terms.function call (generate, [self.collection, terms.closure ([index, self.iterator], async statements)], async: true)]
+                generate call =
+                    terms.function call (
+                        generate
+                        [
+                            self.collection
+                            terms.closure ([inner index, self.iterator], async statements)
+                        ]
+                        async: true
+                    )
+
+                sort call =
+                    terms.function call (
+                        sort results
+                        [
+                            terms.closure (
+                                [inner result]
+                                terms.async statements [
+                                    generate call
+                                ]
+                            )
+                        ]
+                        async: true
+                    )
+
+                if (result)
+                    [terms.function call (result, [sort call, index])]
+                else
+                    [sort call]
             else
                 [
                     terms.for each (
                         self.collection
                         self.iterator
-                        terms.async statements (self.next.generate (is async, result, indexes))
+                        terms.async statements (self.next.generate (is async, result, index))
                     )
                 ]
     }
@@ -57,16 +96,7 @@ module.exports (terms) =
 
         generate list comprehension (is async) =
             if (is async)
-                sort each =
-                    terms.module constants.define ['sort', 'each'] as (
-                        terms.javascript (async control.sort each.to string ())
-                    )
-
-                result = terms.generated variable ['result']
-
-                async statements = terms.async statements (self.next.generate (is async, result, []))
-
-                terms.function call (sort each, [terms.closure ([result], async statements)], async: true)
+                self.next.generate (is async).0
             else
                 results variable = terms.generated variable ['results']
 
@@ -80,20 +110,11 @@ module.exports (terms) =
     map (expression) = {
         is map
 
-        index string (indexes) =
-            components = []
+        has generator () = false
 
-            for each @(index) in (indexes)
-                if (components.length > 0)
-                    components.push (terms.string '.')
-
-                components.push (index)
-
-            terms.interpolated string (components)
-
-        generate (is async, result, indexes) =
+        generate (is async, result, index) =
             if (is async)
-                [terms.function call (result, [self.index string (indexes), expression])]
+                [terms.function call (result, [expression, index])]
             else
                 [terms.method call (result, ['push'], [expression])]
     }
@@ -101,17 +122,21 @@ module.exports (terms) =
     definition (expression) = {
         is definition
 
-        generate (is async, result, indexes) =
+        has generator () = self.next.has generator ()
+
+        generate (is async, result, index) =
             statements = [expression]
-            statements.push (self.next.generate (is async, result, indexes), ...)
+            statements.push (self.next.generate (is async, result, index), ...)
             statements
     }
 
     filter (expression) = {
         is filter
 
-        generate (is async, result, indexes) =
-            [terms.if expression [{condition = expression, body = terms.async statements (self.next.generate (is async, result, indexes))}]]
+        has generator () = self.next.has generator ()
+
+        generate (is async, result, index) =
+            [terms.if expression [{condition = expression, body = terms.async statements (self.next.generate (is async, result, index))}]]
     }
 
     is (expression) definition =
