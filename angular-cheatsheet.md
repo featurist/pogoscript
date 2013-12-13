@@ -22,4 +22,13 @@ However this is such a common angular pattern that it would be best to keep it f
 
 Pogo now knows to execute the `$compile` method with the argument `'<div></div>'` and to call the return value as a function with the `scope` argument.
 
+# Watch
+When setting up a watcher we often want to change the default behaviour so that it tests for equality rather than reference, we do this by passing the `$watch` method a third argument of `true`.
 
+First we call `$watch` with our watch expression (`'modelName'`) we then give it a callback (pogo calls this a block) by indenting the next line. The third line is used to specify additional arguments, in this case the value `true`.
+
+    $scope.$watch 'modelName'
+        do stuff ()
+    (true)
+
+Note that you *MUST* wrap true in parenthesis. If you do not then pogo will think that 'true' is a part of the method name that you are calling. In this case it would try to call a method `$scope.$watchTrue`. To prevent this we explicitly tell pogo that `true` is an argument by wrapping it in parenthesis.
