@@ -11,10 +11,7 @@ beautify (code) =
     stream.to string ()
 
 generate code (term) =
-    memory stream = new (ms.MemoryStream)
-    term.generate java script module (memory stream)
-
-    memory stream.to string ()
+    term.generate module ()
 
 exports.compile (
     pogo
