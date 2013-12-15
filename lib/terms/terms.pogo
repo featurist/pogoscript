@@ -293,10 +293,6 @@ module.exports (cg) =
         generate statement (scope) =
             self.code (self.generate (scope), ';')
 
-        generate statements return (scope) =
-            self.with buffer @(buffer)
-                self.generate java script statements return (buffer, scope)
-
         generate module (scope) =
             self.with buffer @(buffer)
                 self.generate java script module (buffer, scope)

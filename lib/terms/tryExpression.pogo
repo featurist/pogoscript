@@ -12,20 +12,14 @@ module.exports (terms) =
         generate statement (scope, return statements) =
             self.generate into buffer @(buffer)
                 buffer.write ('try{')
-                if (return statements)
-                    buffer.write (self.body.generate statements return (scope))
-                else
-                    buffer.write (self.body.generate statements (scope))
+                buffer.write (self.body.generate statements (scope))
 
                 buffer.write ('}')
                 if (self.catch body)
                     buffer.write ('catch(')
                     buffer.write (self.catch parameter.generate (scope))
                     buffer.write ('){')
-                    if (return statements)
-                        buffer.write (self.catch body.generate statements return (scope))
-                    else
-                        buffer.write (self.catch body.generate statements (scope))
+                    buffer.write (self.catch body.generate statements (scope))
 
                     buffer.write ('}')
 
