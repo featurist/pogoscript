@@ -13,9 +13,9 @@ module.exports (terms) =
             self.code into buffer (buffer) @(buffer)
                 buffer.write ('try{')
                 if (return statements)
-                    self.body.generate java script statements return (buffer, scope)
+                    buffer.write (self.body.generate statements return (scope))
                 else
-                    self.body.generate java script statements (buffer, scope)
+                    buffer.write (self.body.generate statements (scope))
 
                 buffer.write ('}')
                 if (self.catch body)
@@ -23,15 +23,15 @@ module.exports (terms) =
                     buffer.write (self.catch parameter.generate (scope))
                     buffer.write ('){')
                     if (return statements)
-                        self.catch body.generate java script statements return (buffer, scope)
+                        buffer.write (self.catch body.generate statements return (scope))
                     else
-                        self.catch body.generate java script statements (buffer, scope)
+                        buffer.write (self.catch body.generate statements (scope))
 
                     buffer.write ('}')
 
                 if (self.finally body)
                     buffer.write ('finally{')
-                    self.finally body.generate java script statements (buffer, scope)
+                    buffer.write (self.finally body.generate statements (scope))
                     buffer.write ('}')
         
         generate java script (buffer, symbol scope) =

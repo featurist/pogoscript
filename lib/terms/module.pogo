@@ -9,7 +9,7 @@ module.exports (terms) =
         generate java script module (buffer) =
             self.code into buffer (buffer) @(buffer)
                 scope = new (terms.Symbol Scope (nil))
-                self.statements.generate java script statements (buffer, scope, global: self.global, in closure: true)
+                buffer.write (self.statements.generate statements (scope, global: self.global, in closure: true))
     }
 
     module (statements, in scope: true, global: false, return last statement: false, body statements: body statements) =

@@ -10,7 +10,7 @@ module.exports (terms) = terms.term {
             buffer.write ('{')
 
             codegen utils.write to buffer with delimiter (self.entries, ',', buffer) @(item)
-                item.generate java script hash entry (buffer, scope)
+                buffer.write (item.generate hash entry (scope))
 
             buffer.write ('}')
 }

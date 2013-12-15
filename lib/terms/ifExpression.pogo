@@ -15,12 +15,12 @@ module.exports (terms) =
                     buffer.write ('if(')
                     buffer.write (case_.condition.generate (scope))
                     buffer.write ('){')
-                    case_.body.generate java script statements (buffer, scope)
+                    buffer.write (case_.body.generate statements (scope))
                     buffer.write ('}')
 
                 if (self.else body)
                     buffer.write ('else{')
-                    self.else body.generate java script statements (buffer, scope)
+                    buffer.write (self.else body.generate statements (scope))
                     buffer.write ('}')
 
         generate java script (buffer, scope) =
@@ -29,7 +29,7 @@ module.exports (terms) =
                     terms.return statement (term)
                     
                 buffer.write '(function(){'
-                self.generate java script statement (buffer, scope)
+                buffer.write (self.generate statement (scope))
                 buffer.write '})()'
 
         rewrite result term into (return term, async: false) =

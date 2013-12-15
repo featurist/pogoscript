@@ -23,7 +23,7 @@ module.exports (terms) = terms.term {
             buffer.write (self.collection.generate (scope))
             buffer.write ('){')
 
-            self.statements.generate java script statement (buffer, scope)
+            buffer.write (self.statements.generate statement (scope))
 
             buffer.write ('}')
 

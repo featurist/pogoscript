@@ -184,7 +184,7 @@ module.exports (terms) =
                 self.generate self assignment (buffer)
 
                 parameters strategy.generate java script parameter statements (buffer, scope, terms.variable ['arguments'])
-                self.body.generate java script statements (buffer, body scope, in closure: true)
+                buffer.write (self.body.generate statements (body scope, in closure: true))
 
                 buffer.write ('}')
 

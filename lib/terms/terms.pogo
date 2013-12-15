@@ -278,10 +278,39 @@ module.exports (cg) =
         code into buffer (buffer, generate code into buffer) =
             generate code into buffer (buffer)
 
-        generate (scope) =
+        generate into buffer (generate code into buffer) =
             buffer = new (ms.MemoryStream)
-            self.generate java script (buffer, scope)
+            generate code into buffer (buffer)
             buffer.to string ()
+
+        with buffer (block) =
+            buffer = new (ms.MemoryStream)
+            block (buffer)
+            buffer.to string ()
+
+        generate (scope) =
+            self.with buffer @(buffer)
+                self.generate java script (buffer, scope)
+
+        generate target (scope) =
+            self.with buffer @(buffer)
+                self.generate java script target (buffer, scope)
+
+        generate statements (scope) =
+            self.with buffer @(buffer)
+                self.generate java script statements (buffer, scope)
+
+        generate statement (scope) =
+            self.with buffer @(buffer)
+                self.generate java script statement (buffer, scope)
+
+        generate hash entry (scope) =
+            self.with buffer @(buffer)
+                self.generate java script hash entry (buffer, scope)
+
+        generate statements return (scope) =
+            self.with buffer @(buffer)
+                self.generate java script statements return (buffer, scope)
     }
 
     term prototype = new (Term)

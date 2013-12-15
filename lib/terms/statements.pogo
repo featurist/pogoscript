@@ -8,14 +8,15 @@ module.exports (terms) = terms.term {
         self.statements = statements
         self.is async = async
 
-    generate statements (statements, buffer, scope, in closure: false, global: false) =
-        if (in closure)
-            defined variables = self.find defined variables (scope)
-            self.generate variable declarations (defined variables, buffer, scope, global: global)
+    generate statements (scope, in closure: false, global: false) =
+        self.generate into buffer @(buffer)
+            if (in closure)
+                defined variables = self.find defined variables (scope)
+                self.generate variable declarations (defined variables, buffer, scope, global: global)
 
-        for (s = 0, s < statements.length, ++s)
-            statement = statements.(s)
-            statement.generate java script statement (buffer, scope)
+            for (s = 0, s < self.statements.length, ++s)
+                statement = self.statements.(s)
+                buffer.write (statement.generate statement (scope))
 
     rewrite result term into (return term, async: false) =
         if (self.statements.length > 0)
@@ -69,7 +70,7 @@ module.exports (terms) = terms.term {
 
     generate java script statements (buffer, scope, in closure: false, global: false) =
         self.code into buffer (buffer) @(buffer)
-            self.generate statements (self.statements, buffer, scope, in closure: in closure, global: global)
+            buffer.write (self.generate statements (scope, in closure: in closure, global: global))
 
     blockify (parameters, options) =
         statements = if (self.is expression statements)
@@ -90,7 +91,7 @@ module.exports (terms) = terms.term {
     generate java script statement (buffer, scope) =
         self.code into buffer (buffer) @(buffer)
             if (self.statements.length > 0)
-                self.statements.(self.statements.length - 1).generate java script statement (buffer, scope)
+                buffer.write (self.statements.(self.statements.length - 1).generate statement (scope))
 
     definitions (scope) =
         _(self.statements).reduce @(list, statement)
