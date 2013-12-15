@@ -182,17 +182,18 @@ module.exports (terms) =
                 if (self.defines module constants)
                     buffer.write (terms.module constants.generate (scope))
 
-                self.generate self assignment (buffer)
+                buffer.write (self.generate self assignment ())
 
                 parameters strategy.generate java script parameter statements (buffer, scope, terms.variable ['arguments'])
                 buffer.write (self.body.generate statements (body scope, in closure: true))
 
                 buffer.write ('}')
 
-        generate self assignment (buffer) =
-            self.code into buffer (buffer) @(buffer)
-                if (self.redefines self)
-                    buffer.write 'var self=this;'
+        generate self assignment () =
+            if (self.redefines self)
+                'var self=this;'
+            else
+                ''
 
         rewrite result term to return () =
             if (self.return last statement && !self.body.is async)

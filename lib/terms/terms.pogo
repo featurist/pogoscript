@@ -270,20 +270,12 @@ module.exports (cg) =
 
         asyncify () = nil
 
-        code into buffer (buffer, generate code into buffer) =
-            generate code into buffer (buffer)
-
         code (args, ...) =
             args.join ''
 
         generate into buffer (generate code into buffer) =
             buffer = new (ms.MemoryStream)
             generate code into buffer (buffer)
-            buffer.to string ()
-
-        with buffer (block) =
-            buffer = new (ms.MemoryStream)
-            block (buffer)
             buffer.to string ()
 
         generate statement (scope) =
