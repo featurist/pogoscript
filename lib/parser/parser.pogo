@@ -5,12 +5,12 @@ parser = require './jisonParser'.parser
 
 jison lexer = parser.lexer
 
-exports.create parser (terms: terms) =
+exports.create parser (terms: terms, filename: nil) =
     
     {
         parse (source) =
             dynamic lexer = create dynamic lexer (next lexer: jison lexer)
-            parser context = create parser context (terms: terms)
+            parser context = create parser context (terms: terms, filename: filename)
 
             parser context.lexer = dynamic lexer
             jison lexer.yy = parser context

@@ -26,7 +26,7 @@ exports.compile (
     async: false
     terms: create terms ()
 ) =
-    parser = create parser (terms: terms)
+    parser = create parser (terms: terms, filename: filename)
     statements = parser.parse (pogo)
 
     if (async)

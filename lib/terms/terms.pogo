@@ -21,23 +21,21 @@ module.exports (cg) =
             else
                 children = self.children ()
 
-                locations = _.filter (_.map (children) @(child)
-                    child.location ()
-                ) @(location)
-                    location
+                locations = [c <- children, loc = c.location (), loc, loc]
 
                 if (locations.length > 0)
-                    first line = _.min (_.map (locations) @(location) @{location.first line})
-                    last line = _.max (_.map (locations) @(location) @{location.last line})
+                    first line = _.min [l <- locations, l.first line]
+                    last line = _.max [l <- locations, l.last line]
 
-                    locations on first line = _.filter (locations) @(location) @{location.first line == first line}
-                    locations on last line = _.filter (locations) @(location) @{location.last line == last line}
+                    locations on first line = [l <- locations, l.first line == first line, l]
+                    locations on last line = [l <- locations, l.last line == last line, l]
 
                     {
                         first line = first line
                         last line = last line
-                        first column = _.min (_.map (locations on first line) @(location) @{location.first column})
-                        last column = _.max (_.map (locations on last line) @(location) @{location.last column})
+                        first column = _.min [l <- locations on first line, l.first column]
+                        last column = _.max [l <- locations on last line, l.last column]
+                        filename = locations.0.filename
                     }
                 else
                     nil

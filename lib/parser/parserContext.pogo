@@ -4,7 +4,7 @@ create indent stack = require './indentStack'.create indent stack
 create interpolation = require './interpolation'.create interpolation
 
 exports.create parser context =
-    create parser context (terms: nil) = {
+    create parser context (terms: nil, filename: nil) = {
         terms = terms
 
         indent stack = create indent stack ()
@@ -44,6 +44,7 @@ exports.create parser context =
             last line = location.last_line
             first column = location.first_column
             last column = location.last_column
+            filename = filename
           }
 
           term.set location (loc)
