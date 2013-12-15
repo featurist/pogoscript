@@ -6,7 +6,7 @@ module.exports (terms) = terms.term {
     generate java script statement (buffer, scope) =
         self.code into buffer (buffer) @(buffer)
             buffer.write ('throw ')
-            self.expression.generateJavaScript (buffer, scope)
+            buffer.write (self.expression.generate (scope))
             buffer.write (';')
 
     rewrite result term into (return term) = self

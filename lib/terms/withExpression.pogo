@@ -5,15 +5,15 @@ module.exports (terms) =
             self.subject = subject
             self.statements = statements
       
-        generateJavaScript (buffer, scope) =
+        generate java script (buffer, scope) =
             self.code into buffer (buffer) @(buffer)
                 buffer.write ('with(')
-                self.subject.generateJavaScript (buffer, scope)
+                buffer.write (self.subject.generate (scope))
                 buffer.write ('){')
-                self.statements.generateJavaScriptStatements (buffer, scope)
+                buffer.write (self.statements.generate statements (scope))
                 buffer.write ('}')
       
-        generateJavaScriptStatement (args, ...) = self.generateJavaScript (args, ...)
+        generate statement (args, ...) = self.generate (args, ...)
 
         rewriteResultTermInto (returnTerm) = self
     }

@@ -68,10 +68,6 @@ module.exports (terms) = terms.term {
 
         variables.unique variables ()
 
-    generate java script statements (buffer, scope, in closure: false, global: false) =
-        self.code into buffer (buffer) @(buffer)
-            buffer.write (self.generate statements (scope, in closure: in closure, global: global))
-
     blockify (parameters, options) =
         statements = if (self.is expression statements)
             self.cg.statements ([self])

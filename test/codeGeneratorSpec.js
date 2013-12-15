@@ -7,9 +7,7 @@ var shouldContainFields = require('./containsFields.js').containsFields;
 
 describe('code generator', function () {
   var generatesExpression = function (term, expectedGeneratedCode, print) {
-    var stream = new MemoryStream();
-    term.generateJavaScript(stream, new cg.SymbolScope());
-    var code = stream.toString();
+    var code = term.generate(new cg.SymbolScope());
     if (print) {
       console.log(code);
     }
@@ -17,17 +15,15 @@ describe('code generator', function () {
   };
   
   var generatesStatement = function(term, expectedGeneratedCode) {
-    var stream = new MemoryStream();
-    term.generateJavaScriptStatement(stream, new cg.SymbolScope());
-    should.equal(stream.toString(), expectedGeneratedCode);
+    var code = term.generateStatement(new cg.SymbolScope());
+    should.equal(code, expectedGeneratedCode);
   };
   
   var generatesStatements = function(term, expectedGeneratedCode, global, print) {
-    var stream = new MemoryStream();
-    term.generateJavaScriptStatements(stream, new cg.SymbolScope(), {inClosure: true, global: global});
+    var code = term.generateStatements(new cg.SymbolScope(), {inClosure: true, global: global});
     if (print)
         console.log(stream.toString())
-    should.equal(stream.toString(), expectedGeneratedCode);
+    should.equal(code, expectedGeneratedCode);
   };
   
   describe('variable', function () {
