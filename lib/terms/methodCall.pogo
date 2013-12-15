@@ -34,7 +34,9 @@ module.exports (terms) =
 
             if (splatted arguments)
                 self.object.generate java script (buffer, scope)
-                buffer.write(".#(self.name).apply(")
+                buffer.write(".")
+                buffer.write (codegen utils.concat name (self.name))
+                buffer.write(".apply(")
                 self.object.generate java script (buffer, scope)
                 buffer.write(',')
                 splatted arguments.generate java script (buffer, scope)

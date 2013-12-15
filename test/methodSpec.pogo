@@ -17,3 +17,12 @@ describe 'methods'
                  }
 
                  o.my method ()' should output "'name'"
+
+    describe 'splats'
+        it 'can be called with splat arguments'
+            'o = {
+                 a method (args, ...) =
+                     print (args)
+             }
+
+             o.a method ([1, 2, 3], ...)' should output "[ 1, 2, 3 ]"
