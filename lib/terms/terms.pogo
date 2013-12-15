@@ -293,10 +293,6 @@ module.exports (cg) =
         generate statement (scope) =
             self.code (self.generate (scope), ';')
 
-        generate hash entry (scope) =
-            self.with buffer @(buffer)
-                self.generate java script hash entry (buffer, scope)
-
         generate statements return (scope) =
             self.with buffer @(buffer)
                 self.generate java script statements return (buffer, scope)
