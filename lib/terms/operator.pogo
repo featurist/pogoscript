@@ -6,8 +6,8 @@ module.exports (terms) = terms.term {
 
     is operator alpha () = r/[a-zA-Z]+/.test (self.operator)
 
-    generate java script (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
+    generate (scope) =
+        self.generate into buffer @(buffer)
             buffer.write ('(')
         
             if (self.operator arguments.length == 1)

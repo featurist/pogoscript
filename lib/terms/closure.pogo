@@ -33,18 +33,19 @@ module.exports (terms) =
             else
                 self.default value
 
-        generate java script (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
-                buffer.write ('(')
-                buffer.write (self.options.generate (scope))
-                buffer.write ('&&')
-                buffer.write (self.options.generate (scope))
-                buffer.write (".hasOwnProperty('" + codegen utils.concat name (self.name) + "')&&")
-                buffer.write (self.options.generate (scope))
-                buffer.write ("." + codegen utils.concat name (self.name) + "!==void 0)?")
-                buffer.write (self.options.generate (scope))
-                buffer.write ('.' + codegen utils.concat name (self.name) + ':')
-                buffer.write (self.proper default value ().generate (scope))
+        generate (scope) =
+            self.code (
+                '('
+                self.options.generate (scope)
+                '&&'
+                self.options.generate (scope)
+                ".hasOwnProperty('" + codegen utils.concat name (self.name) + "')&&"
+                self.options.generate (scope)
+                "." + codegen utils.concat name (self.name) + "!==void 0)?"
+                self.options.generate (scope)
+                '.' + codegen utils.concat name (self.name) + ':'
+                self.proper default value ().generate (scope)
+            )
     }
 
     async parameters (closure, next) = {
@@ -165,8 +166,8 @@ module.exports (terms) =
             for each @(parameter) in (parameters)
                 scope.define (parameter.canonical name (scope))
 
-        generate java script (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
+        generate (scope) =
+            self.generate into buffer @(buffer)
                 parameters strategy = self.parameters strategy ()
 
                 self.rewrite result term to return ()

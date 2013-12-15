@@ -23,14 +23,15 @@ module.exports (terms) =
                     buffer.write (self.else body.generate statements (scope))
                     buffer.write ('}')
 
-        generate java script (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
-                self.rewrite result term @(term) into
-                    terms.return statement (term)
-                    
-                buffer.write '(function(){'
-                buffer.write (self.generate statement (scope))
-                buffer.write '})()'
+        generate (scope) =
+            self.rewrite result term @(term) into
+                terms.return statement (term)
+                
+            self.code (
+                '(function(){'
+                self.generate statement (scope)
+                '})()'
+            )
 
         rewrite result term into (return term, async: false) =
             for each @(_case) in (self.cases)

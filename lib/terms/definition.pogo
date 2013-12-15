@@ -13,11 +13,12 @@ module.exports (terms) = terms.term {
     hash entry () =
         self.cg.hash entry (self.target.hash entry field (), self.source)
 
-    generate java script (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
-            buffer.write (self.target.generate target (scope))
-            buffer.write ('=')
-            buffer.write (self.source.generate (scope))
+    generate (scope) =
+        self.code (
+            self.target.generate target (scope)
+            '='
+            self.source.generate (scope)
+        )
   
     define variables (variables) =
         name = self.target.canonical name (variables.scope)

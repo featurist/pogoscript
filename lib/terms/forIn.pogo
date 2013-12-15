@@ -15,17 +15,16 @@ module.exports (terms) = terms.term {
                 )
             )
   
-    generate java script (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
-            buffer.write ('for(')
-            buffer.write (self.iterator.target.generate (scope))
-            buffer.write (' in ')
-            buffer.write (self.collection.generate (scope))
-            buffer.write ('){')
-
-            buffer.write (self.statements.generate statement (scope))
-
-            buffer.write ('}')
+    generate (scope) =
+        self.code (
+            'for('
+            self.iterator.target.generate (scope)
+            ' in '
+            self.collection.generate (scope)
+            '){'
+            self.statements.generate statement (scope)
+            '}'
+        )
 
     generate statement (args, ...) = self.generate (args, ...)
 

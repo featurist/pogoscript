@@ -7,13 +7,14 @@ module.exports (terms) =
             self.condition = condition
             self.statements = statements
       
-        generate java script (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
-                buffer.write ('while(')
-                buffer.write (self.condition.generate (scope))
-                buffer.write ('){')
-                buffer.write (self.statements.generate statements (scope))
-                buffer.write ('}')
+        generate (scope) =
+            self.code (
+                'while('
+                self.condition.generate (scope)
+                '){'
+                self.statements.generate statements (scope)
+                '}'
+            )
       
         generate statement (args, ...) = self.generate(args, ...)
 

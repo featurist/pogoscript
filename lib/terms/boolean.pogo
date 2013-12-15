@@ -3,10 +3,11 @@ module.exports (cg) = cg.term {
         self.boolean = value
         self.is boolean = true
 
-    generate java script (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
+    generate (scope) =
+        self.code (
             if (self.boolean)
-                buffer.write 'true'
+                'true'
             else
-                buffer.write 'false'
+                'false'
+        )
 }

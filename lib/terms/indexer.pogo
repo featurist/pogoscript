@@ -4,12 +4,13 @@ module.exports (terms) = terms.term {
         self.indexer = indexer
         self.isIndexer = true
 
-    generate java script (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
-            buffer.write (self.object.generate (scope))
-            buffer.write ('[')
-            buffer.write (self.indexer.generate (scope))
-            buffer.write (']')
+    generate (scope) =
+        self.code (
+            self.object.generate (scope)
+            '['
+            self.indexer.generate (scope)
+            ']'
+        )
 
     generate target (args, ...) = self.generate (args, ...)
 }

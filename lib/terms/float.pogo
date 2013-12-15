@@ -3,7 +3,6 @@ module.exports (cg) = cg.term {
         self.is float = true
         self.float = value
 
-    generate java script (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
-            buffer.write (self.float.to string())
+    generate (scope) =
+        self.code (self.float.to string())
 }

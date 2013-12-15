@@ -7,8 +7,8 @@ module.exports (terms) =
             self.is list = true
             self.items = items
 
-        generate java script (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
+        generate (scope) =
+            self.generate into buffer @(buffer)
                 buffer.write ('[')
                 codegen utils.write to buffer with delimiter (self.items, ',', buffer, scope)
                 buffer.write (']')

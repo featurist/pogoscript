@@ -79,8 +79,8 @@ module.exports (terms) = terms.term {
     scopify () =
         self.cg.function call (self.cg.block([], self), [])
 
-    generate java script (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
+    generate (scope) =
+        self.generate into buffer @(buffer)
             if (self.statements.length > 0)
                 buffer.write (self.statements.(self.statements.length - 1).generate (scope))
 

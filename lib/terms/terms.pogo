@@ -286,10 +286,6 @@ module.exports (cg) =
             block (buffer)
             buffer.to string ()
 
-        generate (scope) =
-            self.with buffer @(buffer)
-                self.generate java script (buffer, scope)
-
         generate statement (scope) =
             self.code (self.generate (scope), ';')
     }

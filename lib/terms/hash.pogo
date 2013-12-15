@@ -5,8 +5,8 @@ module.exports (terms) = terms.term {
         self.is hash = true
         self.entries = entries
   
-    generate java script (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
+    generate (scope) =
+        self.generate into buffer @(buffer)
             buffer.write ('{')
 
             codegen utils.write to buffer with delimiter (self.entries, ',', buffer) @(item)

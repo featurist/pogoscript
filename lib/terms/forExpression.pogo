@@ -45,17 +45,18 @@ module.exports (terms) =
             else
                 self.statements
       
-        generate java script (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
-                buffer.write ('for(')
-                buffer.write (self.initialization.generate (scope))
-                buffer.write (';')
-                buffer.write (self.test.generate (scope))
-                buffer.write (';')
-                buffer.write (self.increment.generate (scope))
-                buffer.write ('){')
-                buffer.write (self.statements.generate statements (scope))
-                buffer.write ('}')
+        generate (scope) =
+            self.code (
+                'for('
+                self.initialization.generate (scope)
+                ';'
+                self.test.generate (scope)
+                ';'
+                self.increment.generate (scope)
+                '){'
+                self.statements.generate statements (scope)
+                '}'
+            )
 
         generate statement (args, ...) = self.generate (args, ...)
 

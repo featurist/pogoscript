@@ -4,15 +4,17 @@ module.exports (terms) =
             self.is new operator = true
             self.function call = fn
 
-        generate java script (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
-                buffer.write ('new ')
+        generate (scope) =
+            self.code (
+                'new '
+
                 if (self.function call.is variable)
-                    buffer.write (terms.function call (self.function call, []).generate (scope))
+                    terms.function call (self.function call, []).generate (scope)
                 else if (self.function call.is function call && self.function call.has splat arguments ())
-                    buffer.write (self.cg.block ([], self.cg.statements ([self.function call]), return last statement: false).generate (scope))
+                    self.cg.block ([], self.cg.statements ([self.function call]), return last statement: false).generate (scope)
                 else
-                    buffer.write (self.function call.generate (scope))
+                    self.function call.generate (scope)
+            )
     }
 
     new operator (fn) =

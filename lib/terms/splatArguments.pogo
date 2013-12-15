@@ -5,8 +5,8 @@ module.exports (terms) =
         constructor (splat arguments) =
             self.splat arguments = splat arguments
 
-        generate java script (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
+        generate (scope) =
+            self.generate into buffer @(buffer)
                 for (i = 0, i < self.splat arguments.length, ++i)
                     splat argument = self.splat arguments.(i)
 

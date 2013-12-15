@@ -3,7 +3,6 @@ module.exports (cg) = cg.term {
         self.is integer = true
         self.integer = value
 
-    generate java script (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
-            buffer.write (self.integer.to string ())
+    generate (scope) =
+        self.code (self.integer.to string ())
 }

@@ -35,7 +35,7 @@ describe 'closure parameter strategies'
                     ]
 
                     generate java script parameter statements (buffer, scope, arguments) =
-                        arguments.generate java script (buffer, scope)
+                        buffer.write (arguments.generate (scope))
                         buffer.write ";"
                 }
 
@@ -221,7 +221,7 @@ describe 'closure parameter strategies'
                     defined parameters () = [terms.variable ['a'], terms.variable ['b']]
 
                     generate java script parameter statements (buffer, scope, args) =
-                        args.generate java script (buffer, scope)
+                        buffer.write (args.generate (scope))
                         buffer.write ";"
                 } (continuation or default: terms.javascript 'continuationOrDefault')
 

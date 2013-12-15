@@ -4,7 +4,7 @@ module.exports (terms) = terms.term {
         self.error terms = error terms
         self.message = message
 
-    generate java script () = nil
+    generate () = ''
 
     print error (source file, buffer) =
         source file.print location (self.error terms.0.location (), buffer)

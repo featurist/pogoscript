@@ -22,8 +22,8 @@ module.exports (terms) =
             self.originally async = originally async
             self.async callback argument = async callback argument
 
-        generate java script (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
+        generate (scope) =
+            self.generate into buffer @(buffer)
                 args = codegen utils.concat args (
                     self.method arguments
                     optional args: self.optional arguments

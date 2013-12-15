@@ -6,8 +6,8 @@ module.exports (terms) =
             self.is interpolated string = true
             self.components = components
 
-        generate java script (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
+        generate (scope) =
+            self.generate into buffer @(buffer)
                 buffer.write '('
                 codegen utils.write to buffer with delimiter (self.components, '+', buffer, scope)
                 buffer.write ')'

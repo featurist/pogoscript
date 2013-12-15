@@ -6,11 +6,12 @@ module.exports (terms) = terms.term {
         self.name = name
         self.is field reference = true
 
-    generate java script (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
-            buffer.write (self.object.generate (scope))
-            buffer.write ('.')
-            buffer.write (codegen utils.concat name (self.name))
+    generate (scope) =
+        self.code (
+            self.object.generate (scope)
+            '.'
+            codegen utils.concat name (self.name)
+        )
 
     generate target (args, ...) = self.generate (args, ...)
 }

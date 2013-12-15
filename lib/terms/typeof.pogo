@@ -4,9 +4,10 @@ module.exports (terms) = terms.term {
         self.expression = expression
         self.type = type
     
-    generate java script (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
-            buffer.write "(typeof("
-            buffer.write (self.expression.generate (scope))
-            buffer.write ") === '#(self.type)')"
+    generate (scope) =
+        self.code (
+            "(typeof("
+            self.expression.generate (scope)
+            ") === '#(self.type)')"
+        )
 }

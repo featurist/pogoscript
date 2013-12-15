@@ -13,16 +13,13 @@ module.exports (terms) =
         display name () =
             self.variable.join ' '
       
-        generate java script (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
-                buffer.write (self.canonical name ())
+        generate (scope) =
+            self.code (self.canonical name ())
       
         generate target (args, ...) = self.generate (args, ...)
       
         hash entry field () =
             self.variable
-      
-        generate java script parameter (args, ...) = self.generate java script (args, ...)
       
         parameter () =
             self

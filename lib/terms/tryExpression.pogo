@@ -28,8 +28,8 @@ module.exports (terms) =
                     buffer.write (self.finally body.generate statements (scope))
                     buffer.write ('}')
         
-        generate java script (buffer, symbol scope) =
-            self.code into buffer (buffer) @(buffer)
+        generate (symbol scope) =
+            self.generate into buffer @(buffer)
                 if (self.already called)
                     throw (new (Error 'stuff'))
 
