@@ -12,5 +12,5 @@ module.exports (terms) = terms.term {
             buffer.write ('.')
             buffer.write (codegen utils.concat name (self.name))
 
-    generate java script target (args, ...) = self.generate java script (args, ...)
+    generate target (args, ...) = self.generate (args, ...)
 }

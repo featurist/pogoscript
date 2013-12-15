@@ -26,5 +26,5 @@ module.exports (terms) = terms.term {
 
     generate java script parameter (args, ...) = self.generate java script (args, ...)
 
-    generate java script target (args, ...) = self.generate java script (args, ...)
+    generate target (args, ...) = self.generate (args, ...)
 }

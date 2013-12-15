@@ -292,10 +292,6 @@ module.exports (cg) =
             self.with buffer @(buffer)
                 self.generate java script (buffer, scope)
 
-        generate target (scope) =
-            self.with buffer @(buffer)
-                self.generate java script target (buffer, scope)
-
         generate statements (scope) =
             self.with buffer @(buffer)
                 self.generate java script statements (buffer, scope)

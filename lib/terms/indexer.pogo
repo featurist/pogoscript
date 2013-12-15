@@ -11,6 +11,6 @@ module.exports (terms) = terms.term {
             buffer.write (self.indexer.generate (scope))
             buffer.write (']')
 
-    generate java script target (args, ...) = self.generate java script (args, ...)
+    generate target (args, ...) = self.generate (args, ...)
 }
 

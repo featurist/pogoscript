@@ -17,7 +17,7 @@ module.exports (terms) =
             self.code into buffer (buffer) @(buffer)
                 buffer.write (self.canonical name ())
       
-        generate java script target (args, ...) = self.generate java script (args, ...)
+        generate target (args, ...) = self.generate (args, ...)
       
         hash entry field () =
             self.variable
