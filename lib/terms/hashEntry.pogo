@@ -27,7 +27,7 @@ module.exports (terms) = terms.term {
             f = codegen utils.concat name (self.field)
             buffer.write (self.legal field name ())
             buffer.write (':')
-            self.value or true ().generate java script (buffer, scope)
+            buffer.write (self.value or true ().generate (scope))
 
     asyncify () =
         self.value.asyncify ()

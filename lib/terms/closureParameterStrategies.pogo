@@ -32,12 +32,12 @@ module.exports (terms) = {
 
         generate java script parameter statements (buffer, scope, args) =
             buffer.write "var "
-            self.splat.generate java script (buffer, scope)
+            buffer.write (self.splat.generate (scope))
 
             buffer.write "=Array.prototype.slice.call("
-            args.generate java script (buffer, scope)
+            buffer.write (args.generate (scope))
             buffer.write ",#(self.before.length),"
-            args.generate java script (buffer, scope)
+            buffer.write (args.generate (scope))
             buffer.write ".length"
 
             if (self.after.length > 0)
@@ -47,18 +47,18 @@ module.exports (terms) = {
 
             if ((before.length > 0) && (after.length > 0))
                 buffer.write "if("
-                args.generate java script (buffer, scope)
+                buffer.write (args.generate (scope))
                 buffer.write ".length>#(before.length)){"
 
             for (n = 0, n < self.after.length, ++n)
                 after arg = self.after.(n)
                 args index = self.after.length - n
                 buffer.write "var "
-                after arg.generate java script (buffer, scope)
+                buffer.write (after arg.generate (scope))
                 buffer.write "="
-                args.generate java script (buffer, scope)
+                buffer.write (args.generate (scope))
                 buffer.write "["
-                args.generate java script (buffer, scope)
+                buffer.write (args.generate (scope))
                 buffer.write ".length-#(args index)];"
 
             if ((before.length > 0) && (after.length > 0))
@@ -85,15 +85,15 @@ module.exports (terms) = {
                 for each @(option) in (self.options)
                     option name = codegen utils.concat name (option.field)
                     buffer.write "#(option name)="
-                    self.options variable.generate java script (buffer, scope)
+                    buffer.write (self.options variable.generate (scope))
                     buffer.write "!==void 0&&Object.prototype.hasOwnProperty.call("
-                    self.options variable.generate java script (buffer, scope)
+                    buffer.write (self.options variable.generate (scope))
                     buffer.write ",'#(option name)')&&"
-                    self.options variable.generate java script (buffer, scope)
+                    buffer.write (self.options variable.generate (scope))
                     buffer.write ".#(option name)!==void 0?"
-                    self.options variable.generate java script (buffer, scope)
+                    buffer.write (self.options variable.generate (scope))
                     buffer.write ".#(option name):"
-                    option.value.generate java script (buffer, scope)
+                    buffer.write (option.value.generate (scope))
                     buffer.write ";"
         }
 
@@ -112,7 +112,7 @@ module.exports (terms) = {
                         if (term :: String)
                             buffer.write (term)
                         else
-                            term.generate java script (buffer, scope)
+                            buffer.write (term.generate (scope))
 
                 inner args = terms.generated variable ['arguments']
 

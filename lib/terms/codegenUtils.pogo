@@ -7,7 +7,7 @@ exports.write to buffer with delimiter (array, delimiter, buffer, scope) =
       writer := scope
   else
       writer (item) :=
-          item.generate java script (buffer, scope)
+          buffer.write (item.generate (scope))
   
   first = true
 

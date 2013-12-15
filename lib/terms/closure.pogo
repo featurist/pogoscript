@@ -36,15 +36,15 @@ module.exports (terms) =
         generate java script (buffer, scope) =
             self.code into buffer (buffer) @(buffer)
                 buffer.write ('(')
-                self.options.generate java script (buffer, scope)
+                buffer.write (self.options.generate (scope))
                 buffer.write ('&&')
-                self.options.generate java script (buffer, scope)
+                buffer.write (self.options.generate (scope))
                 buffer.write (".hasOwnProperty('" + codegen utils.concat name (self.name) + "')&&")
-                self.options.generate java script (buffer, scope)
+                buffer.write (self.options.generate (scope))
                 buffer.write ("." + codegen utils.concat name (self.name) + "!==void 0)?")
-                self.options.generate java script (buffer, scope)
+                buffer.write (self.options.generate (scope))
                 buffer.write ('.' + codegen utils.concat name (self.name) + ':')
-                self.proper default value ().generate java script (buffer, scope)
+                buffer.write (self.proper default value ().generate (scope))
     }
 
     async parameters (closure, next) = {
@@ -179,7 +179,7 @@ module.exports (terms) =
                 self.define parameters (body scope, defined parameters)
 
                 if (self.defines module constants)
-                    terms.module constants.generate java script (buffer, scope)
+                    buffer.write (terms.module constants.generate (scope))
 
                 self.generate self assignment (buffer)
 

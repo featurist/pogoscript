@@ -6,9 +6,9 @@ module.exports (terms) = terms.term {
 
     generate java script (buffer, scope) =
         self.code into buffer (buffer) @(buffer)
-            self.object.generate java script (buffer, scope)
+            buffer.write (self.object.generate (scope))
             buffer.write ('[')
-            self.indexer.generate java script (buffer, scope)
+            buffer.write (self.indexer.generate (scope))
             buffer.write (']')
 
     generate java script target (args, ...) = self.generate java script (args, ...)

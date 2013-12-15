@@ -8,7 +8,7 @@ module.exports (terms) = terms.term {
 
     generate java script (buffer, scope) =
         self.code into buffer (buffer) @(buffer)
-            self.object.generate java script (buffer, scope)
+            buffer.write (self.object.generate (scope))
             buffer.write ('.')
             buffer.write (codegen utils.concat name (self.name))
 

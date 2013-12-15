@@ -1,6 +1,7 @@
 class = require '../class'.class
 class extending = require '../class'.class extending
 _ = require 'underscore'
+ms = require '../memorystream'
 
 module.exports (cg) =
     Node = class {
@@ -185,15 +186,12 @@ module.exports (cg) =
                     path.pop ()
 
             map reduce children (self)
-
-        code into buffer (buffer, generate code into buffer) =
-            generate code into buffer (buffer)
     }
 
     Term = class extending (Node) {
         generate java script statement (buffer, scope) =
             self.code into buffer (buffer) @(buffer)
-                self.generate java script (buffer, scope)
+                buffer.write (self.generate (scope))
                 buffer.write ';'
 
         arguments () = self
@@ -276,6 +274,14 @@ module.exports (cg) =
                 return term (self)
 
         asyncify () = nil
+
+        code into buffer (buffer, generate code into buffer) =
+            generate code into buffer (buffer)
+
+        generate (scope) =
+            buffer = new (ms.MemoryStream)
+            self.generate java script (buffer, scope)
+            buffer.to string ()
     }
 
     term prototype = new (Term)

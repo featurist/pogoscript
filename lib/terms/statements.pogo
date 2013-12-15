@@ -85,7 +85,7 @@ module.exports (terms) = terms.term {
     generate java script (buffer, scope) =
         self.code into buffer (buffer) @(buffer)
             if (self.statements.length > 0)
-                self.statements.(self.statements.length - 1).generate java script (buffer, scope)
+                buffer.write (self.statements.(self.statements.length - 1).generate (scope))
 
     generate java script statement (buffer, scope) =
         self.code into buffer (buffer) @(buffer)

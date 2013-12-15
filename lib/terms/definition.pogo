@@ -17,7 +17,7 @@ module.exports (terms) = terms.term {
         self.code into buffer (buffer) @(buffer)
             self.target.generate java script target (buffer, scope)
             buffer.write ('=')
-            self.source.generate java script (buffer, scope)
+            buffer.write (self.source.generate (scope))
   
     define variables (variables) =
         name = self.target.canonical name (variables.scope)

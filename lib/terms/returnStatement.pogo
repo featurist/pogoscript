@@ -8,7 +8,7 @@ module.exports (terms) = terms.term {
         self.code into buffer (buffer) @(buffer)
             if (self.expression)
                 buffer.write ('return ')
-                self.expression.generate java script (buffer, scope)
+                buffer.write (self.expression.generate (scope))
                 buffer.write (';')
             else
                 buffer.write ('return;')

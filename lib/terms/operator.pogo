@@ -15,11 +15,11 @@ module.exports (terms) = terms.term {
                 if (self.is operator alpha ())
                     buffer.write (' ')
 
-                self.operator arguments.0.generate java script (buffer, scope)
+                buffer.write (self.operator arguments.0.generate (scope))
             else
                 alpha = self.is operator alpha ()
           
-                self.operator arguments.0.generate java script (buffer, scope)
+                buffer.write (self.operator arguments.0.generate (scope))
                 for (n = 1, n < self.operator arguments.length, ++n)
                     if (alpha)
                         buffer.write (' ')
@@ -28,7 +28,7 @@ module.exports (terms) = terms.term {
                     if (alpha)
                         buffer.write (' ')
 
-                    self.operator arguments.(n).generate java script (buffer, scope)
+                    buffer.write (self.operator arguments.(n).generate (scope))
         
             buffer.write (')')
 }

@@ -11,10 +11,10 @@ module.exports (terms) =
                     splat argument = self.splat arguments.(i)
 
                     if (i == 0)
-                        splat argument.generate java script (buffer, scope)
+                        buffer.write (splat argument.generate (scope))
                     else
                         buffer.write ('.concat(')
-                        splat argument.generate java script (buffer, scope)
+                        buffer.write (splat argument.generate (scope))
                         buffer.write (')')
     }
 

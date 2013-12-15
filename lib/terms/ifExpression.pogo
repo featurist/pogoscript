@@ -13,7 +13,7 @@ module.exports (terms) =
             self.code into buffer (buffer) @(buffer)
                 codegen utils.write to buffer with delimiter (self.cases, 'else ', buffer) @(case_)
                     buffer.write ('if(')
-                    case_.condition.generate java script (buffer, scope)
+                    buffer.write (case_.condition.generate (scope))
                     buffer.write ('){')
                     case_.body.generate java script statements (buffer, scope)
                     buffer.write ('}')

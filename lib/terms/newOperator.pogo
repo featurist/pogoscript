@@ -8,11 +8,11 @@ module.exports (terms) =
             self.code into buffer (buffer) @(buffer)
                 buffer.write ('new ')
                 if (self.function call.is variable)
-                    terms.function call (self.function call, []).generate java script (buffer, scope)
+                    buffer.write (terms.function call (self.function call, []).generate (scope))
                 else if (self.function call.is function call && self.function call.has splat arguments ())
-                    self.cg.block ([], self.cg.statements ([self.function call]), return last statement: false).generate java script (buffer, scope)
+                    buffer.write (self.cg.block ([], self.cg.statements ([self.function call]), return last statement: false).generate (scope))
                 else
-                    self.function call.generate java script (buffer, scope)
+                    buffer.write (self.function call.generate (scope))
     }
 
     new operator (fn) =

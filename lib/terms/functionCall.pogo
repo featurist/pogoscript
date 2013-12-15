@@ -30,7 +30,7 @@ module.exports (terms) =
       
         generate java script (buffer, scope) =
             self.code into buffer (buffer) @(buffer)
-                self.function.generate java script (buffer, scope)
+                buffer.write (self.function.generate (scope))
 
                 args = codegen utils.concat args (
                     self.function arguments
@@ -43,9 +43,9 @@ module.exports (terms) =
             
                 if (splatted arguments && self.function.is indexer)
                     buffer.write ('.apply(')
-                    self.function.object.generate java script (buffer, scope)
+                    buffer.write (self.function.object.generate (scope))
                     buffer.write (',')
-                    splatted arguments.generate java script (buffer, scope)
+                    buffer.write (splatted arguments.generate (scope))
                     buffer.write (')')
                 else if (splatted arguments)
                     buffer.write ('.apply(')
@@ -56,7 +56,7 @@ module.exports (terms) =
                         buffer.write ('null')
 
                     buffer.write (',')
-                    splatted arguments.generate java script (buffer, scope)
+                    buffer.write (splatted arguments.generate (scope))
                     buffer.write (')')
                 else
                     buffer.write ('(')

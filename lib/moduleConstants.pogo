@@ -37,6 +37,6 @@ module.exports (terms) =
             self.code into buffer (buffer) @(buffer)
                 for each @(def) in (self.definitions ())
                     buffer.write 'var '
-                    def.generate java script (buffer, scope)
+                    buffer.write (def.generate (scope))
                     buffer.write ';'
     }
