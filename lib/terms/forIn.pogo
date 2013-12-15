@@ -27,7 +27,7 @@ module.exports (terms) = terms.term {
 
             buffer.write ('}')
 
-    generate java script statement (args, ...) = self.generate java script (args, ...)
+    generate statement (args, ...) = self.generate (args, ...)
 
     rewrite result term into (return term) = nil
 }

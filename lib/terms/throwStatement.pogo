@@ -3,11 +3,12 @@ module.exports (terms) = terms.term {
         self.is throw = true
         self.expression = expr
 
-    generate java script statement (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
-            buffer.write ('throw ')
-            buffer.write (self.expression.generate (scope))
-            buffer.write (';')
+    generate statement (scope) =
+        self.code (
+            'throw '
+            self.expression.generate (scope)
+            ';'
+        )
 
     rewrite result term into (return term) = self
 }

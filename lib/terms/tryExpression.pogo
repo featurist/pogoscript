@@ -9,8 +9,8 @@ module.exports (terms) =
             self.catch parameter = catch parameter
             self.finally body = finally body
 
-        generate java script statement (buffer, scope, return statements) =
-            self.code into buffer (buffer) @(buffer)
+        generate statement (scope, return statements) =
+            self.generate into buffer @(buffer)
                 buffer.write ('try{')
                 if (return statements)
                     buffer.write (self.body.generate statements return (scope))

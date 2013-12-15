@@ -9,8 +9,8 @@ module.exports (terms) =
             self.cases = cases
             self.else body = else body
 
-        generate java script statement (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
+        generate statement (scope) =
+            self.generate into buffer @(buffer)
                 codegen utils.write to buffer with delimiter (self.cases, 'else ', buffer) @(case_)
                     buffer.write ('if(')
                     buffer.write (case_.condition.generate (scope))

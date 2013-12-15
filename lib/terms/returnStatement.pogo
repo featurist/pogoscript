@@ -4,8 +4,8 @@ module.exports (terms) = terms.term {
         self.expression = expr
         self.is implicit = implicit
 
-    generate java script statement (buffer, scope) =
-        self.code into buffer (buffer) @(buffer)
+    generate statement (scope) =
+        self.generate into buffer @(buffer)
             if (self.expression)
                 buffer.write ('return ')
                 buffer.write (self.expression.generate (scope))

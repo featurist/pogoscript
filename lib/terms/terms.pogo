@@ -189,11 +189,6 @@ module.exports (cg) =
     }
 
     Term = class extending (Node) {
-        generate java script statement (buffer, scope) =
-            self.code into buffer (buffer) @(buffer)
-                buffer.write (self.generate (scope))
-                buffer.write ';'
-
         arguments () = self
 
         inspect term (depth: 20) =
@@ -278,6 +273,9 @@ module.exports (cg) =
         code into buffer (buffer, generate code into buffer) =
             generate code into buffer (buffer)
 
+        code (args, ...) =
+            args.join ''
+
         generate into buffer (generate code into buffer) =
             buffer = new (ms.MemoryStream)
             generate code into buffer (buffer)
@@ -292,13 +290,8 @@ module.exports (cg) =
             self.with buffer @(buffer)
                 self.generate java script (buffer, scope)
 
-        generate statements (scope) =
-            self.with buffer @(buffer)
-                self.generate java script statements (buffer, scope)
-
         generate statement (scope) =
-            self.with buffer @(buffer)
-                self.generate java script statement (buffer, scope)
+            self.code (self.generate (scope), ';')
 
         generate hash entry (scope) =
             self.with buffer @(buffer)

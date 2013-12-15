@@ -57,7 +57,7 @@ module.exports (terms) =
                 buffer.write (self.statements.generate statements (scope))
                 buffer.write ('}')
 
-        generate java script statement (args, ...) = self.generate java script (args, ...)
+        generate statement (args, ...) = self.generate (args, ...)
 
         rewrite result term into (return term) = nil
     }
