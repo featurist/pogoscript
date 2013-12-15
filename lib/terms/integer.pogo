@@ -4,5 +4,6 @@ module.exports (cg) = cg.term {
         self.integer = value
 
     generate java script (buffer, scope) =
-        buffer.write (self.integer.to string ())
+        self.code into buffer (buffer) @(buffer)
+            buffer.write (self.integer.to string ())
 }

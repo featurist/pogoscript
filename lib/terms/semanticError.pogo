@@ -8,7 +8,7 @@ module.exports (terms) = terms.term {
 
     print error (source file, buffer) =
         source file.print location (self.error terms.0.location (), buffer)
-        buffer.write(this.message + "\n")
+        buffer.write(self.message + "\n")
 
     generate java script hash entry () = nil
 }

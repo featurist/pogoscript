@@ -34,16 +34,17 @@ module.exports (terms) =
                 self.default value
 
         generate java script (buffer, scope) =
-            buffer.write ('(')
-            self.options.generate java script (buffer, scope)
-            buffer.write ('&&')
-            self.options.generate java script (buffer, scope)
-            buffer.write (".hasOwnProperty('" + codegen utils.concat name (self.name) + "')&&")
-            self.options.generate java script (buffer, scope)
-            buffer.write ("." + codegen utils.concat name (self.name) + "!==void 0)?")
-            self.options.generate java script (buffer, scope)
-            buffer.write ('.' + codegen utils.concat name (self.name) + ':')
-            self.proper default value ().generate java script (buffer, scope)
+            self.code into buffer (buffer) @(buffer)
+                buffer.write ('(')
+                self.options.generate java script (buffer, scope)
+                buffer.write ('&&')
+                self.options.generate java script (buffer, scope)
+                buffer.write (".hasOwnProperty('" + codegen utils.concat name (self.name) + "')&&")
+                self.options.generate java script (buffer, scope)
+                buffer.write ("." + codegen utils.concat name (self.name) + "!==void 0)?")
+                self.options.generate java script (buffer, scope)
+                buffer.write ('.' + codegen utils.concat name (self.name) + ':')
+                self.proper default value ().generate java script (buffer, scope)
     }
 
     async parameters (closure, next) = {
@@ -165,30 +166,32 @@ module.exports (terms) =
                 scope.define (parameter.canonical name (scope))
 
         generate java script (buffer, scope) =
-            parameters strategy = self.parameters strategy ()
+            self.code into buffer (buffer) @(buffer)
+                parameters strategy = self.parameters strategy ()
 
-            self.rewrite result term to return ()
+                self.rewrite result term to return ()
 
-            buffer.write ('function(')
-            defined parameters = parameters strategy.defined parameters ()
-            parameters strategy.generate java script parameters (buffer, scope)
-            buffer.write ('){')
-            body scope = scope.sub scope ()
-            self.define parameters (body scope, defined parameters)
+                buffer.write ('function(')
+                defined parameters = parameters strategy.defined parameters ()
+                parameters strategy.generate java script parameters (buffer, scope)
+                buffer.write ('){')
+                body scope = scope.sub scope ()
+                self.define parameters (body scope, defined parameters)
 
-            if (self.defines module constants)
-                terms.module constants.generate java script (buffer, scope)
+                if (self.defines module constants)
+                    terms.module constants.generate java script (buffer, scope)
 
-            self.generate self assignment (buffer)
+                self.generate self assignment (buffer)
 
-            parameters strategy.generate java script parameter statements (buffer, scope, terms.variable ['arguments'])
-            self.body.generate java script statements (buffer, body scope, in closure: true)
+                parameters strategy.generate java script parameter statements (buffer, scope, terms.variable ['arguments'])
+                self.body.generate java script statements (buffer, body scope, in closure: true)
 
-            buffer.write ('}')
+                buffer.write ('}')
 
         generate self assignment (buffer) =
-            if (self.redefines self)
-                buffer.write 'var self=this;'
+            self.code into buffer (buffer) @(buffer)
+                if (self.redefines self)
+                    buffer.write 'var self=this;'
 
         rewrite result term to return () =
             if (self.return last statement && !self.body.is async)

@@ -4,8 +4,9 @@ module.exports (cg) = cg.term {
         self.is boolean = true
 
     generate java script (buffer, scope) =
-      if (self.boolean)
-        buffer.write 'true'
-      else
-        buffer.write 'false'
+        self.code into buffer (buffer) @(buffer)
+            if (self.boolean)
+                buffer.write 'true'
+            else
+                buffer.write 'false'
 }

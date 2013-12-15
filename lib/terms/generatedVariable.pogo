@@ -21,7 +21,8 @@ module.exports (terms) = terms.term {
         self.name
 
     generate java script (buffer, scope) =
-        buffer.write (self.generated name (scope))
+        self.code into buffer (buffer) @(buffer)
+            buffer.write (self.generated name (scope))
 
     generate java script parameter (args, ...) = self.generate java script (args, ...)
 

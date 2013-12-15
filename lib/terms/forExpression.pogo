@@ -46,15 +46,16 @@ module.exports (terms) =
                 self.statements
       
         generate java script (buffer, scope) =
-            buffer.write ('for(')
-            self.initialization.generate java script (buffer, scope)
-            buffer.write (';')
-            self.test.generate java script (buffer, scope)
-            buffer.write (';')
-            self.increment.generate java script (buffer, scope)
-            buffer.write ('){')
-            self.statements.generate java script statements (buffer, scope)
-            buffer.write ('}')
+            self.code into buffer (buffer) @(buffer)
+                buffer.write ('for(')
+                self.initialization.generate java script (buffer, scope)
+                buffer.write (';')
+                self.test.generate java script (buffer, scope)
+                buffer.write (';')
+                self.increment.generate java script (buffer, scope)
+                buffer.write ('){')
+                self.statements.generate java script statements (buffer, scope)
+                buffer.write ('}')
 
         generate java script statement (args, ...) = self.generate java script (args, ...)
 

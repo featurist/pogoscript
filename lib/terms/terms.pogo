@@ -185,12 +185,16 @@ module.exports (cg) =
                     path.pop ()
 
             map reduce children (self)
+
+        code into buffer (buffer, generate code into buffer) =
+            generate code into buffer (buffer)
     }
 
     Term = class extending (Node) {
         generate java script statement (buffer, scope) =
-            self.generate java script (buffer, scope)
-            buffer.write ';'
+            self.code into buffer (buffer) @(buffer)
+                self.generate java script (buffer, scope)
+                buffer.write ';'
 
         arguments () = self
 
@@ -216,7 +220,7 @@ module.exports (cg) =
         scopify () = self
 
         parameter () =
-            this.cg.errors.add term (self) with message 'this cannot be used as a parameter'
+            self.cg.errors.add term (self) with message 'this cannot be used as a parameter'
 
         subterms () = nil
 

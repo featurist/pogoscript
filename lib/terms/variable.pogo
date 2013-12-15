@@ -14,7 +14,8 @@ module.exports (terms) =
             self.variable.join ' '
       
         generate java script (buffer, scope) =
-            buffer.write (this.canonical name ())
+            self.code into buffer (buffer) @(buffer)
+                buffer.write (self.canonical name ())
       
         generate java script target (args, ...) = self.generate java script (args, ...)
       

@@ -4,6 +4,7 @@ module.exports (terms) = terms.term {
         self.source = source
 
     generate java script (buffer, scope) =
-      buffer.write (self.source)
+        self.code into buffer (buffer) @(buffer)
+            buffer.write (self.source)
 }
 

@@ -2,7 +2,7 @@ class = require './class'.class
 codegen utils = require './terms/codegenUtils'
 
 module.exports (terms) =
-    module constants = class {
+    module constants = terms.term {
         constructor () =
             self.named definitions = {}
 
@@ -34,8 +34,9 @@ module.exports (terms) =
             defs
 
         generate java script (buffer, scope) =
-            for each @(def) in (self.definitions ())
-                buffer.write 'var '
-                def.generate java script (buffer, scope)
-                buffer.write ';'
+            self.code into buffer (buffer) @(buffer)
+                for each @(def) in (self.definitions ())
+                    buffer.write 'var '
+                    def.generate java script (buffer, scope)
+                    buffer.write ';'
     }

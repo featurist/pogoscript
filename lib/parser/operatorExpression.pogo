@@ -112,20 +112,20 @@ module.exports (terms) =
 
                 return (operands.0)
             else
-                this.arguments.0.expression ()
+                self.arguments.0.expression ()
 
         hash entry () =
-            if (this.arguments.length == 1)
-                this.arguments.0.hash entry ()
+            if (self.arguments.length == 1)
+                self.arguments.0.hash entry ()
             else
                 terms.errors.add term with message (self, 'cannot be used as a hash entry')
         
         definition (source, assignment: false) =
-            if (this.arguments.length > 1)
+            if (self.arguments.length > 1)
                 object = self.arguments.0.expression ()
                 parms = [arg.expression ().parameter (), where: arg <- self.arguments.slice (1)]
                 
                 terms.definition (terms.field reference (object, self.name), source.blockify (parms, []), assignment: assignment)
             else
-                this.arguments.0.definition (source, assignment: assignment)
+                self.arguments.0.definition (source, assignment: assignment)
     }

@@ -6,15 +6,16 @@ module.exports (terms) =
             self.splat arguments = splat arguments
 
         generate java script (buffer, scope) =
-            for (i = 0, i < self.splat arguments.length, ++i)
-                splat argument = self.splat arguments.(i)
+            self.code into buffer (buffer) @(buffer)
+                for (i = 0, i < self.splat arguments.length, ++i)
+                    splat argument = self.splat arguments.(i)
 
-                if (i == 0)
-                    splat argument.generate java script (buffer, scope)
-                else
-                    buffer.write ('.concat(')
-                    splat argument.generate java script (buffer, scope)
-                    buffer.write (')')
+                    if (i == 0)
+                        splat argument.generate java script (buffer, scope)
+                    else
+                        buffer.write ('.concat(')
+                        splat argument.generate java script (buffer, scope)
+                        buffer.write (')')
     }
 
     splat arguments (args, optional args) =

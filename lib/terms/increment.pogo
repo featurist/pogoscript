@@ -4,6 +4,7 @@ module.exports (terms) = terms.term {
         self.expression = expr
 
     generate java script (buffer, scope) =
-        buffer.write('++')
-        self.expression.generate java script(buffer, scope)
+        self.code into buffer (buffer) @(buffer)
+            buffer.write('++')
+            self.expression.generate java script(buffer, scope)
 }

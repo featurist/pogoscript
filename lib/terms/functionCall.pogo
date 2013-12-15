@@ -29,38 +29,39 @@ module.exports (terms) =
                 arg.is splat
       
         generate java script (buffer, scope) =
-            self.function.generate java script (buffer, scope)
+            self.code into buffer (buffer) @(buffer)
+                self.function.generate java script (buffer, scope)
 
-            args = codegen utils.concat args (
-                self.function arguments
-                optional args: self.optional arguments
-                async callback arg: self.async callback argument
-                terms: terms
-            )
+                args = codegen utils.concat args (
+                    self.function arguments
+                    optional args: self.optional arguments
+                    async callback arg: self.async callback argument
+                    terms: terms
+                )
 
-            splatted arguments = self.cg.splat arguments (args)
-        
-            if (splatted arguments && self.function.is indexer)
-                buffer.write ('.apply(')
-                self.function.object.generate java script (buffer, scope)
-                buffer.write (',')
-                splatted arguments.generate java script (buffer, scope)
-                buffer.write (')')
-            else if (splatted arguments)
-                buffer.write ('.apply(')
+                splatted arguments = self.cg.splat arguments (args)
+            
+                if (splatted arguments && self.function.is indexer)
+                    buffer.write ('.apply(')
+                    self.function.object.generate java script (buffer, scope)
+                    buffer.write (',')
+                    splatted arguments.generate java script (buffer, scope)
+                    buffer.write (')')
+                else if (splatted arguments)
+                    buffer.write ('.apply(')
 
-                if (self.pass this to apply)
-                    buffer.write ('this')
+                    if (self.pass this to apply)
+                        buffer.write ('this')
+                    else
+                        buffer.write ('null')
+
+                    buffer.write (',')
+                    splatted arguments.generate java script (buffer, scope)
+                    buffer.write (')')
                 else
-                    buffer.write ('null')
-
-                buffer.write (',')
-                splatted arguments.generate java script (buffer, scope)
-                buffer.write (')')
-            else
-                buffer.write ('(')
-                codegen utils.write to buffer with delimiter (args, ',', buffer, scope)
-                buffer.write (')')
+                    buffer.write ('(')
+                    codegen utils.write to buffer with delimiter (args, ',', buffer, scope)
+                    buffer.write (')')
 
         make async call with callback (callback) =
             self.async callback argument = callback

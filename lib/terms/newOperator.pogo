@@ -5,13 +5,14 @@ module.exports (terms) =
             self.function call = fn
 
         generate java script (buffer, scope) =
-            buffer.write ('new ')
-            if (self.function call.is variable)
-                terms.function call (self.function call, []).generate java script (buffer, scope)
-            else if (self.function call.is function call && self.function call.has splat arguments ())
-                self.cg.block ([], self.cg.statements ([self.function call]), return last statement: false).generate java script (buffer, scope)
-            else
-                self.function call.generate java script (buffer, scope)
+            self.code into buffer (buffer) @(buffer)
+                buffer.write ('new ')
+                if (self.function call.is variable)
+                    terms.function call (self.function call, []).generate java script (buffer, scope)
+                else if (self.function call.is function call && self.function call.has splat arguments ())
+                    self.cg.block ([], self.cg.statements ([self.function call]), return last statement: false).generate java script (buffer, scope)
+                else
+                    self.function call.generate java script (buffer, scope)
     }
 
     new operator (fn) =

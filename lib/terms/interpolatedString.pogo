@@ -7,9 +7,10 @@ module.exports (terms) =
             self.components = components
 
         generate java script (buffer, scope) =
-            buffer.write '('
-            codegen utils.write to buffer with delimiter (this.components, '+', buffer, scope)
-            buffer.write ')'
+            self.code into buffer (buffer) @(buffer)
+                buffer.write '('
+                codegen utils.write to buffer with delimiter (self.components, '+', buffer, scope)
+                buffer.write ')'
     }
 
     interpolated string (components) =

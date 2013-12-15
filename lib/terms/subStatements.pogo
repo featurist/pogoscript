@@ -21,6 +21,7 @@ module.exports (terms) = terms.term {
             last statement
 
     generate java script () =
-        self.show ()
-        throw (new (Error "sub statements does not generate java script"))
+        self.code into buffer (buffer) @(buffer)
+            self.show ()
+            throw (new (Error "sub statements does not generate java script"))
 }

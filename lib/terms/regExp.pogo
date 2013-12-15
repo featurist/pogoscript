@@ -5,10 +5,11 @@ module.exports (terms) = terms.term {
         self.options = pattern options.options
 
     generate java script (buffer, scope) =
-        options = if (self.options)
-            '/' + self.options
-        else
-            '/'
+        self.code into buffer (buffer) @(buffer)
+            options = if (self.options)
+                '/' + self.options
+            else
+                '/'
 
-        buffer.write ('/' + this.pattern.replace(r/\//g, '\/') + options)
+            buffer.write ('/' + self.pattern.replace(r/\//g, '\/') + options)
 }

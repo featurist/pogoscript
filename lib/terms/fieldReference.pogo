@@ -7,9 +7,10 @@ module.exports (terms) = terms.term {
         self.is field reference = true
 
     generate java script (buffer, scope) =
-        self.object.generate java script (buffer, scope)
-        buffer.write ('.')
-        buffer.write (codegen utils.concat name (self.name))
+        self.code into buffer (buffer) @(buffer)
+            self.object.generate java script (buffer, scope)
+            buffer.write ('.')
+            buffer.write (codegen utils.concat name (self.name))
 
     generate java script target (args, ...) = self.generate java script (args, ...)
 }

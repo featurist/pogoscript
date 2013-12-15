@@ -68,7 +68,8 @@ module.exports (terms) = terms.term {
         variables.unique variables ()
 
     generate java script statements (buffer, scope, in closure: false, global: false) =
-        self.generate statements (self.statements, buffer, scope, in closure: in closure, global: global)
+        self.code into buffer (buffer) @(buffer)
+            self.generate statements (self.statements, buffer, scope, in closure: in closure, global: global)
 
     blockify (parameters, options) =
         statements = if (self.is expression statements)
@@ -82,12 +83,14 @@ module.exports (terms) = terms.term {
         self.cg.function call (self.cg.block([], self), [])
 
     generate java script (buffer, scope) =
-        if (self.statements.length > 0)
-            self.statements.(self.statements.length - 1).generate java script (buffer, scope)
+        self.code into buffer (buffer) @(buffer)
+            if (self.statements.length > 0)
+                self.statements.(self.statements.length - 1).generate java script (buffer, scope)
 
     generate java script statement (buffer, scope) =
-        if (self.statements.length > 0)
-            self.statements.(self.statements.length - 1).generate java script statement (buffer, scope)
+        self.code into buffer (buffer) @(buffer)
+            if (self.statements.length > 0)
+                self.statements.(self.statements.length - 1).generate java script statement (buffer, scope)
 
     definitions (scope) =
         _(self.statements).reduce @(list, statement)

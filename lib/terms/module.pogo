@@ -7,8 +7,9 @@ module.exports (terms) =
             self.body statements = (body statements || statements)
 
         generate java script module (buffer) =
-            scope = new (terms.Symbol Scope (nil))
-            self.statements.generate java script statements (buffer, scope, global: self.global, in closure: true)
+            self.code into buffer (buffer) @(buffer)
+                scope = new (terms.Symbol Scope (nil))
+                self.statements.generate java script statements (buffer, scope, global: self.global, in closure: true)
     }
 
     module (statements, in scope: true, global: false, return last statement: false, body statements: body statements) =

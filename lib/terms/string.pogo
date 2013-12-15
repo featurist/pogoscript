@@ -6,5 +6,6 @@ module.exports (terms) = terms.term {
         self.string = value
 
     generate java script (buffer, scope) =
-      buffer.write (codegen utils.format java script string (this.string))
+        self.code into buffer (buffer) @(buffer)
+            buffer.write (codegen utils.format java script string (self.string))
 }

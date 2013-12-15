@@ -6,11 +6,12 @@ module.exports (terms) =
             self.statements = statements
       
         generateJavaScript (buffer, scope) =
-            buffer.write ('with(')
-            self.subject.generateJavaScript (buffer, scope)
-            buffer.write ('){')
-            self.statements.generateJavaScriptStatements (buffer, scope)
-            buffer.write ('}')
+            self.code into buffer (buffer) @(buffer)
+                buffer.write ('with(')
+                self.subject.generateJavaScript (buffer, scope)
+                buffer.write ('){')
+                self.statements.generateJavaScriptStatements (buffer, scope)
+                buffer.write ('}')
       
         generateJavaScriptStatement (args, ...) = self.generateJavaScript (args, ...)
 

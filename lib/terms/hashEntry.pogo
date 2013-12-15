@@ -23,10 +23,11 @@ module.exports (terms) = terms.term {
         self.value
   
     generate java script hash entry (buffer, scope) =
-      f = codegen utils.concat name (self.field)
-      buffer.write (self.legal field name ())
-      buffer.write (':')
-      self.value or true ().generate java script (buffer, scope)
+        self.code into buffer (buffer) @(buffer)
+            f = codegen utils.concat name (self.field)
+            buffer.write (self.legal field name ())
+            buffer.write (':')
+            self.value or true ().generate java script (buffer, scope)
 
     asyncify () =
         self.value.asyncify ()

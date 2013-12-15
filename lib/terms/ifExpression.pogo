@@ -10,25 +10,27 @@ module.exports (terms) =
             self.else body = else body
 
         generate java script statement (buffer, scope) =
-            codegen utils.write to buffer with delimiter (self.cases, 'else ', buffer) @(case_)
-                buffer.write ('if(')
-                case_.condition.generate java script (buffer, scope)
-                buffer.write ('){')
-                case_.body.generate java script statements (buffer, scope)
-                buffer.write ('}')
+            self.code into buffer (buffer) @(buffer)
+                codegen utils.write to buffer with delimiter (self.cases, 'else ', buffer) @(case_)
+                    buffer.write ('if(')
+                    case_.condition.generate java script (buffer, scope)
+                    buffer.write ('){')
+                    case_.body.generate java script statements (buffer, scope)
+                    buffer.write ('}')
 
-            if (self.else body)
-                buffer.write ('else{')
-                self.else body.generate java script statements (buffer, scope)
-                buffer.write ('}')
+                if (self.else body)
+                    buffer.write ('else{')
+                    self.else body.generate java script statements (buffer, scope)
+                    buffer.write ('}')
 
         generate java script (buffer, scope) =
-            self.rewrite result term @(term) into
-                terms.return statement (term)
-                
-            buffer.write '(function(){'
-            self.generate java script statement (buffer, scope)
-            buffer.write '})()'
+            self.code into buffer (buffer) @(buffer)
+                self.rewrite result term @(term) into
+                    terms.return statement (term)
+                    
+                buffer.write '(function(){'
+                self.generate java script statement (buffer, scope)
+                buffer.write '})()'
 
         rewrite result term into (return term, async: false) =
             for each @(_case) in (self.cases)

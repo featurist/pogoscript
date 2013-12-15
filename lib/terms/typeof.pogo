@@ -5,7 +5,8 @@ module.exports (terms) = terms.term {
         self.type = type
     
     generate java script (buffer, scope) =
-        buffer.write "(typeof("
-        this.expression.generate java script (buffer, scope)
-        buffer.write ") === '#(this.type)')"
+        self.code into buffer (buffer) @(buffer)
+            buffer.write "(typeof("
+            self.expression.generate java script (buffer, scope)
+            buffer.write ") === '#(self.type)')"
 }

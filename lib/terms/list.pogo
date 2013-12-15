@@ -8,9 +8,10 @@ module.exports (terms) =
             self.items = items
 
         generate java script (buffer, scope) =
-            buffer.write ('[')
-            codegen utils.write to buffer with delimiter (self.items, ',', buffer, scope)
-            buffer.write (']')
+            self.code into buffer (buffer) @(buffer)
+                buffer.write ('[')
+                codegen utils.write to buffer with delimiter (self.items, ',', buffer, scope)
+                buffer.write (']')
     }
 
     list (items) =
