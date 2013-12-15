@@ -26,3 +26,15 @@ describe 'methods'
              }
 
              o.a method ([1, 2, 3], ...)' should output "[ 1, 2, 3 ]"
+
+        context 'when the object is an expression'
+            it 'is only invoked once'
+                'o () =
+                     print "created object"
+                     {
+                         a method (args, ...) =
+                             print (args)
+                     }
+
+                 o ().a method ([1, 2, 3], ...)' should output "'created object'
+                                                                [ 1, 2, 3 ]"

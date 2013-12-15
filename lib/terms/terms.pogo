@@ -87,8 +87,7 @@ module.exports (cg) =
             clone array (terms, allow rewrite, path) =
                 try
                     path.push (terms)
-                    _.map (terms) @(node)
-                        clone subterm (node, allow rewrite, path)
+                    [node <- terms, clone subterm (node, allow rewrite, path)]
                 finally
                     path.pop ()
 

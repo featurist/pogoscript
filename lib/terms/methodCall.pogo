@@ -72,7 +72,7 @@ module.exports (terms) =
             terms.sub statements [
               terms.definition (object var, object)
               method call (
-                object
+                object var
                 name
                 args
                 async: async
