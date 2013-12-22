@@ -1,41 +1,42 @@
 {
-    "name": "pogo",
-    "version": "0.6.4",
-    "description": "A readable, DSL friendly programming language that compiles to JavaScript",
-    "maintainers": [
-        {
-            "name": "Tim Macfarlane",
-            "email": "timmacfarlane@gmail.com",
-            "web": "http://featurist.co.uk/"
-        }
-    ],
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/featurist/pogoscript.git"
-    },
-    "files": [
-        "index.js",
-        "src",
-        "lib",
-        "bin"
-    ],
-    "scripts": {
-        "test": "mocha --invert --grep @wip test/*Spec.* test/*/*Spec.*"
-    },
-    "bin": {
-        "pogo": "bin/pogo"
-    },
-    "main": "index.js",
-    "devDependencies": {
-        "mocha": "",
-        "should": "",
-        "jison": "",
-        "browserify": "",
-        "glob": "",
-        "pogoify": ""
-    },
-    "dependencies": {
-        "underscore": "1.4.4",
-        "uglify-js": "2.2.4"
+  "name": "pogo",
+  "version": "0.6.4",
+  "description": "A readable, DSL friendly programming language that compiles to JavaScript",
+  "maintainers": [
+    {
+      "name": "Tim Macfarlane",
+      "email": "timmacfarlane@gmail.com",
+      "web": "http://featurist.co.uk/"
     }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/featurist/pogoscript.git"
+  },
+  "files": [
+    "index.js",
+    "src",
+    "lib",
+    "bin"
+  ],
+  "scripts": {
+    "test": "mocha --invert --grep @wip test/*Spec.* test/*/*Spec.*"
+  },
+  "bin": {
+    "pogo": "bin/pogo"
+  },
+  "main": "index.js",
+  "devDependencies": {
+    "mocha": "",
+    "should": "",
+    "jison": "",
+    "browserify": "",
+    "glob": "",
+    "pogoify": ""
+  },
+  "dependencies": {
+    "underscore": "1.4.4",
+    "uglify-js": "2.2.4",
+    "source-map": "~0.1.31"
+  }
 }
