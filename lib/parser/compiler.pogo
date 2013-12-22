@@ -2,6 +2,7 @@ ms = require '../memorystream'
 create parser = require './parser'.create parser
 create terms () = require './codeGenerator'.code generator ()
 object = require './runtime'.object
+sm = require 'source-map'
 
 beautify (code) =
     uglify = require 'uglify-js'
@@ -9,9 +10,6 @@ beautify (code) =
     stream = uglify.Output Stream (beautify: true)
     ast.print (stream)
     stream.to string ()
-
-generate code (term) =
-    term.generate module ()
 
 exports.compile (
     pogo
@@ -22,6 +20,8 @@ exports.compile (
     return result: false
     async: false
     terms: create terms ()
+    output filename: nil
+    source map: false
 ) =
     parser = create parser (terms: terms, filename: filename)
     statements = parser.parse (pogo)
@@ -36,7 +36,7 @@ exports.compile (
         return last statement: return result
     )
 
-    code = generate code (module term)
+    output = module term.generate module ().to string with source map (file: output filename)
 
     if (parser.errors.has errors ())
         memory stream = new (ms.MemoryStream)
@@ -45,10 +45,17 @@ exports.compile (
         error.is semantic errors = true
         @throw error
     else
-        if (ugly)
-            code
+        if (@not ugly)
+            beautify (output.code)
+        else if (source map)
+            output.map.set source content (filename, pogo)
+
+            {
+                code = output.code
+                map = JSON.parse (output.map.to string ())
+            }
         else
-            beautify (code)
+            output.code
 
 exports.evaluate (pogo, definitions: {}, ugly: true, global: false) =
     js = exports.compile (pogo, ugly: ugly, in scope: @not global, global: global, return result: @not global)

@@ -1,5 +1,6 @@
 pogo = require '../lib/parser/compiler'
 should = require 'should'
+sm = require 'source-map'
 
 describe 'pogo'
     it 'can compile pogoscript'
@@ -7,6 +8,18 @@ describe 'pogo'
                                            var self = this;
                                            x;
                                        }).call(this);'
+
+    describe 'source map'
+        it 'generates source map'
+            result = pogo.compile ('x', source map: true, output filename: 'some.js', filename: 'some.pogo', ugly: true)
+            code = result.code
+            
+            code.should.equal '(function(){var self=this;x;}).call(this);'
+
+            source map = @new sm.Source Map Consumer (result.map)
+            position = source map.original position for {line = 1, column = 2}
+
+            position.should.eql {source = 'some.pogo', line = 1, column = 0, name = null}
 
     describe 'evaluate'
         it 'can evaluate pogoscript'

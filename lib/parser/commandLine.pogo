@@ -9,12 +9,13 @@ compiler = require './compiler'
 create terms () = require './codeGenerator'.code generator ()
 
 running on node (version) or higher =
-    !versions.(process.version) is less than (version)
+    @not versions.(process.version) is less than (version)
 
 exports.compile file = compile file (filename, ugly: false) =
-    js = compile from file (filename, ugly: ugly)
-
+    full filename = fs.realpath sync (filename)
     js filename = js filename from pogo filename (filename)
+    js = compile from file (filename, ugly: ugly, output filename: js filename)
+
     fs.write file sync (js filename, js)
 
 when (filename) changes (act) =
@@ -42,7 +43,7 @@ exports.compile file if stale (filename, options) =
     js file = if (fs.exists sync (js filename))
         fs.stat sync (js filename)
 
-    if (!js file || (fs.stat sync (filename).mtime > js file.mtime))
+    if (@not js file || (fs.stat sync (filename).mtime > js file.mtime))
         self.show compiling file (filename, options)
 
 exports.lex file (filename) =
@@ -109,9 +110,9 @@ exports.repl () =
     else
         repl.start (undefined, undefined, eval pogo)
 
-compile from file (filename, ugly: false) =
+compile from file (filename, ugly: false, output filename: nil) =
     contents = fs.read file sync (filename) 'utf-8'
-    exports.compile (contents, filename: filename, ugly: ugly)
+    exports.compile (contents, filename: filename, ugly: ugly, output filename: output filename)
 
 exports.compile = compiler.compile
 exports.evaluate = compiler.evaluate

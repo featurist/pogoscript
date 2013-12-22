@@ -245,24 +245,44 @@ exports.future = function (action) {
     };
 };
 
-exports.generate = function(items, block, continuation) {
-  var results = [];
+exports.listComprehension = function (items, areRanges, block, continuation) {
+  var indexes = [];
+  var results = {};
   var completed = 0;
   var wasError = false;
 
-  for (var n = 0; n < items.length; n++) {
-    block(items[n], results, function (error, result) {
-      if (error) {
-        wasError = true;
-        continuation(error);
-      }
+  if (items.length > 0) {
+    for (var n = 0; n < items.length; n++) {
+      block(n, items[n], function (result, index) {
+        indexes.push(index);
+        results[index] = result;
+      }, function (error, result) {
+        if (error) {
+          wasError = true;
+          continuation(error);
+        }
 
-      completed++;
+        completed++;
 
-      if (completed == items.length && !wasError) {
-        continuation(void 0, results);
-      }
-    });
+        if (completed == items.length && !wasError) {
+          var sortedResults = [];
+
+          indexes.sort();
+
+          for (n = 0; n < indexes.length; n++) {
+            if (areRanges) {
+              sortedResults.push.apply(sortedResults, results[indexes[n]]);
+            } else {
+              sortedResults.push(results[indexes[n]]);
+            }
+          }
+
+          continuation(void 0, sortedResults);
+        }
+      });
+    }
+  } else {
+    continuation(void 0, []);
   }
 };
 
@@ -338,7 +358,7 @@ exports.oldTerm = function (members) {
   return new constructor();
 };
 
-},{"./parser/runtime":23,"./terms/codegenUtils":36,"underscore":91}],4:[function(require,module,exports){
+},{"./parser/runtime":23,"./terms/codegenUtils":36,"underscore":101}],4:[function(require,module,exports){
 (function() {
     var self = this;
     var $class, _;
@@ -433,7 +453,7 @@ exports.oldTerm = function (members) {
         };
     };
 }).call(this);
-},{"./class":2,"underscore":91}],5:[function(require,module,exports){
+},{"./class":2,"underscore":101}],5:[function(require,module,exports){
 var MemoryStream = function () {
   var buffer = [];
   
@@ -476,7 +496,7 @@ exports.MemoryStream = MemoryStream;
     module.exports = function(terms) {
         var self = this;
         var moduleConstants;
-        return moduleConstants = $class({
+        return moduleConstants = terms.term({
             constructor: function() {
                 var self = this;
                 return self.namedDefinitions = {};
@@ -507,17 +527,19 @@ exports.MemoryStream = MemoryStream;
                 }
                 return defs;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                var gen1_items, gen2_i, def;
-                gen1_items = self.definitions();
-                for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
-                    def = gen1_items[gen2_i];
-                    buffer.write("var ");
-                    def.generateJavaScript(buffer, scope);
-                    buffer.write(";");
-                }
-                return void 0;
+                return self.generateIntoBuffer(function(buffer) {
+                    var gen1_items, gen2_i, def;
+                    gen1_items = self.definitions();
+                    for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
+                        def = gen1_items[gen2_i];
+                        buffer.write("var ");
+                        buffer.write(def.generate(scope));
+                        buffer.write(";");
+                    }
+                    return void 0;
+                });
             }
         });
     };
@@ -688,7 +710,7 @@ module.exports = function (terminals) {
   });
 };
 
-},{"underscore":91}],8:[function(require,module,exports){
+},{"underscore":101}],8:[function(require,module,exports){
 (function() {
     var self = this;
     window.pogoscript = require("./compiler");
@@ -813,13 +835,14 @@ var loc = function (term, location) {
 },{"../codeGenerator":3,"../macroDirectory":4,"../moduleConstants":6,"../parser/operatorExpression":20,"../parser/unaryOperatorExpression":24,"../symbolScope":25,"../terms/argumentList":26,"../terms/argumentUtils":27,"../terms/asyncArgument":28,"../terms/asyncCallback":29,"../terms/asyncResult":30,"../terms/asyncStatements":31,"../terms/boolean":32,"../terms/breakStatement":33,"../terms/closure":34,"../terms/closureParameterStrategies":35,"../terms/continuationOrDefault":37,"../terms/continueStatement":38,"../terms/definition":39,"../terms/fieldReference":40,"../terms/float":41,"../terms/forEach":42,"../terms/forExpression":43,"../terms/forIn":44,"../terms/functionCall":45,"../terms/futureArgument":46,"../terms/generatedVariable":47,"../terms/generator":48,"../terms/hash":49,"../terms/hashEntry":50,"../terms/identifier":51,"../terms/ifExpression":52,"../terms/increment":53,"../terms/indexer":54,"../terms/integer":55,"../terms/interpolatedString":56,"../terms/javascript":57,"../terms/list":58,"../terms/listComprehension":59,"../terms/methodCall":60,"../terms/module":61,"../terms/newOperator":62,"../terms/nil":63,"../terms/normalParameters":64,"../terms/operator":65,"../terms/parameters":66,"../terms/regExp":67,"../terms/returnStatement":68,"../terms/scope":69,"../terms/selfExpression":70,"../terms/semanticError":71,"../terms/splat":72,"../terms/splatArguments":73,"../terms/splatParameters":74,"../terms/statements":75,"../terms/string":77,"../terms/subExpression":78,"../terms/subStatements":79,"../terms/terms":80,"../terms/throwStatement":81,"../terms/tryExpression":82,"../terms/typeof":83,"../terms/variable":84,"../terms/whileExpression":85,"../terms/withExpression":86,"./basicExpression":7,"./complexExpression":11,"./errors":13,"./listMacros":18,"./macros":19}],10:[function(require,module,exports){
 (function() {
     var self = this;
-    var ms, createParser, createTerms, object, beautify, generateCode, sourceLocationPrinter;
+    var ms, createParser, createTerms, object, sm, beautify, sourceLocationPrinter;
     ms = require("../memorystream");
     createParser = require("./parser").createParser;
     createTerms = function() {
         return require("./codeGenerator").codeGenerator();
     };
     object = require("./runtime").object;
+    sm = require("source-map");
     beautify = function(code) {
         var uglify, ast, stream;
         uglify = require("uglify-js");
@@ -830,15 +853,9 @@ var loc = function (term, location) {
         ast.print(stream);
         return stream.toString();
     };
-    generateCode = function(term) {
-        var memoryStream;
-        memoryStream = new ms.MemoryStream();
-        term.generateJavaScriptModule(memoryStream);
-        return memoryStream.toString();
-    };
     exports.compile = function(pogo, gen1_options) {
         var self = this;
-        var filename, inScope, ugly, global, returnResult, async, terms;
+        var filename, inScope, ugly, global, returnResult, async, terms, outputFilename, sourceMap;
         filename = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "filename") && gen1_options.filename !== void 0 ? gen1_options.filename : void 0;
         inScope = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "inScope") && gen1_options.inScope !== void 0 ? gen1_options.inScope : true;
         ugly = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "ugly") && gen1_options.ugly !== void 0 ? gen1_options.ugly : false;
@@ -846,9 +863,12 @@ var loc = function (term, location) {
         returnResult = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "returnResult") && gen1_options.returnResult !== void 0 ? gen1_options.returnResult : false;
         async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
         terms = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "terms") && gen1_options.terms !== void 0 ? gen1_options.terms : createTerms();
-        var parser, statements, moduleTerm, code, memoryStream, error;
+        outputFilename = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "outputFilename") && gen1_options.outputFilename !== void 0 ? gen1_options.outputFilename : void 0;
+        sourceMap = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "sourceMap") && gen1_options.sourceMap !== void 0 ? gen1_options.sourceMap : false;
+        var parser, statements, moduleTerm, output, memoryStream, error;
         parser = createParser({
-            terms: terms
+            terms: terms,
+            filename: filename
         });
         statements = parser.parse(pogo);
         if (async) {
@@ -861,7 +881,9 @@ var loc = function (term, location) {
             global: global,
             returnLastStatement: returnResult
         });
-        code = generateCode(moduleTerm);
+        output = moduleTerm.generateModule().toStringWithSourceMap({
+            file: outputFilename
+        });
         if (parser.errors.hasErrors()) {
             memoryStream = new ms.MemoryStream();
             parser.errors.printErrors(sourceLocationPrinter({
@@ -872,10 +894,16 @@ var loc = function (term, location) {
             error.isSemanticErrors = true;
             throw error;
         } else {
-            if (ugly) {
-                return code;
+            if (!ugly) {
+                return beautify(output.code);
+            } else if (sourceMap) {
+                output.map.setSourceContent(filename, pogo);
+                return {
+                    code: output.code,
+                    map: JSON.parse(output.map.toString())
+                };
             } else {
-                return beautify(code);
+                return output.code;
             }
         }
     };
@@ -978,7 +1006,7 @@ var loc = function (term, location) {
         return parser.lex(source);
     };
 }).call(this);
-},{"../memorystream":5,"./codeGenerator":9,"./parser":21,"./runtime":23,"uglify-js":"SqkSOK"}],11:[function(require,module,exports){
+},{"../memorystream":5,"./codeGenerator":9,"./parser":21,"./runtime":23,"source-map":91,"uglify-js":"SqkSOK"}],11:[function(require,module,exports){
 var _ = require('underscore');
 
 module.exports = function (listOfTerminals) {
@@ -1220,7 +1248,7 @@ module.exports = function (listOfTerminals) {
   });
 };
 
-},{"underscore":91}],12:[function(require,module,exports){
+},{"underscore":101}],12:[function(require,module,exports){
 (function() {
     var self = this;
     var createDynamicLexer;
@@ -1297,7 +1325,7 @@ exports.errors = function (terms) {
   };
 };
 
-},{"underscore":91}],14:[function(require,module,exports){
+},{"underscore":101}],14:[function(require,module,exports){
 (function() {
     var self = this;
     var comments, identifier;
@@ -2396,7 +2424,7 @@ if (typeof module !== 'undefined' && require.main === module) {
         return macros;
     };
 }).call(this);
-},{"underscore":91}],19:[function(require,module,exports){
+},{"underscore":101}],19:[function(require,module,exports){
 var _ = require('underscore');
 var errors = require('./errors');
 var codegenUtils = require('../terms/codegenUtils');
@@ -2724,7 +2752,7 @@ exports.macros = function (cg) {
   return macros;
 };
 
-},{"../terms/codegenUtils":36,"./errors":13,"underscore":91}],20:[function(require,module,exports){
+},{"../terms/codegenUtils":36,"./errors":13,"underscore":101}],20:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils;
@@ -2848,13 +2876,13 @@ exports.macros = function (cg) {
                     applyOperators(operators.pop());
                     return operands[0];
                 } else {
-                    return this.arguments[0].expression();
+                    return self.arguments[0].expression();
                 }
             },
             hashEntry: function() {
                 var self = this;
-                if (this.arguments.length === 1) {
-                    return this.arguments[0].hashEntry();
+                if (self.arguments.length === 1) {
+                    return self.arguments[0].hashEntry();
                 } else {
                     return terms.errors.addTermWithMessage(self, "cannot be used as a hash entry");
                 }
@@ -2864,7 +2892,7 @@ exports.macros = function (cg) {
                 var assignment;
                 assignment = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "assignment") && gen7_options.assignment !== void 0 ? gen7_options.assignment : false;
                 var object, parms;
-                if (this.arguments.length > 1) {
+                if (self.arguments.length > 1) {
                     object = self.arguments[0].expression();
                     parms = function() {
                         var gen8_results, gen9_items, gen10_i, arg;
@@ -2880,7 +2908,7 @@ exports.macros = function (cg) {
                         assignment: assignment
                     });
                 } else {
-                    return this.arguments[0].definition(source, {
+                    return self.arguments[0].definition(source, {
                         assignment: assignment
                     });
                 }
@@ -2888,7 +2916,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{"../terms/codegenUtils":36,"underscore":91}],21:[function(require,module,exports){
+},{"../terms/codegenUtils":36,"underscore":101}],21:[function(require,module,exports){
 (function() {
     var self = this;
     var ms, createParserContext, createDynamicLexer, parser, jisonLexer;
@@ -2899,8 +2927,9 @@ exports.macros = function (cg) {
     jisonLexer = parser.lexer;
     exports.createParser = function(gen1_options) {
         var self = this;
-        var terms;
+        var terms, filename;
         terms = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "terms") && gen1_options.terms !== void 0 ? gen1_options.terms : terms;
+        filename = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "filename") && gen1_options.filename !== void 0 ? gen1_options.filename : void 0;
         return {
             parse: function(source) {
                 var self = this;
@@ -2909,7 +2938,8 @@ exports.macros = function (cg) {
                     nextLexer: jisonLexer
                 });
                 parserContext = createParserContext({
-                    terms: terms
+                    terms: terms,
+                    filename: filename
                 });
                 parserContext.lexer = dynamicLexer;
                 jisonLexer.yy = parserContext;
@@ -2975,8 +3005,9 @@ exports.macros = function (cg) {
     createIndentStack = require("./indentStack").createIndentStack;
     createInterpolation = require("./interpolation").createInterpolation;
     exports.createParserContext = createParserContext = function(gen1_options) {
-        var terms;
+        var terms, filename;
         terms = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "terms") && gen1_options.terms !== void 0 ? gen1_options.terms : void 0;
+        filename = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "filename") && gen1_options.filename !== void 0 ? gen1_options.filename : void 0;
         return {
             terms: terms,
             indentStack: createIndentStack(),
@@ -3024,12 +3055,10 @@ exports.macros = function (cg) {
                     firstLine: location.first_line,
                     lastLine: location.last_line,
                     firstColumn: location.first_column,
-                    lastColumn: location.last_column
+                    lastColumn: location.last_column,
+                    filename: filename
                 };
-                term.location = function() {
-                    var self = this;
-                    return loc;
-                };
+                term.setLocation(loc);
                 return term;
             },
             unindentBy: function(string, columns) {
@@ -3115,7 +3144,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./indentStack":15,"./interpolation":16,"./runtime":23,"underscore":91}],23:[function(require,module,exports){
+},{"./indentStack":15,"./interpolation":16,"./runtime":23,"underscore":101}],23:[function(require,module,exports){
 (function() {
     var self = this;
     var constructor;
@@ -3453,7 +3482,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./codegenUtils":36,"./statementsUtils":76,"underscore":91}],32:[function(require,module,exports){
+},{"./codegenUtils":36,"./statementsUtils":76,"underscore":101}],32:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(cg) {
@@ -3464,13 +3493,15 @@ exports.macros = function (cg) {
                 self.boolean = value;
                 return self.isBoolean = true;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                if (self.boolean) {
-                    return buffer.write("true");
-                } else {
-                    return buffer.write("false");
-                }
+                return self.code(function() {
+                    if (self.boolean) {
+                        return "true";
+                    } else {
+                        return "false";
+                    }
+                }());
             }
         });
     };
@@ -3485,9 +3516,9 @@ exports.macros = function (cg) {
                 var self = this;
                 return self.isBreak = true;
             },
-            generateJavaScriptStatement: function(buffer, scope) {
+            generateStatement: function(scope) {
                 var self = this;
-                return buffer.write("break;");
+                return self.code("break;");
             },
             rewriteResultTermInto: function(returnTerm) {
                 var self = this;
@@ -3544,18 +3575,9 @@ exports.macros = function (cg) {
                     return self.defaultValue;
                 }
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                buffer.write("(");
-                self.options.generateJavaScript(buffer, scope);
-                buffer.write("&&");
-                self.options.generateJavaScript(buffer, scope);
-                buffer.write(".hasOwnProperty('" + codegenUtils.concatName(self.name) + "')&&");
-                self.options.generateJavaScript(buffer, scope);
-                buffer.write("." + codegenUtils.concatName(self.name) + "!==void 0)?");
-                self.options.generateJavaScript(buffer, scope);
-                buffer.write("." + codegenUtils.concatName(self.name) + ":");
-                return self.properDefaultValue().generateJavaScript(buffer, scope);
+                return self.code("(", self.options.generate(scope), "&&", self.options.generate(scope), ".hasOwnProperty('" + codegenUtils.concatName(self.name) + "')&&", self.options.generate(scope), "." + codegenUtils.concatName(self.name) + "!==void 0)?", self.options.generate(scope), "." + codegenUtils.concatName(self.name) + ":", self.properDefaultValue().generate(scope));
             }
         });
         asyncParameters = function(closure, next) {
@@ -3687,31 +3709,35 @@ exports.macros = function (cg) {
                 }
                 return void 0;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                var parametersStrategy, definedParameters, bodyScope;
-                parametersStrategy = self.parametersStrategy();
-                self.rewriteResultTermToReturn();
-                buffer.write("function(");
-                definedParameters = parametersStrategy.definedParameters();
-                parametersStrategy.generateJavaScriptParameters(buffer, scope);
-                buffer.write("){");
-                bodyScope = scope.subScope();
-                self.defineParameters(bodyScope, definedParameters);
-                if (self.definesModuleConstants) {
-                    terms.moduleConstants.generateJavaScript(buffer, scope);
-                }
-                self.generateSelfAssignment(buffer);
-                parametersStrategy.generateJavaScriptParameterStatements(buffer, scope, terms.variable([ "arguments" ]));
-                self.body.generateJavaScriptStatements(buffer, bodyScope, {
-                    inClosure: true
+                return self.generateIntoBuffer(function(buffer) {
+                    var parametersStrategy, definedParameters, bodyScope;
+                    parametersStrategy = self.parametersStrategy();
+                    self.rewriteResultTermToReturn();
+                    buffer.write("function(");
+                    definedParameters = parametersStrategy.definedParameters();
+                    parametersStrategy.generateJavaScriptParameters(buffer, scope);
+                    buffer.write("){");
+                    bodyScope = scope.subScope();
+                    self.defineParameters(bodyScope, definedParameters);
+                    if (self.definesModuleConstants) {
+                        buffer.write(terms.moduleConstants.generate(scope));
+                    }
+                    buffer.write(self.generateSelfAssignment());
+                    parametersStrategy.generateJavaScriptParameterStatements(buffer, scope, terms.variable([ "arguments" ]));
+                    buffer.write(self.body.generateStatements(bodyScope, {
+                        inClosure: true
+                    }));
+                    return buffer.write("}");
                 });
-                return buffer.write("}");
             },
-            generateSelfAssignment: function(buffer) {
+            generateSelfAssignment: function() {
                 var self = this;
                 if (self.redefinesSelf) {
-                    return buffer.write("var self=this;");
+                    return "var self=this;";
+                } else {
+                    return "";
                 }
             },
             rewriteResultTermToReturn: function() {
@@ -3871,7 +3897,7 @@ exports.macros = function (cg) {
         return takenList;
     };
 }).call(this);
-},{"./codegenUtils":36,"underscore":91}],35:[function(require,module,exports){
+},{"./codegenUtils":36,"underscore":101}],35:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils;
@@ -3942,11 +3968,11 @@ exports.macros = function (cg) {
                         var self = this;
                         var n, afterArg, argsIndex;
                         buffer.write("var ");
-                        self.splat.generateJavaScript(buffer, scope);
+                        buffer.write(self.splat.generate(scope));
                         buffer.write("=Array.prototype.slice.call(");
-                        args.generateJavaScript(buffer, scope);
+                        buffer.write(args.generate(scope));
                         buffer.write("," + self.before.length + ",");
-                        args.generateJavaScript(buffer, scope);
+                        buffer.write(args.generate(scope));
                         buffer.write(".length");
                         if (self.after.length > 0) {
                             buffer.write("-" + self.after.length);
@@ -3954,18 +3980,18 @@ exports.macros = function (cg) {
                         buffer.write(");");
                         if (before.length > 0 && after.length > 0) {
                             buffer.write("if(");
-                            args.generateJavaScript(buffer, scope);
+                            buffer.write(args.generate(scope));
                             buffer.write(".length>" + before.length + "){");
                         }
                         for (n = 0; n < self.after.length; ++n) {
                             afterArg = self.after[n];
                             argsIndex = self.after.length - n;
                             buffer.write("var ");
-                            afterArg.generateJavaScript(buffer, scope);
+                            buffer.write(afterArg.generate(scope));
                             buffer.write("=");
-                            args.generateJavaScript(buffer, scope);
+                            buffer.write(args.generate(scope));
                             buffer.write("[");
-                            args.generateJavaScript(buffer, scope);
+                            buffer.write(args.generate(scope));
                             buffer.write(".length-" + argsIndex + "];");
                         }
                         if (before.length > 0 && after.length > 0) {
@@ -4015,15 +4041,15 @@ exports.macros = function (cg) {
                             option = gen6_items[gen7_i];
                             optionName = codegenUtils.concatName(option.field);
                             buffer.write(optionName + "=");
-                            self.optionsVariable.generateJavaScript(buffer, scope);
+                            buffer.write(self.optionsVariable.generate(scope));
                             buffer.write("!==void 0&&Object.prototype.hasOwnProperty.call(");
-                            self.optionsVariable.generateJavaScript(buffer, scope);
+                            buffer.write(self.optionsVariable.generate(scope));
                             buffer.write(",'" + optionName + "')&&");
-                            self.optionsVariable.generateJavaScript(buffer, scope);
+                            buffer.write(self.optionsVariable.generate(scope));
                             buffer.write("." + optionName + "!==void 0?");
-                            self.optionsVariable.generateJavaScript(buffer, scope);
+                            buffer.write(self.optionsVariable.generate(scope));
                             buffer.write("." + optionName + ":");
-                            option.value.generateJavaScript(buffer, scope);
+                            buffer.write(option.value.generate(scope));
                             buffer.write(";");
                         }
                         return void 0;
@@ -4056,7 +4082,7 @@ exports.macros = function (cg) {
                                 if (typeof term === "string") {
                                     buffer.write(term);
                                 } else {
-                                    term.generateJavaScript(buffer, scope);
+                                    buffer.write(term.generate(scope));
                                 }
                             }
                             return void 0;
@@ -4076,7 +4102,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./codegenUtils":36,"underscore":91}],36:[function(require,module,exports){
+},{"./codegenUtils":36,"underscore":101}],36:[function(require,module,exports){
 (function() {
     var self = this;
     var _, grammar, actualCharacters, nameSegmentRenderedInJavaScript, operatorRenderedInJavaScript, capitalise, reservedWords, escapeReservedWord;
@@ -4090,7 +4116,7 @@ exports.macros = function (cg) {
             writer = scope;
         } else {
             writer = function(item) {
-                return item.generateJavaScript(buffer, scope);
+                return buffer.write(item.generate(scope));
             };
         }
         first = true;
@@ -4215,7 +4241,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../parser/grammar":14,"underscore":91}],37:[function(require,module,exports){
+},{"../parser/grammar":14,"underscore":101}],37:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4236,9 +4262,9 @@ exports.macros = function (cg) {
                 var self = this;
                 return self.isContinue = true;
             },
-            generateJavaScriptStatement: function(buffer, scope) {
+            generateStatement: function(scope) {
                 var self = this;
-                return buffer.write("continue;");
+                return self.code("continue;");
             },
             rewriteResultTermInto: function(returnTerm) {
                 var self = this;
@@ -4274,11 +4300,9 @@ exports.macros = function (cg) {
                 var self = this;
                 return self.cg.hashEntry(self.target.hashEntryField(), self.source);
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                self.target.generateJavaScriptTarget(buffer, scope);
-                buffer.write("=");
-                return self.source.generateJavaScript(buffer, scope);
+                return self.code(self.target.generateTarget(scope), "=", self.source.generate(scope));
             },
             defineVariables: function(variables) {
                 var self = this;
@@ -4321,18 +4345,16 @@ exports.macros = function (cg) {
                 self.name = name;
                 return self.isFieldReference = true;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                self.object.generateJavaScript(buffer, scope);
-                buffer.write(".");
-                return buffer.write(codegenUtils.concatName(self.name));
+                return self.code(self.object.generate(scope), ".", codegenUtils.concatName(self.name));
             },
-            generateJavaScriptTarget: function() {
+            generateTarget: function() {
                 var self = this;
                 var args = Array.prototype.slice.call(arguments, 0, arguments.length);
                 var gen1_o;
                 gen1_o = self;
-                return gen1_o.generateJavaScript.apply(gen1_o, args);
+                return gen1_o.generate.apply(gen1_o, args);
             }
         });
     };
@@ -4348,9 +4370,9 @@ exports.macros = function (cg) {
                 self.isFloat = true;
                 return self.float = value;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                return buffer.write(self.float.toString());
+                return self.code(self.float.toString());
             }
         });
     };
@@ -4431,24 +4453,16 @@ exports.macros = function (cg) {
                     return self.statements;
                 }
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                buffer.write("for(");
-                self.initialization.generateJavaScript(buffer, scope);
-                buffer.write(";");
-                self.test.generateJavaScript(buffer, scope);
-                buffer.write(";");
-                self.increment.generateJavaScript(buffer, scope);
-                buffer.write("){");
-                self.statements.generateJavaScriptStatements(buffer, scope);
-                return buffer.write("}");
+                return self.code("for(", self.initialization.generate(scope), ";", self.test.generate(scope), ";", self.increment.generate(scope), "){", self.statements.generateStatements(scope), "}");
             },
-            generateJavaScriptStatement: function() {
+            generateStatement: function() {
                 var self = this;
                 var args = Array.prototype.slice.call(arguments, 0, arguments.length);
                 var gen2_o;
                 gen2_o = self;
-                return gen2_o.generateJavaScript.apply(gen2_o, args);
+                return gen2_o.generate.apply(gen2_o, args);
             },
             rewriteResultTermInto: function(returnTerm) {
                 var self = this;
@@ -4486,22 +4500,16 @@ exports.macros = function (cg) {
                     returnLastStatement: false
                 }), [ iterator ]));
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                buffer.write("for(");
-                self.iterator.target.generateJavaScript(buffer, scope);
-                buffer.write(" in ");
-                self.collection.generateJavaScript(buffer, scope);
-                buffer.write("){");
-                self.statements.generateJavaScriptStatement(buffer, scope);
-                return buffer.write("}");
+                return self.code("for(", self.iterator.target.generate(scope), " in ", self.collection.generate(scope), "){", self.statements.generateStatement(scope), "}");
             },
-            generateJavaScriptStatement: function() {
+            generateStatement: function() {
                 var self = this;
                 var args = Array.prototype.slice.call(arguments, 0, arguments.length);
                 var gen1_o;
                 gen1_o = self;
-                return gen1_o.generateJavaScript.apply(gen1_o, args);
+                return gen1_o.generate.apply(gen1_o, args);
             },
             rewriteResultTermInto: function(returnTerm) {
                 var self = this;
@@ -4545,37 +4553,39 @@ exports.macros = function (cg) {
                     return arg.isSplat;
                 });
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                var args, splattedArguments;
-                self.function.generateJavaScript(buffer, scope);
-                args = codegenUtils.concatArgs(self.functionArguments, {
-                    optionalArgs: self.optionalArguments,
-                    asyncCallbackArg: self.asyncCallbackArgument,
-                    terms: terms
-                });
-                splattedArguments = self.cg.splatArguments(args);
-                if (splattedArguments && self.function.isIndexer) {
-                    buffer.write(".apply(");
-                    self.function.object.generateJavaScript(buffer, scope);
-                    buffer.write(",");
-                    splattedArguments.generateJavaScript(buffer, scope);
-                    return buffer.write(")");
-                } else if (splattedArguments) {
-                    buffer.write(".apply(");
-                    if (self.passThisToApply) {
-                        buffer.write("this");
+                return self.generateIntoBuffer(function(buffer) {
+                    var args, splattedArguments;
+                    buffer.write(self.function.generate(scope));
+                    args = codegenUtils.concatArgs(self.functionArguments, {
+                        optionalArgs: self.optionalArguments,
+                        asyncCallbackArg: self.asyncCallbackArgument,
+                        terms: terms
+                    });
+                    splattedArguments = self.cg.splatArguments(args);
+                    if (splattedArguments && self.function.isIndexer) {
+                        buffer.write(".apply(");
+                        buffer.write(self.function.object.generate(scope));
+                        buffer.write(",");
+                        buffer.write(splattedArguments.generate(scope));
+                        return buffer.write(")");
+                    } else if (splattedArguments) {
+                        buffer.write(".apply(");
+                        if (self.passThisToApply) {
+                            buffer.write("this");
+                        } else {
+                            buffer.write("null");
+                        }
+                        buffer.write(",");
+                        buffer.write(splattedArguments.generate(scope));
+                        return buffer.write(")");
                     } else {
-                        buffer.write("null");
+                        buffer.write("(");
+                        codegenUtils.writeToBufferWithDelimiter(args, ",", buffer, scope);
+                        return buffer.write(")");
                     }
-                    buffer.write(",");
-                    splattedArguments.generateJavaScript(buffer, scope);
-                    return buffer.write(")");
-                } else {
-                    buffer.write("(");
-                    codegenUtils.writeToBufferWithDelimiter(args, ",", buffer, scope);
-                    return buffer.write(")");
-                }
+                });
             },
             makeAsyncCallWithCallback: function(callback) {
                 var self = this;
@@ -4634,7 +4644,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1,"./argumentUtils":27,"./codegenUtils":36,"underscore":91}],46:[function(require,module,exports){
+},{"../asyncControl":1,"./argumentUtils":27,"./codegenUtils":36,"underscore":101}],46:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4681,23 +4691,16 @@ exports.macros = function (cg) {
                 var self = this;
                 return self.name;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                return buffer.write(self.generatedName(scope));
+                return self.code(self.generatedName(scope));
             },
-            generateJavaScriptParameter: function() {
+            generateTarget: function() {
                 var self = this;
                 var args = Array.prototype.slice.call(arguments, 0, arguments.length);
                 var gen1_o;
                 gen1_o = self;
-                return gen1_o.generateJavaScript.apply(gen1_o, args);
-            },
-            generateJavaScriptTarget: function() {
-                var self = this;
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen2_o;
-                gen2_o = self;
-                return gen2_o.generateJavaScript.apply(gen2_o, args);
+                return gen1_o.generate.apply(gen1_o, args);
             }
         });
     };
@@ -4733,13 +4736,15 @@ exports.macros = function (cg) {
                 self.isHash = true;
                 return self.entries = entries;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                buffer.write("{");
-                codegenUtils.writeToBufferWithDelimiter(self.entries, ",", buffer, function(item) {
-                    return item.generateJavaScriptHashEntry(buffer, scope);
+                return self.generateIntoBuffer(function(buffer) {
+                    buffer.write("{");
+                    codegenUtils.writeToBufferWithDelimiter(self.entries, ",", buffer, function(item) {
+                        return buffer.write(item.generateHashEntry(scope));
+                    });
+                    return buffer.write("}");
                 });
-                return buffer.write("}");
             }
         });
     };
@@ -4779,13 +4784,9 @@ exports.macros = function (cg) {
                     return self.value;
                 }
             },
-            generateJavaScriptHashEntry: function(buffer, scope) {
+            generateHashEntry: function(scope) {
                 var self = this;
-                var f;
-                f = codegenUtils.concatName(self.field);
-                buffer.write(self.legalFieldName());
-                buffer.write(":");
-                return self.valueOrTrue().generateJavaScript(buffer, scope);
+                return self.code(self.legalFieldName(), ":", self.valueOrTrue().generate(scope));
             },
             asyncify: function() {
                 var self = this;
@@ -4832,29 +4833,29 @@ exports.macros = function (cg) {
                 self.cases = cases;
                 return self.elseBody = elseBody;
             },
-            generateJavaScriptStatement: function(buffer, scope) {
+            generateStatement: function(scope) {
                 var self = this;
-                codegenUtils.writeToBufferWithDelimiter(self.cases, "else ", buffer, function(case_) {
-                    buffer.write("if(");
-                    case_.condition.generateJavaScript(buffer, scope);
-                    buffer.write("){");
-                    case_.body.generateJavaScriptStatements(buffer, scope);
-                    return buffer.write("}");
+                return self.generateIntoBuffer(function(buffer) {
+                    codegenUtils.writeToBufferWithDelimiter(self.cases, "else ", buffer, function(case_) {
+                        buffer.write("if(");
+                        buffer.write(case_.condition.generate(scope));
+                        buffer.write("){");
+                        buffer.write(case_.body.generateStatements(scope));
+                        return buffer.write("}");
+                    });
+                    if (self.elseBody) {
+                        buffer.write("else{");
+                        buffer.write(self.elseBody.generateStatements(scope));
+                        return buffer.write("}");
+                    }
                 });
-                if (self.elseBody) {
-                    buffer.write("else{");
-                    self.elseBody.generateJavaScriptStatements(buffer, scope);
-                    return buffer.write("}");
-                }
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
                 self.rewriteResultTermInto(function(term) {
                     return terms.returnStatement(term);
                 });
-                buffer.write("(function(){");
-                self.generateJavaScriptStatement(buffer, scope);
-                return buffer.write("})()");
+                return self.code("(function(){", self.generateStatement(scope), "})()");
             },
             rewriteResultTermInto: function(returnTerm, gen1_options) {
                 var self = this;
@@ -4911,7 +4912,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1,"./codegenUtils":36,"underscore":91}],53:[function(require,module,exports){
+},{"../asyncControl":1,"./codegenUtils":36,"underscore":101}],53:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4922,10 +4923,9 @@ exports.macros = function (cg) {
                 self.isIncrement = true;
                 return self.expression = expr;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                buffer.write("++");
-                return self.expression.generateJavaScript(buffer, scope);
+                return self.code("++", self.expression.generate(scope));
             }
         });
     };
@@ -4942,19 +4942,16 @@ exports.macros = function (cg) {
                 self.indexer = indexer;
                 return self.isIndexer = true;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                self.object.generateJavaScript(buffer, scope);
-                buffer.write("[");
-                self.indexer.generateJavaScript(buffer, scope);
-                return buffer.write("]");
+                return self.code(self.object.generate(scope), "[", self.indexer.generate(scope), "]");
             },
-            generateJavaScriptTarget: function() {
+            generateTarget: function() {
                 var self = this;
                 var args = Array.prototype.slice.call(arguments, 0, arguments.length);
                 var gen1_o;
                 gen1_o = self;
-                return gen1_o.generateJavaScript.apply(gen1_o, args);
+                return gen1_o.generate.apply(gen1_o, args);
             }
         });
     };
@@ -4970,9 +4967,9 @@ exports.macros = function (cg) {
                 self.isInteger = true;
                 return self.integer = value;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                return buffer.write(self.integer.toString());
+                return self.code(self.integer.toString());
             }
         });
     };
@@ -4991,11 +4988,13 @@ exports.macros = function (cg) {
                 self.isInterpolatedString = true;
                 return self.components = components;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                buffer.write("(");
-                codegenUtils.writeToBufferWithDelimiter(this.components, "+", buffer, scope);
-                return buffer.write(")");
+                return self.generateIntoBuffer(function(buffer) {
+                    buffer.write("(");
+                    codegenUtils.writeToBufferWithDelimiter(self.components, "+", buffer, scope);
+                    return buffer.write(")");
+                });
             }
         });
         return interpolatedString = function(components) {
@@ -5020,9 +5019,9 @@ exports.macros = function (cg) {
                 self.isJavaScript = true;
                 return self.source = source;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                return buffer.write(self.source);
+                return self.code(self.source);
             }
         });
     };
@@ -5042,11 +5041,13 @@ exports.macros = function (cg) {
                 self.isList = true;
                 return self.items = items;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                buffer.write("[");
-                codegenUtils.writeToBufferWithDelimiter(self.items, ",", buffer, scope);
-                return buffer.write("]");
+                return self.generateIntoBuffer(function(buffer) {
+                    buffer.write("[");
+                    codegenUtils.writeToBufferWithDelimiter(self.items, ",", buffer, scope);
+                    return buffer.write("]");
+                });
             }
         });
         return list = function(items) {
@@ -5072,7 +5073,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./codegenUtils":36,"underscore":91}],59:[function(require,module,exports){
+},{"./codegenUtils":36,"underscore":101}],59:[function(require,module,exports){
 (function() {
     var self = this;
     var _, asyncControl;
@@ -5080,7 +5081,7 @@ exports.macros = function (cg) {
     asyncControl = require("../asyncControl");
     module.exports = function(terms) {
         var self = this;
-        var macros, comprehensionExpressionFor, comprehensionExpressionsFrom, generator, map, definition, filter, expressions, isDefinition, listComprehension;
+        var macros, comprehensionExpressionFor, comprehensionExpressionFrom, generator, sortEach, map, definition, filter, isDefinition, listComprehension;
         macros = terms.macroDirectory();
         comprehensionExpressionFor = function(expr) {
             if (expr.isGenerator) {
@@ -5091,8 +5092,8 @@ exports.macros = function (cg) {
                 return filter(expr);
             }
         };
-        comprehensionExpressionsFrom = function(items, resultsVariable) {
-            var exprs, comprehensionExprs;
+        comprehensionExpressionFrom = function(items) {
+            var exprs, comprehensionExprs, n;
             exprs = items.slice(0, items.length - 1);
             comprehensionExprs = function() {
                 var gen1_results, gen2_items, gen3_i, expr;
@@ -5104,47 +5105,93 @@ exports.macros = function (cg) {
                 }
                 return gen1_results;
             }();
-            comprehensionExprs.push(map(items[items.length - 1], resultsVariable));
-            return expressions(comprehensionExprs);
+            comprehensionExprs.push(map(items[items.length - 1]));
+            comprehensionExprs.unshift(sortEach());
+            for (n = 0; n < comprehensionExprs.length - 1; ++n) {
+                comprehensionExprs[n].next = comprehensionExprs[n + 1];
+            }
+            return comprehensionExprs[0];
         };
         generator = function(expression) {
             return {
                 isGenerator: true,
                 iterator: expression.operatorArguments[0],
                 collection: expression.operatorArguments[1],
-                generate: function(rest) {
+                hasGenerator: function() {
                     var self = this;
-                    var statements, generate;
-                    statements = terms.asyncStatements(rest.generate());
-                    if (statements.isAsync) {
-                        generate = terms.moduleConstants.defineAs([ "generate" ], terms.javascript(asyncControl.generate.toString()));
-                        return [ terms.functionCall(generate, [ self.collection, terms.closure([ self.iterator ], statements) ], {
+                    return true;
+                },
+                generate: function(isAsync, result, index) {
+                    var self = this;
+                    var listComprehension, innerResult, innerIndex, asyncStatements, call;
+                    if (isAsync) {
+                        listComprehension = terms.moduleConstants.defineAs([ "list", "comprehension" ], terms.javascript(asyncControl.listComprehension.toString()));
+                        innerResult = terms.generatedVariable([ "result" ]);
+                        innerIndex = terms.generatedVariable([ "index" ]);
+                        asyncStatements = terms.asyncStatements(self.next.generate(isAsync, innerResult, innerIndex));
+                        call = terms.functionCall(listComprehension, [ self.collection, terms.boolean(self.next.hasGenerator()), terms.closure([ innerIndex, self.iterator, innerResult ], asyncStatements) ], {
                             async: true
-                        }) ];
+                        });
+                        if (result) {
+                            return [ terms.functionCall(result, [ call, index ]) ];
+                        } else {
+                            return [ call ];
+                        }
                     } else {
-                        return [ terms.forEach(self.collection, self.iterator, statements) ];
+                        return [ terms.forEach(self.collection, self.iterator, terms.asyncStatements(self.next.generate(isAsync, result, index))) ];
                     }
                 }
             };
         };
-        map = function(expression, resultsVariable) {
+        sortEach = function() {
+            return {
+                isSortEach: true,
+                generateListComprehension: function(isAsync) {
+                    var self = this;
+                    var resultsVariable, statements, gen4_o;
+                    if (isAsync) {
+                        return self.next.generate(isAsync)[0];
+                    } else {
+                        resultsVariable = terms.generatedVariable([ "results" ]);
+                        statements = [ terms.definition(resultsVariable, terms.list([])) ];
+                        gen4_o = statements;
+                        gen4_o.push.apply(gen4_o, self.next.generate(isAsync, resultsVariable));
+                        statements.push(resultsVariable);
+                        return terms.scope(statements);
+                    }
+                }
+            };
+        };
+        map = function(expression) {
             return {
                 isMap: true,
-                generate: function() {
+                hasGenerator: function() {
                     var self = this;
-                    return [ terms.methodCall(resultsVariable, [ "push" ], [ expression ]) ];
+                    return false;
+                },
+                generate: function(isAsync, result, index) {
+                    var self = this;
+                    if (isAsync) {
+                        return [ terms.functionCall(result, [ expression, index ]) ];
+                    } else {
+                        return [ terms.methodCall(result, [ "push" ], [ expression ]) ];
+                    }
                 }
             };
         };
         definition = function(expression) {
             return {
                 isDefinition: true,
-                generate: function(rest) {
+                hasGenerator: function() {
                     var self = this;
-                    var statements, gen4_o;
+                    return self.next.hasGenerator();
+                },
+                generate: function(isAsync, result, index) {
+                    var self = this;
+                    var statements, gen5_o;
                     statements = [ expression ];
-                    gen4_o = statements;
-                    gen4_o.push.apply(gen4_o, rest.generate());
+                    gen5_o = statements;
+                    gen5_o.push.apply(gen5_o, self.next.generate(isAsync, result, index));
                     return statements;
                 }
             };
@@ -5152,25 +5199,16 @@ exports.macros = function (cg) {
         filter = function(expression) {
             return {
                 isFilter: true,
-                generate: function(rest) {
+                hasGenerator: function() {
+                    var self = this;
+                    return self.next.hasGenerator();
+                },
+                generate: function(isAsync, result, index) {
                     var self = this;
                     return [ terms.ifExpression([ {
                         condition: expression,
-                        body: terms.asyncStatements(rest.generate())
+                        body: terms.asyncStatements(self.next.generate(isAsync, result, index))
                     } ]) ];
-                }
-            };
-        };
-        expressions = function(exprs) {
-            return {
-                expressions: exprs,
-                generate: function() {
-                    var self = this;
-                    if (exprs.length > 0) {
-                        return exprs[0].generate(expressions(exprs.slice(1)));
-                    } else {
-                        return [];
-                    }
                 }
             };
         };
@@ -5178,18 +5216,16 @@ exports.macros = function (cg) {
             return expression.isDefinition;
         };
         return listComprehension = function(items) {
-            var resultsVariable, exprs, statements, gen5_o;
-            resultsVariable = terms.generatedVariable([ "results" ]);
-            exprs = comprehensionExpressionsFrom(items, resultsVariable);
-            statements = [ terms.definition(resultsVariable, terms.list([])) ];
-            gen5_o = statements;
-            gen5_o.push.apply(gen5_o, exprs.generate());
-            statements.push(resultsVariable);
-            return terms.scope(statements);
+            var isAsync, expr;
+            isAsync = _.any(items, function(item) {
+                return item.containsAsync();
+            });
+            expr = comprehensionExpressionFrom(items);
+            return expr.generateListComprehension(isAsync);
         };
     };
 }).call(this);
-},{"../asyncControl":1,"underscore":91}],60:[function(require,module,exports){
+},{"../asyncControl":1,"underscore":101}],60:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils, argumentUtils, asyncControl;
@@ -5216,30 +5252,34 @@ exports.macros = function (cg) {
                 self.originallyAsync = originallyAsync;
                 return self.asyncCallbackArgument = asyncCallbackArgument;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                var args, splattedArguments;
-                args = codegenUtils.concatArgs(self.methodArguments, {
-                    optionalArgs: self.optionalArguments,
-                    terms: terms,
-                    asyncCallbackArg: self.asyncCallbackArgument
+                return self.generateIntoBuffer(function(buffer) {
+                    var args, splattedArguments;
+                    args = codegenUtils.concatArgs(self.methodArguments, {
+                        optionalArgs: self.optionalArguments,
+                        terms: terms,
+                        asyncCallbackArg: self.asyncCallbackArgument
+                    });
+                    splattedArguments = terms.splatArguments(args);
+                    if (splattedArguments) {
+                        buffer.write(self.object.generate(scope));
+                        buffer.write(".");
+                        buffer.write(codegenUtils.concatName(self.name));
+                        buffer.write(".apply(");
+                        buffer.write(self.object.generate(scope));
+                        buffer.write(",");
+                        buffer.write(splattedArguments.generate(scope));
+                        return buffer.write(")");
+                    } else {
+                        buffer.write(self.object.generate(scope));
+                        buffer.write(".");
+                        buffer.write(codegenUtils.concatName(self.name));
+                        buffer.write("(");
+                        codegenUtils.writeToBufferWithDelimiter(args, ",", buffer, scope);
+                        return buffer.write(")");
+                    }
                 });
-                splattedArguments = terms.splatArguments(args);
-                if (splattedArguments) {
-                    self.object.generateJavaScript(buffer, scope);
-                    buffer.write("." + self.name + ".apply(");
-                    self.object.generateJavaScript(buffer, scope);
-                    buffer.write(",");
-                    splattedArguments.generateJavaScript(buffer, scope);
-                    return buffer.write(")");
-                } else {
-                    self.object.generateJavaScript(buffer, scope);
-                    buffer.write(".");
-                    buffer.write(codegenUtils.concatName(self.name));
-                    buffer.write("(");
-                    codegenUtils.writeToBufferWithDelimiter(args, ",", buffer, scope);
-                    return buffer.write(")");
-                }
             },
             makeAsyncCallWithCallback: function(callback) {
                 var self = this;
@@ -5261,7 +5301,7 @@ exports.macros = function (cg) {
             splattedArgs = terms.splatArguments(args, optionalArguments);
             if (splattedArgs && !containsSplatArguments) {
                 objectVar = terms.generatedVariable([ "o" ]);
-                return terms.subStatements([ terms.definition(objectVar, object), methodCall(object, name, args, {
+                return terms.subStatements([ terms.definition(objectVar, object), methodCall(objectVar, name, args, {
                     async: async,
                     future: false,
                     asyncCallbackArgument: void 0,
@@ -5313,14 +5353,14 @@ exports.macros = function (cg) {
                 self.global = global;
                 return self.bodyStatements = bodyStatements || statements;
             },
-            generateJavaScriptModule: function(buffer) {
+            generateModule: function() {
                 var self = this;
                 var scope;
                 scope = new terms.SymbolScope(void 0);
-                return self.statements.generateJavaScriptStatements(buffer, scope, {
+                return self.code(self.statements.generateStatements(scope, {
                     global: self.global,
                     inClosure: true
-                });
+                }));
             }
         });
         return module = function(statements, gen2_options) {
@@ -5377,18 +5417,19 @@ exports.macros = function (cg) {
                 self.isNewOperator = true;
                 return self.functionCall = fn;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                buffer.write("new ");
-                if (self.functionCall.isVariable) {
-                    return terms.functionCall(self.functionCall, []).generateJavaScript(buffer, scope);
-                } else if (self.functionCall.isFunctionCall && self.functionCall.hasSplatArguments()) {
-                    return self.cg.block([], self.cg.statements([ self.functionCall ]), {
-                        returnLastStatement: false
-                    }).generateJavaScript(buffer, scope);
-                } else {
-                    return self.functionCall.generateJavaScript(buffer, scope);
-                }
+                return self.code("new ", function() {
+                    if (self.functionCall.isVariable) {
+                        return terms.functionCall(self.functionCall, []).generate(scope);
+                    } else if (self.functionCall.isFunctionCall && self.functionCall.hasSplatArguments()) {
+                        return self.cg.block([], self.cg.statements([ self.functionCall ]), {
+                            returnLastStatement: false
+                        }).generate(scope);
+                    } else {
+                        return self.functionCall.generate(scope);
+                    }
+                }());
             }
         });
         return newOperator = function(fn) {
@@ -5420,9 +5461,9 @@ exports.macros = function (cg) {
                 var self = this;
                 return self.isNil = true;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                return terms.javascript("void 0").generateJavaScript(buffer, scope);
+                return self.code(terms.javascript("void 0").generate(scope));
             }
         });
     };
@@ -5456,31 +5497,33 @@ exports.macros = function (cg) {
                 var self = this;
                 return /[a-zA-Z]+/.test(self.operator);
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                var alpha, n;
-                buffer.write("(");
-                if (self.operatorArguments.length === 1) {
-                    buffer.write(self.operator);
-                    if (self.isOperatorAlpha()) {
-                        buffer.write(" ");
-                    }
-                    self.operatorArguments[0].generateJavaScript(buffer, scope);
-                } else {
-                    alpha = self.isOperatorAlpha();
-                    self.operatorArguments[0].generateJavaScript(buffer, scope);
-                    for (n = 1; n < self.operatorArguments.length; ++n) {
-                        if (alpha) {
-                            buffer.write(" ");
-                        }
+                return self.generateIntoBuffer(function(buffer) {
+                    var alpha, n;
+                    buffer.write("(");
+                    if (self.operatorArguments.length === 1) {
                         buffer.write(self.operator);
-                        if (alpha) {
+                        if (self.isOperatorAlpha()) {
                             buffer.write(" ");
                         }
-                        self.operatorArguments[n].generateJavaScript(buffer, scope);
+                        buffer.write(self.operatorArguments[0].generate(scope));
+                    } else {
+                        alpha = self.isOperatorAlpha();
+                        buffer.write(self.operatorArguments[0].generate(scope));
+                        for (n = 1; n < self.operatorArguments.length; ++n) {
+                            if (alpha) {
+                                buffer.write(" ");
+                            }
+                            buffer.write(self.operator);
+                            if (alpha) {
+                                buffer.write(" ");
+                            }
+                            buffer.write(self.operatorArguments[n].generate(scope));
+                        }
                     }
-                }
-                return buffer.write(")");
+                    return buffer.write(")");
+                });
             }
         });
     };
@@ -5515,17 +5558,11 @@ exports.macros = function (cg) {
                 self.pattern = patternOptions.pattern;
                 return self.options = patternOptions.options;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
                 var options;
-                options = function() {
-                    if (self.options) {
-                        return "/" + self.options;
-                    } else {
-                        return "/";
-                    }
-                }();
-                return buffer.write("/" + this.pattern.replace(/\//g, "\\/") + options);
+                options = self.options || "";
+                return self.code("/" + self.pattern.replace(/\//g, "\\/") + "/" + options);
             }
         });
     };
@@ -5544,15 +5581,17 @@ exports.macros = function (cg) {
                 self.expression = expr;
                 return self.isImplicit = implicit;
             },
-            generateJavaScriptStatement: function(buffer, scope) {
+            generateStatement: function(scope) {
                 var self = this;
-                if (self.expression) {
-                    buffer.write("return ");
-                    self.expression.generateJavaScript(buffer, scope);
-                    return buffer.write(";");
-                } else {
-                    return buffer.write("return;");
-                }
+                return self.generateIntoBuffer(function(buffer) {
+                    if (self.expression) {
+                        buffer.write("return ");
+                        buffer.write(self.expression.generate(scope));
+                        return buffer.write(";");
+                    } else {
+                        return buffer.write("return;");
+                    }
+                });
             },
             rewriteResultTermInto: function(returnTerm, gen2_options) {
                 var self = this;
@@ -5581,9 +5620,11 @@ exports.macros = function (cg) {
     module.exports = function(terms) {
         var self = this;
         var scope;
-        return scope = function(statementList) {
+        return scope = function(statementList, gen1_options) {
+            var alwaysGenerateFunction;
+            alwaysGenerateFunction = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "alwaysGenerateFunction") && gen1_options.alwaysGenerateFunction !== void 0 ? gen1_options.alwaysGenerateFunction : false;
             var statement, statements;
-            if (statementList.length === 1) {
+            if (statementList.length === 1 && !alwaysGenerateFunction) {
                 statement = statementList[0];
                 if (statement.isReturn) {
                     return statement.expression;
@@ -5624,18 +5665,18 @@ exports.macros = function (cg) {
                 self.errorTerms = errorTerms;
                 return self.message = message;
             },
-            generateJavaScript: function() {
+            generate: function() {
                 var self = this;
-                return void 0;
+                return "";
             },
             printError: function(sourceFile, buffer) {
                 var self = this;
                 sourceFile.printLocation(self.errorTerms[0].location(), buffer);
-                return buffer.write(this.message + "\n");
+                return buffer.write(self.message + "\n");
             },
-            generateJavaScriptHashEntry: function() {
+            generateHashEntry: function() {
                 var self = this;
-                return void 0;
+                return "";
             }
         });
     };
@@ -5670,20 +5711,22 @@ exports.macros = function (cg) {
                 var self = this;
                 return self.splatArguments = splatArguments;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                var i, splatArgument;
-                for (i = 0; i < self.splatArguments.length; ++i) {
-                    splatArgument = self.splatArguments[i];
-                    if (i === 0) {
-                        splatArgument.generateJavaScript(buffer, scope);
-                    } else {
-                        buffer.write(".concat(");
-                        splatArgument.generateJavaScript(buffer, scope);
-                        buffer.write(")");
+                return self.generateIntoBuffer(function(buffer) {
+                    var i, splatArgument;
+                    for (i = 0; i < self.splatArguments.length; ++i) {
+                        splatArgument = self.splatArguments[i];
+                        if (i === 0) {
+                            buffer.write(splatArgument.generate(scope));
+                        } else {
+                            buffer.write(".concat(");
+                            buffer.write(splatArgument.generate(scope));
+                            buffer.write(")");
+                        }
                     }
-                }
-                return void 0;
+                    return void 0;
+                });
             }
         });
         return splatArguments = function(args, optionalArgs) {
@@ -5729,7 +5772,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"underscore":91}],74:[function(require,module,exports){
+},{"underscore":101}],74:[function(require,module,exports){
 module.exports=require(64)
 },{}],75:[function(require,module,exports){
 (function() {
@@ -5749,23 +5792,25 @@ module.exports=require(64)
                 self.statements = statements;
                 return self.isAsync = async;
             },
-            generateStatements: function(statements, buffer, scope, gen2_options) {
+            generateStatements: function(scope, gen2_options) {
                 var self = this;
                 var inClosure, global;
                 inClosure = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "inClosure") && gen2_options.inClosure !== void 0 ? gen2_options.inClosure : false;
                 global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
-                var definedVariables, s, statement;
-                if (inClosure) {
-                    definedVariables = self.findDefinedVariables(scope);
-                    self.generateVariableDeclarations(definedVariables, buffer, scope, {
-                        global: global
-                    });
-                }
-                for (s = 0; s < statements.length; ++s) {
-                    statement = statements[s];
-                    statement.generateJavaScriptStatement(buffer, scope);
-                }
-                return void 0;
+                return self.generateIntoBuffer(function(buffer) {
+                    var definedVariables, s, statement;
+                    if (inClosure) {
+                        definedVariables = self.findDefinedVariables(scope);
+                        self.generateVariableDeclarations(definedVariables, buffer, scope, {
+                            global: global
+                        });
+                    }
+                    for (s = 0; s < self.statements.length; ++s) {
+                        statement = self.statements[s];
+                        buffer.write(statement.generateStatement(scope));
+                    }
+                    return void 0;
+                });
             },
             rewriteResultTermInto: function(returnTerm, gen3_options) {
                 var self = this;
@@ -5843,16 +5888,6 @@ module.exports=require(64)
                 });
                 return variables.uniqueVariables();
             },
-            generateJavaScriptStatements: function(buffer, scope, gen6_options) {
-                var self = this;
-                var inClosure, global;
-                inClosure = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "inClosure") && gen6_options.inClosure !== void 0 ? gen6_options.inClosure : false;
-                global = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "global") && gen6_options.global !== void 0 ? gen6_options.global : false;
-                return self.generateStatements(self.statements, buffer, scope, {
-                    inClosure: inClosure,
-                    global: global
-                });
-            },
             blockify: function(parameters, options) {
                 var self = this;
                 var statements;
@@ -5869,17 +5904,21 @@ module.exports=require(64)
                 var self = this;
                 return self.cg.functionCall(self.cg.block([], self), []);
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                if (self.statements.length > 0) {
-                    return self.statements[self.statements.length - 1].generateJavaScript(buffer, scope);
-                }
+                return self.generateIntoBuffer(function(buffer) {
+                    if (self.statements.length > 0) {
+                        return buffer.write(self.statements[self.statements.length - 1].generate(scope));
+                    }
+                });
             },
-            generateJavaScriptStatement: function(buffer, scope) {
+            generateStatement: function(scope) {
                 var self = this;
-                if (self.statements.length > 0) {
-                    return self.statements[self.statements.length - 1].generateJavaScriptStatement(buffer, scope);
-                }
+                return self.generateIntoBuffer(function(buffer) {
+                    if (self.statements.length > 0) {
+                        return buffer.write(self.statements[self.statements.length - 1].generateStatement(scope));
+                    }
+                });
             },
             definitions: function(scope) {
                 var self = this;
@@ -5894,10 +5933,10 @@ module.exports=require(64)
                 self.statements = statementsUtils.serialiseStatements(self.statements);
                 return void 0;
             },
-            asyncify: function(gen7_options) {
+            asyncify: function(gen6_options) {
                 var self = this;
                 var returnCallToContinuation;
-                returnCallToContinuation = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "returnCallToContinuation") && gen7_options.returnCallToContinuation !== void 0 ? gen7_options.returnCallToContinuation : true;
+                returnCallToContinuation = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "returnCallToContinuation") && gen6_options.returnCallToContinuation !== void 0 ? gen6_options.returnCallToContinuation : true;
                 if (!self.isAsync) {
                     self.rewriteLastStatementToReturn({
                         async: true,
@@ -5909,7 +5948,7 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{"./codegenUtils":36,"./statementsUtils":76,"underscore":91}],76:[function(require,module,exports){
+},{"./codegenUtils":36,"./statementsUtils":76,"underscore":101}],76:[function(require,module,exports){
 (function() {
     var self = this;
     exports.serialiseStatements = function(statements) {
@@ -5947,9 +5986,9 @@ module.exports=require(64)
                 self.isString = true;
                 return self.string = value;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                return buffer.write(codegenUtils.formatJavaScriptString(this.string));
+                return self.code(codegenUtils.formatJavaScriptString(self.string));
             }
         });
     };
@@ -5965,11 +6004,9 @@ module.exports=require(64)
                 self.isSubExpression = true;
                 return self.expression = expression;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                buffer.write("(");
-                self.expression.generateJavaScript(buffer, scope);
-                return buffer.write(")");
+                return self.code("(", self.expression.generate(scope), ")");
             }
         });
     };
@@ -6008,7 +6045,7 @@ module.exports=require(64)
                     return lastStatement;
                 }
             },
-            generateJavaScript: function() {
+            generate: function() {
                 var self = this;
                 self.show();
                 throw new Error("sub statements does not generate java script");
@@ -6016,13 +6053,29 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{"./codegenUtils":36,"underscore":91}],80:[function(require,module,exports){
+},{"./codegenUtils":36,"underscore":101}],80:[function(require,module,exports){
 (function() {
     var self = this;
-    var $class, classExtending, _;
+    var $class, classExtending, _, ms, sourceMap, buffer;
     $class = require("../class").class;
     classExtending = require("../class").classExtending;
     _ = require("underscore");
+    ms = require("../memorystream");
+    sourceMap = require("source-map");
+    buffer = function() {
+        var chunks;
+        chunks = [];
+        return {
+            write: function(code) {
+                var self = this;
+                return chunks.push(code);
+            },
+            chunks: function() {
+                var self = this;
+                return chunks;
+            }
+        };
+    };
     module.exports = function(cg) {
         var self = this;
         var Node, Term, termPrototype, term;
@@ -6056,49 +6109,104 @@ module.exports=require(64)
                     return self._location;
                 } else {
                     children = self.children();
-                    locations = _.filter(_.map(children, function(child) {
-                        return child.location();
-                    }), function(location) {
-                        return location;
-                    });
+                    locations = function() {
+                        var gen1_results, gen2_items, gen3_i, c, loc;
+                        gen1_results = [];
+                        gen2_items = children;
+                        for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
+                            c = gen2_items[gen3_i];
+                            loc = c.location();
+                            if (loc) {
+                                gen1_results.push(loc);
+                            }
+                        }
+                        return gen1_results;
+                    }();
                     if (locations.length > 0) {
-                        firstLine = _.min(_.map(locations, function(location) {
-                            return location.firstLine;
-                        }));
-                        lastLine = _.max(_.map(locations, function(location) {
-                            return location.lastLine;
-                        }));
-                        locationsOnFirstLine = _.filter(locations, function(location) {
-                            return location.firstLine === firstLine;
-                        });
-                        locationsOnLastLine = _.filter(locations, function(location) {
-                            return location.lastLine === lastLine;
-                        });
+                        firstLine = _.min(function() {
+                            var gen4_results, gen5_items, gen6_i, l;
+                            gen4_results = [];
+                            gen5_items = locations;
+                            for (gen6_i = 0; gen6_i < gen5_items.length; ++gen6_i) {
+                                l = gen5_items[gen6_i];
+                                gen4_results.push(l.firstLine);
+                            }
+                            return gen4_results;
+                        }());
+                        lastLine = _.max(function() {
+                            var gen7_results, gen8_items, gen9_i, l;
+                            gen7_results = [];
+                            gen8_items = locations;
+                            for (gen9_i = 0; gen9_i < gen8_items.length; ++gen9_i) {
+                                l = gen8_items[gen9_i];
+                                gen7_results.push(l.lastLine);
+                            }
+                            return gen7_results;
+                        }());
+                        locationsOnFirstLine = function() {
+                            var gen10_results, gen11_items, gen12_i, l;
+                            gen10_results = [];
+                            gen11_items = locations;
+                            for (gen12_i = 0; gen12_i < gen11_items.length; ++gen12_i) {
+                                l = gen11_items[gen12_i];
+                                if (l.firstLine === firstLine) {
+                                    gen10_results.push(l);
+                                }
+                            }
+                            return gen10_results;
+                        }();
+                        locationsOnLastLine = function() {
+                            var gen13_results, gen14_items, gen15_i, l;
+                            gen13_results = [];
+                            gen14_items = locations;
+                            for (gen15_i = 0; gen15_i < gen14_items.length; ++gen15_i) {
+                                l = gen14_items[gen15_i];
+                                if (l.lastLine === lastLine) {
+                                    gen13_results.push(l);
+                                }
+                            }
+                            return gen13_results;
+                        }();
                         return {
                             firstLine: firstLine,
                             lastLine: lastLine,
-                            firstColumn: _.min(_.map(locationsOnFirstLine, function(location) {
-                                return location.firstColumn;
-                            })),
-                            lastColumn: _.max(_.map(locationsOnLastLine, function(location) {
-                                return location.lastColumn;
-                            }))
+                            firstColumn: _.min(function() {
+                                var gen16_results, gen17_items, gen18_i, l;
+                                gen16_results = [];
+                                gen17_items = locationsOnFirstLine;
+                                for (gen18_i = 0; gen18_i < gen17_items.length; ++gen18_i) {
+                                    l = gen17_items[gen18_i];
+                                    gen16_results.push(l.firstColumn);
+                                }
+                                return gen16_results;
+                            }()),
+                            lastColumn: _.max(function() {
+                                var gen19_results, gen20_items, gen21_i, l;
+                                gen19_results = [];
+                                gen20_items = locationsOnLastLine;
+                                for (gen21_i = 0; gen21_i < gen20_items.length; ++gen21_i) {
+                                    l = gen20_items[gen21_i];
+                                    gen19_results.push(l.lastColumn);
+                                }
+                                return gen19_results;
+                            }()),
+                            filename: locations[0].filename
                         };
                     } else {
                         return void 0;
                     }
                 }
             },
-            clone: function(gen1_options) {
+            clone: function(gen22_options) {
                 var self = this;
                 var rewrite, limit, createObject;
-                rewrite = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "rewrite") && gen1_options.rewrite !== void 0 ? gen1_options.rewrite : function(subterm) {
+                rewrite = gen22_options !== void 0 && Object.prototype.hasOwnProperty.call(gen22_options, "rewrite") && gen22_options.rewrite !== void 0 ? gen22_options.rewrite : function(subterm) {
                     return void 0;
                 };
-                limit = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "limit") && gen1_options.limit !== void 0 ? gen1_options.limit : function(subterm) {
+                limit = gen22_options !== void 0 && Object.prototype.hasOwnProperty.call(gen22_options, "limit") && gen22_options.limit !== void 0 ? gen22_options.limit : function(subterm) {
                     return false;
                 };
-                createObject = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "createObject") && gen1_options.createObject !== void 0 ? gen1_options.createObject : function(node) {
+                createObject = gen22_options !== void 0 && Object.prototype.hasOwnProperty.call(gen22_options, "createObject") && gen22_options.createObject !== void 0 ? gen22_options.createObject : function(node) {
                     return Object.create(Object.getPrototypeOf(node));
                 };
                 var cloneObject, cloneNode, cloneArray, cloneSubterm;
@@ -6156,9 +6264,16 @@ module.exports=require(64)
                 cloneArray = function(terms, allowRewrite, path) {
                     try {
                         path.push(terms);
-                        return _.map(terms, function(node) {
-                            return cloneSubterm(node, allowRewrite, path);
-                        });
+                        return function() {
+                            var gen23_results, gen24_items, gen25_i, node;
+                            gen23_results = [];
+                            gen24_items = terms;
+                            for (gen25_i = 0; gen25_i < gen24_items.length; ++gen25_i) {
+                                node = gen24_items[gen25_i];
+                                gen23_results.push(cloneSubterm(node, allowRewrite, path));
+                            }
+                            return gen23_results;
+                        }();
                     } finally {
                         path.pop();
                     }
@@ -6196,13 +6311,13 @@ module.exports=require(64)
                 var children, addMember, addMembersInObject;
                 children = [];
                 addMember = function(member) {
-                    var gen2_items, gen3_i, item;
+                    var gen26_items, gen27_i, item;
                     if (member instanceof Node) {
                         return children.push(member);
                     } else if (member instanceof Array) {
-                        gen2_items = member;
-                        for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
-                            item = gen2_items[gen3_i];
+                        gen26_items = member;
+                        for (gen27_i = 0; gen27_i < gen26_items.length; ++gen27_i) {
+                            item = gen26_items[gen27_i];
                             addMember(item);
                         }
                         return void 0;
@@ -6226,21 +6341,21 @@ module.exports=require(64)
                 addMembersInObject(self);
                 return children;
             },
-            walkDescendants: function(walker, gen4_options) {
+            walkDescendants: function(walker, gen28_options) {
                 var self = this;
                 var limit;
-                limit = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "limit") && gen4_options.limit !== void 0 ? gen4_options.limit : function() {
+                limit = gen28_options !== void 0 && Object.prototype.hasOwnProperty.call(gen28_options, "limit") && gen28_options.limit !== void 0 ? gen28_options.limit : function() {
                     return false;
                 };
                 var path, walkChildren;
                 path = [];
                 walkChildren = function(node) {
-                    var gen5_items, gen6_i, child;
+                    var gen29_items, gen30_i, child;
                     try {
                         path.push(node);
-                        gen5_items = node.children();
-                        for (gen6_i = 0; gen6_i < gen5_items.length; ++gen6_i) {
-                            child = gen5_items[gen6_i];
+                        gen29_items = node.children();
+                        for (gen30_i = 0; gen30_i < gen29_items.length; ++gen30_i) {
+                            child = gen29_items[gen30_i];
                             walker(child, path);
                             if (!limit(child, path)) {
                                 walkChildren(child);
@@ -6259,13 +6374,13 @@ module.exports=require(64)
                     limit: limit
                 });
             },
-            reduceWithReducedChildrenInto: function(reducer, gen7_options) {
+            reduceWithReducedChildrenInto: function(reducer, gen31_options) {
                 var self = this;
                 var limit, cacheName;
-                limit = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "limit") && gen7_options.limit !== void 0 ? gen7_options.limit : function(term) {
+                limit = gen31_options !== void 0 && Object.prototype.hasOwnProperty.call(gen31_options, "limit") && gen31_options.limit !== void 0 ? gen31_options.limit : function(term) {
                     return false;
                 };
-                cacheName = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "cacheName") && gen7_options.cacheName !== void 0 ? gen7_options.cacheName : void 0;
+                cacheName = gen31_options !== void 0 && Object.prototype.hasOwnProperty.call(gen31_options, "cacheName") && gen31_options.cacheName !== void 0 ? gen31_options.cacheName : void 0;
                 var path, cachingReducer, mapReduceChildren;
                 path = [];
                 cachingReducer = function() {
@@ -6290,13 +6405,13 @@ module.exports=require(64)
                     }
                 }();
                 mapReduceChildren = function(node) {
-                    var mappedChildren, gen8_items, gen9_i, child;
+                    var mappedChildren, gen32_items, gen33_i, child;
                     try {
                         path.push(node);
                         mappedChildren = [];
-                        gen8_items = node.children();
-                        for (gen9_i = 0; gen9_i < gen8_items.length; ++gen9_i) {
-                            child = gen8_items[gen9_i];
+                        gen32_items = node.children();
+                        for (gen33_i = 0; gen33_i < gen32_items.length; ++gen33_i) {
+                            child = gen32_items[gen33_i];
                             if (!limit(child, path)) {
                                 mappedChildren.push(mapReduceChildren(child));
                             }
@@ -6310,28 +6425,23 @@ module.exports=require(64)
             }
         });
         Term = classExtending(Node, {
-            generateJavaScriptStatement: function(buffer, scope) {
-                var self = this;
-                self.generateJavaScript(buffer, scope);
-                return buffer.write(";");
-            },
             arguments: function() {
                 var self = this;
                 return self;
             },
-            inspectTerm: function(gen10_options) {
+            inspectTerm: function(gen34_options) {
                 var self = this;
                 var depth;
-                depth = gen10_options !== void 0 && Object.prototype.hasOwnProperty.call(gen10_options, "depth") && gen10_options.depth !== void 0 ? gen10_options.depth : 20;
+                depth = gen34_options !== void 0 && Object.prototype.hasOwnProperty.call(gen34_options, "depth") && gen34_options.depth !== void 0 ? gen34_options.depth : 20;
                 var util;
                 util = require("util");
                 return util.inspect(self, false, depth);
             },
-            show: function(gen11_options) {
+            show: function(gen35_options) {
                 var self = this;
                 var desc, depth;
-                desc = gen11_options !== void 0 && Object.prototype.hasOwnProperty.call(gen11_options, "desc") && gen11_options.desc !== void 0 ? gen11_options.desc : void 0;
-                depth = gen11_options !== void 0 && Object.prototype.hasOwnProperty.call(gen11_options, "depth") && gen11_options.depth !== void 0 ? gen11_options.depth : 20;
+                desc = gen35_options !== void 0 && Object.prototype.hasOwnProperty.call(gen35_options, "desc") && gen35_options.desc !== void 0 ? gen35_options.desc : void 0;
+                depth = gen35_options !== void 0 && Object.prototype.hasOwnProperty.call(gen35_options, "depth") && gen35_options.depth !== void 0 ? gen35_options.depth : 20;
                 if (desc) {
                     return console.log(desc, self.inspectTerm({
                         depth: depth
@@ -6360,7 +6470,7 @@ module.exports=require(64)
             },
             parameter: function() {
                 var self = this;
-                return this.cg.errors.addTermWithMessage(self, "this cannot be used as a parameter");
+                return self.cg.errors.addTermWithMessage(self, "this cannot be used as a parameter");
             },
             subterms: function() {
                 var self = this;
@@ -6373,9 +6483,9 @@ module.exports=require(64)
             expandMacros: function() {
                 var self = this;
                 return self.clone({
-                    rewrite: function(term, gen12_options) {
+                    rewrite: function(term, gen36_options) {
                         var clone;
-                        clone = gen12_options !== void 0 && Object.prototype.hasOwnProperty.call(gen12_options, "clone") && gen12_options.clone !== void 0 ? gen12_options.clone : void 0;
+                        clone = gen36_options !== void 0 && Object.prototype.hasOwnProperty.call(gen36_options, "clone") && gen36_options.clone !== void 0 ? gen36_options.clone : void 0;
                         return term.expandMacro(clone);
                     }
                 });
@@ -6387,9 +6497,9 @@ module.exports=require(64)
             rewriteAllStatements: function() {
                 var self = this;
                 return self.clone({
-                    rewrite: function(term, gen13_options) {
+                    rewrite: function(term, gen37_options) {
                         var clone;
-                        clone = gen13_options !== void 0 && Object.prototype.hasOwnProperty.call(gen13_options, "clone") && gen13_options.clone !== void 0 ? gen13_options.clone : void 0;
+                        clone = gen37_options !== void 0 && Object.prototype.hasOwnProperty.call(gen37_options, "clone") && gen37_options.clone !== void 0 ? gen37_options.clone : void 0;
                         return term.rewriteStatements(clone);
                     }
                 });
@@ -6435,6 +6545,19 @@ module.exports=require(64)
                 });
                 return found;
             },
+            containsAsync: function() {
+                var self = this;
+                var isAsync;
+                isAsync = false;
+                self.walkDescendants(function(term) {
+                    return isAsync = isAsync || term.isDefinition && term.isAsync;
+                }, {
+                    limit: function(term) {
+                        return term.isClosure;
+                    }
+                });
+                return isAsync;
+            },
             rewriteResultTermInto: function(returnTerm) {
                 var self = this;
                 if (self.containsContinuation()) {
@@ -6446,6 +6569,37 @@ module.exports=require(64)
             asyncify: function() {
                 var self = this;
                 return void 0;
+            },
+            code: function() {
+                var self = this;
+                var chunks = Array.prototype.slice.call(arguments, 0, arguments.length);
+                var location;
+                location = self.location();
+                if (location) {
+                    return new sourceMap.SourceNode(location.firstLine, location.firstColumn, location.filename, chunks);
+                } else {
+                    return chunks;
+                }
+            },
+            generateIntoBuffer: function(generateCodeIntoBuffer) {
+                var self = this;
+                var chunks, location;
+                chunks = function() {
+                    var b;
+                    b = buffer();
+                    generateCodeIntoBuffer(b);
+                    return b.chunks();
+                }();
+                location = self.location();
+                if (location) {
+                    return new sourceMap.SourceNode(location.firstLine, location.firstColumn, location.filename, chunks);
+                } else {
+                    return chunks;
+                }
+            },
+            generateStatement: function(scope) {
+                var self = this;
+                return self.code(self.generate(scope), ";");
             }
         });
         termPrototype = new Term();
@@ -6454,12 +6608,12 @@ module.exports=require(64)
             termConstructor = classExtending(Term, members);
             return function() {
                 var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen14_c;
-                gen14_c = function() {
+                var gen38_c;
+                gen38_c = function() {
                     termConstructor.apply(this, args);
                 };
-                gen14_c.prototype = termConstructor.prototype;
-                return new gen14_c();
+                gen38_c.prototype = termConstructor.prototype;
+                return new gen38_c();
             };
         };
         return {
@@ -6470,7 +6624,7 @@ module.exports=require(64)
         };
     };
 }).call(this);
-},{"../class":2,"underscore":91,"util":89}],81:[function(require,module,exports){
+},{"../class":2,"../memorystream":5,"source-map":91,"underscore":101,"util":89}],81:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -6481,11 +6635,9 @@ module.exports=require(64)
                 self.isThrow = true;
                 return self.expression = expr;
             },
-            generateJavaScriptStatement: function(buffer, scope) {
+            generateStatement: function(scope) {
                 var self = this;
-                buffer.write("throw ");
-                self.expression.generateJavaScript(buffer, scope);
-                return buffer.write(";");
+                return self.code("throw ", self.expression.generate(scope), ";");
             },
             rewriteResultTermInto: function(returnTerm) {
                 var self = this;
@@ -6515,41 +6667,37 @@ module.exports=require(64)
                 self.catchParameter = catchParameter;
                 return self.finallyBody = finallyBody;
             },
-            generateJavaScriptStatement: function(buffer, scope, returnStatements) {
+            generateStatement: function(scope, returnStatements) {
                 var self = this;
-                buffer.write("try{");
-                if (returnStatements) {
-                    self.body.generateJavaScriptStatementsReturn(buffer, scope);
-                } else {
-                    self.body.generateJavaScriptStatements(buffer, scope);
-                }
-                buffer.write("}");
-                if (self.catchBody) {
-                    buffer.write("catch(");
-                    self.catchParameter.generateJavaScript(buffer, scope);
-                    buffer.write("){");
-                    if (returnStatements) {
-                        self.catchBody.generateJavaScriptStatementsReturn(buffer, scope);
-                    } else {
-                        self.catchBody.generateJavaScriptStatements(buffer, scope);
-                    }
+                return self.generateIntoBuffer(function(buffer) {
+                    buffer.write("try{");
+                    buffer.write(self.body.generateStatements(scope));
                     buffer.write("}");
-                }
-                if (self.finallyBody) {
-                    buffer.write("finally{");
-                    self.finallyBody.generateJavaScriptStatements(buffer, scope);
-                    return buffer.write("}");
-                }
+                    if (self.catchBody) {
+                        buffer.write("catch(");
+                        buffer.write(self.catchParameter.generate(scope));
+                        buffer.write("){");
+                        buffer.write(self.catchBody.generateStatements(scope));
+                        buffer.write("}");
+                    }
+                    if (self.finallyBody) {
+                        buffer.write("finally{");
+                        buffer.write(self.finallyBody.generateStatements(scope));
+                        return buffer.write("}");
+                    }
+                });
             },
-            generateJavaScript: function(buffer, symbolScope) {
+            generate: function(symbolScope) {
                 var self = this;
-                if (self.alreadyCalled) {
-                    throw new Error("stuff");
-                }
-                self.alreadyCalled = true;
-                return self.cg.scope([ self ], {
-                    alwaysGenerateFunction: true
-                }).generateJavaScript(buffer, symbolScope);
+                return self.generateIntoBuffer(function(buffer) {
+                    if (self.alreadyCalled) {
+                        throw new Error("stuff");
+                    }
+                    self.alreadyCalled = true;
+                    return buffer.write(self.cg.scope([ self ], {
+                        alwaysGenerateFunction: true
+                    }).generate(symbolScope));
+                });
             },
             rewriteResultTermInto: function(returnTerm) {
                 var self = this;
@@ -6593,11 +6741,9 @@ module.exports=require(64)
                 self.expression = expression;
                 return self.type = type;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                buffer.write("(typeof(");
-                this.expression.generateJavaScript(buffer, scope);
-                return buffer.write(") === '" + this.type + "')");
+                return self.code("(typeof(", self.expression.generate(scope), ") === '" + self.type + "')");
             }
         });
     };
@@ -6629,37 +6775,30 @@ module.exports=require(64)
                 var self = this;
                 return self.variable.join(" ");
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                return buffer.write(this.canonicalName());
+                return self.code(self.canonicalName());
             },
-            generateJavaScriptTarget: function() {
+            generateTarget: function() {
                 var self = this;
                 var args = Array.prototype.slice.call(arguments, 0, arguments.length);
                 var gen2_o;
                 gen2_o = self;
-                return gen2_o.generateJavaScript.apply(gen2_o, args);
+                return gen2_o.generate.apply(gen2_o, args);
             },
             hashEntryField: function() {
                 var self = this;
                 return self.variable;
-            },
-            generateJavaScriptParameter: function() {
-                var self = this;
-                var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen3_o;
-                gen3_o = self;
-                return gen3_o.generateJavaScript.apply(gen3_o, args);
             },
             parameter: function() {
                 var self = this;
                 return self;
             }
         });
-        return variable = function(name, gen4_options) {
+        return variable = function(name, gen3_options) {
             var couldBeMacro, location;
-            couldBeMacro = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "couldBeMacro") && gen4_options.couldBeMacro !== void 0 ? gen4_options.couldBeMacro : true;
-            location = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "location") && gen4_options.location !== void 0 ? gen4_options.location : void 0;
+            couldBeMacro = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "couldBeMacro") && gen3_options.couldBeMacro !== void 0 ? gen3_options.couldBeMacro : true;
+            location = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "location") && gen3_options.location !== void 0 ? gen3_options.location : void 0;
             var v, macro;
             v = variableTerm(name, {
                 location: location
@@ -6689,20 +6828,16 @@ module.exports=require(64)
                 self.condition = condition;
                 return self.statements = statements;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                buffer.write("while(");
-                self.condition.generateJavaScript(buffer, scope);
-                buffer.write("){");
-                self.statements.generateJavaScriptStatements(buffer, scope);
-                return buffer.write("}");
+                return self.code("while(", self.condition.generate(scope), "){", self.statements.generateStatements(scope), "}");
             },
-            generateJavaScriptStatement: function() {
+            generateStatement: function() {
                 var self = this;
                 var args = Array.prototype.slice.call(arguments, 0, arguments.length);
                 var gen1_o;
                 gen1_o = self;
-                return gen1_o.generateJavaScript.apply(gen1_o, args);
+                return gen1_o.generate.apply(gen1_o, args);
             },
             rewriteResultTermInto: function(returnTerm) {
                 var self = this;
@@ -6736,20 +6871,16 @@ module.exports=require(64)
                 self.subject = subject;
                 return self.statements = statements;
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
-                buffer.write("with(");
-                self.subject.generateJavaScript(buffer, scope);
-                buffer.write("){");
-                self.statements.generateJavaScriptStatements(buffer, scope);
-                return buffer.write("}");
+                return self.code("with(", self.subject.generate(scope), "){", self.statements.generateStatements(scope), "}");
             },
-            generateJavaScriptStatement: function() {
+            generateStatement: function() {
                 var self = this;
                 var args = Array.prototype.slice.call(arguments, 0, arguments.length);
                 var gen1_o;
                 gen1_o = self;
-                return gen1_o.generateJavaScript.apply(gen1_o, args);
+                return gen1_o.generate.apply(gen1_o, args);
             },
             rewriteResultTermInto: function(returnTerm) {
                 var self = this;
@@ -7790,6 +7921,2130 @@ process.chdir = function (dir) {
 };
 
 },{}],91:[function(require,module,exports){
+/*
+ * Copyright 2009-2011 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE.txt or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ */
+exports.SourceMapGenerator = require('./source-map/source-map-generator').SourceMapGenerator;
+exports.SourceMapConsumer = require('./source-map/source-map-consumer').SourceMapConsumer;
+exports.SourceNode = require('./source-map/source-node').SourceNode;
+
+},{"./source-map/source-map-consumer":96,"./source-map/source-map-generator":97,"./source-map/source-node":98}],92:[function(require,module,exports){
+/* -*- Mode: js; js-indent-level: 2; -*- */
+/*
+ * Copyright 2011 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ */
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module, require);
+}
+define(function (require, exports, module) {
+
+  var util = require('./util');
+
+  /**
+   * A data structure which is a combination of an array and a set. Adding a new
+   * member is O(1), testing for membership is O(1), and finding the index of an
+   * element is O(1). Removing elements from the set is not supported. Only
+   * strings are supported for membership.
+   */
+  function ArraySet() {
+    this._array = [];
+    this._set = {};
+  }
+
+  /**
+   * Static method for creating ArraySet instances from an existing array.
+   */
+  ArraySet.fromArray = function ArraySet_fromArray(aArray, aAllowDuplicates) {
+    var set = new ArraySet();
+    for (var i = 0, len = aArray.length; i < len; i++) {
+      set.add(aArray[i], aAllowDuplicates);
+    }
+    return set;
+  };
+
+  /**
+   * Add the given string to this set.
+   *
+   * @param String aStr
+   */
+  ArraySet.prototype.add = function ArraySet_add(aStr, aAllowDuplicates) {
+    var isDuplicate = this.has(aStr);
+    var idx = this._array.length;
+    if (!isDuplicate || aAllowDuplicates) {
+      this._array.push(aStr);
+    }
+    if (!isDuplicate) {
+      this._set[util.toSetString(aStr)] = idx;
+    }
+  };
+
+  /**
+   * Is the given string a member of this set?
+   *
+   * @param String aStr
+   */
+  ArraySet.prototype.has = function ArraySet_has(aStr) {
+    return Object.prototype.hasOwnProperty.call(this._set,
+                                                util.toSetString(aStr));
+  };
+
+  /**
+   * What is the index of the given string in the array?
+   *
+   * @param String aStr
+   */
+  ArraySet.prototype.indexOf = function ArraySet_indexOf(aStr) {
+    if (this.has(aStr)) {
+      return this._set[util.toSetString(aStr)];
+    }
+    throw new Error('"' + aStr + '" is not in the set.');
+  };
+
+  /**
+   * What is the element at the given index?
+   *
+   * @param Number aIdx
+   */
+  ArraySet.prototype.at = function ArraySet_at(aIdx) {
+    if (aIdx >= 0 && aIdx < this._array.length) {
+      return this._array[aIdx];
+    }
+    throw new Error('No element indexed by ' + aIdx);
+  };
+
+  /**
+   * Returns the array representation of this set (which has the proper indices
+   * indicated by indexOf). Note that this is a copy of the internal array used
+   * for storing the members so that no one can mess with internal state.
+   */
+  ArraySet.prototype.toArray = function ArraySet_toArray() {
+    return this._array.slice();
+  };
+
+  exports.ArraySet = ArraySet;
+
+});
+
+},{"./util":99,"amdefine":100}],93:[function(require,module,exports){
+/* -*- Mode: js; js-indent-level: 2; -*- */
+/*
+ * Copyright 2011 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ *
+ * Based on the Base 64 VLQ implementation in Closure Compiler:
+ * https://code.google.com/p/closure-compiler/source/browse/trunk/src/com/google/debugging/sourcemap/Base64VLQ.java
+ *
+ * Copyright 2011 The Closure Compiler Authors. All rights reserved.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ *  * Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above
+ *    copyright notice, this list of conditions and the following
+ *    disclaimer in the documentation and/or other materials provided
+ *    with the distribution.
+ *  * Neither the name of Google Inc. nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module, require);
+}
+define(function (require, exports, module) {
+
+  var base64 = require('./base64');
+
+  // A single base 64 digit can contain 6 bits of data. For the base 64 variable
+  // length quantities we use in the source map spec, the first bit is the sign,
+  // the next four bits are the actual value, and the 6th bit is the
+  // continuation bit. The continuation bit tells us whether there are more
+  // digits in this value following this digit.
+  //
+  //   Continuation
+  //   |    Sign
+  //   |    |
+  //   V    V
+  //   101011
+
+  var VLQ_BASE_SHIFT = 5;
+
+  // binary: 100000
+  var VLQ_BASE = 1 << VLQ_BASE_SHIFT;
+
+  // binary: 011111
+  var VLQ_BASE_MASK = VLQ_BASE - 1;
+
+  // binary: 100000
+  var VLQ_CONTINUATION_BIT = VLQ_BASE;
+
+  /**
+   * Converts from a two-complement value to a value where the sign bit is
+   * is placed in the least significant bit.  For example, as decimals:
+   *   1 becomes 2 (10 binary), -1 becomes 3 (11 binary)
+   *   2 becomes 4 (100 binary), -2 becomes 5 (101 binary)
+   */
+  function toVLQSigned(aValue) {
+    return aValue < 0
+      ? ((-aValue) << 1) + 1
+      : (aValue << 1) + 0;
+  }
+
+  /**
+   * Converts to a two-complement value from a value where the sign bit is
+   * is placed in the least significant bit.  For example, as decimals:
+   *   2 (10 binary) becomes 1, 3 (11 binary) becomes -1
+   *   4 (100 binary) becomes 2, 5 (101 binary) becomes -2
+   */
+  function fromVLQSigned(aValue) {
+    var isNegative = (aValue & 1) === 1;
+    var shifted = aValue >> 1;
+    return isNegative
+      ? -shifted
+      : shifted;
+  }
+
+  /**
+   * Returns the base 64 VLQ encoded value.
+   */
+  exports.encode = function base64VLQ_encode(aValue) {
+    var encoded = "";
+    var digit;
+
+    var vlq = toVLQSigned(aValue);
+
+    do {
+      digit = vlq & VLQ_BASE_MASK;
+      vlq >>>= VLQ_BASE_SHIFT;
+      if (vlq > 0) {
+        // There are still more digits in this value, so we must make sure the
+        // continuation bit is marked.
+        digit |= VLQ_CONTINUATION_BIT;
+      }
+      encoded += base64.encode(digit);
+    } while (vlq > 0);
+
+    return encoded;
+  };
+
+  /**
+   * Decodes the next base 64 VLQ value from the given string and returns the
+   * value and the rest of the string.
+   */
+  exports.decode = function base64VLQ_decode(aStr) {
+    var i = 0;
+    var strLen = aStr.length;
+    var result = 0;
+    var shift = 0;
+    var continuation, digit;
+
+    do {
+      if (i >= strLen) {
+        throw new Error("Expected more digits in base 64 VLQ value.");
+      }
+      digit = base64.decode(aStr.charAt(i++));
+      continuation = !!(digit & VLQ_CONTINUATION_BIT);
+      digit &= VLQ_BASE_MASK;
+      result = result + (digit << shift);
+      shift += VLQ_BASE_SHIFT;
+    } while (continuation);
+
+    return {
+      value: fromVLQSigned(result),
+      rest: aStr.slice(i)
+    };
+  };
+
+});
+
+},{"./base64":94,"amdefine":100}],94:[function(require,module,exports){
+/* -*- Mode: js; js-indent-level: 2; -*- */
+/*
+ * Copyright 2011 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ */
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module, require);
+}
+define(function (require, exports, module) {
+
+  var charToIntMap = {};
+  var intToCharMap = {};
+
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    .split('')
+    .forEach(function (ch, index) {
+      charToIntMap[ch] = index;
+      intToCharMap[index] = ch;
+    });
+
+  /**
+   * Encode an integer in the range of 0 to 63 to a single base 64 digit.
+   */
+  exports.encode = function base64_encode(aNumber) {
+    if (aNumber in intToCharMap) {
+      return intToCharMap[aNumber];
+    }
+    throw new TypeError("Must be between 0 and 63: " + aNumber);
+  };
+
+  /**
+   * Decode a single base 64 digit to an integer.
+   */
+  exports.decode = function base64_decode(aChar) {
+    if (aChar in charToIntMap) {
+      return charToIntMap[aChar];
+    }
+    throw new TypeError("Not a valid base 64 digit: " + aChar);
+  };
+
+});
+
+},{"amdefine":100}],95:[function(require,module,exports){
+/* -*- Mode: js; js-indent-level: 2; -*- */
+/*
+ * Copyright 2011 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ */
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module, require);
+}
+define(function (require, exports, module) {
+
+  /**
+   * Recursive implementation of binary search.
+   *
+   * @param aLow Indices here and lower do not contain the needle.
+   * @param aHigh Indices here and higher do not contain the needle.
+   * @param aNeedle The element being searched for.
+   * @param aHaystack The non-empty array being searched.
+   * @param aCompare Function which takes two elements and returns -1, 0, or 1.
+   */
+  function recursiveSearch(aLow, aHigh, aNeedle, aHaystack, aCompare) {
+    // This function terminates when one of the following is true:
+    //
+    //   1. We find the exact element we are looking for.
+    //
+    //   2. We did not find the exact element, but we can return the next
+    //      closest element that is less than that element.
+    //
+    //   3. We did not find the exact element, and there is no next-closest
+    //      element which is less than the one we are searching for, so we
+    //      return null.
+    var mid = Math.floor((aHigh - aLow) / 2) + aLow;
+    var cmp = aCompare(aNeedle, aHaystack[mid], true);
+    if (cmp === 0) {
+      // Found the element we are looking for.
+      return aHaystack[mid];
+    }
+    else if (cmp > 0) {
+      // aHaystack[mid] is greater than our needle.
+      if (aHigh - mid > 1) {
+        // The element is in the upper half.
+        return recursiveSearch(mid, aHigh, aNeedle, aHaystack, aCompare);
+      }
+      // We did not find an exact match, return the next closest one
+      // (termination case 2).
+      return aHaystack[mid];
+    }
+    else {
+      // aHaystack[mid] is less than our needle.
+      if (mid - aLow > 1) {
+        // The element is in the lower half.
+        return recursiveSearch(aLow, mid, aNeedle, aHaystack, aCompare);
+      }
+      // The exact needle element was not found in this haystack. Determine if
+      // we are in termination case (2) or (3) and return the appropriate thing.
+      return aLow < 0
+        ? null
+        : aHaystack[aLow];
+    }
+  }
+
+  /**
+   * This is an implementation of binary search which will always try and return
+   * the next lowest value checked if there is no exact hit. This is because
+   * mappings between original and generated line/col pairs are single points,
+   * and there is an implicit region between each of them, so a miss just means
+   * that you aren't on the very start of a region.
+   *
+   * @param aNeedle The element you are looking for.
+   * @param aHaystack The array that is being searched.
+   * @param aCompare A function which takes the needle and an element in the
+   *     array and returns -1, 0, or 1 depending on whether the needle is less
+   *     than, equal to, or greater than the element, respectively.
+   */
+  exports.search = function search(aNeedle, aHaystack, aCompare) {
+    return aHaystack.length > 0
+      ? recursiveSearch(-1, aHaystack.length, aNeedle, aHaystack, aCompare)
+      : null;
+  };
+
+});
+
+},{"amdefine":100}],96:[function(require,module,exports){
+/* -*- Mode: js; js-indent-level: 2; -*- */
+/*
+ * Copyright 2011 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ */
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module, require);
+}
+define(function (require, exports, module) {
+
+  var util = require('./util');
+  var binarySearch = require('./binary-search');
+  var ArraySet = require('./array-set').ArraySet;
+  var base64VLQ = require('./base64-vlq');
+
+  /**
+   * A SourceMapConsumer instance represents a parsed source map which we can
+   * query for information about the original file positions by giving it a file
+   * position in the generated source.
+   *
+   * The only parameter is the raw source map (either as a JSON string, or
+   * already parsed to an object). According to the spec, source maps have the
+   * following attributes:
+   *
+   *   - version: Which version of the source map spec this map is following.
+   *   - sources: An array of URLs to the original source files.
+   *   - names: An array of identifiers which can be referrenced by individual mappings.
+   *   - sourceRoot: Optional. The URL root from which all sources are relative.
+   *   - sourcesContent: Optional. An array of contents of the original source files.
+   *   - mappings: A string of base64 VLQs which contain the actual mappings.
+   *   - file: The generated file this source map is associated with.
+   *
+   * Here is an example source map, taken from the source map spec[0]:
+   *
+   *     {
+   *       version : 3,
+   *       file: "out.js",
+   *       sourceRoot : "",
+   *       sources: ["foo.js", "bar.js"],
+   *       names: ["src", "maps", "are", "fun"],
+   *       mappings: "AA,AB;;ABCDE;"
+   *     }
+   *
+   * [0]: https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit?pli=1#
+   */
+  function SourceMapConsumer(aSourceMap) {
+    var sourceMap = aSourceMap;
+    if (typeof aSourceMap === 'string') {
+      sourceMap = JSON.parse(aSourceMap.replace(/^\)\]\}'/, ''));
+    }
+
+    var version = util.getArg(sourceMap, 'version');
+    var sources = util.getArg(sourceMap, 'sources');
+    // Sass 3.3 leaves out the 'names' array, so we deviate from the spec (which
+    // requires the array) to play nice here.
+    var names = util.getArg(sourceMap, 'names', []);
+    var sourceRoot = util.getArg(sourceMap, 'sourceRoot', null);
+    var sourcesContent = util.getArg(sourceMap, 'sourcesContent', null);
+    var mappings = util.getArg(sourceMap, 'mappings');
+    var file = util.getArg(sourceMap, 'file', null);
+
+    // Once again, Sass deviates from the spec and supplies the version as a
+    // string rather than a number, so we use loose equality checking here.
+    if (version != this._version) {
+      throw new Error('Unsupported version: ' + version);
+    }
+
+    // Pass `true` below to allow duplicate names and sources. While source maps
+    // are intended to be compressed and deduplicated, the TypeScript compiler
+    // sometimes generates source maps with duplicates in them. See Github issue
+    // #72 and bugzil.la/889492.
+    this._names = ArraySet.fromArray(names, true);
+    this._sources = ArraySet.fromArray(sources, true);
+
+    this.sourceRoot = sourceRoot;
+    this.sourcesContent = sourcesContent;
+    this._mappings = mappings;
+    this.file = file;
+  }
+
+  /**
+   * Create a SourceMapConsumer from a SourceMapGenerator.
+   *
+   * @param SourceMapGenerator aSourceMap
+   *        The source map that will be consumed.
+   * @returns SourceMapConsumer
+   */
+  SourceMapConsumer.fromSourceMap =
+    function SourceMapConsumer_fromSourceMap(aSourceMap) {
+      var smc = Object.create(SourceMapConsumer.prototype);
+
+      smc._names = ArraySet.fromArray(aSourceMap._names.toArray(), true);
+      smc._sources = ArraySet.fromArray(aSourceMap._sources.toArray(), true);
+      smc.sourceRoot = aSourceMap._sourceRoot;
+      smc.sourcesContent = aSourceMap._generateSourcesContent(smc._sources.toArray(),
+                                                              smc.sourceRoot);
+      smc.file = aSourceMap._file;
+
+      smc.__generatedMappings = aSourceMap._mappings.slice()
+        .sort(util.compareByGeneratedPositions);
+      smc.__originalMappings = aSourceMap._mappings.slice()
+        .sort(util.compareByOriginalPositions);
+
+      return smc;
+    };
+
+  /**
+   * The version of the source mapping spec that we are consuming.
+   */
+  SourceMapConsumer.prototype._version = 3;
+
+  /**
+   * The list of original sources.
+   */
+  Object.defineProperty(SourceMapConsumer.prototype, 'sources', {
+    get: function () {
+      return this._sources.toArray().map(function (s) {
+        return this.sourceRoot ? util.join(this.sourceRoot, s) : s;
+      }, this);
+    }
+  });
+
+  // `__generatedMappings` and `__originalMappings` are arrays that hold the
+  // parsed mapping coordinates from the source map's "mappings" attribute. They
+  // are lazily instantiated, accessed via the `_generatedMappings` and
+  // `_originalMappings` getters respectively, and we only parse the mappings
+  // and create these arrays once queried for a source location. We jump through
+  // these hoops because there can be many thousands of mappings, and parsing
+  // them is expensive, so we only want to do it if we must.
+  //
+  // Each object in the arrays is of the form:
+  //
+  //     {
+  //       generatedLine: The line number in the generated code,
+  //       generatedColumn: The column number in the generated code,
+  //       source: The path to the original source file that generated this
+  //               chunk of code,
+  //       originalLine: The line number in the original source that
+  //                     corresponds to this chunk of generated code,
+  //       originalColumn: The column number in the original source that
+  //                       corresponds to this chunk of generated code,
+  //       name: The name of the original symbol which generated this chunk of
+  //             code.
+  //     }
+  //
+  // All properties except for `generatedLine` and `generatedColumn` can be
+  // `null`.
+  //
+  // `_generatedMappings` is ordered by the generated positions.
+  //
+  // `_originalMappings` is ordered by the original positions.
+
+  SourceMapConsumer.prototype.__generatedMappings = null;
+  Object.defineProperty(SourceMapConsumer.prototype, '_generatedMappings', {
+    get: function () {
+      if (!this.__generatedMappings) {
+        this.__generatedMappings = [];
+        this.__originalMappings = [];
+        this._parseMappings(this._mappings, this.sourceRoot);
+      }
+
+      return this.__generatedMappings;
+    }
+  });
+
+  SourceMapConsumer.prototype.__originalMappings = null;
+  Object.defineProperty(SourceMapConsumer.prototype, '_originalMappings', {
+    get: function () {
+      if (!this.__originalMappings) {
+        this.__generatedMappings = [];
+        this.__originalMappings = [];
+        this._parseMappings(this._mappings, this.sourceRoot);
+      }
+
+      return this.__originalMappings;
+    }
+  });
+
+  /**
+   * Parse the mappings in a string in to a data structure which we can easily
+   * query (the ordered arrays in the `this.__generatedMappings` and
+   * `this.__originalMappings` properties).
+   */
+  SourceMapConsumer.prototype._parseMappings =
+    function SourceMapConsumer_parseMappings(aStr, aSourceRoot) {
+      var generatedLine = 1;
+      var previousGeneratedColumn = 0;
+      var previousOriginalLine = 0;
+      var previousOriginalColumn = 0;
+      var previousSource = 0;
+      var previousName = 0;
+      var mappingSeparator = /^[,;]/;
+      var str = aStr;
+      var mapping;
+      var temp;
+
+      while (str.length > 0) {
+        if (str.charAt(0) === ';') {
+          generatedLine++;
+          str = str.slice(1);
+          previousGeneratedColumn = 0;
+        }
+        else if (str.charAt(0) === ',') {
+          str = str.slice(1);
+        }
+        else {
+          mapping = {};
+          mapping.generatedLine = generatedLine;
+
+          // Generated column.
+          temp = base64VLQ.decode(str);
+          mapping.generatedColumn = previousGeneratedColumn + temp.value;
+          previousGeneratedColumn = mapping.generatedColumn;
+          str = temp.rest;
+
+          if (str.length > 0 && !mappingSeparator.test(str.charAt(0))) {
+            // Original source.
+            temp = base64VLQ.decode(str);
+            mapping.source = this._sources.at(previousSource + temp.value);
+            previousSource += temp.value;
+            str = temp.rest;
+            if (str.length === 0 || mappingSeparator.test(str.charAt(0))) {
+              throw new Error('Found a source, but no line and column');
+            }
+
+            // Original line.
+            temp = base64VLQ.decode(str);
+            mapping.originalLine = previousOriginalLine + temp.value;
+            previousOriginalLine = mapping.originalLine;
+            // Lines are stored 0-based
+            mapping.originalLine += 1;
+            str = temp.rest;
+            if (str.length === 0 || mappingSeparator.test(str.charAt(0))) {
+              throw new Error('Found a source and line, but no column');
+            }
+
+            // Original column.
+            temp = base64VLQ.decode(str);
+            mapping.originalColumn = previousOriginalColumn + temp.value;
+            previousOriginalColumn = mapping.originalColumn;
+            str = temp.rest;
+
+            if (str.length > 0 && !mappingSeparator.test(str.charAt(0))) {
+              // Original name.
+              temp = base64VLQ.decode(str);
+              mapping.name = this._names.at(previousName + temp.value);
+              previousName += temp.value;
+              str = temp.rest;
+            }
+          }
+
+          this.__generatedMappings.push(mapping);
+          if (typeof mapping.originalLine === 'number') {
+            this.__originalMappings.push(mapping);
+          }
+        }
+      }
+
+      this.__originalMappings.sort(util.compareByOriginalPositions);
+    };
+
+  /**
+   * Find the mapping that best matches the hypothetical "needle" mapping that
+   * we are searching for in the given "haystack" of mappings.
+   */
+  SourceMapConsumer.prototype._findMapping =
+    function SourceMapConsumer_findMapping(aNeedle, aMappings, aLineName,
+                                           aColumnName, aComparator) {
+      // To return the position we are searching for, we must first find the
+      // mapping for the given position and then return the opposite position it
+      // points to. Because the mappings are sorted, we can use binary search to
+      // find the best mapping.
+
+      if (aNeedle[aLineName] <= 0) {
+        throw new TypeError('Line must be greater than or equal to 1, got '
+                            + aNeedle[aLineName]);
+      }
+      if (aNeedle[aColumnName] < 0) {
+        throw new TypeError('Column must be greater than or equal to 0, got '
+                            + aNeedle[aColumnName]);
+      }
+
+      return binarySearch.search(aNeedle, aMappings, aComparator);
+    };
+
+  /**
+   * Returns the original source, line, and column information for the generated
+   * source's line and column positions provided. The only argument is an object
+   * with the following properties:
+   *
+   *   - line: The line number in the generated source.
+   *   - column: The column number in the generated source.
+   *
+   * and an object is returned with the following properties:
+   *
+   *   - source: The original source file, or null.
+   *   - line: The line number in the original source, or null.
+   *   - column: The column number in the original source, or null.
+   *   - name: The original identifier, or null.
+   */
+  SourceMapConsumer.prototype.originalPositionFor =
+    function SourceMapConsumer_originalPositionFor(aArgs) {
+      var needle = {
+        generatedLine: util.getArg(aArgs, 'line'),
+        generatedColumn: util.getArg(aArgs, 'column')
+      };
+
+      var mapping = this._findMapping(needle,
+                                      this._generatedMappings,
+                                      "generatedLine",
+                                      "generatedColumn",
+                                      util.compareByGeneratedPositions);
+
+      if (mapping) {
+        var source = util.getArg(mapping, 'source', null);
+        if (source && this.sourceRoot) {
+          source = util.join(this.sourceRoot, source);
+        }
+        return {
+          source: source,
+          line: util.getArg(mapping, 'originalLine', null),
+          column: util.getArg(mapping, 'originalColumn', null),
+          name: util.getArg(mapping, 'name', null)
+        };
+      }
+
+      return {
+        source: null,
+        line: null,
+        column: null,
+        name: null
+      };
+    };
+
+  /**
+   * Returns the original source content. The only argument is the url of the
+   * original source file. Returns null if no original source content is
+   * availible.
+   */
+  SourceMapConsumer.prototype.sourceContentFor =
+    function SourceMapConsumer_sourceContentFor(aSource) {
+      if (!this.sourcesContent) {
+        return null;
+      }
+
+      if (this.sourceRoot) {
+        aSource = util.relative(this.sourceRoot, aSource);
+      }
+
+      if (this._sources.has(aSource)) {
+        return this.sourcesContent[this._sources.indexOf(aSource)];
+      }
+
+      var url;
+      if (this.sourceRoot
+          && (url = util.urlParse(this.sourceRoot))) {
+        // XXX: file:// URIs and absolute paths lead to unexpected behavior for
+        // many users. We can help them out when they expect file:// URIs to
+        // behave like it would if they were running a local HTTP server. See
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=885597.
+        var fileUriAbsPath = aSource.replace(/^file:\/\//, "");
+        if (url.scheme == "file"
+            && this._sources.has(fileUriAbsPath)) {
+          return this.sourcesContent[this._sources.indexOf(fileUriAbsPath)]
+        }
+
+        if ((!url.path || url.path == "/")
+            && this._sources.has("/" + aSource)) {
+          return this.sourcesContent[this._sources.indexOf("/" + aSource)];
+        }
+      }
+
+      throw new Error('"' + aSource + '" is not in the SourceMap.');
+    };
+
+  /**
+   * Returns the generated line and column information for the original source,
+   * line, and column positions provided. The only argument is an object with
+   * the following properties:
+   *
+   *   - source: The filename of the original source.
+   *   - line: The line number in the original source.
+   *   - column: The column number in the original source.
+   *
+   * and an object is returned with the following properties:
+   *
+   *   - line: The line number in the generated source, or null.
+   *   - column: The column number in the generated source, or null.
+   */
+  SourceMapConsumer.prototype.generatedPositionFor =
+    function SourceMapConsumer_generatedPositionFor(aArgs) {
+      var needle = {
+        source: util.getArg(aArgs, 'source'),
+        originalLine: util.getArg(aArgs, 'line'),
+        originalColumn: util.getArg(aArgs, 'column')
+      };
+
+      if (this.sourceRoot) {
+        needle.source = util.relative(this.sourceRoot, needle.source);
+      }
+
+      var mapping = this._findMapping(needle,
+                                      this._originalMappings,
+                                      "originalLine",
+                                      "originalColumn",
+                                      util.compareByOriginalPositions);
+
+      if (mapping) {
+        return {
+          line: util.getArg(mapping, 'generatedLine', null),
+          column: util.getArg(mapping, 'generatedColumn', null)
+        };
+      }
+
+      return {
+        line: null,
+        column: null
+      };
+    };
+
+  SourceMapConsumer.GENERATED_ORDER = 1;
+  SourceMapConsumer.ORIGINAL_ORDER = 2;
+
+  /**
+   * Iterate over each mapping between an original source/line/column and a
+   * generated line/column in this source map.
+   *
+   * @param Function aCallback
+   *        The function that is called with each mapping.
+   * @param Object aContext
+   *        Optional. If specified, this object will be the value of `this` every
+   *        time that `aCallback` is called.
+   * @param aOrder
+   *        Either `SourceMapConsumer.GENERATED_ORDER` or
+   *        `SourceMapConsumer.ORIGINAL_ORDER`. Specifies whether you want to
+   *        iterate over the mappings sorted by the generated file's line/column
+   *        order or the original's source/line/column order, respectively. Defaults to
+   *        `SourceMapConsumer.GENERATED_ORDER`.
+   */
+  SourceMapConsumer.prototype.eachMapping =
+    function SourceMapConsumer_eachMapping(aCallback, aContext, aOrder) {
+      var context = aContext || null;
+      var order = aOrder || SourceMapConsumer.GENERATED_ORDER;
+
+      var mappings;
+      switch (order) {
+      case SourceMapConsumer.GENERATED_ORDER:
+        mappings = this._generatedMappings;
+        break;
+      case SourceMapConsumer.ORIGINAL_ORDER:
+        mappings = this._originalMappings;
+        break;
+      default:
+        throw new Error("Unknown order of iteration.");
+      }
+
+      var sourceRoot = this.sourceRoot;
+      mappings.map(function (mapping) {
+        var source = mapping.source;
+        if (source && sourceRoot) {
+          source = util.join(sourceRoot, source);
+        }
+        return {
+          source: source,
+          generatedLine: mapping.generatedLine,
+          generatedColumn: mapping.generatedColumn,
+          originalLine: mapping.originalLine,
+          originalColumn: mapping.originalColumn,
+          name: mapping.name
+        };
+      }).forEach(aCallback, context);
+    };
+
+  exports.SourceMapConsumer = SourceMapConsumer;
+
+});
+
+},{"./array-set":92,"./base64-vlq":93,"./binary-search":95,"./util":99,"amdefine":100}],97:[function(require,module,exports){
+/* -*- Mode: js; js-indent-level: 2; -*- */
+/*
+ * Copyright 2011 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ */
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module, require);
+}
+define(function (require, exports, module) {
+
+  var base64VLQ = require('./base64-vlq');
+  var util = require('./util');
+  var ArraySet = require('./array-set').ArraySet;
+
+  /**
+   * An instance of the SourceMapGenerator represents a source map which is
+   * being built incrementally. To create a new one, you must pass an object
+   * with the following properties:
+   *
+   *   - file: The filename of the generated source.
+   *   - sourceRoot: An optional root for all URLs in this source map.
+   */
+  function SourceMapGenerator(aArgs) {
+    this._file = util.getArg(aArgs, 'file');
+    this._sourceRoot = util.getArg(aArgs, 'sourceRoot', null);
+    this._sources = new ArraySet();
+    this._names = new ArraySet();
+    this._mappings = [];
+    this._sourcesContents = null;
+  }
+
+  SourceMapGenerator.prototype._version = 3;
+
+  /**
+   * Creates a new SourceMapGenerator based on a SourceMapConsumer
+   *
+   * @param aSourceMapConsumer The SourceMap.
+   */
+  SourceMapGenerator.fromSourceMap =
+    function SourceMapGenerator_fromSourceMap(aSourceMapConsumer) {
+      var sourceRoot = aSourceMapConsumer.sourceRoot;
+      var generator = new SourceMapGenerator({
+        file: aSourceMapConsumer.file,
+        sourceRoot: sourceRoot
+      });
+      aSourceMapConsumer.eachMapping(function (mapping) {
+        var newMapping = {
+          generated: {
+            line: mapping.generatedLine,
+            column: mapping.generatedColumn
+          }
+        };
+
+        if (mapping.source) {
+          newMapping.source = mapping.source;
+          if (sourceRoot) {
+            newMapping.source = util.relative(sourceRoot, newMapping.source);
+          }
+
+          newMapping.original = {
+            line: mapping.originalLine,
+            column: mapping.originalColumn
+          };
+
+          if (mapping.name) {
+            newMapping.name = mapping.name;
+          }
+        }
+
+        generator.addMapping(newMapping);
+      });
+      aSourceMapConsumer.sources.forEach(function (sourceFile) {
+        var content = aSourceMapConsumer.sourceContentFor(sourceFile);
+        if (content) {
+          generator.setSourceContent(sourceFile, content);
+        }
+      });
+      return generator;
+    };
+
+  /**
+   * Add a single mapping from original source line and column to the generated
+   * source's line and column for this source map being created. The mapping
+   * object should have the following properties:
+   *
+   *   - generated: An object with the generated line and column positions.
+   *   - original: An object with the original line and column positions.
+   *   - source: The original source file (relative to the sourceRoot).
+   *   - name: An optional original token name for this mapping.
+   */
+  SourceMapGenerator.prototype.addMapping =
+    function SourceMapGenerator_addMapping(aArgs) {
+      var generated = util.getArg(aArgs, 'generated');
+      var original = util.getArg(aArgs, 'original', null);
+      var source = util.getArg(aArgs, 'source', null);
+      var name = util.getArg(aArgs, 'name', null);
+
+      this._validateMapping(generated, original, source, name);
+
+      if (source && !this._sources.has(source)) {
+        this._sources.add(source);
+      }
+
+      if (name && !this._names.has(name)) {
+        this._names.add(name);
+      }
+
+      this._mappings.push({
+        generatedLine: generated.line,
+        generatedColumn: generated.column,
+        originalLine: original != null && original.line,
+        originalColumn: original != null && original.column,
+        source: source,
+        name: name
+      });
+    };
+
+  /**
+   * Set the source content for a source file.
+   */
+  SourceMapGenerator.prototype.setSourceContent =
+    function SourceMapGenerator_setSourceContent(aSourceFile, aSourceContent) {
+      var source = aSourceFile;
+      if (this._sourceRoot) {
+        source = util.relative(this._sourceRoot, source);
+      }
+
+      if (aSourceContent !== null) {
+        // Add the source content to the _sourcesContents map.
+        // Create a new _sourcesContents map if the property is null.
+        if (!this._sourcesContents) {
+          this._sourcesContents = {};
+        }
+        this._sourcesContents[util.toSetString(source)] = aSourceContent;
+      } else {
+        // Remove the source file from the _sourcesContents map.
+        // If the _sourcesContents map is empty, set the property to null.
+        delete this._sourcesContents[util.toSetString(source)];
+        if (Object.keys(this._sourcesContents).length === 0) {
+          this._sourcesContents = null;
+        }
+      }
+    };
+
+  /**
+   * Applies the mappings of a sub-source-map for a specific source file to the
+   * source map being generated. Each mapping to the supplied source file is
+   * rewritten using the supplied source map. Note: The resolution for the
+   * resulting mappings is the minimium of this map and the supplied map.
+   *
+   * @param aSourceMapConsumer The source map to be applied.
+   * @param aSourceFile Optional. The filename of the source file.
+   *        If omitted, SourceMapConsumer's file property will be used.
+   */
+  SourceMapGenerator.prototype.applySourceMap =
+    function SourceMapGenerator_applySourceMap(aSourceMapConsumer, aSourceFile) {
+      // If aSourceFile is omitted, we will use the file property of the SourceMap
+      if (!aSourceFile) {
+        aSourceFile = aSourceMapConsumer.file;
+      }
+      var sourceRoot = this._sourceRoot;
+      // Make "aSourceFile" relative if an absolute Url is passed.
+      if (sourceRoot) {
+        aSourceFile = util.relative(sourceRoot, aSourceFile);
+      }
+      // Applying the SourceMap can add and remove items from the sources and
+      // the names array.
+      var newSources = new ArraySet();
+      var newNames = new ArraySet();
+
+      // Find mappings for the "aSourceFile"
+      this._mappings.forEach(function (mapping) {
+        if (mapping.source === aSourceFile && mapping.originalLine) {
+          // Check if it can be mapped by the source map, then update the mapping.
+          var original = aSourceMapConsumer.originalPositionFor({
+            line: mapping.originalLine,
+            column: mapping.originalColumn
+          });
+          if (original.source !== null) {
+            // Copy mapping
+            if (sourceRoot) {
+              mapping.source = util.relative(sourceRoot, original.source);
+            } else {
+              mapping.source = original.source;
+            }
+            mapping.originalLine = original.line;
+            mapping.originalColumn = original.column;
+            if (original.name !== null && mapping.name !== null) {
+              // Only use the identifier name if it's an identifier
+              // in both SourceMaps
+              mapping.name = original.name;
+            }
+          }
+        }
+
+        var source = mapping.source;
+        if (source && !newSources.has(source)) {
+          newSources.add(source);
+        }
+
+        var name = mapping.name;
+        if (name && !newNames.has(name)) {
+          newNames.add(name);
+        }
+
+      }, this);
+      this._sources = newSources;
+      this._names = newNames;
+
+      // Copy sourcesContents of applied map.
+      aSourceMapConsumer.sources.forEach(function (sourceFile) {
+        var content = aSourceMapConsumer.sourceContentFor(sourceFile);
+        if (content) {
+          if (sourceRoot) {
+            sourceFile = util.relative(sourceRoot, sourceFile);
+          }
+          this.setSourceContent(sourceFile, content);
+        }
+      }, this);
+    };
+
+  /**
+   * A mapping can have one of the three levels of data:
+   *
+   *   1. Just the generated position.
+   *   2. The Generated position, original position, and original source.
+   *   3. Generated and original position, original source, as well as a name
+   *      token.
+   *
+   * To maintain consistency, we validate that any new mapping being added falls
+   * in to one of these categories.
+   */
+  SourceMapGenerator.prototype._validateMapping =
+    function SourceMapGenerator_validateMapping(aGenerated, aOriginal, aSource,
+                                                aName) {
+      if (aGenerated && 'line' in aGenerated && 'column' in aGenerated
+          && aGenerated.line > 0 && aGenerated.column >= 0
+          && !aOriginal && !aSource && !aName) {
+        // Case 1.
+        return;
+      }
+      else if (aGenerated && 'line' in aGenerated && 'column' in aGenerated
+               && aOriginal && 'line' in aOriginal && 'column' in aOriginal
+               && aGenerated.line > 0 && aGenerated.column >= 0
+               && aOriginal.line > 0 && aOriginal.column >= 0
+               && aSource) {
+        // Cases 2 and 3.
+        return;
+      }
+      else {
+        throw new Error('Invalid mapping: ' + JSON.stringify({
+          generated: aGenerated,
+          source: aSource,
+          orginal: aOriginal,
+          name: aName
+        }));
+      }
+    };
+
+  /**
+   * Serialize the accumulated mappings in to the stream of base 64 VLQs
+   * specified by the source map format.
+   */
+  SourceMapGenerator.prototype._serializeMappings =
+    function SourceMapGenerator_serializeMappings() {
+      var previousGeneratedColumn = 0;
+      var previousGeneratedLine = 1;
+      var previousOriginalColumn = 0;
+      var previousOriginalLine = 0;
+      var previousName = 0;
+      var previousSource = 0;
+      var result = '';
+      var mapping;
+
+      // The mappings must be guaranteed to be in sorted order before we start
+      // serializing them or else the generated line numbers (which are defined
+      // via the ';' separators) will be all messed up. Note: it might be more
+      // performant to maintain the sorting as we insert them, rather than as we
+      // serialize them, but the big O is the same either way.
+      this._mappings.sort(util.compareByGeneratedPositions);
+
+      for (var i = 0, len = this._mappings.length; i < len; i++) {
+        mapping = this._mappings[i];
+
+        if (mapping.generatedLine !== previousGeneratedLine) {
+          previousGeneratedColumn = 0;
+          while (mapping.generatedLine !== previousGeneratedLine) {
+            result += ';';
+            previousGeneratedLine++;
+          }
+        }
+        else {
+          if (i > 0) {
+            if (!util.compareByGeneratedPositions(mapping, this._mappings[i - 1])) {
+              continue;
+            }
+            result += ',';
+          }
+        }
+
+        result += base64VLQ.encode(mapping.generatedColumn
+                                   - previousGeneratedColumn);
+        previousGeneratedColumn = mapping.generatedColumn;
+
+        if (mapping.source) {
+          result += base64VLQ.encode(this._sources.indexOf(mapping.source)
+                                     - previousSource);
+          previousSource = this._sources.indexOf(mapping.source);
+
+          // lines are stored 0-based in SourceMap spec version 3
+          result += base64VLQ.encode(mapping.originalLine - 1
+                                     - previousOriginalLine);
+          previousOriginalLine = mapping.originalLine - 1;
+
+          result += base64VLQ.encode(mapping.originalColumn
+                                     - previousOriginalColumn);
+          previousOriginalColumn = mapping.originalColumn;
+
+          if (mapping.name) {
+            result += base64VLQ.encode(this._names.indexOf(mapping.name)
+                                       - previousName);
+            previousName = this._names.indexOf(mapping.name);
+          }
+        }
+      }
+
+      return result;
+    };
+
+  SourceMapGenerator.prototype._generateSourcesContent =
+    function SourceMapGenerator_generateSourcesContent(aSources, aSourceRoot) {
+      return aSources.map(function (source) {
+        if (!this._sourcesContents) {
+          return null;
+        }
+        if (aSourceRoot) {
+          source = util.relative(aSourceRoot, source);
+        }
+        var key = util.toSetString(source);
+        return Object.prototype.hasOwnProperty.call(this._sourcesContents,
+                                                    key)
+          ? this._sourcesContents[key]
+          : null;
+      }, this);
+    };
+
+  /**
+   * Externalize the source map.
+   */
+  SourceMapGenerator.prototype.toJSON =
+    function SourceMapGenerator_toJSON() {
+      var map = {
+        version: this._version,
+        file: this._file,
+        sources: this._sources.toArray(),
+        names: this._names.toArray(),
+        mappings: this._serializeMappings()
+      };
+      if (this._sourceRoot) {
+        map.sourceRoot = this._sourceRoot;
+      }
+      if (this._sourcesContents) {
+        map.sourcesContent = this._generateSourcesContent(map.sources, map.sourceRoot);
+      }
+
+      return map;
+    };
+
+  /**
+   * Render the source map being generated to a string.
+   */
+  SourceMapGenerator.prototype.toString =
+    function SourceMapGenerator_toString() {
+      return JSON.stringify(this);
+    };
+
+  exports.SourceMapGenerator = SourceMapGenerator;
+
+});
+
+},{"./array-set":92,"./base64-vlq":93,"./util":99,"amdefine":100}],98:[function(require,module,exports){
+/* -*- Mode: js; js-indent-level: 2; -*- */
+/*
+ * Copyright 2011 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ */
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module, require);
+}
+define(function (require, exports, module) {
+
+  var SourceMapGenerator = require('./source-map-generator').SourceMapGenerator;
+  var util = require('./util');
+
+  /**
+   * SourceNodes provide a way to abstract over interpolating/concatenating
+   * snippets of generated JavaScript source code while maintaining the line and
+   * column information associated with the original source code.
+   *
+   * @param aLine The original line number.
+   * @param aColumn The original column number.
+   * @param aSource The original source's filename.
+   * @param aChunks Optional. An array of strings which are snippets of
+   *        generated JS, or other SourceNodes.
+   * @param aName The original identifier.
+   */
+  function SourceNode(aLine, aColumn, aSource, aChunks, aName) {
+    this.children = [];
+    this.sourceContents = {};
+    this.line = aLine === undefined ? null : aLine;
+    this.column = aColumn === undefined ? null : aColumn;
+    this.source = aSource === undefined ? null : aSource;
+    this.name = aName === undefined ? null : aName;
+    if (aChunks != null) this.add(aChunks);
+  }
+
+  /**
+   * Creates a SourceNode from generated code and a SourceMapConsumer.
+   *
+   * @param aGeneratedCode The generated code
+   * @param aSourceMapConsumer The SourceMap for the generated code
+   */
+  SourceNode.fromStringWithSourceMap =
+    function SourceNode_fromStringWithSourceMap(aGeneratedCode, aSourceMapConsumer) {
+      // The SourceNode we want to fill with the generated code
+      // and the SourceMap
+      var node = new SourceNode();
+
+      // The generated code
+      // Processed fragments are removed from this array.
+      var remainingLines = aGeneratedCode.split('\n');
+
+      // We need to remember the position of "remainingLines"
+      var lastGeneratedLine = 1, lastGeneratedColumn = 0;
+
+      // The generate SourceNodes we need a code range.
+      // To extract it current and last mapping is used.
+      // Here we store the last mapping.
+      var lastMapping = null;
+
+      aSourceMapConsumer.eachMapping(function (mapping) {
+        if (lastMapping === null) {
+          // We add the generated code until the first mapping
+          // to the SourceNode without any mapping.
+          // Each line is added as separate string.
+          while (lastGeneratedLine < mapping.generatedLine) {
+            node.add(remainingLines.shift() + "\n");
+            lastGeneratedLine++;
+          }
+          if (lastGeneratedColumn < mapping.generatedColumn) {
+            var nextLine = remainingLines[0];
+            node.add(nextLine.substr(0, mapping.generatedColumn));
+            remainingLines[0] = nextLine.substr(mapping.generatedColumn);
+            lastGeneratedColumn = mapping.generatedColumn;
+          }
+        } else {
+          // We add the code from "lastMapping" to "mapping":
+          // First check if there is a new line in between.
+          if (lastGeneratedLine < mapping.generatedLine) {
+            var code = "";
+            // Associate full lines with "lastMapping"
+            do {
+              code += remainingLines.shift() + "\n";
+              lastGeneratedLine++;
+              lastGeneratedColumn = 0;
+            } while (lastGeneratedLine < mapping.generatedLine);
+            // When we reached the correct line, we add code until we
+            // reach the correct column too.
+            if (lastGeneratedColumn < mapping.generatedColumn) {
+              var nextLine = remainingLines[0];
+              code += nextLine.substr(0, mapping.generatedColumn);
+              remainingLines[0] = nextLine.substr(mapping.generatedColumn);
+              lastGeneratedColumn = mapping.generatedColumn;
+            }
+            // Create the SourceNode.
+            addMappingWithCode(lastMapping, code);
+          } else {
+            // There is no new line in between.
+            // Associate the code between "lastGeneratedColumn" and
+            // "mapping.generatedColumn" with "lastMapping"
+            var nextLine = remainingLines[0];
+            var code = nextLine.substr(0, mapping.generatedColumn -
+                                          lastGeneratedColumn);
+            remainingLines[0] = nextLine.substr(mapping.generatedColumn -
+                                                lastGeneratedColumn);
+            lastGeneratedColumn = mapping.generatedColumn;
+            addMappingWithCode(lastMapping, code);
+          }
+        }
+        lastMapping = mapping;
+      }, this);
+      // We have processed all mappings.
+      // Associate the remaining code in the current line with "lastMapping"
+      // and add the remaining lines without any mapping
+      addMappingWithCode(lastMapping, remainingLines.join("\n"));
+
+      // Copy sourcesContent into SourceNode
+      aSourceMapConsumer.sources.forEach(function (sourceFile) {
+        var content = aSourceMapConsumer.sourceContentFor(sourceFile);
+        if (content) {
+          node.setSourceContent(sourceFile, content);
+        }
+      });
+
+      return node;
+
+      function addMappingWithCode(mapping, code) {
+        if (mapping === null || mapping.source === undefined) {
+          node.add(code);
+        } else {
+          node.add(new SourceNode(mapping.originalLine,
+                                  mapping.originalColumn,
+                                  mapping.source,
+                                  code,
+                                  mapping.name));
+        }
+      }
+    };
+
+  /**
+   * Add a chunk of generated JS to this source node.
+   *
+   * @param aChunk A string snippet of generated JS code, another instance of
+   *        SourceNode, or an array where each member is one of those things.
+   */
+  SourceNode.prototype.add = function SourceNode_add(aChunk) {
+    if (Array.isArray(aChunk)) {
+      aChunk.forEach(function (chunk) {
+        this.add(chunk);
+      }, this);
+    }
+    else if (aChunk instanceof SourceNode || typeof aChunk === "string") {
+      if (aChunk) {
+        this.children.push(aChunk);
+      }
+    }
+    else {
+      throw new TypeError(
+        "Expected a SourceNode, string, or an array of SourceNodes and strings. Got " + aChunk
+      );
+    }
+    return this;
+  };
+
+  /**
+   * Add a chunk of generated JS to the beginning of this source node.
+   *
+   * @param aChunk A string snippet of generated JS code, another instance of
+   *        SourceNode, or an array where each member is one of those things.
+   */
+  SourceNode.prototype.prepend = function SourceNode_prepend(aChunk) {
+    if (Array.isArray(aChunk)) {
+      for (var i = aChunk.length-1; i >= 0; i--) {
+        this.prepend(aChunk[i]);
+      }
+    }
+    else if (aChunk instanceof SourceNode || typeof aChunk === "string") {
+      this.children.unshift(aChunk);
+    }
+    else {
+      throw new TypeError(
+        "Expected a SourceNode, string, or an array of SourceNodes and strings. Got " + aChunk
+      );
+    }
+    return this;
+  };
+
+  /**
+   * Walk over the tree of JS snippets in this node and its children. The
+   * walking function is called once for each snippet of JS and is passed that
+   * snippet and the its original associated source's line/column location.
+   *
+   * @param aFn The traversal function.
+   */
+  SourceNode.prototype.walk = function SourceNode_walk(aFn) {
+    var chunk;
+    for (var i = 0, len = this.children.length; i < len; i++) {
+      chunk = this.children[i];
+      if (chunk instanceof SourceNode) {
+        chunk.walk(aFn);
+      }
+      else {
+        if (chunk !== '') {
+          aFn(chunk, { source: this.source,
+                       line: this.line,
+                       column: this.column,
+                       name: this.name });
+        }
+      }
+    }
+  };
+
+  /**
+   * Like `String.prototype.join` except for SourceNodes. Inserts `aStr` between
+   * each of `this.children`.
+   *
+   * @param aSep The separator.
+   */
+  SourceNode.prototype.join = function SourceNode_join(aSep) {
+    var newChildren;
+    var i;
+    var len = this.children.length;
+    if (len > 0) {
+      newChildren = [];
+      for (i = 0; i < len-1; i++) {
+        newChildren.push(this.children[i]);
+        newChildren.push(aSep);
+      }
+      newChildren.push(this.children[i]);
+      this.children = newChildren;
+    }
+    return this;
+  };
+
+  /**
+   * Call String.prototype.replace on the very right-most source snippet. Useful
+   * for trimming whitespace from the end of a source node, etc.
+   *
+   * @param aPattern The pattern to replace.
+   * @param aReplacement The thing to replace the pattern with.
+   */
+  SourceNode.prototype.replaceRight = function SourceNode_replaceRight(aPattern, aReplacement) {
+    var lastChild = this.children[this.children.length - 1];
+    if (lastChild instanceof SourceNode) {
+      lastChild.replaceRight(aPattern, aReplacement);
+    }
+    else if (typeof lastChild === 'string') {
+      this.children[this.children.length - 1] = lastChild.replace(aPattern, aReplacement);
+    }
+    else {
+      this.children.push(''.replace(aPattern, aReplacement));
+    }
+    return this;
+  };
+
+  /**
+   * Set the source content for a source file. This will be added to the SourceMapGenerator
+   * in the sourcesContent field.
+   *
+   * @param aSourceFile The filename of the source file
+   * @param aSourceContent The content of the source file
+   */
+  SourceNode.prototype.setSourceContent =
+    function SourceNode_setSourceContent(aSourceFile, aSourceContent) {
+      this.sourceContents[util.toSetString(aSourceFile)] = aSourceContent;
+    };
+
+  /**
+   * Walk over the tree of SourceNodes. The walking function is called for each
+   * source file content and is passed the filename and source content.
+   *
+   * @param aFn The traversal function.
+   */
+  SourceNode.prototype.walkSourceContents =
+    function SourceNode_walkSourceContents(aFn) {
+      for (var i = 0, len = this.children.length; i < len; i++) {
+        if (this.children[i] instanceof SourceNode) {
+          this.children[i].walkSourceContents(aFn);
+        }
+      }
+
+      var sources = Object.keys(this.sourceContents);
+      for (var i = 0, len = sources.length; i < len; i++) {
+        aFn(util.fromSetString(sources[i]), this.sourceContents[sources[i]]);
+      }
+    };
+
+  /**
+   * Return the string representation of this source node. Walks over the tree
+   * and concatenates all the various snippets together to one string.
+   */
+  SourceNode.prototype.toString = function SourceNode_toString() {
+    var str = "";
+    this.walk(function (chunk) {
+      str += chunk;
+    });
+    return str;
+  };
+
+  /**
+   * Returns the string representation of this source node along with a source
+   * map.
+   */
+  SourceNode.prototype.toStringWithSourceMap = function SourceNode_toStringWithSourceMap(aArgs) {
+    var generated = {
+      code: "",
+      line: 1,
+      column: 0
+    };
+    var map = new SourceMapGenerator(aArgs);
+    var sourceMappingActive = false;
+    var lastOriginalSource = null;
+    var lastOriginalLine = null;
+    var lastOriginalColumn = null;
+    var lastOriginalName = null;
+    this.walk(function (chunk, original) {
+      generated.code += chunk;
+      if (original.source !== null
+          && original.line !== null
+          && original.column !== null) {
+        if(lastOriginalSource !== original.source
+           || lastOriginalLine !== original.line
+           || lastOriginalColumn !== original.column
+           || lastOriginalName !== original.name) {
+          map.addMapping({
+            source: original.source,
+            original: {
+              line: original.line,
+              column: original.column
+            },
+            generated: {
+              line: generated.line,
+              column: generated.column
+            },
+            name: original.name
+          });
+        }
+        lastOriginalSource = original.source;
+        lastOriginalLine = original.line;
+        lastOriginalColumn = original.column;
+        lastOriginalName = original.name;
+        sourceMappingActive = true;
+      } else if (sourceMappingActive) {
+        map.addMapping({
+          generated: {
+            line: generated.line,
+            column: generated.column
+          }
+        });
+        lastOriginalSource = null;
+        sourceMappingActive = false;
+      }
+      chunk.split('').forEach(function (ch) {
+        if (ch === '\n') {
+          generated.line++;
+          generated.column = 0;
+        } else {
+          generated.column++;
+        }
+      });
+    });
+    this.walkSourceContents(function (sourceFile, sourceContent) {
+      map.setSourceContent(sourceFile, sourceContent);
+    });
+
+    return { code: generated.code, map: map };
+  };
+
+  exports.SourceNode = SourceNode;
+
+});
+
+},{"./source-map-generator":97,"./util":99,"amdefine":100}],99:[function(require,module,exports){
+/* -*- Mode: js; js-indent-level: 2; -*- */
+/*
+ * Copyright 2011 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ */
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module, require);
+}
+define(function (require, exports, module) {
+
+  /**
+   * This is a helper function for getting values from parameter/options
+   * objects.
+   *
+   * @param args The object we are extracting values from
+   * @param name The name of the property we are getting.
+   * @param defaultValue An optional value to return if the property is missing
+   * from the object. If this is not specified and the property is missing, an
+   * error will be thrown.
+   */
+  function getArg(aArgs, aName, aDefaultValue) {
+    if (aName in aArgs) {
+      return aArgs[aName];
+    } else if (arguments.length === 3) {
+      return aDefaultValue;
+    } else {
+      throw new Error('"' + aName + '" is a required argument.');
+    }
+  }
+  exports.getArg = getArg;
+
+  var urlRegexp = /([\w+\-.]+):\/\/((\w+:\w+)@)?([\w.]+)?(:(\d+))?(\S+)?/;
+  var dataUrlRegexp = /^data:.+\,.+/;
+
+  function urlParse(aUrl) {
+    var match = aUrl.match(urlRegexp);
+    if (!match) {
+      return null;
+    }
+    return {
+      scheme: match[1],
+      auth: match[3],
+      host: match[4],
+      port: match[6],
+      path: match[7]
+    };
+  }
+  exports.urlParse = urlParse;
+
+  function urlGenerate(aParsedUrl) {
+    var url = aParsedUrl.scheme + "://";
+    if (aParsedUrl.auth) {
+      url += aParsedUrl.auth + "@"
+    }
+    if (aParsedUrl.host) {
+      url += aParsedUrl.host;
+    }
+    if (aParsedUrl.port) {
+      url += ":" + aParsedUrl.port
+    }
+    if (aParsedUrl.path) {
+      url += aParsedUrl.path;
+    }
+    return url;
+  }
+  exports.urlGenerate = urlGenerate;
+
+  function join(aRoot, aPath) {
+    var url;
+
+    if (aPath.match(urlRegexp) || aPath.match(dataUrlRegexp)) {
+      return aPath;
+    }
+
+    if (aPath.charAt(0) === '/' && (url = urlParse(aRoot))) {
+      url.path = aPath;
+      return urlGenerate(url);
+    }
+
+    return aRoot.replace(/\/$/, '') + '/' + aPath;
+  }
+  exports.join = join;
+
+  /**
+   * Because behavior goes wacky when you set `__proto__` on objects, we
+   * have to prefix all the strings in our set with an arbitrary character.
+   *
+   * See https://github.com/mozilla/source-map/pull/31 and
+   * https://github.com/mozilla/source-map/issues/30
+   *
+   * @param String aStr
+   */
+  function toSetString(aStr) {
+    return '$' + aStr;
+  }
+  exports.toSetString = toSetString;
+
+  function fromSetString(aStr) {
+    return aStr.substr(1);
+  }
+  exports.fromSetString = fromSetString;
+
+  function relative(aRoot, aPath) {
+    aRoot = aRoot.replace(/\/$/, '');
+
+    var url = urlParse(aRoot);
+    if (aPath.charAt(0) == "/" && url && url.path == "/") {
+      return aPath.slice(1);
+    }
+
+    return aPath.indexOf(aRoot + '/') === 0
+      ? aPath.substr(aRoot.length + 1)
+      : aPath;
+  }
+  exports.relative = relative;
+
+  function strcmp(aStr1, aStr2) {
+    var s1 = aStr1 || "";
+    var s2 = aStr2 || "";
+    return (s1 > s2) - (s1 < s2);
+  }
+
+  /**
+   * Comparator between two mappings where the original positions are compared.
+   *
+   * Optionally pass in `true` as `onlyCompareGenerated` to consider two
+   * mappings with the same original source/line/column, but different generated
+   * line and column the same. Useful when searching for a mapping with a
+   * stubbed out mapping.
+   */
+  function compareByOriginalPositions(mappingA, mappingB, onlyCompareOriginal) {
+    var cmp;
+
+    cmp = strcmp(mappingA.source, mappingB.source);
+    if (cmp) {
+      return cmp;
+    }
+
+    cmp = mappingA.originalLine - mappingB.originalLine;
+    if (cmp) {
+      return cmp;
+    }
+
+    cmp = mappingA.originalColumn - mappingB.originalColumn;
+    if (cmp || onlyCompareOriginal) {
+      return cmp;
+    }
+
+    cmp = strcmp(mappingA.name, mappingB.name);
+    if (cmp) {
+      return cmp;
+    }
+
+    cmp = mappingA.generatedLine - mappingB.generatedLine;
+    if (cmp) {
+      return cmp;
+    }
+
+    return mappingA.generatedColumn - mappingB.generatedColumn;
+  };
+  exports.compareByOriginalPositions = compareByOriginalPositions;
+
+  /**
+   * Comparator between two mappings where the generated positions are
+   * compared.
+   *
+   * Optionally pass in `true` as `onlyCompareGenerated` to consider two
+   * mappings with the same generated line and column, but different
+   * source/name/original line and column the same. Useful when searching for a
+   * mapping with a stubbed out mapping.
+   */
+  function compareByGeneratedPositions(mappingA, mappingB, onlyCompareGenerated) {
+    var cmp;
+
+    cmp = mappingA.generatedLine - mappingB.generatedLine;
+    if (cmp) {
+      return cmp;
+    }
+
+    cmp = mappingA.generatedColumn - mappingB.generatedColumn;
+    if (cmp || onlyCompareGenerated) {
+      return cmp;
+    }
+
+    cmp = strcmp(mappingA.source, mappingB.source);
+    if (cmp) {
+      return cmp;
+    }
+
+    cmp = mappingA.originalLine - mappingB.originalLine;
+    if (cmp) {
+      return cmp;
+    }
+
+    cmp = mappingA.originalColumn - mappingB.originalColumn;
+    if (cmp) {
+      return cmp;
+    }
+
+    return strcmp(mappingA.name, mappingB.name);
+  };
+  exports.compareByGeneratedPositions = compareByGeneratedPositions;
+
+});
+
+},{"amdefine":100}],100:[function(require,module,exports){
+var process=require("__browserify_process"),__filename="/../../node_modules/source-map/node_modules/amdefine/amdefine.js";/** vim: et:ts=4:sw=4:sts=4
+ * @license amdefine 0.1.0 Copyright (c) 2011, The Dojo Foundation All Rights Reserved.
+ * Available via the MIT or new BSD license.
+ * see: http://github.com/jrburke/amdefine for details
+ */
+
+/*jslint node: true */
+/*global module, process */
+'use strict';
+
+/**
+ * Creates a define for node.
+ * @param {Object} module the "module" object that is defined by Node for the
+ * current module.
+ * @param {Function} [requireFn]. Node's require function for the current module.
+ * It only needs to be passed in Node versions before 0.5, when module.require
+ * did not exist.
+ * @returns {Function} a define function that is usable for the current node
+ * module.
+ */
+function amdefine(module, requireFn) {
+    'use strict';
+    var defineCache = {},
+        loaderCache = {},
+        alreadyCalled = false,
+        path = require('path'),
+        makeRequire, stringRequire;
+
+    /**
+     * Trims the . and .. from an array of path segments.
+     * It will keep a leading path segment if a .. will become
+     * the first path segment, to help with module name lookups,
+     * which act like paths, but can be remapped. But the end result,
+     * all paths that use this function should look normalized.
+     * NOTE: this method MODIFIES the input array.
+     * @param {Array} ary the array of path segments.
+     */
+    function trimDots(ary) {
+        var i, part;
+        for (i = 0; ary[i]; i+= 1) {
+            part = ary[i];
+            if (part === '.') {
+                ary.splice(i, 1);
+                i -= 1;
+            } else if (part === '..') {
+                if (i === 1 && (ary[2] === '..' || ary[0] === '..')) {
+                    //End of the line. Keep at least one non-dot
+                    //path segment at the front so it can be mapped
+                    //correctly to disk. Otherwise, there is likely
+                    //no path mapping for a path starting with '..'.
+                    //This can still fail, but catches the most reasonable
+                    //uses of ..
+                    break;
+                } else if (i > 0) {
+                    ary.splice(i - 1, 2);
+                    i -= 2;
+                }
+            }
+        }
+    }
+
+    function normalize(name, baseName) {
+        var baseParts;
+
+        //Adjust any relative paths.
+        if (name && name.charAt(0) === '.') {
+            //If have a base name, try to normalize against it,
+            //otherwise, assume it is a top-level require that will
+            //be relative to baseUrl in the end.
+            if (baseName) {
+                baseParts = baseName.split('/');
+                baseParts = baseParts.slice(0, baseParts.length - 1);
+                baseParts = baseParts.concat(name.split('/'));
+                trimDots(baseParts);
+                name = baseParts.join('/');
+            }
+        }
+
+        return name;
+    }
+
+    /**
+     * Create the normalize() function passed to a loader plugin's
+     * normalize method.
+     */
+    function makeNormalize(relName) {
+        return function (name) {
+            return normalize(name, relName);
+        };
+    }
+
+    function makeLoad(id) {
+        function load(value) {
+            loaderCache[id] = value;
+        }
+
+        load.fromText = function (id, text) {
+            //This one is difficult because the text can/probably uses
+            //define, and any relative paths and requires should be relative
+            //to that id was it would be found on disk. But this would require
+            //bootstrapping a module/require fairly deeply from node core.
+            //Not sure how best to go about that yet.
+            throw new Error('amdefine does not implement load.fromText');
+        };
+
+        return load;
+    }
+
+    makeRequire = function (systemRequire, exports, module, relId) {
+        function amdRequire(deps, callback) {
+            if (typeof deps === 'string') {
+                //Synchronous, single module require('')
+                return stringRequire(systemRequire, exports, module, deps, relId);
+            } else {
+                //Array of dependencies with a callback.
+
+                //Convert the dependencies to modules.
+                deps = deps.map(function (depName) {
+                    return stringRequire(systemRequire, exports, module, depName, relId);
+                });
+
+                //Wait for next tick to call back the require call.
+                process.nextTick(function () {
+                    callback.apply(null, deps);
+                });
+            }
+        }
+
+        amdRequire.toUrl = function (filePath) {
+            if (filePath.indexOf('.') === 0) {
+                return normalize(filePath, path.dirname(module.filename));
+            } else {
+                return filePath;
+            }
+        };
+
+        return amdRequire;
+    };
+
+    //Favor explicit value, passed in if the module wants to support Node 0.4.
+    requireFn = requireFn || function req() {
+        return module.require.apply(module, arguments);
+    };
+
+    function runFactory(id, deps, factory) {
+        var r, e, m, result;
+
+        if (id) {
+            e = loaderCache[id] = {};
+            m = {
+                id: id,
+                uri: __filename,
+                exports: e
+            };
+            r = makeRequire(requireFn, e, m, id);
+        } else {
+            //Only support one define call per file
+            if (alreadyCalled) {
+                throw new Error('amdefine with no module ID cannot be called more than once per file.');
+            }
+            alreadyCalled = true;
+
+            //Use the real variables from node
+            //Use module.exports for exports, since
+            //the exports in here is amdefine exports.
+            e = module.exports;
+            m = module;
+            r = makeRequire(requireFn, e, m, module.id);
+        }
+
+        //If there are dependencies, they are strings, so need
+        //to convert them to dependency values.
+        if (deps) {
+            deps = deps.map(function (depName) {
+                return r(depName);
+            });
+        }
+
+        //Call the factory with the right dependencies.
+        if (typeof factory === 'function') {
+            result = factory.apply(m.exports, deps);
+        } else {
+            result = factory;
+        }
+
+        if (result !== undefined) {
+            m.exports = result;
+            if (id) {
+                loaderCache[id] = m.exports;
+            }
+        }
+    }
+
+    stringRequire = function (systemRequire, exports, module, id, relId) {
+        //Split the ID by a ! so that
+        var index = id.indexOf('!'),
+            originalId = id,
+            prefix, plugin;
+
+        if (index === -1) {
+            id = normalize(id, relId);
+
+            //Straight module lookup. If it is one of the special dependencies,
+            //deal with it, otherwise, delegate to node.
+            if (id === 'require') {
+                return makeRequire(systemRequire, exports, module, relId);
+            } else if (id === 'exports') {
+                return exports;
+            } else if (id === 'module') {
+                return module;
+            } else if (loaderCache.hasOwnProperty(id)) {
+                return loaderCache[id];
+            } else if (defineCache[id]) {
+                runFactory.apply(null, defineCache[id]);
+                return loaderCache[id];
+            } else {
+                if(systemRequire) {
+                    return systemRequire(originalId);
+                } else {
+                    throw new Error('No module with ID: ' + id);
+                }
+            }
+        } else {
+            //There is a plugin in play.
+            prefix = id.substring(0, index);
+            id = id.substring(index + 1, id.length);
+
+            plugin = stringRequire(systemRequire, exports, module, prefix, relId);
+
+            if (plugin.normalize) {
+                id = plugin.normalize(id, makeNormalize(relId));
+            } else {
+                //Normalize the ID normally.
+                id = normalize(id, relId);
+            }
+
+            if (loaderCache[id]) {
+                return loaderCache[id];
+            } else {
+                plugin.load(id, makeRequire(systemRequire, exports, module, relId), makeLoad(id), {});
+
+                return loaderCache[id];
+            }
+        }
+    };
+
+    //Create a define function specific to the module asking for amdefine.
+    function define(id, deps, factory) {
+        if (Array.isArray(id)) {
+            factory = deps;
+            deps = id;
+            id = undefined;
+        } else if (typeof id !== 'string') {
+            factory = id;
+            id = deps = undefined;
+        }
+
+        if (deps && !Array.isArray(deps)) {
+            factory = deps;
+            deps = undefined;
+        }
+
+        if (!deps) {
+            deps = ['require', 'exports', 'module'];
+        }
+
+        //Set up properties for this module. If an ID, then use
+        //internal cache. If no ID, then use the external variables
+        //for this node module.
+        if (id) {
+            //Put the module in deep freeze until there is a
+            //require call for it.
+            defineCache[id] = [id, deps, factory];
+        } else {
+            runFactory(id, deps, factory);
+        }
+    }
+
+    //define.require, which has access to all the values in the
+    //cache. Useful for AMD modules that all have IDs in the file,
+    //but need to finally export a value to node based on one of those
+    //IDs.
+    define.require = function (id) {
+        if (loaderCache[id]) {
+            return loaderCache[id];
+        }
+
+        if (defineCache[id]) {
+            runFactory.apply(null, defineCache[id]);
+            return loaderCache[id];
+        }
+    };
+
+    define.amd = {};
+
+    return define;
+}
+
+module.exports = amdefine;
+
+},{"__browserify_process":90,"path":88}],101:[function(require,module,exports){
 //     Underscore.js 1.4.4
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud Inc.

@@ -2,6 +2,14 @@ class = require '../class'.class
 class extending = require '../class'.class extending
 _ = require 'underscore'
 ms = require '../memorystream'
+source map = require 'source-map'
+
+buffer () =
+    chunks = []
+    {
+        write (code) = chunks.push (code)
+        chunks () = chunks
+    }
 
 module.exports (cg) =
     Node = class {
@@ -270,13 +278,36 @@ module.exports (cg) =
 
         asyncify () = nil
 
-        code (args, ...) =
-            args.join ''
+        code (chunks, ...) =
+            location = self.location ()
+
+            if (location)
+                @new source map.Source Node (
+                    location.first line
+                    location.first column
+                    location.filename
+                    chunks
+                )
+            else
+                chunks
 
         generate into buffer (generate code into buffer) =
-            buffer = new (ms.MemoryStream)
-            generate code into buffer (buffer)
-            buffer.to string ()
+            chunks = 
+                b = buffer ()
+                generate code into buffer (b)
+                b.chunks ()
+
+            location = self.location ()
+
+            if (location)
+                @new source map.Source Node (
+                    location.first line
+                    location.first column
+                    location.filename
+                    chunks
+                )
+            else
+                chunks
 
         generate statement (scope) =
             self.code (self.generate (scope), ';')
