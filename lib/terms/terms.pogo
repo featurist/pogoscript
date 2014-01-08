@@ -195,6 +195,8 @@ module.exports (cg) =
             self.generate java script (buffer, scope)
             buffer.write ';'
 
+        generate java script function (args, ...) = self.generate java script (args, ...)
+
         arguments () = self
 
         inspect term (depth: 20) =

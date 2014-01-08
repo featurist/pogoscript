@@ -29,7 +29,7 @@ module.exports (terms) =
                 arg.is splat
       
         generate java script (buffer, scope) =
-            self.function.generate java script (buffer, scope)
+            self.function.generate java script function (buffer, scope)
 
             args = codegen utils.concat args (
                 self.function arguments

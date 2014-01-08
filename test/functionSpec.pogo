@@ -117,3 +117,11 @@ describe 'functions'
                  print (self.x)
              
              print self.call ({x = "self"})' should output "'self'"
+
+    describe 'calling anonymous functions'
+        it 'can call an anonymous function'
+            'print "thang"
+             @{ print "thing" } ()
+             print "thong"' should output "'thang'
+                                           'thing'
+                                           'thong'"

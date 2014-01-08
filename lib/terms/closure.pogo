@@ -186,6 +186,11 @@ module.exports (terms) =
 
             buffer.write ('}')
 
+        generate java script function (buffer, scope) =
+            buffer.write '('
+            self.generate java script (buffer, scope)
+            buffer.write ')'
+
         generate self assignment (buffer) =
             if (self.redefines self)
                 buffer.write 'var self=this;'
