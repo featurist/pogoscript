@@ -432,7 +432,7 @@ describe('code generator', function () {
       cg.statements([cg.variable(['item'])])
     )]);
     
-    generatesStatements(f, 'var item;for(item in items){(function(item){item;}(item));}');
+    generatesStatements(f, 'var item;for(item in items){((function(item){item;})(item));}');
   });
   
   describe('for', function() {
