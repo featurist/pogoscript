@@ -26,3 +26,8 @@ describe 'pogo'
 
         it 'can evaluate async pogoscript' @(done)
             pogo.evaluate ('process.next tick! (), done ()', definitions: {done = done})
+
+    describe 'lex'
+
+        it 'lexes a pogoscript string'
+            pogo.lex "123".should.eql [ [ 'integer', '123' ], [ 'eof' ] ]

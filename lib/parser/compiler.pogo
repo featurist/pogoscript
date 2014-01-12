@@ -96,4 +96,4 @@ source location printer (filename: nil, source: nil) =
 
 exports.lex (pogo) =
     parser = create parser (terms: create terms ())
-    parser.lex (source)
+    parser.lex (pogo)
