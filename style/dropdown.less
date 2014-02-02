@@ -8,12 +8,22 @@
     position: absolute;
     top: 160%;
     left: 0;
-    background-image: url('../images/paper_cream.png');
-    background-color: @code_block_background;
+    background-color: @page_background;
     padding: 5pt 5pt;
     box-shadow: 1pt 1pt 3pt #888;
     border-radius: 5pt 5pt;
     min-width: 200px;
+    z-index: 1;
+
+    &.notes {
+      min-width: 400px;
+
+      .date {
+        margin-left: 13px;
+        font-size: 0.6em;
+        opacity: 0.75;
+      }
+    }
 
     li {
       display: block;
