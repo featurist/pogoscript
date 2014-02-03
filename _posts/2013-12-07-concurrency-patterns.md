@@ -219,6 +219,12 @@ Here we start writing a file without caring when it finishes, or even if it fail
 
     console.log "moving right along"
 
+Or indeed we can just call it without the `?` operator, as `fs.write file` can be called without a callback.
+
+    fs.write file 'a.txt' 'some text'
+
+    console.log "moving right along"
+
 But often we'll want to do more than just one operation, we may want to do several operations in sequence, but we still don't want to wait for them to finish. Here we write to the file, and when that's done we tell the user. If any errors occur we print those too. We put all of those things into a block `@{ ... }` and call it with a `?`.
 
     @{
@@ -241,7 +247,7 @@ We can write a nice function for this called `fork`:
                 console.log (ex)
         }?
 
-At least then we know if one of our fire and forget calls failed.
+We call `block ()` with the `!` operator because we want to catch and display any errors if it throws any. At least then we know if one of our fire and forget calls failed.
 
     fork
         fs.write file 'a.txt' 'some text'!
