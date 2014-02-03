@@ -18,7 +18,7 @@ If you're not familiar with IO in Node, here's a quick primer. In regular enviro
 
 The result of `File.ReadAllText()` is the contents of the file. (This is C# by the way, but most languages follow the same semantics.) The calling thread blocks while the file is being read from the disk.
 
-In Node, on the other hand, you pass a **callback** that will be called the contents of the file when the `readFile()` operation completes. The callback receives ether an error or the contents of the file.
+In Node, on the other hand, you pass a **callback** that will be called with the contents of the file when the `readFile()` operation completes. The callback receives ether an error or the contents of the file.
 
     fs.readFile('afile.txt', 'utf-8', function (error, contents) {
         if (error) {
