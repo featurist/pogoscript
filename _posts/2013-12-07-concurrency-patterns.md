@@ -39,7 +39,7 @@ The JavaScript above works for little examples like this, but the callback style
 
 # Sequence
 
-By far the simplest pattern isn't really concurrency at all, but it's painful enough to do in regular JavaScript that it's included here.
+By far the simplest pattern isn't really concurrency at all, but it's painful enough to do in regular JavaScript that is included here.
 
 The `!` operator can make calls to asynchronous functions and methods, but that syntactically appear to be synchronous. The `!` starts the operation and waits for it to finish before proceeding. Notice however, that we're not _blocking_ on the operation, other events can be handled and other operations can proceed while we wait for this one.
 
@@ -86,7 +86,7 @@ Calling an asynchronous function with the `?` operator creates a **future result
 
 To wait for and get the result of the future, we use the `!` operator again.
 
-For example, here we start the asynchronous operation `fs.read file`, then perform some computation while it completes, then we synchronise on the it's completion by calling the future with the `!` operator, which yields the contents. In this script, `contents` represents the _future result_ of `fs.read file`'s output.
+For example, here we start the asynchronous operation `fs.read file`, then perform some computation while it completes, then we synchronise on its completion by calling the future with the `!` operator, which yields the contents. In this script, `contents` represents the _future result_ of `fs.read file`'s output.
 
     contents = fs.read file 'a.txt' 'utf-8'?
     
