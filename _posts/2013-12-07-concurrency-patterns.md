@@ -39,7 +39,7 @@ The JavaScript above works for little examples like this, but the callback style
 
 # Sequence
 
-By far the simplest pattern isn't really concurrency at all, but it's painful enough to do in regular JavaScript that is included here.
+By far the simplest pattern isn't really concurrency at all, but it's painful enough to do in regular JavaScript that it is included here.
 
 The `!` operator can make calls to asynchronous functions and methods, but that syntactically appear to be synchronous. The `!` starts the operation and waits for it to finish before proceeding. Notice however, that we're not _blocking_ on the operation, other events can be handled and other operations can proceed while we wait for this one.
 
