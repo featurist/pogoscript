@@ -208,3 +208,5 @@ Here we should see:
     wrote `a.txt'
 
 # FIN
+
+Special thanks to [@artemave](https://github.com/artemave), [@adiel](https://github.com/adiel), [@joshski](https://github.com/joshski) and [@dereke](https://github.com/dereke) for reviewing.
