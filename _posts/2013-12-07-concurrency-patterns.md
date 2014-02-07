@@ -3,39 +3,7 @@ layout: post
 title: Concurrency Patterns
 ---
 
-PogoScript has several primitives that make concurrency in Node.js apps very easy. We'll explore a few common concurrency use cases that are easily written and maintained in PogoScript.
-
-# Concurrency
-
-Concurrency in PogoScript is based on Node's support for non-blocking IO. Node apps are single-threaded, but they can launch operations in the background such as other processes and network IO. When those operations complete they call an event handler on the main app thread. In the meantime the main app thread is free to perform other computations or launch other IO operations. PogoScript's concurrency support is primarily in coordinating those concurrent operations.
-
-## Node IO Primer
-
-If you're not familiar with IO in Node, here's a quick primer. In regular environments such as Java, C# or C, one would read a file in a blocking manner, similar to this:
-
-    String contents = File.ReadAllText("afile.txt");
-    Console.WriteLine(contents);
-
-The result of `File.ReadAllText()` is the contents of the file. (This is C# by the way, but most languages follow the same semantics.) The calling thread blocks while the file is being read from the disk.
-
-In Node, on the other hand, you pass a **callback** that will be called with the contents of the file when the `readFile()` operation completes. The callback receives ether an error or the contents of the file.
-
-    fs.readFile('afile.txt', 'utf-8', function (error, contents) {
-        if (error) {
-            console.log('error loading file', error);
-        } else {
-            console.log(contents);
-        }
-    });
-    doOtherStuff();
-
-This is known as asynchronous IO, and the function `fs.readFile` is asynchronous. The JavaScript here is a little more verbose than the C# above, but there are many advantages to doing it this way. The first being that, because the thread is not blocked on reading the file, it can `doOtherStuff()` while reading the file, and therein lies Node's support for concurrency, and it's a beautiful thing.
-
-Of course you can get concurrent behaviour in most other languages, including C# and Java, using threads. Threads allow you to do several things at the same time, but they are extremely difficult to get right, especially when you're sharing data between the threads. In fact they're so hard to get right that many experienced programmers are reluctant to use them at all.
-
-In Node, all code is executed on the same thread, so thread synchronisation is a non-issue. Instead, the main thread reacts to events: servers react to incoming IO requests from web browsers, browser apps respond to user interface events like button clicks, and events come in from completed IO operations. All program execution is done in one thread, so you're safe from race conditions 
-
-The JavaScript above works for little examples like this, but the callback style can quickly get out of hand in more sophisticated applications. That, in a nutshell, is why we use PogoScript.
+Concurrency in PogoScript is based on Node's support for non-blocking, asynchronous IO. Node may be single-threaded, but it can launch and coordinate thousands of concurrently running IO operations, and this is why Node is such a fascinating and exciting technology. PogoScript's native support for concurrency makes writing and maintaining highly concurrent applications a refreshingly pleasant experience.
 
 # Sequence
 
@@ -50,6 +18,16 @@ Here the asynchronous `fs.read file` is invoked and the contents are printed out
     content = fs.read file ('a.txt', 'utf-8')!
     console.log (content)
 
+This compiles to (roughly) the following Javascript:
+
+    fs.readFile('a.txt', 'utf-8', function (error, contents) {
+        if (error) {
+            console.log('error loading file', error);
+        } else {
+            console.log(contents);
+        }
+    });
+
 You can form expressions using the result of an asynchronous function too:
 
     console.log (fs.read file ('a.txt' 'utf-8')!)
@@ -58,7 +36,7 @@ You can form expressions using the result of an asynchronous function too:
 
 If an error occurs while executing `fs.read file`, then `console.log` will not be executed. In JavaScript, this happens when an error is returned as the first argument to the callback.
 
-In PogoScript, errors follow regular exception semantics as found in (non-async) JavaScript and many other languages. You can catch the exception using a `try catch` expression:
+In PogoScript, errors from asynchronous functions follow regular exception semantics as found in (non-async) JavaScript and many other languages. You can catch the exception using a `try catch` expression:
 
     try
         content = fs.read file ('a.txt', 'utf-8')!
@@ -66,17 +44,10 @@ In PogoScript, errors follow regular exception semantics as found in (non-async)
     catch (error)
         console.log (error)
 
-## New Functions
+## MORE
 
-Of course, you can create a new function that calls other asynchronous functions.
-
-    print file (filename)! =
-        content = fs.read file (filename, 'utf-8')!
-        console.log (content)
-
-Since this new function `print file` is asynchronous too, you must also call it with the `!` operator:
-
-    print file 'a.txt'!
+* [Async Calls](https://github.com/featurist/pogoscript/wiki/Async-calls)
+* [Async Rules](https://github.com/featurist/pogoscript/wiki/Async-Rules)
 
 # Futures
 
@@ -125,6 +96,10 @@ Another property of futures is that they always return the same result, no matte
 
 This is true with errors too of course.
 
+## MORE
+
+* [Futures](https://github.com/featurist/pogoscript/wiki/Futures)
+
 # Concurrent List Processing
 
 [List comprehensions](/2013/11/29/list-comprehensions.html) are concurrent in PogoScript. This allows you to make asynchronous operations over lists concurrent. This includes calling asynchronous functions to filter, map and even generate more lists. See the [docs](/2013/11/29/list-comprehensions.html) for a more thorough introduction.
@@ -165,6 +140,10 @@ Or we can just filter out the broken pages:
         page != nil
         page
     ]
+
+## MORE
+
+* [List Comprehensions](http://pogoscript.org/2013/11/29/list-comprehensions.html)
 
 # Early Start
 
@@ -211,47 +190,21 @@ As is usually the case with caches, you will want to give entries a **time to li
 
 # Fire and Forget
 
-Of course, with futures you can start operations without caring about when (or if) they finish.
-
-Here we start writing a file without caring when it finishes, or even if it fails.
-
-    fs.write file 'a.txt' 'some text'?
-
-    console.log "moving right along"
-
-Or indeed we can just call it without the `?` operator, as `fs.write file` can be called without a callback.
-
-    fs.write file 'a.txt' 'some text'
-
-    console.log "moving right along"
-
-But often we'll want to do more than just one operation, we may want to do several operations in sequence, but we still don't want to wait for them to finish. Here we write to the file, and when that's done we tell the user. If any errors occur we print those too. We put all of those things into a block `@{ ... }` and call it with a `?`.
+Of course, with futures you can start operations without caring about when (or if) they finish. But often we'll want to do more than just one operation, we may want to do several operations in sequence, but we still don't want to wait for them to finish. Here we write to the file, and when that's done we tell the user. If any errors occur we print those too. We put all of those things into a block `@{ ... }` and call it with a `?`.
 
     @{
         try
             fs.write file 'a.txt' 'some text'!
-            console.log 'done'
+            console.log "wrote `a.txt'"
         catch (ex)
             console.log ('could not write to `a.txt`', ex)
     }?
 
     console.log "moving right along"
 
-We can write a nice function for this called `fork`:
+Here we should see:
 
-    fork (block) =
-        @{
-            try
-                block ()!
-            catch (ex)
-                console.log (ex)
-        }?
-
-We call `block ()` with the `!` operator because we want to catch and display any errors if it throws any. At least then we know if one of our fire and forget calls failed.
-
-    fork
-        fs.write file 'a.txt' 'some text'!
-
-    console.log "moving right along"
+    moving right along
+    wrote `a.txt'
 
 # FIN
