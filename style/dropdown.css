@@ -6,12 +6,20 @@
   position: absolute;
   top: 160%;
   left: 0;
-  background-image: url('../images/paper_cream.png');
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: #efecda;
   padding: 5pt 5pt;
   box-shadow: 1pt 1pt 3pt #888;
   border-radius: 5pt 5pt;
   min-width: 200px;
+  z-index: 1;
+}
+.dropdown .dropdown-menu.notes {
+  min-width: 400px;
+}
+.dropdown .dropdown-menu.notes .date {
+  margin-left: 13px;
+  font-size: 0.6em;
+  opacity: 0.75;
 }
 .dropdown .dropdown-menu li {
   display: block;

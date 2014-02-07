@@ -42,12 +42,20 @@
   position: absolute;
   top: 160%;
   left: 0;
-  background-image: url('../images/paper_cream.png');
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: #efecda;
   padding: 5pt 5pt;
   box-shadow: 1pt 1pt 3pt #888;
   border-radius: 5pt 5pt;
   min-width: 200px;
+  z-index: 1;
+}
+.dropdown .dropdown-menu.notes {
+  min-width: 400px;
+}
+.dropdown .dropdown-menu.notes .date {
+  margin-left: 13px;
+  font-size: 0.6em;
+  opacity: 0.75;
 }
 .dropdown .dropdown-menu li {
   display: block;
@@ -788,7 +796,6 @@ ul.icons li .icon-large:before {
 }
 body {
   margin: 0pt;
-  background-image: url('../images/paper_cream.png');
   background-color: #efecda;
   color: #3d0000;
   font-family: sans-serif;
@@ -893,13 +900,14 @@ pre {
 }
 p code {
   background-color: rgba(0, 0, 0, 0.05);
+  font-size: 0.9em;
 }
 .content p {
-  text-align: justify;
-  font-family: 'Bitstream Vera Serif', serif;
-  font-size: 12pt;
-  text-indent: 10pt;
+  font-family: Times, serif;
+  font-size: 17px;
+  line-height: 1.2em;
 }
 pre code {
   font-family: 'Monaco', 'Courier', 'Courier New';
+  font-size: 14px;
 }
