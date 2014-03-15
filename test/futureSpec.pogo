@@ -102,3 +102,36 @@ describe 'futures'
 
                     done ()' should output "'error'
                                             'error'"
+
+    describe 'futures in async functions'
+        it 'still calls the callback when the function is asynchronous'
+            async! 'x ()! =
+                        y ()?
+
+                    y ()! = 5
+
+                    f = x ()!
+                    print (f ()!)
+                    done ()' should output '5'
+
+        it 'still calls the callback when the function makes an asynchronous call'
+            async! 'x ()! =
+                        y ()?
+                        z ()!
+
+                    y ()! = 8
+                    z ()! = 4
+
+                    print (x ()!)
+                    done ()' should output '4'
+
+        it 'still calls the callback when the function is asynchronous and returns a normal result'
+            async! 'x ()! =
+                        y ()?
+                        z
+
+                    y ()! = 8
+                    z = 4
+
+                    print (x ()!)
+                    done ()' should output '4'

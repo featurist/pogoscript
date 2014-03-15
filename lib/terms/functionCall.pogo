@@ -106,12 +106,14 @@ module.exports (terms) =
                     terms.javascript (async control.future.to string ())
                 )
 
+            callback = terms.generated variable ['callback']
+
             return (
                 terms.function call (
                     future function
                     [
                         terms.closure (
-                            [terms.callback function]
+                            [callback]
                             terms.statements [
                                 terms.function call (
                                     fun
@@ -119,7 +121,7 @@ module.exports (terms) =
                                     optional arguments: optional arguments
                                     pass this to apply: pass this to apply
                                     originally async: true
-                                    async callback argument: terms.callback function
+                                    async callback argument: callback
                                     could be macro: could be macro
                                 )
                             ]
