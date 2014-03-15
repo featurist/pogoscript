@@ -67,6 +67,7 @@ exports.create parser context =
           }
 
         actual characters = [
+          [r/\r/g, '']
           [r/\\\\/g, "\\"]
           [r/\\b/g, "\b"]
           [r/\\f/g, "\f"]

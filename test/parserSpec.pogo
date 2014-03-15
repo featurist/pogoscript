@@ -113,6 +113,11 @@ describe 'parser'
                     string "one\ntwo"
                 }
 
+            it 'with windows newline'
+                (expression '"one\n\rtwo"') should contain fields {
+                    string "one\n\rtwo"
+                }
+
             it 'with newline escape and indentation should not remove indentation'
                 (expression '  "one\n    two"') should contain fields {
                     string "one\n    two"
@@ -120,6 +125,11 @@ describe 'parser'
 
             it 'with indentation'
                 (expression "  \"one\n   two\"") should contain fields {
+                    string "one\ntwo"
+                }
+
+            it 'with windows indentation'
+                (expression "  \"one\n\r   two\"") should contain fields {
                     string "one\ntwo"
                 }
 
