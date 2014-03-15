@@ -38,7 +38,7 @@ module.exports (terms) =
             )
             terms.async callback (async stmts, result variable: result variable)
 
-    put statements in callback for next async call (statements, force async: false, force not async: false, global: false) =
+    put statements (statements) in callback for next async call (force async: false, force not async: false, global: false, globalDefinitions: nil) =
         contains continuation =
             if (statements.length > 0)
                 [stmt.contains continuation (), where: stmt <- statements].reduce @(l, r) @{l @or r}
@@ -60,10 +60,12 @@ module.exports (terms) =
                 first statements = statements.slice (0, n)
                 first statements.push (async statement)
 
-                return (terms.statements (first statements, async: true && !force not async))
+                return (terms.statements (first statements, async: @not force not async, globalDefinitions: globalDefinitions))
 
-        terms.statements (statements, global: global, async: force async)
+        terms.statements (statements, async: force async)
 
     async statements (statements, force async: false, global: false) =
+        globalDefinitions = [s <- statements, s.isDefinition, s]
+
         serialised statements = statements utils.serialise statements (statements)
-        put statements (serialised statements) in callback for next async call (force async: force async, global: global)
+        put statements (serialised statements) in callback for next async call (force async: force async, global: global, globalDefinitions: globalDefinitions)

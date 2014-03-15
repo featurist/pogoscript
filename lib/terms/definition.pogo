@@ -5,6 +5,7 @@ module.exports (terms) = terms.term {
         self.source = source
         self.is async = async
         self.shadow = shadow
+        self.global = false
         self.is assignment = assignment
 
     expression () =
@@ -25,7 +26,7 @@ module.exports (terms) = terms.term {
             if (@not self.is assignment)
                 if (variables.is (name) defined in this scope @and @not self.shadow)
                     terms.errors.add term (self) with message "variable #(self.target.display name ()) is already defined, use := to reassign it"
-                else
+                else if (@not self.global)
                     variables.define (name)
             else if (@not variables.is (name) defined)
                 terms.errors.add term (self) with message "variable #(self.target.display name ()) is not defined, use = to define it"

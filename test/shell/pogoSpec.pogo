@@ -201,4 +201,11 @@ describe '`pogo` (interactive)'
         pogo.issue 'a! = 8' and expect! '[Function]'
         pogo.issue 'a!' and expect! '8'
         pogo.exit!
+
+    it 'evaluates async assignments'
+        pogo = pogo session ()
+        pogo.issue 'a! = 8' and expect! '[Function]'
+        pogo.issue 'b = a!' and expect! '8'
+        pogo.issue 'b' and expect! '8'
+        pogo.exit!
         

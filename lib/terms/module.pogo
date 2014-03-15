@@ -6,6 +6,9 @@ module.exports (terms) =
             self.global = global
             self.body statements = (body statements || statements)
 
+            if (global)
+                self.bodyStatements.makeDefinitionsGlobal ()
+
         generate java script module (buffer) =
             scope = new (terms.Symbol Scope (nil))
             self.statements.generate java script statements (buffer, scope, global: self.global, in closure: true)
