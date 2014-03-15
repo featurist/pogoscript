@@ -10,9 +10,16 @@ beautify (code) =
     ast.print (stream)
     stream.to string ()
 
-generate code (term) =
+exports.generate code (term, terms, in scope: true, global: false, return result: false) =
+    module term = terms.module (
+        term
+        in scope: in scope
+        global: global
+        return last statement: return result
+    )
+
     memory stream = new (ms.MemoryStream)
-    term.generate java script module (memory stream)
+    module term.generate java script module (memory stream)
 
     memory stream.to string ()
 
@@ -32,14 +39,7 @@ exports.compile (
     if (async)
         statements.asyncify (return call to continuation: return result)
 
-    module term = terms.module (
-        statements
-        in scope: in scope
-        global: global
-        return last statement: return result
-    )
-
-    code = generate code (module term)
+    code = exports.generate code (statements, terms, in scope: in scope, global: global, return result: return result)
 
     if (parser.errors.has errors ())
         memory stream = new (ms.MemoryStream)

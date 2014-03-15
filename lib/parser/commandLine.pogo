@@ -1,3 +1,4 @@
+ms = require '../memorystream'
 fs = require 'fs'
 Module = require 'module'
 path = require 'path'
@@ -91,6 +92,11 @@ exports.repl () =
     eval pogo (source with parens, context, filename, callback) =
         source = source with parens.replace r/^\(((.|[\r\n])*)\)$/mg '$1'
         terms = create terms ()
+
+        terms.moduleConstants.onEachNewDefinition @(d)
+            definitionJs = exports.generateCode (terms.statements [d], terms, in scope: false)
+            vm.run (definitionJs) in context (context, filename)
+
         js = compile pogo (source, filename, terms)
 
         if (source.trim () == '')
@@ -114,5 +120,6 @@ compile from file (filename, ugly: false) =
     exports.compile (contents, filename: filename, ugly: ugly)
 
 exports.compile = compiler.compile
+exports.generateCode = compiler.generateCode
 exports.evaluate = compiler.evaluate
 exports.lex = compiler.lex

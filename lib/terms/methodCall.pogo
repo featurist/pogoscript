@@ -49,7 +49,7 @@ module.exports (terms) =
 
         make async call with callback (callback) =
             self.async callback argument = callback
-            terms.return statement (self, implicit: true)
+            self
     }
 
     method call (
