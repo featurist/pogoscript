@@ -97,34 +97,36 @@ module.exports (terms) = {
                     buffer.write ";"
         }
 
-    callback strategy (strategy, continuation or default: nil) =
+    callbackStrategy (strategy, continuationOrDefault: nil) =
         {
             strategy = strategy
 
-            function parameters () =
-                self.strategy.function parameters ().concat (terms.callback function)
+            functionParameters () =
+                self.strategy.functionParameters ().concat (terms.callbackFunction)
 
-            defined parameters () = strategy.defined parameters ().concat [terms.callback function]
+            definedParameters () = strategy.definedParameters ().concat [terms.callbackFunction]
 
-            generate java script parameter statements (buffer, scope, args) =
+            generateJavaScriptParameterStatements (buffer, scope, args) =
                 gen (terms, ...) =
                     for each @(term) in (terms)
                         if (term :: String)
                             buffer.write (term)
                         else
-                            term.generate java script (buffer, scope)
+                            term.generateJavaScript (buffer, scope)
 
-                inner args = terms.generated variable ['arguments']
+                innerArgs = terms.generatedVariable ['arguments']
+                a = terms.generatedVariable ['a']
 
-                gen ("var ", inner args, "=Array.prototype.slice.call(", args, ",0,", args, ".length-1);")
-                gen (terms.callback function, "=", continuation or default, "(", args, ");")
+                gen ('var ', a, "=", continuationOrDefault, "(", args, ");")
+                gen (terms.callbackFunction, "=", a, '.continuation;')
+                gen ('var ', innerArgs, "=", a, '.arguments;')
 
-                function parameters = self.strategy.function parameters ()
+                functionParameters = self.strategy.functionParameters ()
                 for (n = 0, n < function parameters.length, ++n)
-                    named param = self.strategy.function parameters ().(n)
+                    namedParam = self.strategy.functionParameters ().(n)
 
-                    gen (named param, "=", inner args, "[#(n)];")
+                    gen (namedParam, "=", innerArgs, "[#(n)];")
 
-                self.strategy.generate java script parameter statements (buffer, scope, inner args)
+                self.strategy.generateJavaScriptParameterStatements (buffer, scope, innerArgs)
         }
 }
