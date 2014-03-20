@@ -10,7 +10,7 @@ beautify (code) =
     ast.print (stream)
     stream.to string ()
 
-exports.generate code (term, terms, in scope: true, global: false, return result: false) =
+exports.generateCode (term, terms, in scope: true, global: false, return result: false) =
     module term = terms.module (
         term
         in scope: in scope
@@ -39,7 +39,7 @@ exports.compile (
     if (async)
         statements.asyncify (return call to continuation: return result)
 
-    code = exports.generate code (statements, terms, in scope: in scope, global: global, return result: return result)
+    code = exports.generateCode (statements, terms, in scope: in scope, global: global, return result: return result)
 
     if (parser.errors.has errors ())
         memory stream = new (ms.MemoryStream)

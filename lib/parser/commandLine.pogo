@@ -3,120 +3,120 @@ fs = require 'fs'
 Module = require 'module'
 path = require 'path'
 repl = require 'repl'
-vm = require 'vm'
 versions = require '../versions'
 compiler = require './compiler'
 
-create terms () = require './codeGenerator'.code generator ()
+createTerms () = require './codeGenerator'.codeGenerator ()
 
-running on node (version) or higher =
-    !versions.(process.version) is less than (version)
+runningOnNode (version) orHigher =
+    !versions.(process.version) isLessThan (version)
 
-exports.compile file = compile file (filename, ugly: false) =
-    js = compile from file (filename, ugly: ugly)
+exports.compileFile = compileFile (filename, ugly: false) =
+    js = compileFromFile (filename, ugly: ugly)
 
-    js filename = js filename from pogo filename (filename)
-    fs.write file sync (js filename, js)
+    jsFilename = jsFilenameFromPogoFilename (filename)
+    fs.writeFileSync (jsFilename, js)
 
 when (filename) changes (act) =
-    fs.watch file (filename) {persistent, interval 500} @(prev, curr)
-        if ((curr.size == prev.size) && (curr.mtime.get time () == prev.mtime.get time ()))
+    fs.watchFile (filename) {persistent, interval 500} @(prev, curr)
+        if ((curr.size == prev.size) && (curr.mtime.getTime () == prev.mtime.getTime ()))
             return
         
         act ()
 
-exports.show compiling file (filename, options) =
-    console.log "compiling #(filename) => #(js filename from pogo filename (filename))"
-    compile file (filename, options)
+exports.showCompilingFile (filename, options) =
+    console.log "compiling #(filename) => #(jsFilenameFromPogoFilename (filename))"
+    compileFile (filename, options)
 
-exports.watch file (filename, options) =
+exports.watchFile (filename, options) =
     compile () =
-        self.show compiling file (filename, options)
+        self.showCompilingFile (filename, options)
 
     compile ()
 
     when (filename) changes
         compile ()
 
-exports.compile file if stale (filename, options) =
-    js filename = js filename from pogo filename (filename)
-    js file = if (fs.exists sync (js filename))
-        fs.stat sync (js filename)
+exports.compileFileIfStale (filename, options) =
+    jsFilename = jsFilenameFromPogoFilename (filename)
+    jsFile = if (fs.existsSync (jsFilename))
+        fs.statSync (jsFilename)
 
-    if (!js file || (fs.stat sync (filename).mtime > js file.mtime))
-        self.show compiling file (filename, options)
+    if (!jsFile || (fs.statSync (filename).mtime > jsFile.mtime))
+        self.showCompilingFile (filename, options)
 
-exports.lex file (filename) =
-    source = fs.read file sync (filename) 'utf-8'
+exports.lexFile (filename) =
+    source = fs.readFileSync (filename) 'utf-8'
     tokens = exports.lex (source)
 
     for each @(token) in (tokens)
         text = (token.1 && "'#(token.1)'") || ''
         console.log "<#(token.0)> #(text)"
 
-js filename from pogo filename (pogo) =
+jsFilenameFromPogoFilename (pogo) =
     pogo.replace r/\.pogo$/ '' + '.js'
 
-exports.run file (filename) in module (module) =
-    js = compile from file (filename)
+exports.runFile (filename) inModule (module) =
+    js = compileFromFile (filename)
     module._compile (js, filename)
 
-exports.run main (filename) =
-    full filename = fs.realpath sync (filename)
+exports.runMain (filename) =
+    fullFilename = fs.realpathSync (filename)
     
     process.argv.shift ()
     process.argv.0 = 'pogo'
-    process.argv.1 = full filename
+    process.argv.1 = fullFilename
     
-    module = new (Module (full filename, null))
-    process.main module = module
+    module = new (Module (fullFilename, null))
+    process.mainModule = module
     module.id = '.'
-    module.filename = full filename
-    module.paths = Module._node module paths (path.dirname (full filename))
-    exports.run file (full filename) in module (module)
+    module.filename = fullFilename
+    module.paths = Module._nodeModulePaths (path.dirname (fullFilename))
+    exports.runFile (fullFilename) inModule (module)
     module.loaded = true
 
 exports.repl () =
-    compile pogo (source, filename, terms) =
+    compilePogo (source, filename, terms) =
         exports.compile (
             source
             filename: filename
             ugly: true
-            in scope: false
+            inScope: false
             global: true
-            return result: false
+            returnResult: false
             async: true
             terms: terms
         )
 
-    eval pogo (source with parens, context, filename, callback) =
-        source = source with parens.replace r/^\(((.|[\r\n])*)\)$/mg '$1'
-        terms = create terms ()
+    evalPogo (sourceWithParens, context, filename, callback) =
+        source = sourceWithParens.replace r/^\(((.|[\r\n])*)\)$/mg '$1'
+        terms = createTerms ()
 
         terms.moduleConstants.onEachNewDefinition @(d)
-            definitionJs = exports.generateCode (terms.statements [d], terms, in scope: false)
-            vm.run (definitionJs) in context (context, filename)
+            definitionJs = exports.generateCode (terms.statements [d], terms, inScope: false, global: true)
+            eval (definitionJs)
 
-        js = compile pogo (source, filename, terms)
+        js = compilePogo (source, filename, terms)
 
         if (source.trim () == '')
             callback ()
         else
             try
-                context.(terms.callback function.canonical name ()) = callback
-                result = vm.run (js) in context (context) (filename)
+                global.(terms.callbackFunction.canonicalName ()) = callback
+                eval (js)
             catch (error)
                 callback (error)
 
-    if (running on node 'v0.8.0' or higher)
+    if (runningOnNode 'v0.8.0' orHigher)
         repl.start (
-            eval: eval pogo
+            eval: evalPogo
+            useGlobal: true
         )
     else
-        repl.start (undefined, undefined, eval pogo)
+        repl.start (nil, nil, evalPogo)
 
-compile from file (filename, ugly: false) =
-    contents = fs.read file sync (filename) 'utf-8'
+compileFromFile (filename, ugly: false) =
+    contents = fs.readFileSync (filename) 'utf-8'
     exports.compile (contents, filename: filename, ugly: ugly)
 
 exports.compile = compiler.compile
