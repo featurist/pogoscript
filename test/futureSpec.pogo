@@ -135,3 +135,50 @@ describe 'futures'
 
                     print (x ()!)
                     done ()' should output '4'
+
+    describe 'giving progress'
+        it 'can indicate when the future is complete'
+            async! 'wait (n, cb) = setTimeout (cb, n)
+                    
+                    waitFuture = wait 10?
+                    print (waitFuture.complete)
+
+                    wait 1!
+                    print (waitFuture.complete)
+
+                    wait 15!
+                    print (waitFuture.complete)
+
+                    done ()' should output 'false
+                                            false
+                                            true'
+
+        it 'can indicate when the future is complete'
+            async! 'wait (n, cb) = setTimeout (cb, n)
+                    
+                    bigWait(cb) =
+                        cb.future.progress = "stage 1"
+                        setTimeout
+                            cb.future.progress = "stage 2"
+                            setTimeout
+                                cb.future.progress = "stage 3"
+                                setTimeout
+                                    cb.future.progress = "finished"
+                                    cb()
+                                10
+                            10
+                        10
+
+                    f = bigWait?
+                    print (f.progress)
+                    wait 10!
+                    print (f.progress)
+                    wait 10!
+                    print (f.progress)
+                    wait 10!
+                    print (f.progress)
+
+                    done ()' should output "'stage 1'
+                                            'stage 2'
+                                            'stage 3'
+                                            'finished'"
