@@ -66,7 +66,12 @@ describe 'list comprehensions'
         it 'async returns an empty array'
             async! 'print [x <- [], f (x)!]
                     done()' should output '[]'
-            
+
+    describe 'scope'
+        it "variables aren't shared between iterations"
+            'fs = [x <- [1, 2, 3], @{ x }]
+             print [f <- fs, f ()]' shouldOutput '[ 1, 2, 3 ]'
+
     describe 'concurrency'
         it 'can start all async processes, then wait for futures'
 
