@@ -968,6 +968,17 @@ describe 'parser'
                     ]
                 }
 
+            it 'comments the start of a multiline comment'
+                (statements "a
+                             // not starting another comment /*
+                             b") shouldContainFields {
+                    is statements
+                    statements [
+                        {variable ['a']}
+                        {variable ['b']}
+                    ]
+                }
+
         describe 'should allow multi-line C style comments, as in: /* this is a comment */'
             it 'when on one line'
                 (statements "a /* comment */ b") should contain fields {
