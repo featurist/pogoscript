@@ -433,6 +433,19 @@ describe 'parser'
                 ]
             }
 
+        it 'function call with block with optional parameters'
+            (expression "with file (file) @(stream: nil)\n  stream") should contain fields {
+                function {variable ['with', 'file']}
+                function arguments [
+                    {variable ['file']}
+                    {
+                        body {statements [{variable ['stream']}]}
+                        parameters []
+                        optionalParameters [{field ['stream'], value {isNil}}]
+                    }
+                ]
+            }
+
         it 'function call with block with long parameters'
             (expression "open database @(database connection)\n  database connection") should contain fields {
                 function {variable ['open', 'database']}

@@ -86,7 +86,11 @@ exports.grammar = {
         ]
         parameter_list [
             ['parameter_list , statement', '$1.push($3); $$ = $1;']
-            ['statement', '$$ = [$1];']
+            ['parameter', '$$ = [$1];']
+        ]
+        parameter [
+            ['expression : expression', '$$ = $1.definition($3.expression()).hashEntry(true);']
+            ['statement', '$$ = $1']
         ]
         statement [
             ['expression', '$$ = $1.expression();']

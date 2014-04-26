@@ -118,7 +118,7 @@ module.exports (terms) =
                 self.continuation or default = terms.continuation or default ()
       
         scopify () =
-            if ((self.parameters.length == 0) && (self.optional parameters.length == 0))
+            if ((self.parameters.length == 0) @and (self.optional parameters.length == 0) @and @not self.notScope)
                 if (self.is async)
                     terms.function call (terms.sub expression (self), [], async: true)
                 else
