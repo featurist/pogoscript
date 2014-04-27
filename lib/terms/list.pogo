@@ -25,6 +25,7 @@ module.exports (terms) =
             item = items.(n)
             itemsWithSplats.push(item)
             if (item.isRange)
+                item.inList = true
                 itemsWithSplats.push(terms.splat())
 
         itemsWithSplats

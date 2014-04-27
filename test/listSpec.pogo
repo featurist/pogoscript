@@ -35,3 +35,6 @@ describe 'lists'
 
         it 'can put a range after other items'
             'print [0, 1..3]' shouldOutput '[ 0, 1, 2, 3 ]'
+
+        it 'must be in a list'
+            @{ '1..3' shouldOutput '' }.should.throw r/range operator can only be used in a list, as in \[1\.\.3\]/
