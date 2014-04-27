@@ -18,7 +18,19 @@ module.exports (terms) =
                 buffer.write (']')
     }
 
-    list (items) =
+    insertSplatsAfterRanges (items) =
+        itemsWithSplats = []
+
+        for (n = 0, n < items.length, ++n)
+            item = items.(n)
+            itemsWithSplats.push(item)
+            if (item.isRange)
+                itemsWithSplats.push(terms.splat())
+
+        itemsWithSplats
+
+    list (listItems) =
+        items = insertSplatsAfterRanges (listItems)
         hashEntry = _.find (items) @(item) @{item.isHashEntry}
         hasGenerator = _.find (items) @(item) @{item.isGenerator}
 

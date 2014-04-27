@@ -25,3 +25,13 @@ describe 'lists'
         it 'can just be a splat'
             'list = [1, 2, 3]
              print [list, ...]' shouldOutput '[ 1, 2, 3 ]'
+
+    describe 'ranges'
+        it 'can accept a range'
+            'print [1..3]' shouldOutput '[ 1, 2, 3 ]'
+
+        it 'can put a range before other items'
+            'print [1..3, 4]' shouldOutput '[ 1, 2, 3, 4 ]'
+
+        it 'can put a range after other items'
+            'print [0, 1..3]' shouldOutput '[ 0, 1, 2, 3 ]'
