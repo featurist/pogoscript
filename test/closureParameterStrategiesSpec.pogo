@@ -229,7 +229,7 @@ describe 'closure parameter strategies'
                 should.deep equal (cb.function parameters (), [terms.variable ['a'], terms.variable ['b'], terms.callback function])
 
             it 'generates code to extract the callback and the other parameters'
-                generate statements from (cb).should.equal "var gen1_arguments=Array.prototype.slice.call(args,0,args.length-1);continuation=continuationOrDefault(args);a=gen1_arguments[0];b=gen1_arguments[1];gen1_arguments;"
+                generate statements from (cb).should.equal "var gen1_a=continuationOrDefault(args);continuation=gen1_a.continuation;var gen2_arguments=gen1_a.arguments;a=gen2_arguments[0];b=gen2_arguments[1];gen2_arguments;"
 
             it 'defines continuation and those of the inner strategy'
                 should.deep equal (

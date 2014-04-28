@@ -3,5 +3,5 @@ module.exports (terms) = terms.term {
         self.is parameters = true
         self.parameters = parms
     
-    arguments () = []
+    arguments () = nil
 }

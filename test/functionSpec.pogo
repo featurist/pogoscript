@@ -117,3 +117,29 @@ describe 'functions'
                  print (self.x)
              
              print self.call ({x = "self"})' should output "'self'"
+
+    describe 'calling anonymous functions'
+        it 'can call an anonymous function'
+            'print "thang"
+             @{ print "thing" } ()
+             print "thong"' should output "'thang'
+                                           'thing'
+                                           'thong'"
+
+    describe 'calling asynchronous functions'
+        context 'when there are no arguments'
+            it 'can call an asynchronous function synchronously'
+                'f! = 5
+
+                 print (f ())' shouldOutput '5'
+
+        context 'when there is one argument'
+            it 'can call an asynchronous function synchronously'
+                'f (n)! = n + 1
+
+                 print (f (4))' shouldOutput '5'
+
+            it 'can call an asynchronous function asynchronously without first argument'
+                'f (n)! = n
+
+                 print (f ()!)' shouldOutput 'undefined'

@@ -1,14 +1,8 @@
 {
   "name": "pogo",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "description": "A readable, DSL friendly programming language that compiles to JavaScript",
-  "maintainers": [
-    {
-      "name": "Tim Macfarlane",
-      "email": "timmacfarlane@gmail.com",
-      "web": "http://featurist.co.uk/"
-    }
-  ],
+  "author": "Tim Macfarlane <timmacfarlane@gmail.com>",
   "repository": {
     "type": "git",
     "url": "https://github.com/featurist/pogoscript.git"
@@ -34,9 +28,17 @@
     "glob": "",
     "pogoify": ""
   },
+  "bugs": {
+    "url": "https://github.com/featurist/pogoscript/issues"
+  },
   "dependencies": {
     "underscore": "1.4.4",
     "uglify-js": "2.2.4",
     "source-map": "~0.1.31"
-  }
+  },
+  "keywords": [
+    "language",
+    "pogo"
+  ],
+  "license": "BSD-2-Clause"
 }

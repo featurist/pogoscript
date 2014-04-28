@@ -102,3 +102,83 @@ describe 'futures'
 
                     done ()' should output "'error'
                                             'error'"
+
+    describe 'futures in async functions'
+        it 'still calls the callback when the function is asynchronous'
+            async! 'x ()! =
+                        y ()?
+
+                    y ()! = 5
+
+                    f = x ()!
+                    print (f ()!)
+                    done ()' should output '5'
+
+        it 'still calls the callback when the function makes an asynchronous call'
+            async! 'x ()! =
+                        y ()?
+                        z ()!
+
+                    y ()! = 8
+                    z ()! = 4
+
+                    print (x ()!)
+                    done ()' should output '4'
+
+        it 'still calls the callback when the function is asynchronous and returns a normal result'
+            async! 'x ()! =
+                        y ()?
+                        z
+
+                    y ()! = 8
+                    z = 4
+
+                    print (x ()!)
+                    done ()' should output '4'
+
+    describe 'giving progress'
+        it 'can indicate when the future is complete'
+            async! 'wait (n, cb) = setTimeout (cb, n)
+                    
+                    waitFuture = wait 10?
+                    print (waitFuture.complete)
+
+                    wait 1!
+                    print (waitFuture.complete)
+
+                    wait 15!
+                    print (waitFuture.complete)
+
+                    done ()' should output 'false
+                                            false
+                                            true'
+
+        it 'can indicate when the future is complete'
+            async! 'wait (n, cb) = setTimeout (cb, n)
+                    
+                    bigWait(cb) =
+                        cb.future.progress = "stage 1"
+                        setTimeout
+                            cb.future.progress = "stage 2"
+                            setTimeout
+                                cb.future.progress = "stage 3"
+                                setTimeout
+                                    cb.future.progress = "finished"
+                                    cb()
+                                10
+                            10
+                        10
+
+                    f = bigWait?
+                    print (f.progress)
+                    wait 10!
+                    print (f.progress)
+                    wait 10!
+                    print (f.progress)
+                    wait 10!
+                    print (f.progress)
+
+                    done ()' should output "'stage 1'
+                                            'stage 2'
+                                            'stage 3'
+                                            'finished'"

@@ -120,7 +120,7 @@ module.exports (terms) =
                 self.continuation or default = terms.continuation or default ()
       
         scopify () =
-            if ((self.parameters.length == 0) && (self.optional parameters.length == 0))
+            if ((self.parameters.length == 0) @and (self.optional parameters.length == 0) @and @not self.notScope)
                 if (self.is async)
                     terms.function call (terms.sub expression (self), [], async: true)
                 else
@@ -188,6 +188,11 @@ module.exports (terms) =
                 buffer.write (self.body.generate statements (body scope, in closure: true))
 
                 buffer.write ('}')
+
+        generate java script function (buffer, scope) =
+            buffer.write '('
+            self.generate java script (buffer, scope)
+            buffer.write ')'
 
         generate self assignment () =
             if (self.redefines self)

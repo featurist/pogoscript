@@ -223,11 +223,23 @@ exports.future = function (action) {
         operationComplete = true;
         operationError = error;
         operationResult = result;
+        future.complete = true;
 
         for (var n = 0; n < futureCallbacks.length; n++) {
             futureCallbacks[n](operationError, operationResult);
         }
     }
+
+    var future = function (callback) {
+        if (operationComplete) {
+            callback(operationError, operationResult);
+        } else {
+            futureCallbacks.push(callback);
+        }
+    };
+
+    future.complete = false;
+    callback.future = future;
 
     try {
       action(callback);
@@ -236,13 +248,7 @@ exports.future = function (action) {
       operationError = error;
     }
 
-    return function (callback) {
-        if (operationComplete) {
-            callback(operationError, operationResult);
-        } else {
-            futureCallbacks.push(callback);
-        }
-    };
+    return future;
 };
 
 exports.listComprehension = function (items, areRanges, block, continuation) {
@@ -358,7 +364,7 @@ exports.oldTerm = function (members) {
   return new constructor();
 };
 
-},{"./parser/runtime":23,"./terms/codegenUtils":36,"underscore":101}],4:[function(require,module,exports){
+},{"./parser/runtime":23,"./terms/codegenUtils":36,"underscore":102}],4:[function(require,module,exports){
 (function() {
     var self = this;
     var $class, _;
@@ -453,7 +459,7 @@ exports.oldTerm = function (members) {
         };
     };
 }).call(this);
-},{"./class":2,"underscore":101}],5:[function(require,module,exports){
+},{"./class":2,"underscore":102}],5:[function(require,module,exports){
 var MemoryStream = function () {
   var buffer = [];
   
@@ -499,7 +505,8 @@ exports.MemoryStream = MemoryStream;
         return moduleConstants = terms.term({
             constructor: function() {
                 var self = this;
-                return self.namedDefinitions = {};
+                self.namedDefinitions = {};
+                return self.listeners = [];
             },
             defineAs: function(name, expression) {
                 var self = this;
@@ -510,7 +517,12 @@ exports.MemoryStream = MemoryStream;
                     return existingDefinition.target;
                 } else {
                     variable = terms.generatedVariable(name);
-                    self.namedDefinitions[canonicalName] = terms.definition(variable, expression);
+                    self.namedDefinitions[canonicalName] = function() {
+                        var definition;
+                        definition = terms.definition(variable, expression);
+                        self.notifyNewDefinition(definition);
+                        return definition;
+                    }();
                     return variable;
                 }
             },
@@ -527,13 +539,27 @@ exports.MemoryStream = MemoryStream;
                 }
                 return defs;
             },
+            notifyNewDefinition: function(d) {
+                var self = this;
+                var gen1_items, gen2_i, listener;
+                gen1_items = self.listeners;
+                for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
+                    listener = gen1_items[gen2_i];
+                    listener(d);
+                }
+                return void 0;
+            },
+            onEachNewDefinition: function(block) {
+                var self = this;
+                return self.listeners.push(block);
+            },
             generate: function(scope) {
                 var self = this;
                 return self.generateIntoBuffer(function(buffer) {
-                    var gen1_items, gen2_i, def;
-                    gen1_items = self.definitions();
-                    for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
-                        def = gen1_items[gen2_i];
+                    var gen3_items, gen4_i, def;
+                    gen3_items = self.definitions();
+                    for (gen4_i = 0; gen4_i < gen3_items.length; ++gen4_i) {
+                        def = gen3_items[gen4_i];
                         buffer.write("var ");
                         buffer.write(def.generate(scope));
                         buffer.write(";");
@@ -561,7 +587,7 @@ module.exports = function (terminals) {
       if (this.hasName()) {
         return this.hasArguments();
       } else {
-        return this.terminals.length > 1;
+        return this.argumentTerminals().length > 1;
       }
     };
     
@@ -647,13 +673,22 @@ module.exports = function (terminals) {
     
     this._buildBlocks = function () {
       var parameters = [];
+      var hasParameters = false;
 
       _(this.terminals).each(function (terminal) {
         if (terminal.isParameters) {
           parameters.push.apply(parameters, terminal.parameters);
+          hasParameters = true;
         } else if (terminal.isBlock) {
-          terminal.parameters = parameters;
+          terminal.parameters = _.filter(parameters, function (p) {
+            return !p.isHashEntry;
+          });
+          terminal.optionalParameters = _.filter(parameters, function (p) {
+            return p.isHashEntry;
+          });
+          terminal.notScope = hasParameters;
           parameters = [];
+          hasParameters = false;
         }
       });
       
@@ -710,7 +745,7 @@ module.exports = function (terminals) {
   });
 };
 
-},{"underscore":101}],8:[function(require,module,exports){
+},{"underscore":102}],8:[function(require,module,exports){
 (function() {
     var self = this;
     window.pogoscript = require("./compiler");
@@ -767,6 +802,7 @@ exports.codeGenerator = function () {
   codegen.unaryOperatorExpression = require('../parser/unaryOperatorExpression')(codegen);
   codegen.operator = require('../terms/operator')(codegen);
   codegen.splat = require('../terms/splat')(codegen);
+  codegen.range = require('../terms/range')(codegen);
   codegen.hashEntry = require('../terms/hashEntry')(codegen);
   codegen.concatName = cg.concatName;
   codegen.parseSplatParameters = cg.parseSplatParameters;
@@ -832,7 +868,7 @@ var loc = function (term, location) {
   return term;
 };
 
-},{"../codeGenerator":3,"../macroDirectory":4,"../moduleConstants":6,"../parser/operatorExpression":20,"../parser/unaryOperatorExpression":24,"../symbolScope":25,"../terms/argumentList":26,"../terms/argumentUtils":27,"../terms/asyncArgument":28,"../terms/asyncCallback":29,"../terms/asyncResult":30,"../terms/asyncStatements":31,"../terms/boolean":32,"../terms/breakStatement":33,"../terms/closure":34,"../terms/closureParameterStrategies":35,"../terms/continuationOrDefault":37,"../terms/continueStatement":38,"../terms/definition":39,"../terms/fieldReference":40,"../terms/float":41,"../terms/forEach":42,"../terms/forExpression":43,"../terms/forIn":44,"../terms/functionCall":45,"../terms/futureArgument":46,"../terms/generatedVariable":47,"../terms/generator":48,"../terms/hash":49,"../terms/hashEntry":50,"../terms/identifier":51,"../terms/ifExpression":52,"../terms/increment":53,"../terms/indexer":54,"../terms/integer":55,"../terms/interpolatedString":56,"../terms/javascript":57,"../terms/list":58,"../terms/listComprehension":59,"../terms/methodCall":60,"../terms/module":61,"../terms/newOperator":62,"../terms/nil":63,"../terms/normalParameters":64,"../terms/operator":65,"../terms/parameters":66,"../terms/regExp":67,"../terms/returnStatement":68,"../terms/scope":69,"../terms/selfExpression":70,"../terms/semanticError":71,"../terms/splat":72,"../terms/splatArguments":73,"../terms/splatParameters":74,"../terms/statements":75,"../terms/string":77,"../terms/subExpression":78,"../terms/subStatements":79,"../terms/terms":80,"../terms/throwStatement":81,"../terms/tryExpression":82,"../terms/typeof":83,"../terms/variable":84,"../terms/whileExpression":85,"../terms/withExpression":86,"./basicExpression":7,"./complexExpression":11,"./errors":13,"./listMacros":18,"./macros":19}],10:[function(require,module,exports){
+},{"../codeGenerator":3,"../macroDirectory":4,"../moduleConstants":6,"../parser/operatorExpression":20,"../parser/unaryOperatorExpression":24,"../symbolScope":25,"../terms/argumentList":26,"../terms/argumentUtils":27,"../terms/asyncArgument":28,"../terms/asyncCallback":29,"../terms/asyncResult":30,"../terms/asyncStatements":31,"../terms/boolean":32,"../terms/breakStatement":33,"../terms/closure":34,"../terms/closureParameterStrategies":35,"../terms/continuationOrDefault":37,"../terms/continueStatement":38,"../terms/definition":39,"../terms/fieldReference":40,"../terms/float":41,"../terms/forEach":42,"../terms/forExpression":43,"../terms/forIn":44,"../terms/functionCall":45,"../terms/futureArgument":46,"../terms/generatedVariable":47,"../terms/generator":48,"../terms/hash":49,"../terms/hashEntry":50,"../terms/identifier":51,"../terms/ifExpression":52,"../terms/increment":53,"../terms/indexer":54,"../terms/integer":55,"../terms/interpolatedString":56,"../terms/javascript":57,"../terms/list":58,"../terms/listComprehension":59,"../terms/methodCall":60,"../terms/module":61,"../terms/newOperator":62,"../terms/nil":63,"../terms/normalParameters":64,"../terms/operator":65,"../terms/parameters":66,"../terms/range":67,"../terms/regExp":68,"../terms/returnStatement":69,"../terms/scope":70,"../terms/selfExpression":71,"../terms/semanticError":72,"../terms/splat":73,"../terms/splatArguments":74,"../terms/splatParameters":75,"../terms/statements":76,"../terms/string":78,"../terms/subExpression":79,"../terms/subStatements":80,"../terms/terms":81,"../terms/throwStatement":82,"../terms/tryExpression":83,"../terms/typeof":84,"../terms/variable":85,"../terms/whileExpression":86,"../terms/withExpression":87,"./basicExpression":7,"./complexExpression":11,"./errors":13,"./listMacros":18,"./macros":19}],10:[function(require,module,exports){
 (function() {
     var self = this;
     var ms, createParser, createTerms, object, sm, beautify, sourceLocationPrinter;
@@ -853,19 +889,35 @@ var loc = function (term, location) {
         ast.print(stream);
         return stream.toString();
     };
-    exports.compile = function(pogo, gen1_options) {
+    exports.generateCode = function(term, terms, gen1_options) {
         var self = this;
-        var filename, inScope, ugly, global, returnResult, async, terms, outputFilename, sourceMap;
-        filename = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "filename") && gen1_options.filename !== void 0 ? gen1_options.filename : void 0;
+        var inScope, global, returnResult;
         inScope = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "inScope") && gen1_options.inScope !== void 0 ? gen1_options.inScope : true;
-        ugly = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "ugly") && gen1_options.ugly !== void 0 ? gen1_options.ugly : false;
         global = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "global") && gen1_options.global !== void 0 ? gen1_options.global : false;
         returnResult = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "returnResult") && gen1_options.returnResult !== void 0 ? gen1_options.returnResult : false;
-        async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
-        terms = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "terms") && gen1_options.terms !== void 0 ? gen1_options.terms : createTerms();
-        outputFilename = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "outputFilename") && gen1_options.outputFilename !== void 0 ? gen1_options.outputFilename : void 0;
-        sourceMap = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "sourceMap") && gen1_options.sourceMap !== void 0 ? gen1_options.sourceMap : false;
-        var parser, statements, moduleTerm, output, memoryStream, error;
+        var moduleTerm, output;
+        moduleTerm = terms.module(term, {
+            inScope: inScope,
+            global: global,
+            returnLastStatement: returnResult
+        });
+        return output = moduleTerm.generateModule().toStringWithSourceMap({
+            file: outputFilename
+        });
+    };
+    exports.compile = function(pogo, gen2_options) {
+        var self = this;
+        var filename, inScope, ugly, global, returnResult, async, terms, outputFilename, sourceMap;
+        filename = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "filename") && gen2_options.filename !== void 0 ? gen2_options.filename : void 0;
+        inScope = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "inScope") && gen2_options.inScope !== void 0 ? gen2_options.inScope : true;
+        ugly = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "ugly") && gen2_options.ugly !== void 0 ? gen2_options.ugly : false;
+        global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
+        returnResult = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "returnResult") && gen2_options.returnResult !== void 0 ? gen2_options.returnResult : false;
+        async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
+        terms = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "terms") && gen2_options.terms !== void 0 ? gen2_options.terms : createTerms();
+        outputFilename = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "outputFilename") && gen2_options.outputFilename !== void 0 ? gen2_options.outputFilename : void 0;
+        sourceMap = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "sourceMap") && gen2_options.sourceMap !== void 0 ? gen2_options.sourceMap : false;
+        var parser, statements, output, memoryStream, error;
         parser = createParser({
             terms: terms,
             filename: filename
@@ -876,13 +928,10 @@ var loc = function (term, location) {
                 returnCallToContinuation: returnResult
             });
         }
-        moduleTerm = terms.module(statements, {
+        output = exports.generateCode(statements, terms, {
             inScope: inScope,
             global: global,
-            returnLastStatement: returnResult
-        });
-        output = moduleTerm.generateModule().toStringWithSourceMap({
-            file: outputFilename
+            returnResult: returnResult
         });
         if (parser.errors.hasErrors()) {
             memoryStream = new ms.MemoryStream();
@@ -907,12 +956,12 @@ var loc = function (term, location) {
             }
         }
     };
-    exports.evaluate = function(pogo, gen2_options) {
+    exports.evaluate = function(pogo, gen3_options) {
         var self = this;
         var definitions, ugly, global;
-        definitions = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "definitions") && gen2_options.definitions !== void 0 ? gen2_options.definitions : {};
-        ugly = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "ugly") && gen2_options.ugly !== void 0 ? gen2_options.ugly : true;
-        global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
+        definitions = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "definitions") && gen3_options.definitions !== void 0 ? gen3_options.definitions : {};
+        ugly = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "ugly") && gen3_options.ugly !== void 0 ? gen3_options.ugly : true;
+        global = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "global") && gen3_options.global !== void 0 ? gen3_options.global : false;
         var js, definitionNames, parameters, runScript, definitionValues;
         js = exports.compile(pogo, {
             ugly: ugly,
@@ -924,21 +973,21 @@ var loc = function (term, location) {
         parameters = definitionNames.join(",");
         runScript = new Function(parameters, "return " + js + ";");
         definitionValues = function() {
-            var gen3_results, gen4_items, gen5_i, name;
-            gen3_results = [];
-            gen4_items = definitionNames;
-            for (gen5_i = 0; gen5_i < gen4_items.length; ++gen5_i) {
-                name = gen4_items[gen5_i];
-                gen3_results.push(definitions[name]);
+            var gen4_results, gen5_items, gen6_i, name;
+            gen4_results = [];
+            gen5_items = definitionNames;
+            for (gen6_i = 0; gen6_i < gen5_items.length; ++gen6_i) {
+                name = gen5_items[gen6_i];
+                gen4_results.push(definitions[name]);
             }
-            return gen3_results;
+            return gen4_results;
         }();
         return runScript.apply(undefined, definitionValues);
     };
-    sourceLocationPrinter = function(gen6_options) {
+    sourceLocationPrinter = function(gen7_options) {
         var filename, source;
-        filename = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "filename") && gen6_options.filename !== void 0 ? gen6_options.filename : void 0;
-        source = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "source") && gen6_options.source !== void 0 ? gen6_options.source : void 0;
+        filename = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "filename") && gen7_options.filename !== void 0 ? gen7_options.filename : void 0;
+        source = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "source") && gen7_options.source !== void 0 ? gen7_options.source : void 0;
         return {
             linesInRange: function(range) {
                 var self = this;
@@ -946,20 +995,20 @@ var loc = function (term, location) {
                 lines = source.split(/\n/);
                 return lines.slice(range.from - 1, range.to);
             },
-            printLinesInRange: function(gen7_options) {
+            printLinesInRange: function(gen8_options) {
                 var self = this;
                 var prefix, from, to, buffer;
-                prefix = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "prefix") && gen7_options.prefix !== void 0 ? gen7_options.prefix : "";
-                from = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "from") && gen7_options.from !== void 0 ? gen7_options.from : void 0;
-                to = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "to") && gen7_options.to !== void 0 ? gen7_options.to : void 0;
-                buffer = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "buffer") && gen7_options.buffer !== void 0 ? gen7_options.buffer : buffer;
-                var gen8_items, gen9_i, line;
-                gen8_items = self.linesInRange({
+                prefix = gen8_options !== void 0 && Object.prototype.hasOwnProperty.call(gen8_options, "prefix") && gen8_options.prefix !== void 0 ? gen8_options.prefix : "";
+                from = gen8_options !== void 0 && Object.prototype.hasOwnProperty.call(gen8_options, "from") && gen8_options.from !== void 0 ? gen8_options.from : void 0;
+                to = gen8_options !== void 0 && Object.prototype.hasOwnProperty.call(gen8_options, "to") && gen8_options.to !== void 0 ? gen8_options.to : void 0;
+                buffer = gen8_options !== void 0 && Object.prototype.hasOwnProperty.call(gen8_options, "buffer") && gen8_options.buffer !== void 0 ? gen8_options.buffer : buffer;
+                var gen9_items, gen10_i, line;
+                gen9_items = self.linesInRange({
                     from: from,
                     to: to
                 });
-                for (gen9_i = 0; gen9_i < gen8_items.length; ++gen9_i) {
-                    line = gen8_items[gen9_i];
+                for (gen10_i = 0; gen10_i < gen9_items.length; ++gen10_i) {
+                    line = gen9_items[gen10_i];
                     buffer.write(prefix + line + "\n");
                 }
                 return void 0;
@@ -1003,10 +1052,10 @@ var loc = function (term, location) {
         parser = createParser({
             terms: createTerms()
         });
-        return parser.lex(source);
+        return parser.lex(pogo);
     };
 }).call(this);
-},{"../memorystream":5,"./codeGenerator":9,"./parser":21,"./runtime":23,"source-map":91,"uglify-js":"SqkSOK"}],11:[function(require,module,exports){
+},{"../memorystream":5,"./codeGenerator":9,"./parser":21,"./runtime":23,"source-map":92,"uglify-js":"SqkSOK"}],11:[function(require,module,exports){
 var _ = require('underscore');
 
 module.exports = function (listOfTerminals) {
@@ -1111,7 +1160,7 @@ module.exports = function (listOfTerminals) {
           return terms.variable(head.name(), {location: this.location()});
         }
       } else {
-        if (!this.hasTail() && this.arguments().length === 1 && !this.isCall()) {
+        if (!this.hasTail() && this.arguments().length === 1 && !this.isCall() && !this.head().isCall()) {
           return this.arguments()[0];
         } else {
           return terms.functionCall(this.arguments()[0], this.arguments().slice(1), {async: this.isAsyncCall(), future: this.isFutureCall()});
@@ -1248,7 +1297,7 @@ module.exports = function (listOfTerminals) {
   });
 };
 
-},{"underscore":101}],12:[function(require,module,exports){
+},{"underscore":102}],12:[function(require,module,exports){
 (function() {
     var self = this;
     var createDynamicLexer;
@@ -1325,11 +1374,11 @@ exports.errors = function (terms) {
   };
 };
 
-},{"underscore":101}],14:[function(require,module,exports){
+},{"underscore":102}],14:[function(require,module,exports){
 (function() {
     var self = this;
     var comments, identifier;
-    comments = "\\s*((\\/\\*([^*](\\*+[^\\/]|))*(\\*\\/|$)|\\/\\/[^\\n]*)\\s*)+";
+    comments = "\\s*((\\/\\*([^*](\\*+[^\\/]|))*(\\*\\/|$)|\\/\\/.*(\\n|$))\\s*)+";
     exports.identifier = identifier = function() {
         var ranges;
         ranges = "a-zA-Z\\u4E00-\\u9FFF\\u3400-\\u4DFF_$";
@@ -1354,7 +1403,8 @@ exports.errors = function (terms) {
             arguments_list: [ [ "arguments_list , argument", "$1.push($3); $$ = $1;" ], [ "argument", "$$ = [$1];" ] ],
             argument: [ [ "expression : expression", "$$ = $1.definition($3.expression()).hashEntry(true);" ], [ "statement", "$$ = $1" ] ],
             parameters: [ [ "parameter_list", "$$ = $1;" ], [ "", "$$ = [];" ] ],
-            parameter_list: [ [ "parameter_list , statement", "$1.push($3); $$ = $1;" ], [ "statement", "$$ = [$1];" ] ],
+            parameter_list: [ [ "parameter_list , statement", "$1.push($3); $$ = $1;" ], [ "parameter", "$$ = [$1];" ] ],
+            parameter: [ [ "expression : expression", "$$ = $1.definition($3.expression()).hashEntry(true);" ], [ "statement", "$$ = $1" ] ],
             statement: [ [ "expression", "$$ = $1.expression();" ] ],
             expression: [ [ "expression = expression", "$$ = $1.definition($3.expression());" ], [ "expression := expression", "$$ = $1.definition($3.expression(), {assignment: true});" ], [ "operator_expression", "$$ = $1;" ] ],
             operator_with_newline: [ [ "operator ,", "$$ = $1" ], [ "operator", "$$ = $1" ] ],
@@ -1372,7 +1422,7 @@ exports.errors = function (terms) {
             interpolated_terminal: [ [ "( statement )", "$$ = $2;" ] ],
             interpolated_string: [ [ "start_interpolated_string interpolated_string_components end_interpolated_string", "$$ = yy.terms.interpolatedString(yy.normaliseStringComponentsUnindentingBy($2, @$.first_column + 1));" ], [ "start_interpolated_string end_interpolated_string", "$$ = yy.terms.interpolatedString([]);" ] ],
             interpolated_string_components: [ [ "interpolated_string_components interpolated_string_component", "$1.push($2); $$ = $1;" ], [ "interpolated_string_component", "$$ = [$1];" ] ],
-            interpolated_string_component: [ [ "interpolated_terminal", "$$ = $1;" ], [ "interpolated_string_body", "$$ = yy.terms.string($1);" ], [ "escaped_interpolated_string_terminal_start", '$$ = yy.terms.string("#");' ], [ "escape_sequence", "$$ = yy.terms.string(yy.normaliseInterpolatedString($1));" ] ]
+            interpolated_string_component: [ [ "interpolated_terminal", "$$ = $1;" ], [ "interpolated_string_body", "$$ = yy.terms.string(yy.normaliseInterpolatedString($1));" ], [ "escaped_interpolated_string_terminal_start", '$$ = yy.terms.string("#");' ], [ "escape_sequence", "$$ = yy.terms.string(yy.normaliseInterpolatedString($1));" ] ]
         }
     };
 }).call(this);
@@ -1584,9 +1634,9 @@ var process=require("__browserify_process");/* parser generated by jison 0.4.13 
 var parser = (function(){
 var parser = {trace: function trace() { },
 yy: {},
-symbols_: {"error":2,"module_statements":3,"statements":4,"eof":5,"statements_list":6,"hash_entries":7,",":8,"expression":9,"statement":10,"arguments":11,"arguments_list":12,"argument":13,":":14,"parameters":15,"parameter_list":16,"=":17,":=":18,"operator_expression":19,"operator_with_newline":20,"operator":21,"unary_operator_expression":22,"object_operation":23,"unary_operator":24,"object_reference_with_newline":25,".":26,"complex_expression":27,"basic_expression_list":28,"terminal_list":29,"terminal":30,"call_operator":31,"!":32,"?":33,"(":34,")":35,"@":36,"block_start":37,"}":38,"=>":39,"[":40,"]":41,"{":42,"float":43,"integer":44,"hex":45,"identifier":46,"string":47,"reg_exp":48,"interpolated_string":49,"...":50,"@{":51,"interpolated_terminal":52,"start_interpolated_string":53,"interpolated_string_components":54,"end_interpolated_string":55,"interpolated_string_component":56,"interpolated_string_body":57,"escaped_interpolated_string_terminal_start":58,"escape_sequence":59,"$accept":0,"$end":1},
-terminals_: {2:"error",5:"eof",8:",",14:":",17:"=",18:":=",21:"operator",26:".",32:"!",33:"?",34:"(",35:")",36:"@",38:"}",39:"=>",40:"[",41:"]",42:"{",43:"float",44:"integer",45:"hex",46:"identifier",47:"string",48:"reg_exp",50:"...",51:"@{",53:"start_interpolated_string",55:"end_interpolated_string",57:"interpolated_string_body",58:"escaped_interpolated_string_terminal_start",59:"escape_sequence"},
-productions_: [0,[3,2],[4,1],[7,3],[7,1],[7,0],[6,3],[6,1],[6,0],[11,1],[11,0],[12,3],[12,1],[13,3],[13,1],[15,1],[15,0],[16,3],[16,1],[10,1],[9,3],[9,3],[9,1],[20,2],[20,1],[19,3],[19,1],[22,1],[22,2],[25,2],[25,1],[23,3],[23,1],[27,1],[28,1],[29,2],[29,2],[29,1],[31,1],[31,1],[30,3],[30,4],[30,3],[30,4],[30,3],[30,3],[30,1],[30,1],[30,1],[30,1],[30,1],[30,1],[30,1],[30,1],[37,2],[37,1],[24,1],[24,1],[52,3],[49,3],[49,2],[54,2],[54,1],[56,1],[56,1],[56,1],[56,1]],
+symbols_: {"error":2,"module_statements":3,"statements":4,"eof":5,"statements_list":6,"hash_entries":7,",":8,"expression":9,"statement":10,"arguments":11,"arguments_list":12,"argument":13,":":14,"parameters":15,"parameter_list":16,"parameter":17,"=":18,":=":19,"operator_expression":20,"operator_with_newline":21,"operator":22,"unary_operator_expression":23,"object_operation":24,"unary_operator":25,"object_reference_with_newline":26,".":27,"complex_expression":28,"basic_expression_list":29,"terminal_list":30,"terminal":31,"call_operator":32,"!":33,"?":34,"(":35,")":36,"@":37,"block_start":38,"}":39,"=>":40,"[":41,"]":42,"{":43,"float":44,"integer":45,"hex":46,"identifier":47,"string":48,"reg_exp":49,"interpolated_string":50,"...":51,"@{":52,"interpolated_terminal":53,"start_interpolated_string":54,"interpolated_string_components":55,"end_interpolated_string":56,"interpolated_string_component":57,"interpolated_string_body":58,"escaped_interpolated_string_terminal_start":59,"escape_sequence":60,"$accept":0,"$end":1},
+terminals_: {2:"error",5:"eof",8:",",14:":",18:"=",19:":=",22:"operator",27:".",33:"!",34:"?",35:"(",36:")",37:"@",39:"}",40:"=>",41:"[",42:"]",43:"{",44:"float",45:"integer",46:"hex",47:"identifier",48:"string",49:"reg_exp",51:"...",52:"@{",54:"start_interpolated_string",56:"end_interpolated_string",58:"interpolated_string_body",59:"escaped_interpolated_string_terminal_start",60:"escape_sequence"},
+productions_: [0,[3,2],[4,1],[7,3],[7,1],[7,0],[6,3],[6,1],[6,0],[11,1],[11,0],[12,3],[12,1],[13,3],[13,1],[15,1],[15,0],[16,3],[16,1],[17,3],[17,1],[10,1],[9,3],[9,3],[9,1],[21,2],[21,1],[20,3],[20,1],[23,1],[23,2],[26,2],[26,1],[24,3],[24,1],[28,1],[29,1],[30,2],[30,2],[30,1],[32,1],[32,1],[31,3],[31,4],[31,3],[31,4],[31,3],[31,3],[31,1],[31,1],[31,1],[31,1],[31,1],[31,1],[31,1],[31,1],[38,2],[38,1],[25,1],[25,1],[53,3],[50,3],[50,2],[55,2],[55,1],[57,1],[57,1],[57,1],[57,1]],
 performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */) {
 /* this == yyval */
 
@@ -1628,105 +1678,109 @@ case 17:$$[$0-2].push($$[$0]); this.$ = $$[$0-2];
 break;
 case 18:this.$ = [$$[$0]];
 break;
-case 19:this.$ = $$[$0].expression();
+case 19:this.$ = $$[$0-2].definition($$[$0].expression()).hashEntry(true);
 break;
-case 20:this.$ = $$[$0-2].definition($$[$0].expression());
+case 20:this.$ = $$[$0]
 break;
-case 21:this.$ = $$[$0-2].definition($$[$0].expression(), {assignment: true});
+case 21:this.$ = $$[$0].expression();
 break;
-case 22:this.$ = $$[$0];
+case 22:this.$ = $$[$0-2].definition($$[$0].expression());
 break;
-case 23:this.$ = $$[$0-1]
+case 23:this.$ = $$[$0-2].definition($$[$0].expression(), {assignment: true});
 break;
-case 24:this.$ = $$[$0]
+case 24:this.$ = $$[$0];
 break;
-case 25:$$[$0-2].addOperatorExpression($$[$0-1], $$[$0]); this.$ = $$[$0-2];
+case 25:this.$ = $$[$0-1]
 break;
-case 26:this.$ = yy.terms.operatorExpression($$[$0]);
+case 26:this.$ = $$[$0]
 break;
-case 27:this.$ = $$[$0];
+case 27:$$[$0-2].addOperatorExpression($$[$0-1], $$[$0]); this.$ = $$[$0-2];
 break;
-case 28:this.$ = yy.terms.unaryOperatorExpression($$[$0-1], $$[$0].expression());
+case 28:this.$ = yy.terms.operatorExpression($$[$0]);
 break;
-case 29:this.$ = $$[$0-1]
+case 29:this.$ = $$[$0];
 break;
-case 30:this.$ = $$[$0]
+case 30:this.$ = yy.terms.unaryOperatorExpression($$[$0-1], $$[$0].expression());
 break;
-case 31:this.$ = $$[$0].objectOperation($$[$0-2].expression());
+case 31:this.$ = $$[$0-1]
 break;
-case 32:this.$ = $$[$0];
+case 32:this.$ = $$[$0]
 break;
-case 33:this.$ = yy.terms.complexExpression($$[$0]);
+case 33:this.$ = $$[$0].objectOperation($$[$0-2].expression());
 break;
-case 34:this.$ = [$$[$0]];
+case 34:this.$ = $$[$0];
 break;
-case 35:$$[$0-1].push($$[$0]); this.$ = $$[$0-1];
+case 35:this.$ = yy.terms.complexExpression($$[$0]);
 break;
-case 36:$$[$0-1].push($$[$0]); this.$ = $$[$0-1];
+case 36:this.$ = [$$[$0]];
 break;
-case 37:this.$ = [$$[$0]];
+case 37:$$[$0-1].push($$[$0]); this.$ = $$[$0-1];
 break;
-case 38:this.$ = yy.loc(yy.terms.asyncArgument(), this._$);
+case 38:$$[$0-1].push($$[$0]); this.$ = $$[$0-1];
 break;
-case 39:this.$ = yy.loc(yy.terms.futureArgument(), this._$);
+case 39:this.$ = [$$[$0]];
 break;
-case 40:this.$ = yy.loc(yy.terms.argumentList($$[$0-1]), this._$);
+case 40:this.$ = yy.loc(yy.terms.asyncArgument(), this._$);
 break;
-case 41:this.$ = yy.loc(yy.terms.parameters($$[$0-1]), this._$);
+case 41:this.$ = yy.loc(yy.terms.futureArgument(), this._$);
 break;
-case 42:this.$ = yy.loc(yy.terms.block([], $$[$0-1]), this._$);
+case 42:this.$ = yy.loc(yy.terms.argumentList($$[$0-1]), this._$);
 break;
-case 43:this.$ = yy.loc(yy.terms.block([], $$[$0-1], {redefinesSelf: true}), this._$);
+case 43:this.$ = yy.loc(yy.terms.parameters($$[$0-1]), this._$);
 break;
-case 44:this.$ = yy.loc(yy.terms.list($$[$0-1]), this._$);
+case 44:this.$ = yy.loc(yy.terms.block([], $$[$0-1]), this._$);
 break;
-case 45:this.$ = yy.loc(yy.terms.hash($$[$0-1]), this._$);
+case 45:this.$ = yy.loc(yy.terms.block([], $$[$0-1], {redefinesSelf: true}), this._$);
 break;
-case 46:this.$ = yy.loc(yy.terms.float(parseFloat(yytext)), this._$);
+case 46:this.$ = yy.loc(yy.terms.list($$[$0-1]), this._$);
 break;
-case 47:this.$ = yy.loc(yy.terms.integer(parseInt(yytext, 10)), this._$);
+case 47:this.$ = yy.loc(yy.terms.hash($$[$0-1]), this._$);
 break;
-case 48:this.$ = yy.loc(yy.terms.integer(parseInt(yytext, 16)), this._$);
+case 48:this.$ = yy.loc(yy.terms.float(parseFloat(yytext)), this._$);
 break;
-case 49:this.$ = yy.loc(yy.terms.identifier(yytext), this._$);
+case 49:this.$ = yy.loc(yy.terms.integer(parseInt(yytext, 10)), this._$);
 break;
-case 50:this.$ = yy.loc(yy.terms.string(yy.unindentBy(yy.normaliseString(yytext), this._$.first_column + 1)), this._$);
+case 50:this.$ = yy.loc(yy.terms.integer(parseInt(yytext, 16)), this._$);
 break;
-case 51:this.$ = yy.loc(yy.terms.regExp(yy.parseRegExp(yy.unindentBy(yytext, this._$.first_column + 2))), this._$);
+case 51:this.$ = yy.loc(yy.terms.identifier(yytext), this._$);
 break;
-case 52:this.$ = yy.loc($$[$0], this._$);
+case 52:this.$ = yy.loc(yy.terms.string(yy.unindentBy(yy.normaliseString(yytext), this._$.first_column + 1)), this._$);
 break;
-case 53:this.$ = yy.loc(yy.terms.splat(), this._$);
+case 53:this.$ = yy.loc(yy.terms.regExp(yy.parseRegExp(yy.unindentBy(yytext, this._$.first_column + 2))), this._$);
 break;
-case 54:this.$ = '@{'
+case 54:this.$ = yy.loc($$[$0], this._$);
 break;
-case 55:this.$ = '@{'
+case 55:this.$ = yy.loc(yy.terms.splat(), this._$);
 break;
-case 56:this.$ = $$[$0];
+case 56:this.$ = '@{'
 break;
-case 57:this.$ = $$[$0];
+case 57:this.$ = '@{'
 break;
-case 58:this.$ = $$[$0-1];
+case 58:this.$ = $$[$0];
 break;
-case 59:this.$ = yy.terms.interpolatedString(yy.normaliseStringComponentsUnindentingBy($$[$0-1], this._$.first_column + 1));
+case 59:this.$ = $$[$0];
 break;
-case 60:this.$ = yy.terms.interpolatedString([]);
+case 60:this.$ = $$[$0-1];
 break;
-case 61:$$[$0-1].push($$[$0]); this.$ = $$[$0-1];
+case 61:this.$ = yy.terms.interpolatedString(yy.normaliseStringComponentsUnindentingBy($$[$0-1], this._$.first_column + 1));
 break;
-case 62:this.$ = [$$[$0]];
+case 62:this.$ = yy.terms.interpolatedString([]);
 break;
-case 63:this.$ = $$[$0];
+case 63:$$[$0-1].push($$[$0]); this.$ = $$[$0-1];
 break;
-case 64:this.$ = yy.terms.string($$[$0]);
+case 64:this.$ = [$$[$0]];
 break;
-case 65:this.$ = yy.terms.string("#");
+case 65:this.$ = $$[$0];
 break;
 case 66:this.$ = yy.terms.string(yy.normaliseInterpolatedString($$[$0]));
 break;
+case 67:this.$ = yy.terms.string("#");
+break;
+case 68:this.$ = yy.terms.string(yy.normaliseInterpolatedString($$[$0]));
+break;
 }
 },
-table: [{3:1,4:2,5:[2,8],6:3,8:[2,8],9:5,10:4,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{1:[3]},{5:[1,32]},{5:[2,2],8:[1,33],38:[2,2]},{5:[2,7],8:[2,7],38:[2,7]},{5:[2,19],8:[2,19],17:[1,34],18:[1,35],35:[2,19],38:[2,19]},{5:[2,22],8:[2,22],14:[2,22],17:[2,22],18:[2,22],20:36,21:[1,37],35:[2,22],38:[2,22],41:[2,22]},{5:[2,26],8:[2,26],14:[2,26],17:[2,26],18:[2,26],21:[2,26],35:[2,26],38:[2,26],41:[2,26]},{5:[2,27],8:[2,27],14:[2,27],17:[2,27],18:[2,27],21:[2,27],25:38,26:[1,39],35:[2,27],38:[2,27],41:[2,27]},{21:[1,11],22:40,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{5:[2,32],8:[2,32],14:[2,32],17:[2,32],18:[2,32],21:[2,32],26:[2,32],35:[2,32],38:[2,32],41:[2,32]},{21:[2,56],32:[2,56],34:[2,56],36:[2,56],39:[2,56],40:[2,56],42:[2,56],43:[2,56],44:[2,56],45:[2,56],46:[2,56],47:[2,56],48:[2,56],50:[2,56],51:[2,56],53:[2,56]},{21:[2,57],32:[2,57],34:[2,57],36:[2,57],39:[2,57],40:[2,57],42:[2,57],43:[2,57],44:[2,57],45:[2,57],46:[2,57],47:[2,57],48:[2,57],50:[2,57],51:[2,57],53:[2,57]},{5:[2,33],8:[2,33],14:[2,33],17:[2,33],18:[2,33],21:[2,33],26:[2,33],35:[2,33],38:[2,33],41:[2,33]},{5:[2,34],8:[2,34],14:[2,34],17:[2,34],18:[2,34],21:[2,34],26:[2,34],30:41,31:42,32:[1,43],33:[1,44],34:[1,16],35:[2,34],36:[1,17],37:18,38:[2,34],39:[1,19],40:[1,20],41:[2,34],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{5:[2,37],8:[2,37],14:[2,37],17:[2,37],18:[2,37],21:[2,37],26:[2,37],32:[2,37],33:[2,37],34:[2,37],35:[2,37],36:[2,37],38:[2,37],39:[2,37],40:[2,37],41:[2,37],42:[2,37],43:[2,37],44:[2,37],45:[2,37],46:[2,37],47:[2,37],48:[2,37],50:[2,37],51:[2,37],53:[2,37]},{9:48,10:49,11:45,12:46,13:47,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],35:[2,10],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{34:[1,50],42:[1,51]},{4:52,6:3,8:[2,8],9:5,10:4,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,38:[2,8],39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{36:[1,54],37:53,51:[1,30]},{9:48,10:49,11:55,12:46,13:47,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],41:[2,10],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{7:56,8:[2,5],9:57,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,38:[2,5],39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{5:[2,46],8:[2,46],14:[2,46],17:[2,46],18:[2,46],21:[2,46],26:[2,46],32:[2,46],33:[2,46],34:[2,46],35:[2,46],36:[2,46],38:[2,46],39:[2,46],40:[2,46],41:[2,46],42:[2,46],43:[2,46],44:[2,46],45:[2,46],46:[2,46],47:[2,46],48:[2,46],50:[2,46],51:[2,46],53:[2,46]},{5:[2,47],8:[2,47],14:[2,47],17:[2,47],18:[2,47],21:[2,47],26:[2,47],32:[2,47],33:[2,47],34:[2,47],35:[2,47],36:[2,47],38:[2,47],39:[2,47],40:[2,47],41:[2,47],42:[2,47],43:[2,47],44:[2,47],45:[2,47],46:[2,47],47:[2,47],48:[2,47],50:[2,47],51:[2,47],53:[2,47]},{5:[2,48],8:[2,48],14:[2,48],17:[2,48],18:[2,48],21:[2,48],26:[2,48],32:[2,48],33:[2,48],34:[2,48],35:[2,48],36:[2,48],38:[2,48],39:[2,48],40:[2,48],41:[2,48],42:[2,48],43:[2,48],44:[2,48],45:[2,48],46:[2,48],47:[2,48],48:[2,48],50:[2,48],51:[2,48],53:[2,48]},{5:[2,49],8:[2,49],14:[2,49],17:[2,49],18:[2,49],21:[2,49],26:[2,49],32:[2,49],33:[2,49],34:[2,49],35:[2,49],36:[2,49],38:[2,49],39:[2,49],40:[2,49],41:[2,49],42:[2,49],43:[2,49],44:[2,49],45:[2,49],46:[2,49],47:[2,49],48:[2,49],50:[2,49],51:[2,49],53:[2,49]},{5:[2,50],8:[2,50],14:[2,50],17:[2,50],18:[2,50],21:[2,50],26:[2,50],32:[2,50],33:[2,50],34:[2,50],35:[2,50],36:[2,50],38:[2,50],39:[2,50],40:[2,50],41:[2,50],42:[2,50],43:[2,50],44:[2,50],45:[2,50],46:[2,50],47:[2,50],48:[2,50],50:[2,50],51:[2,50],53:[2,50]},{5:[2,51],8:[2,51],14:[2,51],17:[2,51],18:[2,51],21:[2,51],26:[2,51],32:[2,51],33:[2,51],34:[2,51],35:[2,51],36:[2,51],38:[2,51],39:[2,51],40:[2,51],41:[2,51],42:[2,51],43:[2,51],44:[2,51],45:[2,51],46:[2,51],47:[2,51],48:[2,51],50:[2,51],51:[2,51],53:[2,51]},{5:[2,52],8:[2,52],14:[2,52],17:[2,52],18:[2,52],21:[2,52],26:[2,52],32:[2,52],33:[2,52],34:[2,52],35:[2,52],36:[2,52],38:[2,52],39:[2,52],40:[2,52],41:[2,52],42:[2,52],43:[2,52],44:[2,52],45:[2,52],46:[2,52],47:[2,52],48:[2,52],50:[2,52],51:[2,52],53:[2,52]},{5:[2,53],8:[2,53],14:[2,53],17:[2,53],18:[2,53],21:[2,53],26:[2,53],32:[2,53],33:[2,53],34:[2,53],35:[2,53],36:[2,53],38:[2,53],39:[2,53],40:[2,53],41:[2,53],42:[2,53],43:[2,53],44:[2,53],45:[2,53],46:[2,53],47:[2,53],48:[2,53],50:[2,53],51:[2,53],53:[2,53]},{8:[2,55],21:[2,55],32:[2,55],34:[2,55],36:[2,55],38:[2,55],39:[2,55],40:[2,55],42:[2,55],43:[2,55],44:[2,55],45:[2,55],46:[2,55],47:[2,55],48:[2,55],50:[2,55],51:[2,55],53:[2,55]},{34:[1,65],52:61,54:58,55:[1,59],56:60,57:[1,62],58:[1,63],59:[1,64]},{1:[2,1]},{9:5,10:66,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{9:67,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{9:68,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{21:[1,11],22:69,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{8:[1,70],21:[2,24],32:[2,24],34:[2,24],36:[2,24],39:[2,24],40:[2,24],42:[2,24],43:[2,24],44:[2,24],45:[2,24],46:[2,24],47:[2,24],48:[2,24],50:[2,24],51:[2,24],53:[2,24]},{27:71,28:13,29:14,30:15,34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{8:[1,72],34:[2,30],36:[2,30],39:[2,30],40:[2,30],42:[2,30],43:[2,30],44:[2,30],45:[2,30],46:[2,30],47:[2,30],48:[2,30],50:[2,30],51:[2,30],53:[2,30]},{5:[2,28],8:[2,28],14:[2,28],17:[2,28],18:[2,28],21:[2,28],35:[2,28],38:[2,28],41:[2,28]},{5:[2,35],8:[2,35],14:[2,35],17:[2,35],18:[2,35],21:[2,35],26:[2,35],32:[2,35],33:[2,35],34:[2,35],35:[2,35],36:[2,35],38:[2,35],39:[2,35],40:[2,35],41:[2,35],42:[2,35],43:[2,35],44:[2,35],45:[2,35],46:[2,35],47:[2,35],48:[2,35],50:[2,35],51:[2,35],53:[2,35]},{5:[2,36],8:[2,36],14:[2,36],17:[2,36],18:[2,36],21:[2,36],26:[2,36],32:[2,36],33:[2,36],34:[2,36],35:[2,36],36:[2,36],38:[2,36],39:[2,36],40:[2,36],41:[2,36],42:[2,36],43:[2,36],44:[2,36],45:[2,36],46:[2,36],47:[2,36],48:[2,36],50:[2,36],51:[2,36],53:[2,36]},{5:[2,38],8:[2,38],14:[2,38],17:[2,38],18:[2,38],21:[2,38],26:[2,38],32:[2,38],33:[2,38],34:[2,38],35:[2,38],36:[2,38],38:[2,38],39:[2,38],40:[2,38],41:[2,38],42:[2,38],43:[2,38],44:[2,38],45:[2,38],46:[2,38],47:[2,38],48:[2,38],50:[2,38],51:[2,38],53:[2,38]},{5:[2,39],8:[2,39],14:[2,39],17:[2,39],18:[2,39],21:[2,39],26:[2,39],32:[2,39],33:[2,39],34:[2,39],35:[2,39],36:[2,39],38:[2,39],39:[2,39],40:[2,39],41:[2,39],42:[2,39],43:[2,39],44:[2,39],45:[2,39],46:[2,39],47:[2,39],48:[2,39],50:[2,39],51:[2,39],53:[2,39]},{35:[1,73]},{8:[1,74],35:[2,9],41:[2,9]},{8:[2,12],35:[2,12],41:[2,12]},{8:[2,19],14:[1,75],17:[1,34],18:[1,35],35:[2,19],41:[2,19]},{8:[2,14],35:[2,14],41:[2,14]},{9:5,10:78,15:76,16:77,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],35:[2,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{8:[2,54],21:[2,54],32:[2,54],34:[2,54],36:[2,54],38:[2,54],39:[2,54],40:[2,54],42:[2,54],43:[2,54],44:[2,54],45:[2,54],46:[2,54],47:[2,54],48:[2,54],50:[2,54],51:[2,54],53:[2,54]},{38:[1,79]},{4:80,6:3,8:[2,8],9:5,10:4,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,38:[2,8],39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{42:[1,51]},{41:[1,81]},{8:[1,83],38:[1,82]},{8:[2,4],17:[1,34],18:[1,35],38:[2,4]},{34:[1,65],52:61,55:[1,84],56:85,57:[1,62],58:[1,63],59:[1,64]},{5:[2,60],8:[2,60],14:[2,60],17:[2,60],18:[2,60],21:[2,60],26:[2,60],32:[2,60],33:[2,60],34:[2,60],35:[2,60],36:[2,60],38:[2,60],39:[2,60],40:[2,60],41:[2,60],42:[2,60],43:[2,60],44:[2,60],45:[2,60],46:[2,60],47:[2,60],48:[2,60],50:[2,60],51:[2,60],53:[2,60]},{34:[2,62],55:[2,62],57:[2,62],58:[2,62],59:[2,62]},{34:[2,63],55:[2,63],57:[2,63],58:[2,63],59:[2,63]},{34:[2,64],55:[2,64],57:[2,64],58:[2,64],59:[2,64]},{34:[2,65],55:[2,65],57:[2,65],58:[2,65],59:[2,65]},{34:[2,66],55:[2,66],57:[2,66],58:[2,66],59:[2,66]},{9:5,10:86,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{5:[2,6],8:[2,6],38:[2,6]},{5:[2,20],8:[2,20],14:[2,20],17:[1,34],18:[1,35],35:[2,20],38:[2,20],41:[2,20]},{5:[2,21],8:[2,21],14:[2,21],17:[1,34],18:[1,35],35:[2,21],38:[2,21],41:[2,21]},{5:[2,25],8:[2,25],14:[2,25],17:[2,25],18:[2,25],21:[2,25],35:[2,25],38:[2,25],41:[2,25]},{21:[2,23],32:[2,23],34:[2,23],36:[2,23],39:[2,23],40:[2,23],42:[2,23],43:[2,23],44:[2,23],45:[2,23],46:[2,23],47:[2,23],48:[2,23],50:[2,23],51:[2,23],53:[2,23]},{5:[2,31],8:[2,31],14:[2,31],17:[2,31],18:[2,31],21:[2,31],26:[2,31],35:[2,31],38:[2,31],41:[2,31]},{34:[2,29],36:[2,29],39:[2,29],40:[2,29],42:[2,29],43:[2,29],44:[2,29],45:[2,29],46:[2,29],47:[2,29],48:[2,29],50:[2,29],51:[2,29],53:[2,29]},{5:[2,40],8:[2,40],14:[2,40],17:[2,40],18:[2,40],21:[2,40],26:[2,40],32:[2,40],33:[2,40],34:[2,40],35:[2,40],36:[2,40],38:[2,40],39:[2,40],40:[2,40],41:[2,40],42:[2,40],43:[2,40],44:[2,40],45:[2,40],46:[2,40],47:[2,40],48:[2,40],50:[2,40],51:[2,40],53:[2,40]},{9:48,10:49,13:87,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{9:88,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{35:[1,89]},{8:[1,90],35:[2,15]},{8:[2,18],35:[2,18]},{5:[2,42],8:[2,42],14:[2,42],17:[2,42],18:[2,42],21:[2,42],26:[2,42],32:[2,42],33:[2,42],34:[2,42],35:[2,42],36:[2,42],38:[2,42],39:[2,42],40:[2,42],41:[2,42],42:[2,42],43:[2,42],44:[2,42],45:[2,42],46:[2,42],47:[2,42],48:[2,42],50:[2,42],51:[2,42],53:[2,42]},{38:[1,91]},{5:[2,44],8:[2,44],14:[2,44],17:[2,44],18:[2,44],21:[2,44],26:[2,44],32:[2,44],33:[2,44],34:[2,44],35:[2,44],36:[2,44],38:[2,44],39:[2,44],40:[2,44],41:[2,44],42:[2,44],43:[2,44],44:[2,44],45:[2,44],46:[2,44],47:[2,44],48:[2,44],50:[2,44],51:[2,44],53:[2,44]},{5:[2,45],8:[2,45],14:[2,45],17:[2,45],18:[2,45],21:[2,45],26:[2,45],32:[2,45],33:[2,45],34:[2,45],35:[2,45],36:[2,45],38:[2,45],39:[2,45],40:[2,45],41:[2,45],42:[2,45],43:[2,45],44:[2,45],45:[2,45],46:[2,45],47:[2,45],48:[2,45],50:[2,45],51:[2,45],53:[2,45]},{9:92,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{5:[2,59],8:[2,59],14:[2,59],17:[2,59],18:[2,59],21:[2,59],26:[2,59],32:[2,59],33:[2,59],34:[2,59],35:[2,59],36:[2,59],38:[2,59],39:[2,59],40:[2,59],41:[2,59],42:[2,59],43:[2,59],44:[2,59],45:[2,59],46:[2,59],47:[2,59],48:[2,59],50:[2,59],51:[2,59],53:[2,59]},{34:[2,61],55:[2,61],57:[2,61],58:[2,61],59:[2,61]},{35:[1,93]},{8:[2,11],35:[2,11],41:[2,11]},{8:[2,13],17:[1,34],18:[1,35],35:[2,13],41:[2,13]},{5:[2,41],8:[2,41],14:[2,41],17:[2,41],18:[2,41],21:[2,41],26:[2,41],32:[2,41],33:[2,41],34:[2,41],35:[2,41],36:[2,41],38:[2,41],39:[2,41],40:[2,41],41:[2,41],42:[2,41],43:[2,41],44:[2,41],45:[2,41],46:[2,41],47:[2,41],48:[2,41],50:[2,41],51:[2,41],53:[2,41]},{9:5,10:94,19:6,21:[1,11],22:7,23:8,24:9,27:10,28:13,29:14,30:15,32:[1,12],34:[1,16],36:[1,17],37:18,39:[1,19],40:[1,20],42:[1,21],43:[1,22],44:[1,23],45:[1,24],46:[1,25],47:[1,26],48:[1,27],49:28,50:[1,29],51:[1,30],53:[1,31]},{5:[2,43],8:[2,43],14:[2,43],17:[2,43],18:[2,43],21:[2,43],26:[2,43],32:[2,43],33:[2,43],34:[2,43],35:[2,43],36:[2,43],38:[2,43],39:[2,43],40:[2,43],41:[2,43],42:[2,43],43:[2,43],44:[2,43],45:[2,43],46:[2,43],47:[2,43],48:[2,43],50:[2,43],51:[2,43],53:[2,43]},{8:[2,3],17:[1,34],18:[1,35],38:[2,3]},{34:[2,58],55:[2,58],57:[2,58],58:[2,58],59:[2,58]},{8:[2,17],35:[2,17]}],
+table: [{3:1,4:2,5:[2,8],6:3,8:[2,8],9:5,10:4,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{1:[3]},{5:[1,32]},{5:[2,2],8:[1,33],39:[2,2]},{5:[2,7],8:[2,7],39:[2,7]},{5:[2,21],8:[2,21],18:[1,34],19:[1,35],36:[2,21],39:[2,21]},{5:[2,24],8:[2,24],14:[2,24],18:[2,24],19:[2,24],21:36,22:[1,37],36:[2,24],39:[2,24],42:[2,24]},{5:[2,28],8:[2,28],14:[2,28],18:[2,28],19:[2,28],22:[2,28],36:[2,28],39:[2,28],42:[2,28]},{5:[2,29],8:[2,29],14:[2,29],18:[2,29],19:[2,29],22:[2,29],26:38,27:[1,39],36:[2,29],39:[2,29],42:[2,29]},{22:[1,11],23:40,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{5:[2,34],8:[2,34],14:[2,34],18:[2,34],19:[2,34],22:[2,34],27:[2,34],36:[2,34],39:[2,34],42:[2,34]},{22:[2,58],33:[2,58],35:[2,58],37:[2,58],40:[2,58],41:[2,58],43:[2,58],44:[2,58],45:[2,58],46:[2,58],47:[2,58],48:[2,58],49:[2,58],51:[2,58],52:[2,58],54:[2,58]},{22:[2,59],33:[2,59],35:[2,59],37:[2,59],40:[2,59],41:[2,59],43:[2,59],44:[2,59],45:[2,59],46:[2,59],47:[2,59],48:[2,59],49:[2,59],51:[2,59],52:[2,59],54:[2,59]},{5:[2,35],8:[2,35],14:[2,35],18:[2,35],19:[2,35],22:[2,35],27:[2,35],36:[2,35],39:[2,35],42:[2,35]},{5:[2,36],8:[2,36],14:[2,36],18:[2,36],19:[2,36],22:[2,36],27:[2,36],31:41,32:42,33:[1,43],34:[1,44],35:[1,16],36:[2,36],37:[1,17],38:18,39:[2,36],40:[1,19],41:[1,20],42:[2,36],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{5:[2,39],8:[2,39],14:[2,39],18:[2,39],19:[2,39],22:[2,39],27:[2,39],33:[2,39],34:[2,39],35:[2,39],36:[2,39],37:[2,39],39:[2,39],40:[2,39],41:[2,39],42:[2,39],43:[2,39],44:[2,39],45:[2,39],46:[2,39],47:[2,39],48:[2,39],49:[2,39],51:[2,39],52:[2,39],54:[2,39]},{9:48,10:49,11:45,12:46,13:47,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],36:[2,10],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{35:[1,50],43:[1,51]},{4:52,6:3,8:[2,8],9:5,10:4,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,39:[2,8],40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{37:[1,54],38:53,52:[1,30]},{9:48,10:49,11:55,12:46,13:47,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],42:[2,10],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{7:56,8:[2,5],9:57,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,39:[2,5],40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{5:[2,48],8:[2,48],14:[2,48],18:[2,48],19:[2,48],22:[2,48],27:[2,48],33:[2,48],34:[2,48],35:[2,48],36:[2,48],37:[2,48],39:[2,48],40:[2,48],41:[2,48],42:[2,48],43:[2,48],44:[2,48],45:[2,48],46:[2,48],47:[2,48],48:[2,48],49:[2,48],51:[2,48],52:[2,48],54:[2,48]},{5:[2,49],8:[2,49],14:[2,49],18:[2,49],19:[2,49],22:[2,49],27:[2,49],33:[2,49],34:[2,49],35:[2,49],36:[2,49],37:[2,49],39:[2,49],40:[2,49],41:[2,49],42:[2,49],43:[2,49],44:[2,49],45:[2,49],46:[2,49],47:[2,49],48:[2,49],49:[2,49],51:[2,49],52:[2,49],54:[2,49]},{5:[2,50],8:[2,50],14:[2,50],18:[2,50],19:[2,50],22:[2,50],27:[2,50],33:[2,50],34:[2,50],35:[2,50],36:[2,50],37:[2,50],39:[2,50],40:[2,50],41:[2,50],42:[2,50],43:[2,50],44:[2,50],45:[2,50],46:[2,50],47:[2,50],48:[2,50],49:[2,50],51:[2,50],52:[2,50],54:[2,50]},{5:[2,51],8:[2,51],14:[2,51],18:[2,51],19:[2,51],22:[2,51],27:[2,51],33:[2,51],34:[2,51],35:[2,51],36:[2,51],37:[2,51],39:[2,51],40:[2,51],41:[2,51],42:[2,51],43:[2,51],44:[2,51],45:[2,51],46:[2,51],47:[2,51],48:[2,51],49:[2,51],51:[2,51],52:[2,51],54:[2,51]},{5:[2,52],8:[2,52],14:[2,52],18:[2,52],19:[2,52],22:[2,52],27:[2,52],33:[2,52],34:[2,52],35:[2,52],36:[2,52],37:[2,52],39:[2,52],40:[2,52],41:[2,52],42:[2,52],43:[2,52],44:[2,52],45:[2,52],46:[2,52],47:[2,52],48:[2,52],49:[2,52],51:[2,52],52:[2,52],54:[2,52]},{5:[2,53],8:[2,53],14:[2,53],18:[2,53],19:[2,53],22:[2,53],27:[2,53],33:[2,53],34:[2,53],35:[2,53],36:[2,53],37:[2,53],39:[2,53],40:[2,53],41:[2,53],42:[2,53],43:[2,53],44:[2,53],45:[2,53],46:[2,53],47:[2,53],48:[2,53],49:[2,53],51:[2,53],52:[2,53],54:[2,53]},{5:[2,54],8:[2,54],14:[2,54],18:[2,54],19:[2,54],22:[2,54],27:[2,54],33:[2,54],34:[2,54],35:[2,54],36:[2,54],37:[2,54],39:[2,54],40:[2,54],41:[2,54],42:[2,54],43:[2,54],44:[2,54],45:[2,54],46:[2,54],47:[2,54],48:[2,54],49:[2,54],51:[2,54],52:[2,54],54:[2,54]},{5:[2,55],8:[2,55],14:[2,55],18:[2,55],19:[2,55],22:[2,55],27:[2,55],33:[2,55],34:[2,55],35:[2,55],36:[2,55],37:[2,55],39:[2,55],40:[2,55],41:[2,55],42:[2,55],43:[2,55],44:[2,55],45:[2,55],46:[2,55],47:[2,55],48:[2,55],49:[2,55],51:[2,55],52:[2,55],54:[2,55]},{8:[2,57],22:[2,57],33:[2,57],35:[2,57],37:[2,57],39:[2,57],40:[2,57],41:[2,57],43:[2,57],44:[2,57],45:[2,57],46:[2,57],47:[2,57],48:[2,57],49:[2,57],51:[2,57],52:[2,57],54:[2,57]},{35:[1,65],53:61,55:58,56:[1,59],57:60,58:[1,62],59:[1,63],60:[1,64]},{1:[2,1]},{9:5,10:66,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{9:67,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{9:68,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{22:[1,11],23:69,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{8:[1,70],22:[2,26],33:[2,26],35:[2,26],37:[2,26],40:[2,26],41:[2,26],43:[2,26],44:[2,26],45:[2,26],46:[2,26],47:[2,26],48:[2,26],49:[2,26],51:[2,26],52:[2,26],54:[2,26]},{28:71,29:13,30:14,31:15,35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{8:[1,72],35:[2,32],37:[2,32],40:[2,32],41:[2,32],43:[2,32],44:[2,32],45:[2,32],46:[2,32],47:[2,32],48:[2,32],49:[2,32],51:[2,32],52:[2,32],54:[2,32]},{5:[2,30],8:[2,30],14:[2,30],18:[2,30],19:[2,30],22:[2,30],36:[2,30],39:[2,30],42:[2,30]},{5:[2,37],8:[2,37],14:[2,37],18:[2,37],19:[2,37],22:[2,37],27:[2,37],33:[2,37],34:[2,37],35:[2,37],36:[2,37],37:[2,37],39:[2,37],40:[2,37],41:[2,37],42:[2,37],43:[2,37],44:[2,37],45:[2,37],46:[2,37],47:[2,37],48:[2,37],49:[2,37],51:[2,37],52:[2,37],54:[2,37]},{5:[2,38],8:[2,38],14:[2,38],18:[2,38],19:[2,38],22:[2,38],27:[2,38],33:[2,38],34:[2,38],35:[2,38],36:[2,38],37:[2,38],39:[2,38],40:[2,38],41:[2,38],42:[2,38],43:[2,38],44:[2,38],45:[2,38],46:[2,38],47:[2,38],48:[2,38],49:[2,38],51:[2,38],52:[2,38],54:[2,38]},{5:[2,40],8:[2,40],14:[2,40],18:[2,40],19:[2,40],22:[2,40],27:[2,40],33:[2,40],34:[2,40],35:[2,40],36:[2,40],37:[2,40],39:[2,40],40:[2,40],41:[2,40],42:[2,40],43:[2,40],44:[2,40],45:[2,40],46:[2,40],47:[2,40],48:[2,40],49:[2,40],51:[2,40],52:[2,40],54:[2,40]},{5:[2,41],8:[2,41],14:[2,41],18:[2,41],19:[2,41],22:[2,41],27:[2,41],33:[2,41],34:[2,41],35:[2,41],36:[2,41],37:[2,41],39:[2,41],40:[2,41],41:[2,41],42:[2,41],43:[2,41],44:[2,41],45:[2,41],46:[2,41],47:[2,41],48:[2,41],49:[2,41],51:[2,41],52:[2,41],54:[2,41]},{36:[1,73]},{8:[1,74],36:[2,9],42:[2,9]},{8:[2,12],36:[2,12],42:[2,12]},{8:[2,21],14:[1,75],18:[1,34],19:[1,35],36:[2,21],42:[2,21]},{8:[2,14],36:[2,14],42:[2,14]},{9:79,10:80,15:76,16:77,17:78,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],36:[2,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{8:[2,56],22:[2,56],33:[2,56],35:[2,56],37:[2,56],39:[2,56],40:[2,56],41:[2,56],43:[2,56],44:[2,56],45:[2,56],46:[2,56],47:[2,56],48:[2,56],49:[2,56],51:[2,56],52:[2,56],54:[2,56]},{39:[1,81]},{4:82,6:3,8:[2,8],9:5,10:4,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,39:[2,8],40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{43:[1,51]},{42:[1,83]},{8:[1,85],39:[1,84]},{8:[2,4],18:[1,34],19:[1,35],39:[2,4]},{35:[1,65],53:61,56:[1,86],57:87,58:[1,62],59:[1,63],60:[1,64]},{5:[2,62],8:[2,62],14:[2,62],18:[2,62],19:[2,62],22:[2,62],27:[2,62],33:[2,62],34:[2,62],35:[2,62],36:[2,62],37:[2,62],39:[2,62],40:[2,62],41:[2,62],42:[2,62],43:[2,62],44:[2,62],45:[2,62],46:[2,62],47:[2,62],48:[2,62],49:[2,62],51:[2,62],52:[2,62],54:[2,62]},{35:[2,64],56:[2,64],58:[2,64],59:[2,64],60:[2,64]},{35:[2,65],56:[2,65],58:[2,65],59:[2,65],60:[2,65]},{35:[2,66],56:[2,66],58:[2,66],59:[2,66],60:[2,66]},{35:[2,67],56:[2,67],58:[2,67],59:[2,67],60:[2,67]},{35:[2,68],56:[2,68],58:[2,68],59:[2,68],60:[2,68]},{9:5,10:88,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{5:[2,6],8:[2,6],39:[2,6]},{5:[2,22],8:[2,22],14:[2,22],18:[1,34],19:[1,35],36:[2,22],39:[2,22],42:[2,22]},{5:[2,23],8:[2,23],14:[2,23],18:[1,34],19:[1,35],36:[2,23],39:[2,23],42:[2,23]},{5:[2,27],8:[2,27],14:[2,27],18:[2,27],19:[2,27],22:[2,27],36:[2,27],39:[2,27],42:[2,27]},{22:[2,25],33:[2,25],35:[2,25],37:[2,25],40:[2,25],41:[2,25],43:[2,25],44:[2,25],45:[2,25],46:[2,25],47:[2,25],48:[2,25],49:[2,25],51:[2,25],52:[2,25],54:[2,25]},{5:[2,33],8:[2,33],14:[2,33],18:[2,33],19:[2,33],22:[2,33],27:[2,33],36:[2,33],39:[2,33],42:[2,33]},{35:[2,31],37:[2,31],40:[2,31],41:[2,31],43:[2,31],44:[2,31],45:[2,31],46:[2,31],47:[2,31],48:[2,31],49:[2,31],51:[2,31],52:[2,31],54:[2,31]},{5:[2,42],8:[2,42],14:[2,42],18:[2,42],19:[2,42],22:[2,42],27:[2,42],33:[2,42],34:[2,42],35:[2,42],36:[2,42],37:[2,42],39:[2,42],40:[2,42],41:[2,42],42:[2,42],43:[2,42],44:[2,42],45:[2,42],46:[2,42],47:[2,42],48:[2,42],49:[2,42],51:[2,42],52:[2,42],54:[2,42]},{9:48,10:49,13:89,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{9:90,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{36:[1,91]},{8:[1,92],36:[2,15]},{8:[2,18],36:[2,18]},{8:[2,21],14:[1,93],18:[1,34],19:[1,35],36:[2,21]},{8:[2,20],36:[2,20]},{5:[2,44],8:[2,44],14:[2,44],18:[2,44],19:[2,44],22:[2,44],27:[2,44],33:[2,44],34:[2,44],35:[2,44],36:[2,44],37:[2,44],39:[2,44],40:[2,44],41:[2,44],42:[2,44],43:[2,44],44:[2,44],45:[2,44],46:[2,44],47:[2,44],48:[2,44],49:[2,44],51:[2,44],52:[2,44],54:[2,44]},{39:[1,94]},{5:[2,46],8:[2,46],14:[2,46],18:[2,46],19:[2,46],22:[2,46],27:[2,46],33:[2,46],34:[2,46],35:[2,46],36:[2,46],37:[2,46],39:[2,46],40:[2,46],41:[2,46],42:[2,46],43:[2,46],44:[2,46],45:[2,46],46:[2,46],47:[2,46],48:[2,46],49:[2,46],51:[2,46],52:[2,46],54:[2,46]},{5:[2,47],8:[2,47],14:[2,47],18:[2,47],19:[2,47],22:[2,47],27:[2,47],33:[2,47],34:[2,47],35:[2,47],36:[2,47],37:[2,47],39:[2,47],40:[2,47],41:[2,47],42:[2,47],43:[2,47],44:[2,47],45:[2,47],46:[2,47],47:[2,47],48:[2,47],49:[2,47],51:[2,47],52:[2,47],54:[2,47]},{9:95,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{5:[2,61],8:[2,61],14:[2,61],18:[2,61],19:[2,61],22:[2,61],27:[2,61],33:[2,61],34:[2,61],35:[2,61],36:[2,61],37:[2,61],39:[2,61],40:[2,61],41:[2,61],42:[2,61],43:[2,61],44:[2,61],45:[2,61],46:[2,61],47:[2,61],48:[2,61],49:[2,61],51:[2,61],52:[2,61],54:[2,61]},{35:[2,63],56:[2,63],58:[2,63],59:[2,63],60:[2,63]},{36:[1,96]},{8:[2,11],36:[2,11],42:[2,11]},{8:[2,13],18:[1,34],19:[1,35],36:[2,13],42:[2,13]},{5:[2,43],8:[2,43],14:[2,43],18:[2,43],19:[2,43],22:[2,43],27:[2,43],33:[2,43],34:[2,43],35:[2,43],36:[2,43],37:[2,43],39:[2,43],40:[2,43],41:[2,43],42:[2,43],43:[2,43],44:[2,43],45:[2,43],46:[2,43],47:[2,43],48:[2,43],49:[2,43],51:[2,43],52:[2,43],54:[2,43]},{9:5,10:97,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{9:98,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{5:[2,45],8:[2,45],14:[2,45],18:[2,45],19:[2,45],22:[2,45],27:[2,45],33:[2,45],34:[2,45],35:[2,45],36:[2,45],37:[2,45],39:[2,45],40:[2,45],41:[2,45],42:[2,45],43:[2,45],44:[2,45],45:[2,45],46:[2,45],47:[2,45],48:[2,45],49:[2,45],51:[2,45],52:[2,45],54:[2,45]},{8:[2,3],18:[1,34],19:[1,35],39:[2,3]},{35:[2,60],56:[2,60],58:[2,60],59:[2,60],60:[2,60]},{8:[2,17],36:[2,17]},{8:[2,19],18:[1,34],19:[1,35],36:[2,19]}],
 defaultActions: {32:[2,1]},
 parseError: function parseError(str, hash) {
     if (hash.recoverable) {
@@ -2207,21 +2261,21 @@ case 5:yy.setIndentation(yy_.yytext); if (yy.interpolation.interpolating()) {yy.
 break;
 case 6:if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); yy.interpolation.stopInterpolation()}} return yy.unsetIndentation(')');
 break;
-case 7:yy.setIndentation(yy_.yytext); return 42;
+case 7:yy.setIndentation(yy_.yytext); return 43;
 break;
 case 8:return yy.unsetIndentation('}');
 break;
-case 9:yy.setIndentation(yy_.yytext); return 40;
+case 9:yy.setIndentation(yy_.yytext); return 41;
 break;
 case 10:return yy.unsetIndentation(']')
 break;
 case 11:return yy.indentation(yy_.yytext);
 break;
-case 12:return 45;
+case 12:return 46;
 break;
-case 13:return 43;
+case 13:return 44;
 break;
-case 14:return 44;
+case 14:return 45;
 break;
 case 15:return "operator";
 break;
@@ -2231,33 +2285,33 @@ case 17:return yy.lexOperator(yy, yy_.yytext);
 break;
 case 18:return ",";
 break;
-case 19:return 48;
+case 19:return 49;
 break;
-case 20:return 46;
+case 20:return 47;
 break;
 case 21:return 5;
 break;
-case 22:return 47;
+case 22:return 48;
 break;
-case 23:this.begin('interpolated_string'); return 53;
+case 23:this.begin('interpolated_string'); return 54;
 break;
-case 24:return 58;
+case 24:return 59;
 break;
-case 25:yy.setIndentation('('); yy.interpolation.startInterpolation(); this.begin('INITIAL'); return 34;
+case 25:yy.setIndentation('('); yy.interpolation.startInterpolation(); this.begin('INITIAL'); return 35;
 break;
-case 26:return 57;
+case 26:return 58;
 break;
-case 27:this.popState(); return 55;
+case 27:this.popState(); return 56;
 break;
-case 28:return 59;
+case 28:return 60;
 break;
-case 29:return 57;
+case 29:return 58;
 break;
 case 30:return 'non_token';
 break;
 }
 },
-rules: [/^(?:^#![^\n]*)/,/^(?: +)/,/^(?:\s*$)/,/^(?:\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/[^\n]*)\s*)+$)/,/^(?:\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/[^\n]*)\s*)+)/,/^(?:\(\s*)/,/^(?:\s*\))/,/^(?:{\s*)/,/^(?:\s*})/,/^(?:\[\s*)/,/^(?:\s*\])/,/^(?:(\r?\n *)*\r?\n *)/,/^(?:0x[0-9a-fA-F]+)/,/^(?:[0-9]+\.[0-9]+)/,/^(?:[0-9]+)/,/^(?:@[a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$][a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$0-9]*)/,/^(?:\.\.\.)/,/^(?:([:;=?!.@~#%^&*+<>\/?\\|-])+)/,/^(?:,)/,/^(?:r\/([^\\\/]*\\.)*[^\/]*\/(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|))/,/^(?:[a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$][a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$0-9]*)/,/^(?:$)/,/^(?:'([^']*'')*[^']*')/,/^(?:")/,/^(?:\\#)/,/^(?:#\()/,/^(?:#)/,/^(?:")/,/^(?:\\.)/,/^(?:[^"#\\]*)/,/^(?:.)/],
+rules: [/^(?:^#![^\n]*)/,/^(?: +)/,/^(?:\s*$)/,/^(?:\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/.*(\n|$))\s*)+$)/,/^(?:\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/.*(\n|$))\s*)+)/,/^(?:\(\s*)/,/^(?:\s*\))/,/^(?:{\s*)/,/^(?:\s*})/,/^(?:\[\s*)/,/^(?:\s*\])/,/^(?:(\r?\n *)*\r?\n *)/,/^(?:0x[0-9a-fA-F]+)/,/^(?:[0-9]+\.[0-9]+)/,/^(?:[0-9]+)/,/^(?:@[a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$][a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$0-9]*)/,/^(?:\.\.\.)/,/^(?:([:;=?!.@~#%^&*+<>\/?\\|-])+)/,/^(?:,)/,/^(?:r\/([^\\\/]*\\.)*[^\/]*\/(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|))/,/^(?:[a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$][a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$0-9]*)/,/^(?:$)/,/^(?:'([^']*'')*[^']*')/,/^(?:")/,/^(?:\\#)/,/^(?:#\()/,/^(?:#)/,/^(?:")/,/^(?:\\.)/,/^(?:[^"#\\]*)/,/^(?:.)/],
 conditions: {"interpolated_string":{"rules":[24,25,26,27,28,29],"inclusive":false},"interpolated_string_terminal":{"rules":[],"inclusive":false},"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,30],"inclusive":true}}
 };
 return lexer;
@@ -2287,7 +2341,7 @@ if (typeof module !== 'undefined' && require.main === module) {
   exports.main(process.argv.slice(1));
 }
 }
-},{"__browserify_process":90,"fs":"7fr4ay","path":88}],18:[function(require,module,exports){
+},{"__browserify_process":91,"fs":"7fr4ay","path":89}],18:[function(require,module,exports){
 (function() {
     var self = this;
     var _;
@@ -2424,7 +2478,7 @@ if (typeof module !== 'undefined' && require.main === module) {
         return macros;
     };
 }).call(this);
-},{"underscore":101}],19:[function(require,module,exports){
+},{"underscore":102}],19:[function(require,module,exports){
 var _ = require('underscore');
 var errors = require('./errors');
 var codegenUtils = require('../terms/codegenUtils');
@@ -2498,6 +2552,10 @@ exports.macros = function (cg) {
     } else {
       return cg.operator('instanceof', args);
     }
+  });
+
+  macros.addMacro(['..'], function (term, name, args) {
+    return cg.range(args);
   });
 
   var matchMultiOperator = function (name) {
@@ -2752,7 +2810,7 @@ exports.macros = function (cg) {
   return macros;
 };
 
-},{"../terms/codegenUtils":36,"./errors":13,"underscore":101}],20:[function(require,module,exports){
+},{"../terms/codegenUtils":36,"./errors":13,"underscore":102}],20:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils;
@@ -2916,7 +2974,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{"../terms/codegenUtils":36,"underscore":101}],21:[function(require,module,exports){
+},{"../terms/codegenUtils":36,"underscore":102}],21:[function(require,module,exports){
 (function() {
     var self = this;
     var ms, createParserContext, createDynamicLexer, parser, jisonLexer;
@@ -3069,7 +3127,7 @@ exports.macros = function (cg) {
             },
             normaliseString: function(s) {
                 var self = this;
-                return s.substring(1, s.length - 1).replace(/''/g, "'");
+                return s.substring(1, s.length - 1).replace(/''/g, "'").replace("\r", "");
             },
             parseRegExp: function(s) {
                 var self = this;
@@ -3080,7 +3138,7 @@ exports.macros = function (cg) {
                     options: match[3]
                 };
             },
-            actualCharacters: [ [ /\\\\/g, "\\" ], [ /\\b/g, "\b" ], [ /\\f/g, "\f" ], [ /\\n/g, "\n" ], [ /\\0/g, "\0" ], [ /\\r/g, "\r" ], [ /\\t/g, "	" ], [ /\\v/g, "" ], [ /\\'/g, "'" ], [ /\\"/g, '"' ] ],
+            actualCharacters: [ [ /\r/g, "" ], [ /\\\\/g, "\\" ], [ /\\b/g, "\b" ], [ /\\f/g, "\f" ], [ /\\n/g, "\n" ], [ /\\0/g, "\0" ], [ /\\r/g, "\r" ], [ /\\t/g, "	" ], [ /\\v/g, "" ], [ /\\'/g, "'" ], [ /\\"/g, '"' ] ],
             normaliseInterpolatedString: function(s) {
                 var self = this;
                 var gen2_items, gen3_i, mapping;
@@ -3144,7 +3202,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./indentStack":15,"./interpolation":16,"./runtime":23,"underscore":101}],23:[function(require,module,exports){
+},{"./indentStack":15,"./interpolation":16,"./runtime":23,"underscore":102}],23:[function(require,module,exports){
 (function() {
     var self = this;
     var constructor;
@@ -3416,10 +3474,11 @@ exports.macros = function (cg) {
             }
         };
         putStatementsInCallbackForNextAsyncCall = function(statements, gen2_options) {
-            var forceAsync, forceNotAsync, global;
+            var forceAsync, forceNotAsync, global, globalDefinitions;
             forceAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "forceAsync") && gen2_options.forceAsync !== void 0 ? gen2_options.forceAsync : false;
             forceNotAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "forceNotAsync") && gen2_options.forceNotAsync !== void 0 ? gen2_options.forceNotAsync : false;
             global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
+            globalDefinitions = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "globalDefinitions") && gen2_options.globalDefinitions !== void 0 ? gen2_options.globalDefinitions : void 0;
             var containsContinuation, n, gen3_forResult;
             containsContinuation = function() {
                 if (statements.length > 0) {
@@ -3456,7 +3515,8 @@ exports.macros = function (cg) {
                         firstStatements = statements.slice(0, n);
                         firstStatements.push(asyncStatement);
                         gen3_forResult = terms.statements(firstStatements, {
-                            async: true && !forceNotAsync
+                            async: !forceNotAsync,
+                            globalDefinitions: globalDefinitions
                         });
                         return true;
                     }
@@ -3465,7 +3525,6 @@ exports.macros = function (cg) {
                 }
             }
             return terms.statements(statements, {
-                global: global,
                 async: forceAsync
             });
         };
@@ -3473,16 +3532,29 @@ exports.macros = function (cg) {
             var forceAsync, global;
             forceAsync = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "forceAsync") && gen7_options.forceAsync !== void 0 ? gen7_options.forceAsync : false;
             global = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "global") && gen7_options.global !== void 0 ? gen7_options.global : false;
-            var serialisedStatements;
+            var globalDefinitions, serialisedStatements;
+            globalDefinitions = function() {
+                var gen8_results, gen9_items, gen10_i, s;
+                gen8_results = [];
+                gen9_items = statements;
+                for (gen10_i = 0; gen10_i < gen9_items.length; ++gen10_i) {
+                    s = gen9_items[gen10_i];
+                    if (s.isDefinition) {
+                        gen8_results.push(s);
+                    }
+                }
+                return gen8_results;
+            }();
             serialisedStatements = statementsUtils.serialiseStatements(statements);
             return putStatementsInCallbackForNextAsyncCall(serialisedStatements, {
                 forceAsync: forceAsync,
-                global: global
+                global: global,
+                globalDefinitions: globalDefinitions
             });
         };
     };
 }).call(this);
-},{"./codegenUtils":36,"./statementsUtils":76,"underscore":101}],32:[function(require,module,exports){
+},{"./codegenUtils":36,"./statementsUtils":77,"underscore":102}],32:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(cg) {
@@ -3663,7 +3735,7 @@ exports.macros = function (cg) {
             },
             scopify: function() {
                 var self = this;
-                if (self.parameters.length === 0 && self.optionalParameters.length === 0) {
+                if (self.parameters.length === 0 && self.optionalParameters.length === 0 && !self.notScope) {
                     if (self.isAsync) {
                         return terms.functionCall(terms.subExpression(self), [], {
                             async: true
@@ -3731,6 +3803,12 @@ exports.macros = function (cg) {
                     }));
                     return buffer.write("}");
                 });
+            },
+            generateJavaScriptFunction: function(buffer, scope) {
+                var self = this;
+                buffer.write("(");
+                self.generateJavaScript(buffer, scope);
+                return buffer.write(")");
             },
             generateSelfAssignment: function() {
                 var self = this;
@@ -3897,7 +3975,7 @@ exports.macros = function (cg) {
         return takenList;
     };
 }).call(this);
-},{"./codegenUtils":36,"underscore":101}],35:[function(require,module,exports){
+},{"./codegenUtils":36,"underscore":102}],35:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils;
@@ -4072,7 +4150,7 @@ exports.macros = function (cg) {
                     },
                     generateJavaScriptParameterStatements: function(buffer, scope, args) {
                         var self = this;
-                        var gen, innerArgs, functionParameters, n, namedParam;
+                        var gen, innerArgs, a, functionParameters, n, namedParam;
                         gen = function() {
                             var terms = Array.prototype.slice.call(arguments, 0, arguments.length);
                             var gen9_items, gen10_i, term;
@@ -4088,8 +4166,10 @@ exports.macros = function (cg) {
                             return void 0;
                         };
                         innerArgs = terms.generatedVariable([ "arguments" ]);
-                        gen("var ", innerArgs, "=Array.prototype.slice.call(", args, ",0,", args, ".length-1);");
-                        gen(terms.callbackFunction, "=", continuationOrDefault, "(", args, ");");
+                        a = terms.generatedVariable([ "a" ]);
+                        gen("var ", a, "=", continuationOrDefault, "(", args, ");");
+                        gen(terms.callbackFunction, "=", a, ".continuation;");
+                        gen("var ", innerArgs, "=", a, ".arguments;");
                         functionParameters = self.strategy.functionParameters();
                         for (n = 0; n < functionParameters.length; ++n) {
                             namedParam = self.strategy.functionParameters()[n];
@@ -4102,7 +4182,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./codegenUtils":36,"underscore":101}],36:[function(require,module,exports){
+},{"./codegenUtils":36,"underscore":102}],36:[function(require,module,exports){
 (function() {
     var self = this;
     var _, grammar, actualCharacters, nameSegmentRenderedInJavaScript, operatorRenderedInJavaScript, capitalise, reservedWords, escapeReservedWord;
@@ -4241,14 +4321,14 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../parser/grammar":14,"underscore":101}],37:[function(require,module,exports){
+},{"../parser/grammar":14,"underscore":102}],37:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
         var self = this;
         var continuationOrDefault;
         return continuationOrDefault = function() {
-            return terms.moduleConstants.defineAs([ "continuation", "or", "default" ], terms.javascript("function(args){var c=args[args.length-1];if(c instanceof Function){return c;}else{return function(error,result){if(error){throw error;}else{return result;};}}}"));
+            return terms.moduleConstants.defineAs([ "continuation", "or", "default" ], terms.javascript("function(args){var c=args[args.length-1];if(typeof c === 'function'){return {continuation: c, arguments: Array.prototype.slice.call(args, 0, args.length - 1)};}else{return { continuation: function(error, result) { if (error) { throw error; } else { return result; } }, arguments: args }}}"));
         };
     };
 }).call(this);
@@ -4290,6 +4370,7 @@ exports.macros = function (cg) {
                 self.source = source;
                 self.isAsync = async;
                 self.shadow = shadow;
+                self.global = false;
                 return self.isAssignment = assignment;
             },
             expression: function() {
@@ -4312,7 +4393,7 @@ exports.macros = function (cg) {
                     if (!self.isAssignment) {
                         if (variables.isDefinedInThisScope(name) && !self.shadow) {
                             return terms.errors.addTermWithMessage(self, "variable " + self.target.displayName() + " is already defined, use := to reassign it");
-                        } else {
+                        } else if (!self.global) {
                             return variables.define(name);
                         }
                     } else if (!variables.isDefined(name)) {
@@ -4590,9 +4671,7 @@ exports.macros = function (cg) {
             makeAsyncCallWithCallback: function(callback) {
                 var self = this;
                 self.asyncCallbackArgument = callback;
-                return terms.returnStatement(self, {
-                    implicit: true
-                });
+                return self;
             }
         });
         return functionCall = function(fun, args, gen2_options) {
@@ -4604,7 +4683,7 @@ exports.macros = function (cg) {
             asyncCallbackArgument = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "asyncCallbackArgument") && gen2_options.asyncCallbackArgument !== void 0 ? gen2_options.asyncCallbackArgument : void 0;
             couldBeMacro = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "couldBeMacro") && gen2_options.couldBeMacro !== void 0 ? gen2_options.couldBeMacro : true;
             future = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "future") && gen2_options.future !== void 0 ? gen2_options.future : false;
-            var asyncResult, futureFunction, name, macro, funCall;
+            var asyncResult, futureFunction, callback, name, macro, funCall;
             if (async) {
                 asyncResult = terms.asyncResult();
                 terms.argumentUtils.asyncifyArguments(args, optionalArguments);
@@ -4618,11 +4697,12 @@ exports.macros = function (cg) {
                 }), asyncResult ]);
             } else if (future) {
                 futureFunction = terms.moduleConstants.defineAs([ "future" ], terms.javascript(asyncControl.future.toString()));
-                return terms.functionCall(futureFunction, [ terms.closure([ terms.callbackFunction ], terms.statements([ terms.functionCall(fun, args, {
+                callback = terms.generatedVariable([ "callback" ]);
+                return terms.functionCall(futureFunction, [ terms.closure([ callback ], terms.statements([ terms.functionCall(fun, args, {
                     optionalArguments: optionalArguments,
                     passThisToApply: passThisToApply,
                     originallyAsync: true,
-                    asyncCallbackArgument: terms.callbackFunction,
+                    asyncCallbackArgument: callback,
                     couldBeMacro: couldBeMacro
                 }) ])) ]);
             } else if (fun.variable && couldBeMacro) {
@@ -4644,7 +4724,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1,"./argumentUtils":27,"./codegenUtils":36,"underscore":101}],46:[function(require,module,exports){
+},{"../asyncControl":1,"./argumentUtils":27,"./codegenUtils":36,"underscore":102}],46:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4912,7 +4992,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1,"./codegenUtils":36,"underscore":101}],53:[function(require,module,exports){
+},{"../asyncControl":1,"./codegenUtils":36,"underscore":102}],53:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5034,7 +5114,7 @@ exports.macros = function (cg) {
     _ = require("underscore");
     module.exports = function(terms) {
         var self = this;
-        var listTerm, list;
+        var listTerm, insertSplatsAfterRanges, list;
         listTerm = terms.term({
             constructor: function(items) {
                 var self = this;
@@ -5044,14 +5124,34 @@ exports.macros = function (cg) {
             generate: function(scope) {
                 var self = this;
                 return self.generateIntoBuffer(function(buffer) {
-                    buffer.write("[");
-                    codegenUtils.writeToBufferWithDelimiter(self.items, ",", buffer, scope);
-                    return buffer.write("]");
+                    var splatArguments;
+                    splatArguments = terms.splatArguments(self.items);
+                    if (splatArguments) {
+                        return splatArguments.generateJavaScript(buffer, scope);
+                    } else {
+                        buffer.write("[");
+                        codegenUtils.writeToBufferWithDelimiter(self.items, ",", buffer, scope);
+                        return buffer.write("]");
+                    }
                 });
             }
         });
-        return list = function(items) {
-            var hashEntry, hasGenerator, macro;
+        insertSplatsAfterRanges = function(items) {
+            var itemsWithSplats, n, item;
+            itemsWithSplats = [];
+            for (n = 0; n < items.length; ++n) {
+                item = items[n];
+                itemsWithSplats.push(item);
+                if (item.isRange) {
+                    item.inList = true;
+                    itemsWithSplats.push(terms.splat());
+                }
+            }
+            return itemsWithSplats;
+        };
+        return list = function(listItems) {
+            var items, hashEntry, hasGenerator, macro;
+            items = insertSplatsAfterRanges(listItems);
             hashEntry = _.find(items, function(item) {
                 return item.isHashEntry;
             });
@@ -5073,7 +5173,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./codegenUtils":36,"underscore":101}],59:[function(require,module,exports){
+},{"./codegenUtils":36,"underscore":102}],59:[function(require,module,exports){
 (function() {
     var self = this;
     var _, asyncControl;
@@ -5123,7 +5223,7 @@ exports.macros = function (cg) {
                 },
                 generate: function(isAsync, result, index) {
                     var self = this;
-                    var listComprehension, innerResult, innerIndex, asyncStatements, call;
+                    var listComprehension, innerResult, innerIndex, asyncStatements, call, scope;
                     if (isAsync) {
                         listComprehension = terms.moduleConstants.defineAs([ "list", "comprehension" ], terms.javascript(asyncControl.listComprehension.toString()));
                         innerResult = terms.generatedVariable([ "result" ]);
@@ -5138,7 +5238,11 @@ exports.macros = function (cg) {
                             return [ call ];
                         }
                     } else {
-                        return [ terms.forEach(self.collection, self.iterator, terms.asyncStatements(self.next.generate(isAsync, result, index))) ];
+                        scope = terms.scope(self.next.generate(isAsync, result, index), {
+                            alwaysGenerateFunction: true,
+                            variables: [ self.iterator ]
+                        });
+                        return [ terms.forEach(self.collection, self.iterator, terms.asyncStatements([ scope ])) ];
                     }
                 }
             };
@@ -5225,7 +5329,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1,"underscore":101}],60:[function(require,module,exports){
+},{"../asyncControl":1,"underscore":102}],60:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils, argumentUtils, asyncControl;
@@ -5284,9 +5388,7 @@ exports.macros = function (cg) {
             makeAsyncCallWithCallback: function(callback) {
                 var self = this;
                 self.asyncCallbackArgument = callback;
-                return terms.returnStatement(self, {
-                    implicit: true
-                });
+                return self;
             }
         });
         return methodCall = function(object, name, args, gen2_options) {
@@ -5351,7 +5453,10 @@ exports.macros = function (cg) {
                 self.statements = statements;
                 self.isModule = true;
                 self.global = global;
-                return self.bodyStatements = bodyStatements || statements;
+                self.bodyStatements = bodyStatements || statements;
+                if (global) {
+                    return self.bodyStatements.makeDefinitionsGlobal();
+                }
             },
             generateModule: function() {
                 var self = this;
@@ -5541,12 +5646,36 @@ exports.macros = function (cg) {
             },
             arguments: function() {
                 var self = this;
-                return [];
+                return void 0;
             }
         });
     };
 }).call(this);
 },{}],67:[function(require,module,exports){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(items) {
+                var self = this;
+                self.isRange = true;
+                self.items = items;
+                self.inList = false;
+                return self.range = terms.moduleConstants.defineAs([ "range" ], terms.javascript("function (a, b) {\n   var items = [];\n   for (var n = a; n <= b; n++) {\n       items.push(n);\n   }\n   return items;\n                }"));
+            },
+            generateJavaScript: function(buffer, scope) {
+                var self = this;
+                if (self.inList) {
+                    return terms.functionCall(self.range, self.items).generateJavaScript(buffer, scope);
+                } else {
+                    return terms.errors.addTermWithMessage(self, "range operator can only be used in a list, as in [1..3]");
+                }
+            }
+        });
+    };
+}).call(this);
+},{}],68:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5567,7 +5696,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],68:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5614,15 +5743,16 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],69:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
         var self = this;
         var scope;
         return scope = function(statementList, gen1_options) {
-            var alwaysGenerateFunction;
+            var alwaysGenerateFunction, variables;
             alwaysGenerateFunction = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "alwaysGenerateFunction") && gen1_options.alwaysGenerateFunction !== void 0 ? gen1_options.alwaysGenerateFunction : false;
+            variables = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "variables") && gen1_options.variables !== void 0 ? gen1_options.variables : [];
             var statement, statements;
             if (statementList.length === 1 && !alwaysGenerateFunction) {
                 statement = statementList[0];
@@ -5633,14 +5763,14 @@ exports.macros = function (cg) {
                 }
             } else {
                 statements = terms.asyncStatements(statementList);
-                return terms.functionCall(terms.subExpression(terms.block([], statements)), [], {
+                return terms.functionCall(terms.subExpression(terms.block(variables, statements)), variables, {
                     async: statements.isAsync
                 });
             }
         };
     };
 }).call(this);
-},{}],70:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5653,7 +5783,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],71:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5681,7 +5811,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],72:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5698,7 +5828,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],73:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 (function() {
     var self = this;
     var _;
@@ -5772,9 +5902,9 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"underscore":101}],74:[function(require,module,exports){
+},{"underscore":102}],75:[function(require,module,exports){
 module.exports=require(64)
-},{}],75:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils, statementsUtils;
@@ -5786,17 +5916,30 @@ module.exports=require(64)
         return terms.term({
             constructor: function(statements, gen1_options) {
                 var self = this;
-                var async;
+                var async, globalDefinitions;
                 async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
+                globalDefinitions = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "globalDefinitions") && gen1_options.globalDefinitions !== void 0 ? gen1_options.globalDefinitions : globalDefinitions;
                 self.isStatements = true;
                 self.statements = statements;
-                return self.isAsync = async;
+                self.isAsync = async;
+                return self.makeDefinitionsGlobal = function() {
+                    var self = this;
+                    var gen2_items, gen3_i, definition;
+                    if (globalDefinitions) {
+                        gen2_items = globalDefinitions;
+                        for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
+                            definition = gen2_items[gen3_i];
+                            definition.global = true;
+                        }
+                        return void 0;
+                    }
+                };
             },
-            generateStatements: function(scope, gen2_options) {
+            generateStatements: function(scope, gen4_options) {
                 var self = this;
                 var inClosure, global;
-                inClosure = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "inClosure") && gen2_options.inClosure !== void 0 ? gen2_options.inClosure : false;
-                global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
+                inClosure = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "inClosure") && gen4_options.inClosure !== void 0 ? gen4_options.inClosure : false;
+                global = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "global") && gen4_options.global !== void 0 ? gen4_options.global : false;
                 return self.generateIntoBuffer(function(buffer) {
                     var definedVariables, s, statement;
                     if (inClosure) {
@@ -5812,10 +5955,10 @@ module.exports=require(64)
                     return void 0;
                 });
             },
-            rewriteResultTermInto: function(returnTerm, gen3_options) {
+            rewriteResultTermInto: function(returnTerm, gen5_options) {
                 var self = this;
                 var async;
-                async = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "async") && gen3_options.async !== void 0 ? gen3_options.async : false;
+                async = gen5_options !== void 0 && Object.prototype.hasOwnProperty.call(gen5_options, "async") && gen5_options.async !== void 0 ? gen5_options.async : false;
                 var lastStatement, rewrittenLastStatement;
                 if (self.statements.length > 0) {
                     lastStatement = self.statements[self.statements.length - 1];
@@ -5833,11 +5976,11 @@ module.exports=require(64)
                     return self.statements.push(terms.functionCall(terms.callbackFunction, []));
                 }
             },
-            rewriteLastStatementToReturn: function(gen4_options) {
+            rewriteLastStatementToReturn: function(gen6_options) {
                 var self = this;
                 var async, returnCallToContinuation;
-                async = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "async") && gen4_options.async !== void 0 ? gen4_options.async : false;
-                returnCallToContinuation = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "returnCallToContinuation") && gen4_options.returnCallToContinuation !== void 0 ? gen4_options.returnCallToContinuation : true;
+                async = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "async") && gen6_options.async !== void 0 ? gen6_options.async : false;
+                returnCallToContinuation = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "returnCallToContinuation") && gen6_options.returnCallToContinuation !== void 0 ? gen6_options.returnCallToContinuation : true;
                 var containsContinuation;
                 containsContinuation = self.containsContinuation();
                 return self.rewriteResultTermInto(function(term) {
@@ -5860,10 +6003,10 @@ module.exports=require(64)
                     async: async
                 });
             },
-            generateVariableDeclarations: function(variables, buffer, scope, gen5_options) {
+            generateVariableDeclarations: function(variables, buffer, scope, gen7_options) {
                 var self = this;
                 var global;
-                global = gen5_options !== void 0 && Object.prototype.hasOwnProperty.call(gen5_options, "global") && gen5_options.global !== void 0 ? gen5_options.global : false;
+                global = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "global") && gen7_options.global !== void 0 ? gen7_options.global : false;
                 if (variables.length > 0) {
                     _(variables).each(function(name) {
                         return scope.define(name);
@@ -5933,10 +6076,10 @@ module.exports=require(64)
                 self.statements = statementsUtils.serialiseStatements(self.statements);
                 return void 0;
             },
-            asyncify: function(gen6_options) {
+            asyncify: function(gen8_options) {
                 var self = this;
                 var returnCallToContinuation;
-                returnCallToContinuation = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "returnCallToContinuation") && gen6_options.returnCallToContinuation !== void 0 ? gen6_options.returnCallToContinuation : true;
+                returnCallToContinuation = gen8_options !== void 0 && Object.prototype.hasOwnProperty.call(gen8_options, "returnCallToContinuation") && gen8_options.returnCallToContinuation !== void 0 ? gen8_options.returnCallToContinuation : true;
                 if (!self.isAsync) {
                     self.rewriteLastStatementToReturn({
                         async: true,
@@ -5948,7 +6091,7 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{"./codegenUtils":36,"./statementsUtils":76,"underscore":101}],76:[function(require,module,exports){
+},{"./codegenUtils":36,"./statementsUtils":77,"underscore":102}],77:[function(require,module,exports){
 (function() {
     var self = this;
     exports.serialiseStatements = function(statements) {
@@ -5973,7 +6116,7 @@ module.exports=require(64)
         return serialisedStatements;
     };
 }).call(this);
-},{}],77:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -5993,7 +6136,7 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{"./codegenUtils":36}],78:[function(require,module,exports){
+},{"./codegenUtils":36}],79:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -6011,7 +6154,7 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{}],79:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils;
@@ -6053,7 +6196,7 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{"./codegenUtils":36,"underscore":101}],80:[function(require,module,exports){
+},{"./codegenUtils":36,"underscore":102}],81:[function(require,module,exports){
 (function() {
     var self = this;
     var $class, classExtending, _, ms, sourceMap, buffer;
@@ -6624,7 +6767,7 @@ module.exports=require(64)
         };
     };
 }).call(this);
-},{"../class":2,"../memorystream":5,"source-map":91,"underscore":101,"util":89}],81:[function(require,module,exports){
+},{"../class":2,"../memorystream":5,"source-map":92,"underscore":102,"util":90}],82:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -6646,7 +6789,7 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{}],82:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 (function() {
     var self = this;
     var asyncControl;
@@ -6729,7 +6872,7 @@ module.exports=require(64)
         };
     };
 }).call(this);
-},{"../asyncControl":1}],83:[function(require,module,exports){
+},{"../asyncControl":1}],84:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -6748,7 +6891,7 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{}],84:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -6813,7 +6956,7 @@ module.exports=require(64)
         };
     };
 }).call(this);
-},{"./codegenUtils":36}],85:[function(require,module,exports){
+},{"./codegenUtils":36}],86:[function(require,module,exports){
 (function() {
     var self = this;
     var asyncControl;
@@ -6858,7 +7001,7 @@ module.exports=require(64)
         };
     };
 }).call(this);
-},{"../asyncControl":1}],86:[function(require,module,exports){
+},{"../asyncControl":1}],87:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -6892,7 +7035,7 @@ module.exports=require(64)
         };
     };
 }).call(this);
-},{}],87:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 
 
 //
@@ -7110,7 +7253,7 @@ if (typeof Object.getOwnPropertyDescriptor === 'function') {
   exports.getOwnPropertyDescriptor = valueObject;
 }
 
-},{}],88:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 var process=require("__browserify_process");// Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7321,7 +7464,7 @@ exports.extname = function(path) {
   return splitPath(path)[3];
 };
 
-},{"__browserify_process":90,"_shims":87,"util":89}],89:[function(require,module,exports){
+},{"__browserify_process":91,"_shims":88,"util":90}],90:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7866,7 +8009,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"_shims":87}],90:[function(require,module,exports){
+},{"_shims":88}],91:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -7920,7 +8063,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],91:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 /*
  * Copyright 2009-2011 Mozilla Foundation and contributors
  * Licensed under the New BSD license. See LICENSE.txt or:
@@ -7930,7 +8073,7 @@ exports.SourceMapGenerator = require('./source-map/source-map-generator').Source
 exports.SourceMapConsumer = require('./source-map/source-map-consumer').SourceMapConsumer;
 exports.SourceNode = require('./source-map/source-node').SourceNode;
 
-},{"./source-map/source-map-consumer":96,"./source-map/source-map-generator":97,"./source-map/source-node":98}],92:[function(require,module,exports){
+},{"./source-map/source-map-consumer":97,"./source-map/source-map-generator":98,"./source-map/source-node":99}],93:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8029,7 +8172,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./util":99,"amdefine":100}],93:[function(require,module,exports){
+},{"./util":100,"amdefine":101}],94:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8175,7 +8318,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./base64":94,"amdefine":100}],94:[function(require,module,exports){
+},{"./base64":95,"amdefine":101}],95:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8219,7 +8362,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":100}],95:[function(require,module,exports){
+},{"amdefine":101}],96:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8302,7 +8445,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":100}],96:[function(require,module,exports){
+},{"amdefine":101}],97:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8781,7 +8924,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":92,"./base64-vlq":93,"./binary-search":95,"./util":99,"amdefine":100}],97:[function(require,module,exports){
+},{"./array-set":93,"./base64-vlq":94,"./binary-search":96,"./util":100,"amdefine":101}],98:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -9163,7 +9306,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":92,"./base64-vlq":93,"./util":99,"amdefine":100}],98:[function(require,module,exports){
+},{"./array-set":93,"./base64-vlq":94,"./util":100,"amdefine":101}],99:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -9536,7 +9679,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./source-map-generator":97,"./util":99,"amdefine":100}],99:[function(require,module,exports){
+},{"./source-map-generator":98,"./util":100,"amdefine":101}],100:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -9743,7 +9886,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":100}],100:[function(require,module,exports){
+},{"amdefine":101}],101:[function(require,module,exports){
 var process=require("__browserify_process"),__filename="/../../node_modules/source-map/node_modules/amdefine/amdefine.js";/** vim: et:ts=4:sw=4:sts=4
  * @license amdefine 0.1.0 Copyright (c) 2011, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
@@ -10044,7 +10187,7 @@ function amdefine(module, requireFn) {
 
 module.exports = amdefine;
 
-},{"__browserify_process":90,"path":88}],101:[function(require,module,exports){
+},{"__browserify_process":91,"path":89}],102:[function(require,module,exports){
 //     Underscore.js 1.4.4
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud Inc.

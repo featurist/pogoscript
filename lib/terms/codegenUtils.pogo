@@ -18,7 +18,7 @@ exports.write to buffer with delimiter (array, delimiter, buffer, scope) =
       first := false
       writer (item)
 
-actual characters = [
+actualCharacters = [
     [r/\\/g, '\\']
     [new (RegExp "\b", 'g'), '\b']
     [r/\f/g, '\f']
@@ -31,44 +31,44 @@ actual characters = [
     [r/"/g, '\"']
 ]
 
-exports.format java script string (s) =
-    for each @(mapping) in (actual characters)
+exports.formatJavaScriptString (s) =
+    for each @(mapping) in (actualCharacters)
         s := s.replace (mapping.0, mapping.1)
 
     "'" + s + "'"
 
-exports.concat name (name segments, options) =
+exports.concatName (nameSegments, options) =
     name = ''
-  
-    for (n = 0, n < name segments.length, ++n)
-        segment = name segments.(n)
-        name := name + name segment rendered in java script (segment, n == 0)
 
-    if ((options && options.has own property ('escape')) && options.escape)
-        escape reserved word (name)
+    for (n = 0, n < nameSegments.length, ++n)
+        segment = nameSegments.(n)
+        name := name + nameSegmentRenderedInJavaScript (segment, n == 0)
+
+    if ((options && options.hasOwnProperty ('escape')) && options.escape)
+        escapeReservedWord (name)
     else
         name
 
-name segment rendered in java script (name segment, is first) =
-    if (r/[_$a-zA-Z0-9]+/.test (name segment))
-        if (is first)
-            name segment
+nameSegmentRenderedInJavaScript (nameSegment, isFirst) =
+    if (r/[_$a-zA-Z0-9]+/.test (nameSegment))
+        if (isFirst)
+            nameSegment
         else
-            capitalise (name segment)
+            capitalise (nameSegment)
     else
-        operator rendered in java script (name segment)
+        operatorRenderedInJavaScript (nameSegment)
 
-operator rendered in java script (operator) =
-    java script name = ''
+operatorRenderedInJavaScript (operator) =
+    javaScriptName = ''
     for (n = 0, n < operator.length, ++n)
-        java script name := java script name + '$' + operator.char code at (n).to string (16)
+        javaScriptName := javaScriptName + '$' + operator.charCodeAt (n).toString (16)
 
-    java script name
+    javaScriptName
 
 capitalise (s) =
-    s.0.to upper case () + s.substring (1)
+    s.0.toUpperCase () + s.substring (1)
 
-reserved words = {
+reservedWords = {
     class
     function
     else
@@ -76,24 +76,24 @@ reserved words = {
     switch
 }
 
-escape reserved word (word) =
-    if (reserved words.has own property (word))
+escapeReservedWord (word) =
+    if (reservedWords.hasOwnProperty (word))
         '$' + word
     else
         word
 
-exports.concat args (args, optional args: nil, async callback arg: nil, terms: nil) =
+exports.concatArgs (args, optionalArgs: nil, asyncCallbackArg: nil, terms: nil) =
     a = args.slice ()
 
-    if (optional args && (optional args.length > 0))
-        a.push (terms.hash (optional args))
+    if (optionalArgs && (optionalArgs.length > 0))
+        a.push (terms.hash (optionalArgs))
 
-    if (async callback arg)
-        a.push (async callback arg)
+    if (asyncCallbackArg)
+        a.push (asyncCallbackArg)
 
     a
 
-exports.normalise operator name (name) =
+exports.normaliseOperatorName (name) =
         op = @new RegExp "^@(#(grammar.identifier))$"
         match = op.exec (name)
         if (match)
@@ -101,7 +101,7 @@ exports.normalise operator name (name) =
         else
             name
 
-exports.defined variables (scope) = {
+exports.definedVariables (scope) = {
     variables = []
     scope = scope
 
@@ -110,7 +110,7 @@ exports.defined variables (scope) = {
         self.variables.push (variable)
 
     is (variable) defined = scope.is (variable) defined
-    is (variable) defined in this scope = scope.is (variable) defined in this scope
+    is (variable) definedInThisScope = scope.is (variable) definedInThisScope
 
-    unique variables () = _.uniq (self.variables)
+    uniqueVariables () = _.uniq (self.variables)
 }

@@ -57,7 +57,7 @@ exports.create parser context =
           string.replace (r, "\n")
 
         normalise string (s) =
-          s.substring (1, s.length - 1).replace (r/''/g, "'")
+          s.substring (1, s.length - 1).replace (r/''/g, "'").replace ("\r", "")
 
         parse reg exp (s) =
           match = r/^r\/((\n|.)*)\/([^\/]*)$/.exec(s)
@@ -68,6 +68,7 @@ exports.create parser context =
           }
 
         actual characters = [
+          [r/\r/g, '']
           [r/\\\\/g, "\\"]
           [r/\\b/g, "\b"]
           [r/\\f/g, "\f"]

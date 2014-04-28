@@ -91,14 +91,11 @@ describe 'async statements'
                 (statements) should contain fields (
                     terms.statements (
                         [
-                            terms.return statement (
-                                terms.function call (
-                                    terms.variable ['async', 'func']
-                                    [terms.variable ['arg']]
-                                    originally async: true
-                                    async callback argument: terms.callback function
-                                )
-                                implicit: true
+                            terms.function call (
+                                terms.variable ['async', 'func']
+                                [terms.variable ['arg']]
+                                originally async: true
+                                async callback argument: terms.callback function
                             )
                         ]
                         async: true
@@ -115,23 +112,20 @@ describe 'async statements'
                 (statements) should contain fields (
                     terms.statements (
                         [
-                            terms.return statement (
-                                terms.function call (
-                                    terms.variable ['async', 'func']
-                                    [
-                                        terms.variable ['arg']
-                                    ]
-                                    originally async: true
-                                    async callback argument:
-                                        terms.async callback (
-                                            terms.statements [
-                                                terms.async result ()
-                                                terms.function call (terms.variable ['another', 'func'], [])
-                                            ]
-                                            result variable: terms.async result ()
-                                        )
-                                )
-                                implicit: true
+                            terms.function call (
+                                terms.variable ['async', 'func']
+                                [
+                                    terms.variable ['arg']
+                                ]
+                                originally async: true
+                                async callback argument:
+                                    terms.async callback (
+                                        terms.statements [
+                                            terms.async result ()
+                                            terms.function call (terms.variable ['another', 'func'], [])
+                                        ]
+                                        result variable: terms.async result ()
+                                    )
                             )
                         ]
                         async: true

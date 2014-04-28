@@ -31,7 +31,7 @@ describe 'async'
                print (f ()!)
                done ()' should output ("'result'", done)
 
-    it 'it only exits once' @(done)
+    it 'only exits once' @(done)
         async "do stuff! =
                    async!
                    process.next tick!

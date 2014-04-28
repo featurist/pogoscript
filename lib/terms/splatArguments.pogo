@@ -1,58 +1,58 @@
 _ = require 'underscore'
 
 module.exports (terms) =
-    splat arguments term = terms.term {
-        constructor (splat arguments) =
-            self.splat arguments = splat arguments
+    splatArgumentsTerm = terms.term {
+        constructor (splatArguments) =
+            self.splatArguments = splatArguments
 
         generate (scope) =
-            self.generate into buffer @(buffer)
-                for (i = 0, i < self.splat arguments.length, ++i)
-                    splat argument = self.splat arguments.(i)
+            self.generateIntoBuffer @(buffer)
+                for (i = 0, i < self.splatArguments.length, ++i)
+                    splatArgument = self.splatArguments.(i)
 
                     if (i == 0)
-                        buffer.write (splat argument.generate (scope))
+                        buffer.write (splatArgument.generate (scope))
                     else
                         buffer.write ('.concat(')
-                        buffer.write (splat argument.generate (scope))
+                        buffer.write (splatArgument.generate (scope))
                         buffer.write (')')
     }
 
-    splat arguments (args, optional args) =
-        splat args = []
-        previous args = []
-        found splat = false
+    splatArguments (args, optionalArgs) =
+        splatArgs = []
+        previousArgs = []
+        foundSplat = false
         
         i = 0
         while (i < args.length)
             current = args.(i)
             next = args.(i + 1)
-            if (next && next.is splat)
-                found splat := true
-                if (previous args.length > 0)
-                    splat args.push (terms.list (previous args))
-                    previous args := []
+            if (next @and next.isSplat)
+                foundSplat := true
+                if (previousArgs.length > 0)
+                    splatArgs.push (terms.list (previousArgs))
+                    previousArgs := []
 
-                splat args.push (current)
+                splatArgs.push (current)
                 ++i
-            else if (current.is splat)
-                terms.errors.add term (current) with message 'splat keyword with no argument to splat'
+            else if (current.isSplat)
+                terms.errors.addTerm (current) withMessage 'splat keyword with no argument to splat'
             else
-                previous args.push (current)
+                previousArgs.push (current)
 
             ++i
         
-        if (optional args && (optional args.length > 0))
-            previous args.push (terms.hash (optional args))
+        if (optionalArgs @and (optionalArgs.length > 0))
+            previousArgs.push (terms.hash (optionalArgs))
         
-        if (previous args.length > 0)
-            splat args.push (terms.list (previous args))
+        if (previousArgs.length > 0)
+            splatArgs.push (terms.list (previousArgs))
         
-        if (found splat)
+        if (foundSplat)
             concat (initial, last) =
                 if (initial.length > 0)
-                    terms.method call (concat (_.initial (initial), _.last (initial)), ['concat'], [last])
+                    terms.methodCall (concat (_.initial (initial), _.last (initial)), ['concat'], [last])
                 else
                     last
 
-            concat (_.initial (splat args), _.last (splat args))
+            concat (_.initial (splatArgs), _.last (splatArgs))

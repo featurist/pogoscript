@@ -1,31 +1,49 @@
-codegen utils = require './codegenUtils'
+codegenUtils = require './codegenUtils'
 _ = require 'underscore'
 
 module.exports (terms) =
-    list term = terms.term {
+    listTerm = terms.term {
         constructor (items) =
-            self.is list = true
+            self.isList = true
             self.items = items
 
         generate (scope) =
-            self.generate into buffer @(buffer)
-                buffer.write ('[')
-                codegen utils.write to buffer with delimiter (self.items, ',', buffer, scope)
-                buffer.write (']')
+            self.generateIntoBuffer @(buffer)
+                splatArguments = terms.splatArguments (self.items)
+
+                if (splatArguments)
+                    splatArguments.generateJavaScript (buffer, scope)
+                else
+                    buffer.write ('[')
+                    codegenUtils.writeToBufferWithDelimiter (self.items, ',', buffer, scope)
+                    buffer.write (']')
     }
 
-    list (items) =
-        hash entry = _.find (items) @(item) @{item.is hash entry}
-        has generator = _.find (items) @(item) @{item.is generator}
+    insertSplatsAfterRanges (items) =
+        itemsWithSplats = []
 
-        if (hash entry)
-            macro = terms.list macros.find macro (hash entry.field)
+        for (n = 0, n < items.length, ++n)
+            item = items.(n)
+            itemsWithSplats.push(item)
+            if (item.isRange)
+                item.inList = true
+                itemsWithSplats.push(terms.splat())
+
+        itemsWithSplats
+
+    list (listItems) =
+        items = insertSplatsAfterRanges (listItems)
+        hashEntry = _.find (items) @(item) @{item.isHashEntry}
+        hasGenerator = _.find (items) @(item) @{item.isGenerator}
+
+        if (hashEntry)
+            macro = terms.listMacros.findMacro (hashEntry.field)
 
             if (macro)
-                macro (list term (items), hash entry.field)
+                macro (listTerm (items), hashEntry.field)
             else
-                terms.errors.add term (hash entry) with message "no macro for #(hash entry.field.join ' ')"
-        else if (has generator)
-            terms.list comprehension (items)
+                terms.errors.addTerm (hashEntry) withMessage "no macro for #(hashEntry.field.join ' ')"
+        else if (hasGenerator)
+            terms.listComprehension (items)
         else
-            list term (items)
+            listTerm (items)

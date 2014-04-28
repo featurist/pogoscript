@@ -113,6 +113,11 @@ describe 'parser'
                     string "one\ntwo"
                 }
 
+            it 'with windows newline'
+                (expression '"one\n\rtwo"') should contain fields {
+                    string "one\n\rtwo"
+                }
+
             it 'with newline escape and indentation should not remove indentation'
                 (expression '  "one\n    two"') should contain fields {
                     string "one\n    two"
@@ -120,6 +125,11 @@ describe 'parser'
 
             it 'with indentation'
                 (expression "  \"one\n   two\"") should contain fields {
+                    string "one\ntwo"
+                }
+
+            it 'with windows indentation'
+                (expression "  \"one\n\r   two\"") should contain fields {
                     string "one\ntwo"
                 }
 
@@ -419,6 +429,19 @@ describe 'parser'
                     {
                         body {statements [{variable ['stream']}]}
                         parameters [{variable ['stream']}]
+                    }
+                ]
+            }
+
+        it 'function call with block with optional parameters'
+            (expression "with file (file) @(stream: nil)\n  stream") should contain fields {
+                function {variable ['with', 'file']}
+                function arguments [
+                    {variable ['file']}
+                    {
+                        body {statements [{variable ['stream']}]}
+                        parameters []
+                        optionalParameters [{field ['stream'], value {isNil}}]
                     }
                 ]
             }
@@ -951,6 +974,17 @@ describe 'parser'
 
             it 'when between lines'
                 (statements "a\n// this is a comment\nb") should contain fields {
+                    is statements
+                    statements [
+                        {variable ['a']}
+                        {variable ['b']}
+                    ]
+                }
+
+            it 'comments the start of a multiline comment'
+                (statements "a
+                             // not starting another comment /*
+                             b") shouldContainFields {
                     is statements
                     statements [
                         {variable ['a']}

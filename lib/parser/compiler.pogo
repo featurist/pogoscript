@@ -1,94 +1,97 @@
 ms = require '../memorystream'
-create parser = require './parser'.create parser
-create terms () = require './codeGenerator'.code generator ()
+createParser = require './parser'.createParser
+createTerms () = require './codeGenerator'.codeGenerator ()
 object = require './runtime'.object
 sm = require 'source-map'
 
 beautify (code) =
     uglify = require 'uglify-js'
     ast = uglify.parse (code)
-    stream = uglify.Output Stream (beautify: true)
+    stream = uglify.OutputStream (beautify: true)
     ast.print (stream)
-    stream.to string ()
+    stream.toString ()
+
+exports.generateCode (term, terms, inScope: true, global: false, returnResult: false, outputFilename: outputFilename) =
+    moduleTerm = terms.module (
+        term
+        inScope: inScope
+        global: global
+        returnLastStatement: returnResult
+    )
+
+    output = moduleTerm.generateModule ().toStringWithSourceMap (file: outputFilename)
 
 exports.compile (
     pogo
     filename: nil
-    in scope: true
+    inScope: true
     ugly: false
     global: false
-    return result: false
+    returnResult: false
     async: false
-    terms: create terms ()
-    output filename: nil
-    source map: false
+    terms: createTerms ()
+    outputFilename: nil
+    sourceMap: false
 ) =
-    parser = create parser (terms: terms, filename: filename)
+    parser = createParser (terms: terms, filename: filename)
     statements = parser.parse (pogo)
 
     if (async)
-        statements.asyncify (return call to continuation: return result)
+        statements.asyncify (returnCallToContinuation: returnResult)
 
-    module term = terms.module (
-        statements
-        in scope: in scope
-        global: global
-        return last statement: return result
-    )
+    output = exports.generateCode (statements, terms, inScope: inScope, global: global, returnResult: returnResult, outputFilename: outputFilename)
 
-    output = module term.generate module ().to string with source map (file: output filename)
-
-    if (parser.errors.has errors ())
-        memory stream = new (ms.MemoryStream)
-        parser.errors.print errors (source location printer (filename: filename, source: pogo), memory stream)
-        error = @new Error (memory stream.to string ())
-        error.is semantic errors = true
+    if (parser.errors.hasErrors ())
+        memoryStream = new (ms.MemoryStream)
+        parser.errors.printErrors (sourceLocationPrinter (filename: filename, source: pogo), memoryStream)
+        error = @new Error (memoryStream.toString ())
+        error.isSemanticErrors = true
         @throw error
     else
         if (@not ugly)
             beautify (output.code)
-        else if (source map)
-            output.map.set source content (filename, pogo)
+        else if (sourceMap)
+            output.map.setSourceContent (filename, pogo)
 
             {
                 code = output.code
-                map = JSON.parse (output.map.to string ())
+                map = JSON.parse (output.map.toString ())
             }
         else
             output.code
 
 exports.evaluate (pogo, definitions: {}, ugly: true, global: false) =
-    js = exports.compile (pogo, ugly: ugly, in scope: @not global, global: global, return result: @not global)
-    definition names = Object.keys (definitions)
+    js = exports.compile (pogo, ugly: ugly, inScope: @not global, global: global, returnResult: @not global)
+    definitionNames = Object.keys (definitions)
 
-    parameters = definition names.join ','
+    parameters = definitionNames.join ','
 
-    run script = new (Function (parameters, "return #(js);"))
+    runScript = new (Function (parameters, "return #(js);"))
 
-    definition values = [definitions.(name), where: name <- definition names]
+    definitionValues = [definitions.(name), where: name <- definitionNames]
 
-    run script.apply (undefined) (definition values)
+    runScript.apply (undefined) (definitionValues)
 
-source location printer (filename: nil, source: nil) =
+sourceLocationPrinter (filename: nil, source: nil) =
     {
-        lines in range (range) =
+        linesInRange (range) =
             lines = source.split r/\n/
             lines.slice (range.from - 1) (range.to)
 
-        print lines in range (prefix: '', from: nil, to: nil, buffer: buffer) =
-            for each @(line) in (self.lines in range (from: from, to: to))
+        printLinesInRange (prefix: '', from: nil, to: nil, buffer: buffer) =
+            for each @(line) in (self.linesInRange (from: from, to: to))
                 buffer.write (prefix + line + "\n")
 
-        print location (location, buffer) =
-            buffer.write (filename + ':' + location.first line + "\n")
+        printLocation (location, buffer) =
+            buffer.write (filename + ':' + location.firstLine + "\n")
 
-            if (location.first line == location.last line)
-                self.print lines in range (from: location.first line, to: location.last line, buffer: buffer)
-                spaces = self.' ' times (location.first column)
-                markers = self.'^' times (location.last column - location.first column)
+            if (location.firstLine == location.lastLine)
+                self.printLinesInRange (from: location.firstLine, to: location.lastLine, buffer: buffer)
+                spaces = self.' ' times (location.firstColumn)
+                markers = self.'^' times (location.lastColumn - location.firstColumn)
                 buffer.write (spaces + markers + "\n")
             else
-                self.print lines in range (prefix: '> ', from: location.first line, to: location.last line, buffer: buffer)
+                self.printLinesInRange (prefix: '> ', from: location.firstLine, to: location.lastLine, buffer: buffer)
 
         (s) times (n) =
             strings = []
@@ -99,5 +102,5 @@ source location printer (filename: nil, source: nil) =
     }
 
 exports.lex (pogo) =
-    parser = create parser (terms: create terms ())
-    parser.lex (source)
+    parser = createParser (terms: createTerms ())
+    parser.lex (pogo)

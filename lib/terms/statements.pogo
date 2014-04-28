@@ -3,10 +3,15 @@ codegen utils = require('./codegenUtils')
 statements utils = require './statementsUtils'
 
 module.exports (terms) = terms.term {
-    constructor (statements, async: false) =
+    constructor (statements, async: false, globalDefinitions: globalDefinitions) =
         self.is statements = true
         self.statements = statements
         self.is async = async
+
+        self.makeDefinitionsGlobal () =
+            if (globalDefinitions)
+                for each @(definition) in (globalDefinitions)
+                    definition.global = true
 
     generate statements (scope, in closure: false, global: false) =
         self.generate into buffer @(buffer)
@@ -45,7 +50,7 @@ module.exports (terms) = terms.term {
             else
                 terms.return statement (term, implicit: true)
 
-    generate variable declarations (variables, buffer, scope, global: false) =
+    generateVariableDeclarations (variables, buffer, scope, global: false) =
         if (variables.length > 0)
             _(variables).each @(name)
                 scope.define (name)
@@ -58,7 +63,7 @@ module.exports (terms) = terms.term {
 
                 buffer.write (';')
         
-    find defined variables (scope) =
+    findDefinedVariables (scope) =
         variables = codegen utils.defined variables (scope)
 
         self.walk descendants @(subterm, path)

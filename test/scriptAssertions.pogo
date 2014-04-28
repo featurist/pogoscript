@@ -51,7 +51,7 @@ exports.async (script) should output (expected output, done) =
             done (error)
         else
             try
-                should.equal (chomp (result), chomp (expected output))
+                should.equal (chomp (expected output), chomp (result))
                 done ()
             catch (ex)
                 done (ex)

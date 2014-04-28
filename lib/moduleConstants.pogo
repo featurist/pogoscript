@@ -5,6 +5,7 @@ module.exports (terms) =
     module constants = terms.term {
         constructor () =
             self.named definitions = {}
+            self.listeners = []
 
         define (name) as (expression) =
             canonical name = codegen utils.concat name (name)
@@ -17,10 +18,14 @@ module.exports (terms) =
                 variable = terms.generated variable (name)
 
                 self.named definitions.(canonical name) =
-                    terms.definition (
+                    definition = terms.definition (
                         variable
                         expression
                     )
+
+                    self.notify new definition (definition)
+                    
+                    definition
 
                 variable
 
@@ -32,6 +37,13 @@ module.exports (terms) =
                 defs.push (definition)
 
             defs
+
+        notify new definition (d) =
+            for each @(listener) in (self.listeners)
+                listener (d)
+
+        on each new definition (block) =
+            self.listeners.push (block)
 
         generate (scope) =
             self.generate into buffer @(buffer)

@@ -6,6 +6,9 @@ module.exports (terms) =
             self.global = global
             self.body statements = (body statements || statements)
 
+            if (global)
+                self.bodyStatements.makeDefinitionsGlobal ()
+
         generate module () =
             scope = new (terms.Symbol Scope (nil))
             self.code (

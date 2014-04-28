@@ -1,4 +1,4 @@
-comments = '\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/[^\n]*)\s*)+'
+comments = '\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/.*(\n|$))\s*)+'
 exports.identifier = identifier =
     ranges = 'a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$'
     "[#(ranges)][#(ranges)0-9]*"
@@ -86,7 +86,11 @@ exports.grammar = {
         ]
         parameter_list [
             ['parameter_list , statement', '$1.push($3); $$ = $1;']
-            ['statement', '$$ = [$1];']
+            ['parameter', '$$ = [$1];']
+        ]
+        parameter [
+            ['expression : expression', '$$ = $1.definition($3.expression()).hashEntry(true);']
+            ['statement', '$$ = $1']
         ]
         statement [
             ['expression', '$$ = $1.expression();']
@@ -168,7 +172,7 @@ exports.grammar = {
         ]
         interpolated_string_component [
             ['interpolated_terminal', '$$ = $1;']
-            ['interpolated_string_body', '$$ = yy.terms.string($1);']
+            ['interpolated_string_body', '$$ = yy.terms.string(yy.normaliseInterpolatedString($1));']
             ['escaped_interpolated_string_terminal_start', '$$ = yy.terms.string("#");']
             ['escape_sequence', '$$ = yy.terms.string(yy.normaliseInterpolatedString($1));']
         ]

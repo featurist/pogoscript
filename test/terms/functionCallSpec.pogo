@@ -103,18 +103,20 @@ describe 'function call'
         it 'returns a call to future, making the function call async and passing it as a block'
             future call = terms.function call (terms.variable ['f'], [terms.variable ['arg']], future: true)
 
+            callback = terms.generated variable ['callback']
+
             (future call) should contain fields {
                 is function call
                 function = {is variable, name ['future']}
                 function arguments = [
                     terms.closure (
-                        [terms.callback function]
+                        [callback]
                         terms.statements [
                             terms.function call (
                                 terms.variable ['f']
                                 [terms.variable ['arg']]
                                 originally async: true
-                                async callback argument: terms.callback function
+                                async callback argument: callback
                             )
                         ]
                     )
