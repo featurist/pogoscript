@@ -67,7 +67,7 @@ Another example, this time really taking advantage of list comprehensions:
     cities in (country codes) containing (population) people or more = [
         country code <- country codes
         country = http.get "/countries/#(country code)"!
-        city name <- doc.cities
+        city name <- country.cities
         city = http.get "/cities/#(city name)"!
         city.population > population
         city
