@@ -21,7 +21,7 @@ The primary motivation for `continuation` was to support integration with existi
 
 Ordinarily, for example, to integrate with jQuery's `$.get`, we would write something like this:
 
-    get account details for (user, callback) =
+    getAccountDetailsFor (user, callback) =
         $.get "/accounts/#(user)".done @(details)
             callback (nil, details)
         .fail @(error)
@@ -29,13 +29,13 @@ Ordinarily, for example, to integrate with jQuery's `$.get`, we would write some
 
 And then you could call it like this:
 
-    jeffs details = get account details for! "jeff"
-    do stuff with (jeffs details)
+    jeffsDetails = getAccountDetailsFor! "jeff"
+    doStuffWith (jeffsDetails)
 
 Which works fine, except, if we wanted to insert another asynchronous call into `get account details for`, then we're back to writing mental callback spaghetti:
 
-    get account details for (user, callback) =
-        get routes @(error, routes)
+    getAccountDetailsFor (user, callback) =
+        getRoutes @(error, routes)
             $.get (routes.account (user)).done @(details)
                 callback (nil, details)
             .fail @(error)
@@ -45,8 +45,8 @@ Where perhaps `get routes (callback)` hits the server on first load, but cached 
 
 Problem is we've been lazy and forgotten to put any error checking into our call to `get routes`, whereas really we should have used the async oeprator `!` which will take care of all that for us, no fuss. We want to mix the two styles: pogo async and regular callbacks. So we remove the `callback` parameter, make our function async with `!` and use the `continuation` macro:
 
-    get account details for! (user) =
-        routes = get routes! ()
+    getAccountDetailsFor! (user) =
+        routes = getRoutes! ()
         
         $.get (routes.account (user)).done @(details)
             continuation (nil, details)
@@ -59,11 +59,11 @@ There are some other things you can do with `continuation`, like for example, re
 
 This program calls the `continuation` repeatedly forever. The code below the call to `deja vu!` will be executed ad infinitum:
 
-    deja vu! =
+    dejaVu()! =
         while (true)
             continuation ()
     
-    deja vu!
+    dejaVu()!
     
     console.log 'are we there yet?'
 
@@ -78,22 +78,22 @@ Not a very useful program.
 
 The following program illustrates a simple search and rewind pattern which forms the basis of Prolog's execution strategy. The idea is that you search for the correct result, but if you fail, just rewind and try again:
 
-    start search! =
-        try again () =
-            continuation (nil, try again)
+    startSearch! =
+        tryAgain () =
+            continuation (nil, tryAgain)
 
-        try again ()
+        tryAgain ()
 
-    find a number greater than! (n) =
+    findANumberGreaterThan! (n) =
         i = 0
-        try again = start search!
+        tryAgain = startSearch!
         
         console.log "trying #(i)"
         if (i > n)
             continuation (nil, i)
         else
             ++i
-            try again ()
+            tryAgain ()
 
     console.log "yay, found #(find a number greater than! 3)"
 

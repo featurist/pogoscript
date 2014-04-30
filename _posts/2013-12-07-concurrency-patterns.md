@@ -15,7 +15,7 @@ Anything following the call made with the `!` operator is done after the asynchr
 
 Here the asynchronous `fs.read file` is invoked and the contents are printed out. The `console.log` isn't called until `fs.read file` is fully completed and has called its asynchronous callback.
 
-    content = fs.read file ('a.txt', 'utf-8')!
+    content = fs.readFile ('a.txt', 'utf-8')!
     console.log (content)
 
 This compiles to (roughly) the following Javascript:
@@ -30,7 +30,7 @@ This compiles to (roughly) the following Javascript:
 
 You can form expressions using the result of an asynchronous function too:
 
-    console.log (fs.read file ('a.txt' 'utf-8')!)
+    console.log (fs.readFile ('a.txt' 'utf-8')!)
 
 ## Errors
 
@@ -39,7 +39,7 @@ If an error occurs while executing `fs.read file`, then `console.log` will not b
 In PogoScript, errors from asynchronous functions follow regular exception semantics as found in (non-async) JavaScript and many other languages. You can catch the exception using a `try catch` expression:
 
     try
-        content = fs.read file ('a.txt', 'utf-8')!
+        content = fs.readFile ('a.txt', 'utf-8')!
         console.log (content)
     catch (error)
         console.log (error)
@@ -59,19 +59,19 @@ To wait for and get the result of the future, we use the `!` operator again.
 
 For example, here we start the asynchronous operation `fs.read file`, then perform some computation while it completes, then we synchronise on its completion by calling the future with the `!` operator, which yields the contents. In this script, `contents` represents the _future result_ of `fs.read file`'s output.
 
-    contents = fs.read file 'a.txt' 'utf-8'?
+    contents = fs.readFile 'a.txt' 'utf-8'?
     
-    perform some lengthy computation ()
+    performSomeLengthyComputation ()
 
     console.log (contents!)
 
 In another example, we start two asynchronous read file operations, for `a.txt` and `b.txt`, letting them run concurrenly. We then synchronise on both of them, waiting for them both to finish:
 
-    contents a = fs.read file 'a.txt' 'utf-8'?
-    contents b = fs.read file 'b.txt' 'utf-8'?
+    contentsA = fs.readFile 'a.txt' 'utf-8'?
+    contentsB = fs.readFile 'b.txt' 'utf-8'?
 
-    console.log (contents a!)
-    console.log (contents b!)
+    console.log (contentsA!)
+    console.log (contentsB!)
 
 It doesn't matter which one finishes first, we still wait only as long as the longest to complete.
 
@@ -79,7 +79,7 @@ It doesn't matter which one finishes first, we still wait only as long as the lo
 
 If the operation threw an exception, invoking the future rethrows the exception.
 
-    contents = fs.read file 'a.txt' 'utf-8'?
+    contents = fs.readFile 'a.txt' 'utf-8'?
 
     try
         console.log (contents!)
@@ -151,7 +151,7 @@ You have an expensive or long running operation to perform, so you decide that i
 
 Our expensive operation here is `prepare index`. You want to start this early on in your app startup by calling it with `?` so we don't block:
 
-    index = prepare index?
+    index = prepareIndex?
 
 Now `index` is a future, you can call on this when you need it. In the meantime, the `prepare index` operation is off getting it ready in the background. The nice thing about futures is that you can call it multiple times and always receive the same result.
 
@@ -170,7 +170,7 @@ Here we have `search` which accepts a query argument `q`. We want to cache each 
     cache = {}
 
     search (q)! =
-        result = cache.(q) = cache.(q) @or http.get "/search?q=#(encode URI component (q))"?
+        result = cache.(q) = cache.(q) @or http.get "/search?q=#(encodeURIComponent (q))"?
         result!
 
 The nice thing about this approach is that is solves the "cold start" problem in caching. If the cache isn't populated and there are lots of initial requests for the same query, the search is still performed lots of times because the cache isn't populated until the first result is received. With this approach the cache is populated with the *future* on the first request for the query, and all subsequent queries use that, regardless if the search had completed or not.
@@ -180,9 +180,9 @@ As is usually the case with caches, you will want to give entries a **time to li
     cache = {}
 
     search (q)! =
-        result = cache.(q) = cache.(q) @or http.get "/search?q=#(encode URI component (q))"?
+        result = cache.(q) = cache.(q) @or http.get "/search?q=#(encodeURIComponent (q))"?
 
-        set timeout
+        setTimeout
             cache.(q) = nil
         10000
 
@@ -194,7 +194,7 @@ Of course, with futures you can start operations without caring about when (or i
 
     @{
         try
-            fs.write file 'a.txt' 'some text'!
+            fs.writeFile 'a.txt' 'some text'!
             console.log "wrote `a.txt'"
         catch (ex)
             console.log ('could not write to `a.txt`', ex)

@@ -58,17 +58,17 @@ And yes, concurrency, the interesting bit! The new list comprehensions are concu
 
 Lets start with a common use case, well for me anyway: making concurrent HTTP requests.
 
-    documents = [id <- document ids, http.get "/documents/#(id)"!]
+    documents = [id <- documentIds, http.get "/documents/#(id)"!]
 
 Unlike the previous list comprehension, this expression won't wait for the first HTTP request to complete before moving onto the next one.
 
 Another example, this time really taking advantage of list comprehensions:
 
-    cities in (country codes) containing (population) people or more = [
-        country code <- country codes
-        country = http.get "/countries/#(country code)"!
-        city name <- country.cities
-        city = http.get "/cities/#(city name)"!
+    citiesIn (countryCodes) containing (population) peopleOrMore = [
+        countryCode <- countryCodes
+        country = http.get "/countries/#(countryCode)"!
+        cityName <- country.cities
+        city = http.get "/cities/#(cityName)"!
         city.population > population
         city
     ]
