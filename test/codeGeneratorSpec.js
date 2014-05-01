@@ -2,12 +2,18 @@ var cg = require('../lib/parser/codeGenerator').codeGenerator();
 var MemoryStream = require('../lib/memorystream').MemoryStream;
 var should = require('should');
 var _ = require('underscore');
+var sm = require('source-map');
 
 var shouldContainFields = require('./containsFields.js').containsFields;
 
 describe('code generator', function () {
+  function serialise(code) {
+    return new sm.SourceNode (0, 0, 0, code).toString();
+  }
+
   var generatesExpression = function (term, expectedGeneratedCode, print) {
-    var code = term.generate(new cg.SymbolScope());
+    var code = serialise(term.generate(new cg.SymbolScope()));
+
     if (print) {
       console.log(code);
     }
@@ -15,12 +21,12 @@ describe('code generator', function () {
   };
   
   var generatesStatement = function(term, expectedGeneratedCode) {
-    var code = term.generateStatement(new cg.SymbolScope());
+    var code = serialise(term.generateStatement(new cg.SymbolScope()));
     should.equal(code, expectedGeneratedCode);
   };
   
   var generatesStatements = function(term, expectedGeneratedCode, global, print) {
-    var code = term.generateStatements(new cg.SymbolScope(), {inClosure: true, global: global});
+    var code = serialise(term.generateStatements(new cg.SymbolScope(), {inClosure: true, global: global}));
     if (print)
         console.log(stream.toString())
     should.equal(code, expectedGeneratedCode);

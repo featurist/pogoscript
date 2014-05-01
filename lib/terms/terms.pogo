@@ -311,6 +311,9 @@ module.exports (cg) =
 
         generate statement (scope) =
             self.code (self.generate (scope), ';')
+
+        generate function (scope) =
+            self.generate (scope)
     }
 
     term prototype = new (Term)

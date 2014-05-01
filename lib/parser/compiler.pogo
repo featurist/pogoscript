@@ -11,7 +11,21 @@ beautify (code) =
     ast.print (stream)
     stream.toString ()
 
-exports.generateCode (term, terms, inScope: true, global: false, returnResult: false, outputFilename: outputFilename) =
+serialise (code) =
+    if (code :: sm.SourceNode)
+        code
+    else
+        @new sm.SourceNode (0, 0, 0, code)
+
+exports.generateCode (
+    term
+    terms
+    inScope: true
+    global: false
+    returnResult: false
+    outputFilename: outputFilename
+    sourceMap: false
+) =
     moduleTerm = terms.module (
         term
         inScope: inScope
@@ -19,7 +33,12 @@ exports.generateCode (term, terms, inScope: true, global: false, returnResult: f
         returnLastStatement: returnResult
     )
 
-    output = moduleTerm.generateModule ().toStringWithSourceMap (file: outputFilename)
+    code = serialise (moduleTerm.generateModule ())
+
+    if (sourceMap)
+        code.toStringWithSourceMap (file: outputFilename)
+    else
+        code.toString ()
 
 exports.compile (
     pogo
@@ -39,7 +58,7 @@ exports.compile (
     if (async)
         statements.asyncify (returnCallToContinuation: returnResult)
 
-    output = exports.generateCode (statements, terms, inScope: inScope, global: global, returnResult: returnResult, outputFilename: outputFilename)
+    output = exports.generateCode (statements, terms, inScope: inScope, global: global, returnResult: returnResult, outputFilename: outputFilename, sourceMap: true)
 
     if (parser.errors.hasErrors ())
         memoryStream = new (ms.MemoryStream)

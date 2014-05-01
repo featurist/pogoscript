@@ -30,7 +30,7 @@ module.exports (terms) =
       
         generate (scope) =
             self.generateIntoBuffer @(buffer)
-                buffer.write (self.function.generate (scope))
+                buffer.write (self.function.generateFunction (scope))
 
                 args = codegenUtils.concatArgs (
                     self.functionArguments

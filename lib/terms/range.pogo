@@ -16,9 +16,9 @@ module.exports (terms) = terms.term {
             )
         )
 
-    generateJavaScript (buffer, scope) =
+    generate (scope) =
         if (self.inList)
-            terms.functionCall (self.range, self.items).generateJavaScript (buffer, scope)
+            terms.functionCall (self.range, self.items).generate (scope)
         else
-            terms.errors.addTerm (self) withMessage 'range operator can only be used in a list, as in [1..3]'
+            terms.errors.addTerm (self) withMessage 'range operator can only be used in a list, as in [1..3]'.generate (scope)
 }

@@ -94,7 +94,12 @@ exports.repl () =
         terms = createTerms ()
 
         terms.moduleConstants.onEachNewDefinition @(d)
-            definitionJs = exports.generateCode (terms.statements [d], terms, inScope: false, global: true)
+            definitionJs = exports.generateCode (
+                terms.statements [d]
+                terms
+                inScope: false
+                global: true
+            )
             eval (definitionJs)
 
         js = compilePogo (source, filename, terms)

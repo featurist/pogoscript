@@ -189,10 +189,12 @@ module.exports (terms) =
 
                 buffer.write ('}')
 
-        generate java script function (buffer, scope) =
-            buffer.write '('
-            self.generate java script (buffer, scope)
-            buffer.write ')'
+        generate function (scope) =
+            self.code (
+                '('
+                self.generate (scope)
+                ')'
+            )
 
         generate self assignment () =
             if (self.redefines self)

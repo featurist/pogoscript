@@ -12,7 +12,7 @@ module.exports (terms) =
                 splatArguments = terms.splatArguments (self.items)
 
                 if (splatArguments)
-                    splatArguments.generateJavaScript (buffer, scope)
+                    buffer.write (splatArguments.generate (scope))
                 else
                     buffer.write ('[')
                     codegenUtils.writeToBufferWithDelimiter (self.items, ',', buffer, scope)
