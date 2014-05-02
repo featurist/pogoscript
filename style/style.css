@@ -16,6 +16,10 @@ pre {
   line-height: 18px;
 }
 
+p {
+  line-height: 22px;
+}
+
 pre {
   position: relative;
 }
