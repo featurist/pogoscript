@@ -4,7 +4,7 @@ layout: doc
 
 # Syntax Changes
 
-I've made some syntax changes to PogoScript. My motivations being mainly to reduce the WTF-ness of the original syntax. Programming language syntax being mostly about usability, I think that its important to use familiar syntax for familiar language features unless we have a good reason not to.
+I've made some syntax changes to Pogoscript. My motivations being mainly to reduce the WTF-ness of the original syntax. Programming language syntax being mostly about usability, I think that its important to use familiar syntax for familiar language features unless we have a good reason not to.
 
 So...
 
@@ -36,11 +36,11 @@ Should be rewritten:
         .method(arg)
         .field;
 
-If we allowed omitted self, the same code in PogoScript would be very different, and possibly confusing.
+If we allowed omitted self, the same code in Pogoscript would be very different, and possibly confusing.
 
 ## No Argument Calls and Definitions
 
-Now there's only one way to call a function with no arguments: we use empty parenthesis, `()`. PogoScript doesn't allow question mark (`?`) or exclamation mark (`!`). So this:
+Now there's only one way to call a function with no arguments: we use empty parenthesis, `()`. Pogoscript doesn't allow question mark (`?`) or exclamation mark (`!`). So this:
 
     do something!
     current state?

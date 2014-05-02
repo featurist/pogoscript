@@ -4,7 +4,7 @@ guide: Functions
 weight: 2
 ---
 
-Variables are the building blocks, but functions have all the fun. In PogoScript functions are called by passing arguments. Arguments can be numbers, strings or other expressions like variables or indeed the results of other functions.
+Variables are the building blocks, but functions have all the fun. In Pogoscript functions are called by passing arguments. Arguments can be numbers, strings or other expressions like variables or indeed the results of other functions.
 
     is (wind speed) strong enough for my kite
 

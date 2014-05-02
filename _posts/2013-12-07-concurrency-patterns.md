@@ -3,7 +3,7 @@ layout: post
 title: Concurrency Patterns
 ---
 
-Concurrency in PogoScript is based on Node's support for non-blocking, asynchronous IO. Node may be single-threaded, but it can launch and coordinate thousands of concurrently running IO operations, and this is why Node is such a fascinating and exciting technology. PogoScript's native support for concurrency makes writing and maintaining highly concurrent applications a refreshingly pleasant experience.
+Concurrency in Pogoscript is based on Node's support for non-blocking, asynchronous IO. Node may be single-threaded, but it can launch and coordinate thousands of concurrently running IO operations, and this is why Node is such a fascinating and exciting technology. PogoScript's native support for concurrency makes writing and maintaining highly concurrent applications a refreshingly pleasant experience.
 
 # Sequence
 
@@ -36,7 +36,7 @@ You can form expressions using the result of an asynchronous function too:
 
 If an error occurs while executing `fs.read file`, then `console.log` will not be executed. In JavaScript, this happens when an error is returned as the first argument to the callback.
 
-In PogoScript, errors from asynchronous functions follow regular exception semantics as found in (non-async) JavaScript and many other languages. You can catch the exception using a `try catch` expression:
+In Pogoscript, errors from asynchronous functions follow regular exception semantics as found in (non-async) JavaScript and many other languages. You can catch the exception using a `try catch` expression:
 
     try
         content = fs.readFile ('a.txt', 'utf-8')!
@@ -102,7 +102,7 @@ This is true with errors too of course.
 
 # Concurrent List Processing
 
-[List comprehensions](/2013/11/29/list-comprehensions.html) are concurrent in PogoScript. This allows you to make asynchronous operations over lists concurrent. This includes calling asynchronous functions to filter, map and even generate more lists. See the [docs](/2013/11/29/list-comprehensions.html) for a more thorough introduction.
+[List comprehensions](/2013/11/29/list-comprehensions.html) are concurrent in Pogoscript. This allows you to make asynchronous operations over lists concurrent. This includes calling asynchronous functions to filter, map and even generate more lists. See the [docs](/2013/11/29/list-comprehensions.html) for a more thorough introduction.
 
 Here we have a list of URLs and we make requests for all of them:
 

@@ -150,7 +150,7 @@ Methods and functions can take optional arguments, in the form of a hash passed 
 
 ## No Built-in Keywords
 
-There are no keywords in PogoScript. All control structures use the same syntax rules as regular functions and methods, so it's very easy to write your own control structures:
+There are no keywords in Pogoscript. All control structures use the same syntax rules as regular functions and methods, so it's very easy to write your own control structures:
 
     unless (condition, block) =
         if (!condition)
@@ -181,4 +181,4 @@ What about a multi-line control structure?
 
 # More
 
-[joshski](http://github.com/joshski) has put together a page showing [how PogoScript translates into JavaScript](http://featurist.github.com/pogo-examples). You can examine the [cheat sheet](cheatsheet.pdf), or head to the [home page](http://pogoscript.org/) page.
+[joshski](http://github.com/joshski) has put together a page showing [how Pogoscript translates into JavaScript](http://featurist.github.com/pogo-examples). You can examine the [cheat sheet](cheatsheet.pdf), or head to the [home page](http://pogoscript.org/) page.

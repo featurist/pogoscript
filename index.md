@@ -127,7 +127,7 @@ Methods and functions can take optional arguments, in the form of a hash passed 
 
 ## No Built-in Keywords
 
-There are no keywords in PogoScript. All control structures use the same syntax rules as regular functions and methods, so it's very easy to write your own control structures:
+There are no keywords in Pogoscript. All control structures use the same syntax rules as regular functions and methods, so it's very easy to write your own control structures:
 
     unless (condition, block) =
         if (!condition)
@@ -210,12 +210,14 @@ Will produce `helloWorld.js`.
 
 # Tools
 
-[grunt-pogo](https://github.com/leecrossley/grunt-pogo) by [Lee Crossley](https://github.com/leecrossley) for compiling your pogoscripts with Grunt.js.
+[grunt-pogo](https://github.com/leecrossley/grunt-pogo) by [Lee Crossley](https://github.com/leecrossley) for compiling your pogoscripts with **Grunt**.
 
-[pogoify](https://github.com/featurist/pogoify) by [Josh Chisholm](https://github.com/joshski), a plugin for browserify that compiles your pogoscript files into browserify bundles. Really really useful.
+[gulp-pogo](https://github.com/dereke/gulp-pogo) by [Derek Ekins](https://github.com/dereke) for compiling your pogoscripts with **Gulp**.
+
+[pogoify](https://github.com/featurist/pogoify) by [Josh Chisholm](https://github.com/joshski), a plugin for **Browserify** that compiles your pogoscript files into browserify bundles.
 
 # Credits
 
-PogoScript was developed by Tim Macfarlane: [github.com/refractalize](http://github.com/refractalize), [@refractalize](http://twitter.com/refractalize), [blog.refractalize.org](http://blog.refractalize.org/).
+Pogoscript was developed by Tim Macfarlane: [github.com/refractalize](http://github.com/refractalize), [@refractalize](http://twitter.com/refractalize), [blog.refractalize.org](http://blog.refractalize.org/).
 
 Tim runs [Featurist](http://featurist.co.uk/) with [Josh Chisholm](http://github.com/joshski) and [Adrian Longley](http://github.com/adiel), a small software development consultancy based in London.
