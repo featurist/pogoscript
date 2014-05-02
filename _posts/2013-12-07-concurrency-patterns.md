@@ -143,7 +143,7 @@ Or we can just filter out the broken pages:
 
 ## MORE
 
-* [List Comprehensions](http://pogoscript.org/2013/11/29/list-comprehensions.html)
+* [List Comprehensions](/2013/11/29/list-comprehensions.html)
 
 # Early Start
 

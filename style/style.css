@@ -1,0 +1,170 @@
+a {
+  padding: 2px 4px;
+  color: inherit;
+}
+
+a:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+pre {
+  margin-left: 3px;
+  padding: 20px;
+  position: relative;
+  background-color: #fafafa;
+  border-left: 5px solid rgba(0, 0, 0, 0.16);
+  line-height: 18px;
+}
+
+pre {
+  position: relative;
+}
+
+pre code {
+  background-color: inherit;
+  padding: 0;
+}
+
+code {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 2px 4px;
+}
+
+h1 {
+  margin-top: 50px;
+  border-bottom: 3px solid rgba(0, 0, 0, 0.05);
+  padding-bottom: 5px;
+}
+
+h2 {
+  margin-top: 30px;
+  border-bottom: 1pt solid rgba(0, 0, 0, 0.05);
+  padding-bottom: 3px;
+}
+
+h1, h2, h3, h4 {
+  font-family: sans-serif;
+}
+
+h1 a, h2 a, h3 a, h4 a {
+  text-decoration: none;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+h1 a:hover, h2 a:hover, h3 a:hover, h4 a:hover {
+  text-decoration: underline;
+}
+
+.header h1 {
+  font-size: 50px;
+  margin-bottom: 0;
+}
+
+.header .tagline {
+  text-align: right;
+  margin-top: 3px;
+}
+
+.header .menu {
+  padding-left: 0;
+  text-align: justify;
+  text-justify: distribute-all-lines;
+}
+
+.header .links {
+  margin: 0 auto;
+  margin-top: 40px;
+  text-align: center;
+}
+
+.header .links li {
+  display: block;
+}
+
+.header .links li a {
+  text-decoration: none;
+  background-color: #fafafa;
+  padding: 5px 10px;
+}
+
+.header .links li .fa {
+  font-size: 20px;
+  
+  vertical-align: bottom;
+}
+
+.header .links li a:hover {
+  text-decoration: underline;
+}
+
+.header .links li pre {
+  width: auto;
+  display: inline-block;
+  padding: 5px 10px;
+}
+
+.header .menu:after {
+  content: '';
+  display: inline-block;
+  width: 100%;  
+}
+
+.header .menu li {
+  display: inline-block;
+  list-style-type: none;
+  vertical-align: top;
+}
+
+.header .menu li {
+  display: inline-block;
+  list-style-type: none;
+  vertical-align: top;
+}
+
+.header .menu li ul {
+  padding-left: 0;
+  list-style-type: none;
+  display: block;
+}
+
+.header .menu li ul li {
+  list-style-type: none;
+  display: block;
+}
+
+.header .menu li ul li a {
+  text-decoration: none;
+}
+
+.header .menu li ul li a .date {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+body {
+  width: 700px;
+  margin: 0 auto;
+}
+
+.keyword {
+  font-weight: 700;
+}
+.operator {
+  color: #FF346D;
+}
+.bracket {
+  color: #00D82B;
+}
+.number {
+  color: #5071F7;
+}
+.string {
+  color: #1A00D8;
+  background-color: rgba(195, 217, 255, 0.15);
+}
+.interpolated {
+  color: #3d0000;
+}
+.comment {
+  color: #32b544;
+}
