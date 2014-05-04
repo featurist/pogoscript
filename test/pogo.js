@@ -9631,7 +9631,7 @@ require.register("pogoscript-tests/test/asyncStatementsSpec.js", function(export
                 });
             });
             describe("when there is one async call, with no statements after it", function() {
-                return it("passes the outer callback function as the last argument", function() {
+                return it("passes the outer continuation function as the last argument", function() {
                     var statements;
                     statements = terms.asyncStatements([ terms.functionCall(terms.variable([ "async", "func" ]), [ terms.variable([ "arg" ]) ], {
                         async: true

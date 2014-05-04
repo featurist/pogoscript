@@ -21,7 +21,7 @@ module.exports (terms) = terms.term {
                 else
                     []
 
-            terms.function call (terms.callback function, arguments)
+            terms.function call (terms.continuation function, arguments)
         else
             self
 }

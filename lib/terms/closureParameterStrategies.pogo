@@ -102,9 +102,9 @@ module.exports (terms) = {
             strategy = strategy
 
             functionParameters () =
-                self.strategy.functionParameters ().concat (terms.callbackFunction)
+                self.strategy.functionParameters ().concat (terms.continuationFunction)
 
-            definedParameters () = strategy.definedParameters ().concat [terms.callbackFunction]
+            definedParameters () = strategy.definedParameters ().concat [terms.continuationFunction]
 
             generateJavaScriptParameterStatements (buffer, scope, args) =
                 gen (terms, ...) =
@@ -118,7 +118,7 @@ module.exports (terms) = {
                 a = terms.generatedVariable ['a']
 
                 gen ('var ', a, "=", continuationOrDefault, "(", args, ");")
-                gen (terms.callbackFunction, "=", a, '.continuation;')
+                gen (terms.continuationFunction, "=", a, '.continuation;')
                 gen ('var ', innerArgs, "=", a, '.arguments;')
 
                 functionParameters = self.strategy.functionParameters ()

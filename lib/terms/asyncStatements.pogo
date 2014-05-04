@@ -20,14 +20,14 @@ module.exports (terms) =
                             [{
                                 condition = error variable
                                 body = terms.statements [
-                                    terms.function call (terms.callback function, [error variable])
+                                    terms.function call (terms.continuation function, [error variable])
                                 ]
                             }]
                         )
                     ]
                 )
             else
-                terms.callback function
+                terms.continuation function
         else
             async stmts = put statements (
                 callback statements

@@ -6,7 +6,7 @@ module.exports (terms) =
         if (@not body.contains continuation ())
             body.rewrite result term @(term) into (async: true)
                 if (@not term.originally async)
-                    terms.return statement (terms.function call (terms.callback function, [terms.nil (), term]), implicit: true)
+                    terms.return statement (terms.function call (terms.continuation function, [terms.nil (), term]), implicit: true)
                 else
                     term
 
@@ -19,7 +19,7 @@ module.exports (terms) =
         terms.function call (
             rethrow errors
             [
-                terms.callback function
+                terms.continuation function
                 terms.closure (
                     [result variable]
                     body

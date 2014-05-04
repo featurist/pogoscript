@@ -113,7 +113,7 @@ module.exports (terms) =
                     future function
                     [
                         terms.closure (
-                            [terms.callback function]
+                            [terms.continuation function]
                             terms.statements [
                                 method call term (
                                     object
@@ -121,7 +121,7 @@ module.exports (terms) =
                                     args
                                     optional arguments: optional arguments
                                     originally async: true
-                                    async callback argument: terms.callback function
+                                    async callback argument: terms.continuation function
                                 )
                             ]
                         )

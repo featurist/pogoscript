@@ -24,7 +24,7 @@ describe 'statements term'
 
     describe 'returning last statement'
         context 'when async'
-            it 'calls a callback function'
+            it 'calls a continuation function'
                 statements = terms.statements [terms.variable ['a']]
                 statements.rewrite last statement to return (async: true)
 
@@ -32,7 +32,7 @@ describe 'statements term'
                     terms.statements [
                         terms.return statement (
                             terms.function call (
-                                terms.callback function
+                                terms.continuation function
                                 [terms.nil (), terms.variable ['a']]
                             )
                             implicit: true
@@ -57,7 +57,7 @@ describe 'statements term'
                         )
                         terms.return statement (
                             terms.function call (
-                                terms.callback function
+                                terms.continuation function
                                 [terms.nil (), terms.nil ()]
                             )
                             implicit: true

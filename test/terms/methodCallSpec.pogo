@@ -120,14 +120,14 @@ describe 'method call'
                     terms.generated variable ['future']
                     [
                         terms.closure (
-                            [terms.callback function]
+                            [terms.continuation function]
                             terms.statements [
                                 terms.method call (
                                     terms.variable ['object']
                                     ['method']
                                     [terms.variable ['arg']]
                                     originally async: true
-                                    async callback argument: terms.callback function
+                                    async callback argument: terms.continuation function
                                 )
                             ]
                         )

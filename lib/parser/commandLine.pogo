@@ -108,7 +108,7 @@ exports.repl () =
             callback ()
         else
             try
-                global.(terms.callbackFunction.canonicalName ()) = callback
+                global.(terms.continuationFunction.canonicalName ()) = callback
                 eval (js)
             catch (error)
                 callback (error)

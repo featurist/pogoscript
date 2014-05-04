@@ -83,7 +83,7 @@ describe 'async statements'
                 ])
 
         describe 'when there is one async call, with no statements after it'
-            it 'passes the outer callback function as the last argument'
+            it 'passes the outer continuation function as the last argument'
                 statements = terms.async statements [
                     terms.function call (terms.variable ['async', 'func'], [terms.variable ['arg']], async: true)
                 ]
@@ -95,7 +95,7 @@ describe 'async statements'
                                 terms.variable ['async', 'func']
                                 [terms.variable ['arg']]
                                 originally async: true
-                                async callback argument: terms.callback function
+                                async callback argument: terms.continuation function
                             )
                         ]
                         async: true

@@ -226,7 +226,7 @@ describe 'closure parameter strategies'
                 } (continuation or default: terms.javascript 'continuationOrDefault')
 
             it 'requires the inner parameters and the callback'
-                should.deep equal (cb.function parameters (), [terms.variable ['a'], terms.variable ['b'], terms.callback function])
+                should.deep equal (cb.function parameters (), [terms.variable ['a'], terms.variable ['b'], terms.continuation function])
 
             it 'generates code to extract the callback and the other parameters'
                 generate statements from (cb).should.equal "var gen1_a=continuationOrDefault(args);continuation=gen1_a.continuation;var gen2_arguments=gen1_a.arguments;a=gen2_arguments[0];b=gen2_arguments[1];gen2_arguments;"
@@ -237,6 +237,6 @@ describe 'closure parameter strategies'
                     [
                         terms.variable ['a']
                         terms.variable ['b']
-                        terms.callback function
+                        terms.continuation function
                     ]
                 )

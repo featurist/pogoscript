@@ -41,7 +41,7 @@ module.exports (terms) =
                 self.else body.rewrite result term into (return term)
             else if (async)
                 self.else body = terms.statements [
-                    terms.function call (terms.callback function, [])
+                    terms.function call (terms.continuation function, [])
                 ]
 
             self
