@@ -107,26 +107,6 @@ module.exports (terms) = {
             definedParameters () = strategy.definedParameters ().concat [terms.continuationFunction]
 
             generateJavaScriptParameterStatements (buffer, scope, args) =
-                gen (terms, ...) =
-                    for each @(term) in (terms)
-                        if (term :: String)
-                            buffer.write (term)
-                        else
-                            buffer.write (term.generate (scope))
-
-                innerArgs = terms.generatedVariable ['arguments']
-                a = terms.generatedVariable ['a']
-
-                gen ('var ', a, "=", continuationOrDefault, "(", args, ");")
-                gen (terms.continuationFunction, "=", a, '.continuation;')
-                gen ('var ', innerArgs, "=", a, '.arguments;')
-
-                functionParameters = self.strategy.functionParameters ()
-                for (n = 0, n < function parameters.length, ++n)
-                    namedParam = self.strategy.functionParameters ().(n)
-
-                    gen (namedParam, "=", innerArgs, "[#(n)];")
-
-                self.strategy.generateJavaScriptParameterStatements (buffer, scope, innerArgs)
+                self.strategy.generateJavaScriptParameterStatements (buffer, scope, args)
         }
 }

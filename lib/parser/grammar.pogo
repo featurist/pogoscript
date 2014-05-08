@@ -134,6 +134,7 @@ exports.grammar = {
         call_operator [
             ['!', '$$ = yy.loc(yy.terms.asyncArgument(), @$);']
             ['?', '$$ = yy.loc(yy.terms.futureArgument(), @$);']
+            ['~', '$$ = yy.loc(yy.terms.callback(), @$);']
         ]
         terminal [
             ['( arguments )', '$$ = yy.loc(yy.terms.argumentList($arguments), @$);']
@@ -150,6 +151,7 @@ exports.grammar = {
             ['reg_exp', '$$ = yy.loc(yy.terms.regExp(yy.parseRegExp(yy.unindentBy(yytext, @$.first_column + 2))), @$);']
             ['interpolated_string', '$$ = yy.loc($1, @$);']
             ['...', '$$ = yy.loc(yy.terms.splat(), @$);']
+            ['^', '$$ = yy.loc(yy.terms.callback(), @$);']
         ]
         block_start [
             ['@ {', '$$ = ''@{''']
@@ -158,6 +160,7 @@ exports.grammar = {
         unary_operator [
             ['operator', '$$ = $1;']
             ['!', '$$ = $1;']
+            ['~', '$$ = $1;']
         ]
         interpolated_terminal [
             ['( statement )', '$$ = $2;']

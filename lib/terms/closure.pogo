@@ -83,6 +83,22 @@ module.exports (terms) =
             options: closure.optional parameters
         )
 
+    promisifyBody (body) =
+      terms.statements [
+        terms.returnStatement (
+          terms.functionCall (
+            terms.variable ['promise']
+            [
+              terms.closure (
+                [terms.resolveFunction]
+                body
+                inPromise: true
+              )
+            ]
+          )
+        )
+      ]
+
     terms.term {
         constructor (
             parameters
@@ -92,14 +108,19 @@ module.exports (terms) =
             redefines self: false
             async: false
             defines module constants: false
+            inPromise: false
         ) =
             self.is block = true
             self.is closure = true
             self.parameters = parameters
-            self.body = body
+            self.body = if (body.isAsync @and @not inPromise)
+              promisifyBody (body)
+            else
+              body
+
             self.redefines self = redefines self
             self.optional parameters = optional parameters
-            self.make async (async || body.is async)
+            self.make async (async || self.body.is async)
             self.return last statement = return last statement
             self.defines module constants = defines module constants
 
@@ -115,9 +136,6 @@ module.exports (terms) =
 
         make async (a) =
             self.is async = a
-
-            if (a)
-                self.continuation or default = terms.continuation or default ()
       
         scopify () =
             if ((self.parameters.length == 0) @and (self.optional parameters.length == 0) @and @not self.notScope)
@@ -219,7 +237,7 @@ module.exports (terms) =
                 terms.closure parameter strategies.normal strategy (self.parameters)
 
             strategy = if (self.is async)
-                terms.closure parameter strategies.callback strategy (inner strategy, continuation or default: self.continuation or default)
+                terms.closure parameter strategies.callback strategy (inner strategy)
             else
                 inner strategy
 

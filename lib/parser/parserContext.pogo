@@ -1,53 +1,53 @@
 object = require './runtime'.object
 _ = require 'underscore'
-create indent stack = require './indentStack'.create indent stack
-create interpolation = require './interpolation'.create interpolation
+createIndentStack = require './indentStack'.createIndentStack
+createInterpolation = require './interpolation'.createInterpolation
 
-exports.create parser context =
-    create parser context (terms: nil, filename: nil) = {
+exports.createParserContext =
+    createParserContext (terms: nil, filename: nil) = {
         terms = terms
 
-        indent stack = create indent stack ()
+        indentStack = createIndentStack ()
 
         tokens (tokens) =
             self.lexer.tokens = tokens
             tokens.shift ()
 
-        set indentation (text) =
-            self.indent stack.set indentation (text)
+        setIndentation (text) =
+            self.indentStack.setIndentation (text)
 
-        unset indentation (token) =
-            tokens = self.indent stack.unset indentation ()
+        unsetIndentation (token) =
+            tokens = self.indentStack.unsetIndentation ()
             tokens.push (token)
             self.tokens (tokens)
 
         indentation (text) =
-            tokens = self.indent stack.tokens for new line (text)
+            tokens = self.indentStack.tokensForNewLine (text)
             self.tokens (tokens)
 
         eof () =
-            self.tokens (self.indent stack.tokens for eof ())
+            self.tokens (self.indentStack.tokensForEof ())
 
-        interpolation = create interpolation ()
+        interpolation = createInterpolation ()
         
-        lex operator (parser context, op) =
+        lexOperator (parserContext, op) =
           if (r/[?!][.;]/.test (op))
-            parser context.tokens [op.0, op.1]
-          else if (r/^(=>|\.\.\.|@:|[#@:!?,.=;]|:=)$/.test (op))
+            parserContext.tokens [op.0, op.1]
+          else if (r/^(=>|\.\.\.|@:|[~#@:!?,.=;]|:=)$/.test (op))
             op
           else
             'operator'
         
         loc (term, location) =
           loc = {
-            first line = location.first_line
-            last line = location.last_line
-            first column = location.first_column
-            last column = location.last_column
+            firstLine = location.first_line
+            lastLine = location.last_line
+            firstColumn = location.first_column
+            lastColumn = location.last_column
             filename = filename
           }
 
-          term.set location (loc)
+          term.setLocation (loc)
 
           term
 
@@ -56,10 +56,10 @@ exports.create parser context =
 
           string.replace (r, "\n")
 
-        normalise string (s) =
+        normaliseString (s) =
           s.substring (1, s.length - 1).replace (r/''/g, "'").replace ("\r", "")
 
-        parse reg exp (s) =
+        parseRegExp (s) =
           match = r/^r\/((\n|.)*)\/([^\/]*)$/.exec(s)
 
           {
@@ -67,7 +67,7 @@ exports.create parser context =
             options = match.3
           }
 
-        actual characters = [
+        actualCharacters = [
           [r/\r/g, '']
           [r/\\\\/g, "\\"]
           [r/\\b/g, "\b"]
@@ -81,52 +81,52 @@ exports.create parser context =
           [r/\\"/g, '"']
         ]
         
-        normalise interpolated string (s) =
-          for each @(mapping) in (self.actual characters)
+        normaliseInterpolatedString (s) =
+          for each @(mapping) in (self.actualCharacters)
             s := s.replace (mapping.0, mapping.1)
 
           s
 
-        compress interpolated string components (components) =
-            compressed components = []
-            last string = nil
+        compressInterpolatedStringComponents (components) =
+            compressedComponents = []
+            lastString = nil
 
             for each @(component) in (components)
-                if (!last string && component.is string)
-                    last string := component
-                    compressed components.push (last string)
-                else if (last string && component.is string)
-                    last string.string = last string.string + component.string
+                if (!lastString && component.isString)
+                    lastString := component
+                    compressedComponents.push (lastString)
+                else if (lastString && component.isString)
+                    lastString.string = lastString.string + component.string
                 else
-                    last string := nil
-                    compressed components.push (component)
+                    lastString := nil
+                    compressedComponents.push (component)
 
-            compressed components
+            compressedComponents
 
-        unindent string components (components) by (columns) =
+        unindentStringComponents (components) by (columns) =
             _.map (components) @(component)
-                if (component.is string)
+                if (component.isString)
                     self.terms.string (self.unindent (component.string) by (columns))
                 else
                     component
 
-        separate expression components (components) with strings =
-            separated components = []
-            last component was expression = false
+        separateExpressionComponents (components) withStrings =
+            separatedComponents = []
+            lastComponentWasExpression = false
 
             for each @(component) in (components)
-                if (last component was expression && !component.is string)
-                    separated components.push (self.terms.string '')
+                if (lastComponentWasExpression && !component.isString)
+                    separatedComponents.push (self.terms.string '')
 
-                separated components.push (component)
-                last component was expression := !component.is string
+                separatedComponents.push (component)
+                lastComponentWasExpression := !component.isString
 
-            separated components
+            separatedComponents
 
-        normalise string components (components) unindenting by (indent columns) =
-            self.separate expression components (
-                self.compress interpolated string components (
-                    self.unindent string components (components) by (indent columns)
+        normaliseStringComponents (components) unindentingBy (indentColumns) =
+            self.separateExpressionComponents (
+                self.compressInterpolatedStringComponents (
+                    self.unindentStringComponents (components) by (indentColumns)
                 )
-            ) with strings
+            ) withStrings
     }
