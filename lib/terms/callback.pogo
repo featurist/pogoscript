@@ -1,6 +1,6 @@
 module.exports (terms) = terms.term {
     constructor () =
-        self.is callback = true
+        self.isCallback = true
     
     parameter () =
         self

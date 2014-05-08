@@ -134,7 +134,6 @@ exports.grammar = {
         call_operator [
             ['!', '$$ = yy.loc(yy.terms.asyncArgument(), @$);']
             ['?', '$$ = yy.loc(yy.terms.futureArgument(), @$);']
-            ['~', '$$ = yy.loc(yy.terms.callback(), @$);']
         ]
         terminal [
             ['( arguments )', '$$ = yy.loc(yy.terms.argumentList($arguments), @$);']
@@ -160,7 +159,6 @@ exports.grammar = {
         unary_operator [
             ['operator', '$$ = $1;']
             ['!', '$$ = $1;']
-            ['~', '$$ = $1;']
         ]
         interpolated_terminal [
             ['( statement )', '$$ = $2;']

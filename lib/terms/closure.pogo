@@ -84,10 +84,16 @@ module.exports (terms) =
         )
 
     promisifyBody (body) =
+      promiseFunction = terms.moduleConstants.defineAs (
+        ['promise']
+        terms.javascript(asyncControl.promise.toString())
+      )
+
+
       terms.statements [
         terms.returnStatement (
           terms.functionCall (
-            terms.variable ['promise']
+            promiseFunction
             [
               terms.closure (
                 [terms.resolveFunction]
