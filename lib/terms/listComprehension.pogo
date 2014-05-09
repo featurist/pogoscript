@@ -33,6 +33,8 @@ module.exports (terms) =
 
         generate (isAsync, result, index) =
             if (isAsync)
+                promiseFunction = terms.promise()
+
                 listComprehension =
                     terms.moduleConstants.define ['list', 'comprehension'] as (
                         terms.javascript (asyncControl.listComprehension.toString ())
@@ -44,21 +46,22 @@ module.exports (terms) =
                 asyncStatements = terms.asyncStatements (self.next.generate (isAsync, innerResult, innerIndex))
 
                 call =
-                    terms.functionCall (
-                        listComprehension
-                        [
-                            self.collection
-                            terms.boolean (self.next.hasGenerator ())
-                            terms.closure (
-                                [
-                                    innerIndex
-                                    self.iterator
-                                    innerResult
-                                ]
-                                asyncStatements
-                            )
-                        ]
-                        async: true
+                    terms.resolve (
+                      terms.functionCall (
+                          listComprehension
+                          [
+                              self.collection
+                              terms.boolean (self.next.hasGenerator ())
+                              terms.closure (
+                                  [
+                                      innerIndex
+                                      self.iterator
+                                      innerResult
+                                  ]
+                                  asyncStatements
+                              )
+                          ]
+                      )
                     )
 
                 if (result)

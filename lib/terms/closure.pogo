@@ -84,9 +84,7 @@ module.exports (terms) =
         )
 
     promisifyBody (body) =
-      promiseFunction = terms.moduleConstants.define ['promise'] as (
-        terms.javascript(asyncControl.promise.toString())
-      )
+      promiseFunction = terms.promise()
 
       terms.moduleConstants.define ['Promise'] as (
         terms.javascript('require("es6-promise").Promise')

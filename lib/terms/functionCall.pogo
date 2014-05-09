@@ -83,8 +83,6 @@ module.exports (terms) =
         if (async)
             asyncResult = terms.asyncResult ()
 
-            terms.argumentUtils.asyncifyArguments (args, optionalArguments)
-
             return (
                 terms.subStatements [
                     terms.definition (

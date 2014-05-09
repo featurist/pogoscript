@@ -21,12 +21,16 @@
   },
   "main": "index.js",
   "devDependencies": {
-    "mocha": "",
-    "should": "",
-    "jison": "",
     "browserify": "",
+    "es6-promise": "~1.0.0",
     "glob": "",
-    "pogoify": ""
+    "install": "~0.1.7",
+    "jison": "",
+    "mocha": "^1.18.2",
+    "npm": "~1.4.10",
+    "pogoify": "",
+    "promises-aplus-tests": "^2.0.4",
+    "should": ""
   },
   "bugs": {
     "url": "https://github.com/featurist/pogoscript/issues"
