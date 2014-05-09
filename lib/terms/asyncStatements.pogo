@@ -1,71 +1,71 @@
 _ = require 'underscore'
-codegen utils = require('./codegenUtils')
-statements utils = require './statementsUtils'
+codegenUtils = require('./codegenUtils')
+statementsUtils = require './statementsUtils'
 
 module.exports (terms) =
-    create callback with statements (
-        callback statements
-        result variable: nil
-        force async: false
+    createCallbackWithStatements (
+        callbackStatements
+        resultVariable: nil
+        forceAsync: false
         global: false
-        contains continuation: contains continuation
+        containsContinuation: containsContinuation
     ) =
-        if ((callback statements.length == 1) && (callback statements.0.is async result))
-            if (contains continuation)
-                error variable = terms.generated variable ['error']
+        if ((callbackStatements.length == 1) && (callbackStatements.0.isAsyncResult))
+            if (containsContinuation)
+                errorVariable = terms.generatedVariable ['error']
                 terms.closure (
-                    [error variable]
+                    [errorVariable]
                     terms.statements [
-                        terms.if expression (
+                        terms.ifExpression (
                             [{
-                                condition = error variable
+                                condition = errorVariable
                                 body = terms.statements [
-                                    terms.function call (terms.continuation function, [error variable])
+                                    terms.functionCall (terms.continuationFunction, [errorVariable])
                                 ]
                             }]
                         )
                     ]
                 )
             else
-                terms.continuation function
+                terms.continuationFunction
         else
-            async stmts = put statements (
-                callback statements
-            ) in callback for next async call (
-                force async: force async
-                force not async: true
+            asyncStmts = putStatements (
+                callbackStatements
+            ) inCallbackForNextAsyncCall (
+                forceAsync: forceAsync
+                forceNotAsync: true
                 global: global
             )
-            terms.async callback (async stmts, result variable: result variable)
+            terms.asyncCallback (asyncStmts, resultVariable: resultVariable)
 
-    put statements (statements) in callback for next async call (force async: false, force not async: false, global: false, globalDefinitions: nil) =
-        contains continuation =
+    putStatements (statements) inCallbackForNextAsyncCall (forceAsync: false, forceNotAsync: false, global: false, globalDefinitions: nil) =
+        containsContinuation =
             if (statements.length > 0)
-                [stmt.contains continuation (), where: stmt <- statements].reduce @(l, r) @{l @or r}
+                [stmt.containsContinuation (), where: stmt <- statements].reduce @(l, r) @{l @or r}
             else
                 false
 
         for (n = 0, n < statements.length, ++n)
             statement = statements.(n)
-            async statement = statement.make async with callback for result @(result variable)
-                create callback with statements (
+            asyncStatement = statement.makeAsyncWithCallbackForResult @(resultVariable)
+                createCallbackWithStatements (
                     statements.slice (n + 1)
-                    result variable: result variable
-                    force async: force async
+                    resultVariable: resultVariable
+                    forceAsync: forceAsync
                     global: global
-                    contains continuation: contains continuation
+                    containsContinuation: containsContinuation
                 )
 
-            if (async statement)
-                first statements = statements.slice (0, n)
-                first statements.push (async statement)
+            if (asyncStatement)
+                firstStatements = statements.slice (0, n)
+                firstStatements.push (asyncStatement)
 
-                return (terms.statements (first statements, async: @not force not async, globalDefinitions: globalDefinitions))
+                return (terms.statements (firstStatements, async: @not forceNotAsync, globalDefinitions: globalDefinitions))
 
-        terms.statements (statements, async: force async)
+        terms.statements (statements, async: forceAsync)
 
-    async statements (statements, force async: false, global: false) =
+    asyncStatements (statements, forceAsync: false, global: false) =
         globalDefinitions = [s <- statements, s.isDefinition, s]
 
-        serialised statements = statements utils.serialise statements (statements)
-        put statements (serialised statements) in callback for next async call (force async: force async, global: global, globalDefinitions: globalDefinitions)
+        serialisedStatements = statementsUtils.serialiseStatements (statements)
+        putStatements (serialisedStatements) inCallbackForNextAsyncCall (forceAsync: forceAsync, global: global, globalDefinitions: globalDefinitions)

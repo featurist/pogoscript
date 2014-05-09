@@ -33,7 +33,7 @@ describe 'statements term'
                         terms.return statement (
                             terms.function call (
                                 terms.continuation function
-                                [terms.nil (), terms.variable ['a']]
+                                [terms.variable ['a']]
                             )
                             implicit: true
                         )
@@ -58,7 +58,7 @@ describe 'statements term'
                         terms.return statement (
                             terms.function call (
                                 terms.continuation function
-                                [terms.nil (), terms.nil ()]
+                                [terms.nil ()]
                             )
                             implicit: true
                         )

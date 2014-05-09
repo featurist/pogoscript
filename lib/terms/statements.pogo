@@ -41,7 +41,7 @@ module.exports (terms) = terms.term {
 
         self.rewrite result term @(term) into (async: async)
             if (async @and @not contains continuation)
-                call to continuation = terms.function call (terms.continuation function, [terms.nil (), term])
+                call to continuation = terms.function call (terms.continuation function, [term])
 
                 if (return call to continuation)
                     terms.return statement (call to continuation, implicit: true)

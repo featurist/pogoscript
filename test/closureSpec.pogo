@@ -20,7 +20,7 @@ describe 'closure'
                         terms.statements (
                             [
                                 terms.return statement (
-                                    terms.function call (terms.continuation function, [terms.nil (), terms.variable ['asdf']])
+                                    terms.function call (terms.continuation function, [terms.variable ['asdf']])
                                     implicit: true
                                 )
                             ]

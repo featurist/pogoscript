@@ -1,53 +1,36 @@
 module.exports (terms) =
-    module term = terms.term {
-        constructor (statements, global: false, return last statement: false, body statements: nil) =
+    moduleTerm = terms.term {
+        constructor (statements, global: false, returnLastStatement: false, bodyStatements: nil) =
             self.statements = statements
-            self.is module = true
+            self.isModule = true
             self.global = global
-            self.body statements = (body statements || statements)
+            self.bodyStatements = (bodyStatements || statements)
 
             if (global)
                 self.bodyStatements.makeDefinitionsGlobal ()
 
-        generate module () =
-            scope = new (terms.Symbol Scope (nil))
+        generateModule () =
+            scope = new (terms.SymbolScope (nil))
             self.code (
-                self.statements.generate statements (scope, global: self.global, in closure: true)
+                self.statements.generateStatements (scope, global: self.global, inClosure: true)
             )
     }
 
-    module (statements, in scope: true, global: false, return last statement: false, body statements: body statements) =
-        if (return last statement)
-            statements.rewrite last statement to return (async: false)
+    module (statements, inScope: true, global: false, returnLastStatement: false, bodyStatements: bodyStatements) =
+        if (returnLastStatement)
+            statements.rewriteLastStatementToReturn (async: false)
 
-        if (in scope)
-            scope = terms.closure ([], statements, return last statement: return last statement, redefines self: true, defines module constants: true)
+        if (inScope)
+            scope = terms.closure ([], statements, returnLastStatement: returnLastStatement, redefinesSelf: true, definesModuleConstants: true)
             args = [terms.variable (['this'])]
 
-            if (statements.is async)
-                error variable = terms.generated variable ['error']
-                throw if error = terms.if expression (
-                    [{
-                        condition = error variable
-                        body = terms.statements [
-                            terms.function call (
-                                terms.variable ['set', 'timeout']
-                                [
-                                    terms.closure (
-                                        []
-                                        terms.statements [
-                                            terms.throw statement (error variable)
-                                        ]
-                                    )
-                                    terms.integer 0
-                                ]
-                            )
-                        ]
-                    }]
-                )
-                args.push (terms.closure ([error variable], terms.statements [throw if error]))
+            methodCall = terms.methodCall (terms.subExpression (scope), ['call'], args)
+            call = if (statements.isAsync)
+              errorVariable = terms.generatedVariable ['error']
+              terms.methodCall (methodCall, ['then'], [terms.closure ([], terms.statements []), terms.closure ([errorVariable], terms.statements [terms.throwStatement (errorVariable)])])
+            else
+              methodCall
 
-            method call = terms.method call (terms.sub expression (scope), ['call'], args)
-            module term (terms.statements [method call], body statements: statements, global: global)
+            moduleTerm (terms.statements [call], bodyStatements: statements, global: global)
         else
-            module term (statements, global: global, return last statement: return last statement, body statements: body statements)
+            moduleTerm (statements, global: global, returnLastStatement: returnLastStatement, bodyStatements: bodyStatements)
