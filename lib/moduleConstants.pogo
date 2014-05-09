@@ -1,29 +1,32 @@
 class = require './class'.class
-codegen utils = require './terms/codegenUtils'
+codegenUtils = require './terms/codegenUtils'
 
 module.exports (terms) =
-    module constants = terms.term {
+    moduleConstants = terms.term {
         constructor () =
-            self.named definitions = {}
+            self.namedDefinitions = {}
             self.listeners = []
 
-        define (name) as (expression) =
-            canonical name = codegen utils.concat name (name)
+        define (name) as (expression, generated: true) =
+            canonicalName = codegenUtils.concatName (name)
 
-            existing definition = self.named definitions.(canonical name)
+            existingDefinition = self.namedDefinitions.(canonicalName)
 
-            if (existing definition)
-                existing definition.target
+            if (existingDefinition)
+                existingDefinition.target
             else
-                variable = terms.generated variable (name)
+                variable = if (generated)
+                  terms.generatedVariable (name)
+                else
+                  terms.variable (name)
 
-                self.named definitions.(canonical name) =
+                self.namedDefinitions.(canonicalName) =
                     definition = terms.definition (
                         variable
                         expression
                     )
 
-                    self.notify new definition (definition)
+                    self.notifyNewDefinition (definition)
                     
                     definition
 
@@ -31,22 +34,22 @@ module.exports (terms) =
 
         definitions () =
             defs = []
-            for @(name) in (self.named definitions)
-                definition = self.named definitions.(name)
+            for @(name) in (self.namedDefinitions)
+                definition = self.namedDefinitions.(name)
 
                 defs.push (definition)
 
             defs
 
-        notify new definition (d) =
+        notifyNewDefinition (d) =
             for each @(listener) in (self.listeners)
                 listener (d)
 
-        on each new definition (block) =
+        onEachNewDefinition (block) =
             self.listeners.push (block)
 
         generate (scope) =
-            self.generate into buffer @(buffer)
+            self.generateIntoBuffer @(buffer)
                 for each @(def) in (self.definitions ())
                     buffer.write 'var '
                     buffer.write (def.generate (scope))
