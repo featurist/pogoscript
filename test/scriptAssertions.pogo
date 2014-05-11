@@ -8,7 +8,7 @@ chomp (s) =
 
 exports.evaluateScript (script) =
     printedItems = []
-    
+
     print (arg) =
         printedItems.push (arg)
 
@@ -24,8 +24,9 @@ exports.evaluateScript (script) =
       .join "\n"
 
     if (r @and (r.then :: Function))
-      r!
-      collatePrintedItems()
+      fork
+        r!
+        collatePrintedItems()
     else
       collatePrintedItems()
 
@@ -35,13 +36,14 @@ exports.(script) shouldOutput (expectedOutput) =
     result = exports.evaluateScript (script)
 
     if (result @and (typeof (result.then) == 'function'))
-        assertion (result!)
+        fork
+          assertion (result!)
     else
         assertion (result)
 
 exports.evaluateAsyncScript (script, done) =
     printedItems = []
-    
+
     print (arg) =
         printedItems.push (arg)
 
@@ -55,13 +57,12 @@ exports.evaluateAsyncScript (script, done) =
                 util.inspect (item)
             .join "\n"
         )
-    
+
     compiler.evaluate (script, definitions: {
         print = print
         done = returnPrintedOutput
         async = async
     })
-    
 
 exports.async (script) shouldOutput (expectedOutput, done) =
     exports.evaluateAsyncScript (script) @(error, result)
@@ -74,34 +75,18 @@ exports.async (script) shouldOutput (expectedOutput, done) =
             catch (ex)
                 done (ex)
 
-(x) isPromise =
-  x @and (x.then :: Function)
-
 fork (block) =
   block ()
 
-exports.(script) shouldThrow (expectedError) =
+exports.(script) should throw (expected error) =
     failed = false
     
-    promise = try
-        console.log 'calling script'
-        result = exports.evaluateScript (script)
-        if ((result) isPromise)
-          console.log 'we have promise'
-          fork
-            try
-              console.log 'resolving result'
-              result!
-              failed = true
-            catch (error)
-              console.log "have error: #(error)"
-              should.equal (error.toString(), expectedError)
-        else
-          failed := true
+    try
+        exports.evaluate script (script)
+        failed := true
     catch (ex)
-        should.equal (ex.toString (), expectedError)
+        should.equal (ex.to string () , expected error)
     
     if (failed)
-        should.fail "expected #(expectedError)"
-    else
-        promise
+        should.fail "expected #(expected error)"
+    

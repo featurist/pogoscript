@@ -168,6 +168,12 @@ describe 'functions'
                                    'running a'
                                    'a'"
 
+    it 'can return a promise just by adding ! to the name'
+      'f()! = 6
+       
+       f().then @(result)
+         print (result)' shouldOutput '6'
+
     describe 'throwing exceptions'
       context 'when the exception is thrown before a promise is resolved in the body'
         it 'only throws the exception when the promise is resolved'
@@ -175,22 +181,22 @@ describe 'functions'
              @throw @new Error "uh oh"
              promise "result"!
 
-           a()!' shouldThrow "uh oh"
+           p = a()
 
-  describe 'calling asynchronous functions'
-    context 'when there are no arguments'
-      it 'can call an asynchronous function synchronously'
-        'f()! = 5
+           try
+             p!
+           catch (error)
+             print (error.message)' shouldOutput "'uh oh'"
 
-         print (f ())' shouldOutput '5'
+      context 'when the exception is thrown after a promise is resolved in the body'
+        it 'only throws the exception when the promise is resolved'
+          'a() =
+             promise "result"!
+             @throw @new Error "uh oh"
 
-    context 'when there is one argument'
-      it 'can call an asynchronous function synchronously'
-        'f (n)! = n + 1
+           p = a()
 
-         print (f (4))' shouldOutput '5'
-
-      it 'can call an asynchronous function asynchronously without first argument'
-        'f (n)! = n
-
-         print (f ()!)' shouldOutput 'undefined'
+           try
+             p!
+           catch (error)
+             print (error.message)' shouldOutput "'uh oh'"

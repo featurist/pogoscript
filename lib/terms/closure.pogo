@@ -98,6 +98,7 @@ module.exports (terms) =
                   [terms.resolveFunction]
                   body
                   inPromise: true
+                  async: true
                 )
               ]
             )
@@ -116,12 +117,13 @@ module.exports (terms) =
             async: false
             defines module constants: false
             inPromise: false
+            returnPromise: false
         ) =
             self.is block = true
             self.is closure = true
             self.parameters = parameters
 
-            if (body.isAsync @and @not inPromise)
+            if ((body.isAsync @or returnPromise) @and @not inPromise)
               self.body = promisifyBody (body)
               self.returnsPromise = true
             else
@@ -133,9 +135,13 @@ module.exports (terms) =
             self.return last statement = return last statement
             self.defines module constants = defines module constants
 
-        blockify (parameters, optional parameters: [], redefines self: nil) =
+        blockify (parameters, optional parameters: [], returnPromise: false, redefines self: nil) =
             self.parameters = parameters
             self.optional parameters = optional parameters
+
+            if (returnPromise @and @not self.returnsPromise)
+              self.body = promisifyBody(self.body)
+              self.returnsPromise = true
 
             if (redefines self != nil)
                 self.redefines self = redefines self
@@ -148,10 +154,8 @@ module.exports (terms) =
         scopify () =
             if ((self.parameters.length == 0) @and (self.optional parameters.length == 0) @and @not self.notScope)
                 if (self.body.returnsPromise)
-                    console.log 'is promise'
                     terms.resolve (terms.function call (self, []))
                 else
-                    console.log 'is not promise'
                     terms.scope (self.body.statements, async: false)
             else
                 self
