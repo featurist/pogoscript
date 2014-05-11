@@ -1,13 +1,51 @@
 script = require './scriptAssertions'
 
-should output = script.should output
+shouldOutput = script.shouldOutput
 
 describe 'if'
-    describe 'evaluation'
-        it "a `true` hash entry does not need it's value specified"
-            'print (
-                 if (true)
-                     "true"
-                 else
-                     "false"
-             )' should output "'true'"
+  describe 'evaluation'
+    it "returns the body"
+      'print (
+         if (true)
+           "true"
+         else
+           "false"
+       )' shouldOutput "'true'"
+
+  describe 'promises'
+    context 'when there no else clause'
+      it 'resolves promises when in the then clause'
+        'result = if (true)
+           promise ()!
+           "result"
+         
+         print (result)' shouldOutput "'result'"
+
+    context 'when there is an else clause'
+      it 'resolves promises when in the else clause'
+        'result = if (false)
+           promise ()!
+           print "then"
+         else
+           promise()!
+           print "else"
+           "result"
+         
+         print (result)' shouldOutput "'else'
+                                       'result'"
+
+    context 'when there are if else and else clauses'
+      it 'resolves promises when in the else clause'
+        'result = if (false)
+           promise ()!
+           print "then"
+         else if (true)
+           promise()!
+           print "else if"
+           "result"
+         else
+           promise()!
+           print "else"
+         
+         print (result)' shouldOutput "'else if'
+                                       'result'"

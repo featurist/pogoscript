@@ -47,67 +47,13 @@ module.exports (terms) =
             self
     }
 
-    if expression (cases, else body) =
+    ifExpression (cases, elseBody, isPromise: false) =
         any async cases = _.any (cases) @(_case)
-            _case.body.is async
+            _case.body.returnsPromise
 
-        if (any async cases @or else body @and else body.is async)
-            if (cases.length > 1)
-                case for condition (condition) and body (body) =
-                    terms.hash [
-                        terms.hash entry (
-                            ['condition']
-                            condition
-                        )
-                        terms.hash entry (
-                            ['body']
-                            terms.argument utils.asyncify body (body)
-                        )
-                    ]
-
-                cases list =
-                    _.map (cases) @(_case)
-                        case for condition (_case.condition) and body (_case.body)
-
-                if (else body)
-                    cases list.push (
-                        case for condition (terms.boolean (true)) and body (else body)
-                    )
-
-                async if else if else function =
-                    terms.module constants.define ['async', 'if', 'else', 'if', 'else'] as (
-                        terms.javascript (async control.if else if else.to string ())
-                    )
-
-                terms.function call (async if else if else function, [terms.list (cases list)], async: true)
-            else if (else body)
-                async if else function =
-                    terms.module constants.define ['async', 'if', 'else'] as (
-                        terms.javascript (async control.if else.to string ())
-                    )
-
-                terms.function call (
-                    async if else function
-                    [
-                        cases.0.condition
-                        terms.argument utils.asyncify body (cases.0.body)
-                        terms.argument utils.asyncify body (else body)
-                    ]
-                    async: true
-                )
-            else
-                async if function =
-                    terms.module constants.define ['async', 'if'] as (
-                        terms.javascript (async control.if.to string ())
-                    )
-
-                terms.function call (
-                    async if function
-                    [
-                        cases.0.condition
-                        terms.argument utils.asyncify body (cases.0.body)
-                    ]
-                    async: true
-                )
+        if (@not isPromise @and (anyAsyncCases @or elseBody @and elseBody.returnsPromise))
+          terms.resolve (
+            ifExpression (cases, elseBody, isPromise: true)
+          )
         else
             if expression term (cases, else body)
