@@ -3,10 +3,11 @@ codegen utils = require('./codegenUtils')
 statements utils = require './statementsUtils'
 
 module.exports (terms) = terms.term {
-    constructor (statements, async: false, globalDefinitions: globalDefinitions) =
+    constructor (statements, async: false, globalDefinitions: globalDefinitions, returnsPromise: false) =
         self.is statements = true
         self.statements = statements
         self.is async = async
+        self.returnsPromise = returnsPromise
 
         self.makeDefinitionsGlobal () =
             if (globalDefinitions)

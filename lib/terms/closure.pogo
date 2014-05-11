@@ -50,10 +50,7 @@ module.exports (terms) =
 
     async parameters (closure, next) = {
         parameters () =
-            if (closure.is async)
-                next.parameters ().concat [terms.continuation function]
-            else
-                next.parameters ()
+            next.parameters ()
 
         statements () =
             next.statements ()
@@ -91,20 +88,23 @@ module.exports (terms) =
         generated: false
       )
 
-      terms.statements [
-        terms.returnStatement (
-          terms.functionCall (
-            promiseFunction
-            [
-              terms.closure (
-                [terms.resolveFunction]
-                body
-                inPromise: true
-              )
-            ]
+      terms.statements (
+        [
+          terms.returnStatement (
+            terms.functionCall (
+              promiseFunction
+              [
+                terms.closure (
+                  [terms.resolveFunction]
+                  body
+                  inPromise: true
+                )
+              ]
+            )
           )
-        )
-      ]
+        ]
+        returnsPromise: true
+      )
 
     terms.term {
         constructor (
@@ -120,10 +120,12 @@ module.exports (terms) =
             self.is block = true
             self.is closure = true
             self.parameters = parameters
-            self.body = if (body.isAsync @and @not inPromise)
-              promisifyBody (body)
+
+            if (body.isAsync @and @not inPromise)
+              self.body = promisifyBody (body)
+              self.returnsPromise = true
             else
-              body
+              self.body = body
 
             self.redefines self = redefines self
             self.optional parameters = optional parameters
@@ -131,10 +133,9 @@ module.exports (terms) =
             self.return last statement = return last statement
             self.defines module constants = defines module constants
 
-        blockify (parameters, optional parameters: [], async: false, redefines self: nil) =
+        blockify (parameters, optional parameters: [], redefines self: nil) =
             self.parameters = parameters
             self.optional parameters = optional parameters
-            self.make async (self.is async || async)
 
             if (redefines self != nil)
                 self.redefines self = redefines self
@@ -146,10 +147,12 @@ module.exports (terms) =
       
         scopify () =
             if ((self.parameters.length == 0) @and (self.optional parameters.length == 0) @and @not self.notScope)
-                if (self.is async)
-                    terms.function call (terms.sub expression (self), [], async: true)
+                if (self.body.returnsPromise)
+                    console.log 'is promise'
+                    terms.resolve (terms.function call (self, []))
                 else
-                    terms.scope (self.body.statements, async: self.is async)
+                    console.log 'is not promise'
+                    terms.scope (self.body.statements, async: false)
             else
                 self
       
@@ -165,15 +168,10 @@ module.exports (terms) =
                     block parameters (self)
                 )
             )
-
-            async = async parameters (
-                self
-                optionals
-            )
         
             splat = splat parameters (
                 terms
-                async
+                optionals
             )
         
             if (optionals.has optionals && splat.has splat)

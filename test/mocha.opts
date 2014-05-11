@@ -1,1 +1,1 @@
--r index.js -r should
+-r index.js -r should --reporter spec

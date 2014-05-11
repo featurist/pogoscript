@@ -46,18 +46,19 @@ module.exports (terms) =
     }
 
     try expression (body, catch body: nil, catch parameter: nil, finally body: nil) =
-        if ((body.is async || (catch body && catch body.is async)) || (finally body && finally body.is async))
+        if ((body.returnsPromise || (catch body && catch body.returnsPromise)) || (finally body && finally body.returnsPromise))
             async try function =
                 terms.module constants.define ['async', 'try'] as (terms.javascript (async control.try.to string ()))
 
-            terms.function call (
-                async try function
+            terms.resolve (
+              terms.functionCall (
+                asyncTryFunction
                 [
                     terms.argument utils.asyncify body (body)
                     terms.argument utils.asyncify body (catch body, [catch parameter])
                     terms.argument utils.asyncify body (finally body)
                 ]
-                async: true
+              )
             )
         else
             try expression term (body, catch body: catch body, catch parameter: catch parameter, finally body: finally body)

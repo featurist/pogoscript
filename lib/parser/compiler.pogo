@@ -87,9 +87,9 @@ exports.evaluate (pogo, definitions: {}, ugly: true, global: false) =
 
     runScript = new (Function (parameters, "return #(js);"))
 
-    definitionValues = [definitions.(name), where: name <- definitionNames]
+    definitionValues = [name <- definitionNames, definitions.(name)]
 
-    runScript.apply (undefined) (definitionValues)
+    runScript.apply (undefined, definitionValues)
 
 sourceLocationPrinter (filename: nil, source: nil) =
     {

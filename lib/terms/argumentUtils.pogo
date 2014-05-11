@@ -8,9 +8,7 @@ module.exports (terms) = {
 
     asyncify body (body, args) =
         if (body)
-            closure = terms.closure (args || [], body)
-            closure.asyncify ()
-            closure
+            terms.closure (args || [], body)
         else
             terms.nil ()
 }

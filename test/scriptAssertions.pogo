@@ -4,67 +4,104 @@ util = require 'util'
 _ = require 'underscore'
 
 chomp (s) =
-    s.to string ().replace r/\n$/ ''
+    s.toString ().replace r/\n$/ ''
 
-exports.evaluate script (script) =
-    printed items = []
+exports.evaluateScript (script) =
+    printedItems = []
     
     print (arg) =
-        printed items.push (arg)
-    
-    compiler.evaluate (script, definitions: {print = print})
-    
-    _.map (printed items) @(item)
-        util.inspect (item)
-    .join "\n"
+        printedItems.push (arg)
 
-exports.(script) should output (expected output) =
-    should.equal (chomp (exports.evaluate script (script)), chomp (expected output))
+    promise (n) =
+        process.nextTick ^!
+        n
 
-exports.evaluate async script (script, done) =
-    printed items = []
+    r = compiler.evaluate (script, definitions: {print = print, require = require, promise = promise})
+
+    collatePrintedItems() =
+      _.map (printedItems) @(item)
+          util.inspect (item)
+      .join "\n"
+
+    if (r @and (r.then :: Function))
+      r!
+      collatePrintedItems()
+    else
+      collatePrintedItems()
+
+exports.(script) shouldOutput (expectedOutput) =
+    assertion (result) = should.equal (chomp (result), chomp (expectedOutput))
+
+    result = exports.evaluateScript (script)
+
+    if (result @and (typeof (result.then) == 'function'))
+        assertion (result!)
+    else
+        assertion (result)
+
+exports.evaluateAsyncScript (script, done) =
+    printedItems = []
     
     print (arg) =
-        printed items.push (arg)
+        printedItems.push (arg)
 
     async (callback) =
-        process.next tick (callback)
+        process.nextTick (callback)
 
-    return printed output (error) =
+    returnPrintedOutput (error) =
         done (
             error
-            _.map (printed items) @(item)
+            _.map (printedItems) @(item)
                 util.inspect (item)
             .join "\n"
         )
     
     compiler.evaluate (script, definitions: {
         print = print
-        done = return printed output
+        done = returnPrintedOutput
         async = async
     })
     
 
-exports.async (script) should output (expected output, done) =
-    exports.evaluate async script (script) @(error, result)
+exports.async (script) shouldOutput (expectedOutput, done) =
+    exports.evaluateAsyncScript (script) @(error, result)
         if (error)
             done (error)
         else
             try
-                should.equal (chomp (expected output), chomp (result))
+                should.equal (chomp (expectedOutput), chomp (result))
                 done ()
             catch (ex)
                 done (ex)
 
-exports.(script) should throw (expected error) =
+(x) isPromise =
+  x @and (x.then :: Function)
+
+fork (block) =
+  block ()
+
+exports.(script) shouldThrow (expectedError) =
     failed = false
     
-    try
-        exports.evaluate script (script)
-        failed := true
+    promise = try
+        console.log 'calling script'
+        result = exports.evaluateScript (script)
+        if ((result) isPromise)
+          console.log 'we have promise'
+          fork
+            try
+              console.log 'resolving result'
+              result!
+              failed = true
+            catch (error)
+              console.log "have error: #(error)"
+              should.equal (error.toString(), expectedError)
+        else
+          failed := true
     catch (ex)
-        should.equal (ex.to string () , expected error)
+        should.equal (ex.toString (), expectedError)
     
     if (failed)
-        should.fail "expected #(expected error)"
-    
+        should.fail "expected #(expectedError)"
+    else
+        promise
