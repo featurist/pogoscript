@@ -19,7 +19,7 @@ describe 'macros'
                     body = {statements [{variable ['a']}]}
                 }]
             }
-        
+
         it 'if else'
             (macro expression 'if (true) @{a} else @{b}') should contain fields {
                 is if expression
@@ -29,7 +29,7 @@ describe 'macros'
                     body = {statements [{variable ['a']}]}
                 }]
             }
-        
+
         it 'if else if'
             (macro expression 'if (true) @{a} else if (false) @{b}') should contain fields {
                 is if expression
@@ -45,7 +45,7 @@ describe 'macros'
                     }
                 ]
             }
-                
+
         it 'if else if else'
             (macro expression 'if (true) @{a} else if (false) @{b} else @{c}') should contain fields {
                 is if expression
@@ -201,7 +201,7 @@ describe 'macros'
                     )
                 ]
             }
-    
+
     describe 'for @(item) in (items) @{}'
         it 'generates for (var item in items) {}'
             (macro expression 'for @(item) in (items) @{item}') should contain fields {
@@ -303,61 +303,6 @@ describe 'macros'
                 }
             }
 
-    describe 'new'
-        it 'constructor with arguments'
-            (macro expression 'new (Date 2011 2 21)') should contain fields {
-                is new operator
-                function call {
-                    is function call
-                    function {variable ['Date']}
-                    function arguments [
-                        {integer 2011}
-                        {integer 2}
-                        {integer 21}
-                    ]
-                }
-            }
-
-        it 'constructor without arguments, just variable'
-            (macro expression 'new (Date)') should contain fields {
-                is new operator
-                function call {variable ['Date']}
-            }
-
-        it 'with splat arguments'
-            (macro statements ('new (Stack (args, ...))')) should contain fields (
-                terms.statements [
-                    terms.definition (
-                        terms.generated variable ['c']
-                        terms.closure (
-                            []
-                            terms.statements [
-                                terms.function call (
-                                    terms.variable ['Stack']
-                                    [
-                                        terms.variable ['args']
-                                        terms.splat ()
-                                    ]
-                                    pass this to apply: true
-                                )
-                            ]
-                            return last statement: false
-                        )
-                    )
-                    terms.definition (
-                        terms.field reference (
-                            terms.generated variable ['c']
-                            ['prototype']
-                        )
-                        terms.field reference (
-                            terms.variable ['Stack']
-                            ['prototype']
-                        )
-                    )
-                    terms.new operator (terms.generated variable ['c'])
-                ]
-            )
-    
     describe '=='
         it 'generates ==='
             (macro expression 'a == b') should contain fields {
@@ -368,7 +313,7 @@ describe 'macros'
                     {variable ['b']}
                 ]
             }
-    
+
     describe '!='
         it 'generates !=='
             (macro expression 'a != b') should contain fields {
@@ -379,7 +324,7 @@ describe 'macros'
                     {variable ['b']}
                 ]
             }
-        
+
     describe '::'
         it 'generates instanceof'
             (macro expression 'a :: b') should contain fields {
@@ -390,7 +335,7 @@ describe 'macros'
                     {variable ['b']}
                 ]
             }
-        
+
     describe 'in'
         it 'generates in'
             (macro expression '(a) in (b)') should contain fields {
@@ -401,26 +346,26 @@ describe 'macros'
                     {variable ['b']}
                 ]
             }
-    
+
     describe 'break'
         it 'generates break statement'
             (macro expression 'break') should contain fields {
                 is break
             }
-    
+
     describe 'return'
         it 'generates void return statement'
             (macro expression 'return') should contain fields {
                 is return
                 expression = undefined
             }
-    
+
     describe 'nil'
         it 'generates void 0'
             (macro expression 'nil') should contain fields {
                 is nil
             }
-    
+
     describe 'continuation'
         context 'when called as a function'
             (macro expression 'continuation (x, y)') should contain fields {
@@ -436,7 +381,7 @@ describe 'macros'
             (macro expression 'continuation') should contain fields {
                 is continuation
             }
-    
+
     describe 'JavaScript operators'
         it generates unary (op) =
             it "generates unary #(op)"
@@ -447,25 +392,28 @@ describe 'macros'
                         {variable ['a']}
                     ]
                 }
-        
+
         it generates binary (op) =
+            it generates binary (op) into (op)
+
+        it generates binary (op) into (generated) =
             it "generates binary #(op)"
                 (macro expression "a #(op) b") should contain fields {
                     is operator
-                    operator (op)
+                    operator (generated)
                     operator arguments [
                         {variable ['a']}
                         {variable ['b']}
                     ]
                 }
-    
+
         it generates unary '!'
         it generates unary '~'
         it generates unary '+'
         it generates unary '-'
         it generates unary '--'
         it generates unary '++'
-        
+
         it generates binary '+'
         it generates binary '*'
         it generates binary '/'
@@ -479,7 +427,7 @@ describe 'macros'
         it generates binary '<'
         it generates binary '<='
         it generates binary '&'
-        it generates binary '^'
+        it generates binary '^^' into '^'
         it generates binary '|'
         it generates binary '&&'
         it generates binary '||'

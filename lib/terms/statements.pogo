@@ -1,55 +1,73 @@
 _ = require 'underscore'
-codegen utils = require('./codegenUtils')
-statements utils = require './statementsUtils'
+codegenUtils = require('./codegenUtils')
+statementsUtils = require './statementsUtils'
 
 module.exports (terms) = terms.term {
-    constructor (statements, async: false, globalDefinitions: globalDefinitions, returnsPromise: false) =
-        self.is statements = true
+    constructor (statements, async: false, definitions: definitions, returnsPromise: false) =
+        self.isStatements = true
         self.statements = statements
-        self.is async = async
+        self.isAsync = async
         self.returnsPromise = returnsPromise
+        self._definitions = definitions
 
-        self.makeDefinitionsGlobal () =
-            if (globalDefinitions)
-                for each @(definition) in (globalDefinitions)
-                    definition.global = true
-
-    generate statements (scope, in closure: false, global: false) =
-        self.generate into buffer @(buffer)
-            if (in closure)
-                defined variables = self.find defined variables (scope)
-                self.generate variable declarations (defined variables, buffer, scope, global: global)
+    generateStatements (scope, inClosure: false, global: false) =
+        self.generateIntoBuffer @(buffer)
+            if (inClosure)
+                definedVariables = self.findDefinedVariables (scope)
+                self.generateVariableDeclarations (definedVariables, buffer, scope, global: global)
 
             for (s = 0, s < self.statements.length, ++s)
                 statement = self.statements.(s)
-                buffer.write (statement.generate statement (scope))
+                buffer.write (statement.generateStatement (scope))
 
-    rewrite result term into (return term, async: false) =
+    promisify (definitions: nil) =
+      if (@not self.returnsPromise)
+        terms.statements (
+          [
+            terms.functionCall (
+              terms.promise()
+              [
+                terms.closure (
+                  [terms.resolveFunction, terms.continuationFunction]
+                  self
+                  inPromise: true
+                  async: true
+                )
+              ]
+            )
+          ]
+          returnsPromise: true
+          definitions: definitions
+        )
+      else
+        self
+
+    rewriteResultTermInto (returnTerm, async: false) =
         if (self.statements.length > 0)
-            last statement = self.statements.(self.statements.length - 1)
-            rewritten last statement = last statement.rewrite result term @(term) into (async: async)
-                return term (term)
+            lastStatement = self.statements.(self.statements.length - 1)
+            rewrittenLastStatement = lastStatement.rewriteResultTerm @(term) into (async: async)
+                returnTerm (term)
 
-            if (rewritten last statement)
-                self.statements.(self.statements.length - 1) = rewritten last statement
+            if (rewrittenLastStatement)
+                self.statements.(self.statements.length - 1) = rewrittenLastStatement
             else
-                self.statements.push (return term (terms.nil ()))
+                self.statements.push (returnTerm (terms.nil ()))
         else if (async)
-            self.statements.push(terms.function call (terms.continuation function, []))
+            self.statements.push(terms.functionCall (terms.continuationFunction, []))
 
-    rewrite last statement to return (async: false, return call to continuation: true) =
-        contains continuation = self.contains continuation ()
+    rewriteLastStatementToReturn (async: false, returnCallToContinuation: true) =
+        containsContinuation = self.containsContinuation ()
 
-        self.rewrite result term @(term) into (async: async)
-            if (async @and @not contains continuation)
-                call to continuation = terms.function call (terms.continuation function, [term])
+        self.rewriteResultTerm @(term) into (async: async)
+            if (async @and @not containsContinuation)
+                callToContinuation = terms.functionCall (terms.continuationFunction, [term])
 
-                if (return call to continuation)
-                    terms.return statement (call to continuation, implicit: true)
+                if (returnCallToContinuation)
+                    terms.returnStatement (callToContinuation, implicit: true)
                 else
-                    call to continuation
+                    callToContinuation
             else
-                terms.return statement (term, implicit: true)
+                terms.returnStatement (term, implicit: true)
 
     generateVariableDeclarations (variables, buffer, scope, global: false) =
         if (variables.length > 0)
@@ -59,23 +77,22 @@ module.exports (terms) = terms.term {
             if (@not global)
                 buffer.write ('var ')
 
-                codegen utils.write to buffer with delimiter (variables, ',', buffer) @(variable)
+                codegenUtils.writeToBufferWithDelimiter (variables, ',', buffer) @(variable)
                     buffer.write (variable)
 
                 buffer.write (';')
-        
+
     findDefinedVariables (scope) =
-        variables = codegen utils.defined variables (scope)
+        definitions = self._definitions @or self.definitions()
+        variables = codegenUtils.definedVariables (scope)
 
-        self.walk descendants @(subterm, path)
-            subterm.define variables (variables, scope)
-        not below @(subterm, path) if
-            subterm.is closure
+        for each @(def) in (definitions)
+            def.defineVariables (variables)
 
-        variables.unique variables ()
+        variables.uniqueVariables ()
 
     blockify (parameters, options) =
-        statements = if (self.is expression statements)
+        statements = if (self.isExpressionStatements)
             self.cg.statements ([self])
         else
             self
@@ -83,17 +100,17 @@ module.exports (terms) = terms.term {
         terms.block (parameters, statements, options)
 
     scopify () =
-        self.cg.function call (self.cg.block([], self), [])
+        self.cg.functionCall (self.cg.block([], self), [])
 
     generate (scope) =
-        self.generate into buffer @(buffer)
+        self.generateIntoBuffer @(buffer)
             if (self.statements.length > 0)
                 buffer.write (self.statements.(self.statements.length - 1).generate (scope))
 
-    generate statement (scope) =
-        self.generate into buffer @(buffer)
+    generateStatement (scope) =
+        self.generateIntoBuffer @(buffer)
             if (self.statements.length > 0)
-                buffer.write (self.statements.(self.statements.length - 1).generate statement (scope))
+                buffer.write (self.statements.(self.statements.length - 1).generateStatement (scope))
 
     definitions (scope) =
         _(self.statements).reduce @(list, statement)
@@ -101,12 +118,12 @@ module.exports (terms) = terms.term {
             list.concat (defs)
         []
 
-    serialise statements () =
-        self.statements = statements utils.serialise statements (self.statements)
+    serialiseStatements () =
+        self.statements = statementsUtils.serialiseStatements (self.statements)
         nil
 
-    asyncify (return call to continuation: true) =
-        if (!self.is async)
-            self.rewrite last statement to return (async: true, return call to continuation: return call to continuation)
-            self.is async = true
+    asyncify (returnCallToContinuation: true) =
+        if (!self.isAsync)
+            self.rewriteLastStatementToReturn (async: true, returnCallToContinuation: returnCallToContinuation)
+            self.isAsync = true
 }

@@ -1,13 +1,13 @@
 require '../assertions'
 require '../parserAssertions'
-terms = require '../../lib/parser/codeGenerator'.code generator ()
+terms = require '../../lib/parser/codeGenerator'.codeGenerator ()
 _ = require 'underscore'
 
 describe 'operator expression'
-    variable (name) = terms.complex expression [[terms.variable [name]]]
+    variable (name) = terms.complexExpression [[terms.variable [name]]]
 
     it 'parses operators, using precedence table'
-        (expression "a @and b") should contain fields (
+        (expression "a @and b") shouldContainFields (
             terms.operator (
                 '&&'
                 [
@@ -17,31 +17,32 @@ describe 'operator expression'
             )
         )
 
-    compilation map = {}
+    compilationMap = {}
 
-    (name) compiles to (js op name) =
-        compilation map.(name) = js op name
+    (name) compilesTo (jsOpName) =
+        compilationMap.(name) = jsOpName
 
-    compiled name for (name) =
-        if (Object.has own property.call (compilation map, name))
-            compilation map.(name)
+    compiledNameFor (name) =
+        if (Object.hasOwnProperty.call (compilationMap, name))
+            compilationMap.(name)
         else
             name
 
-    '@and' compiles to '&&'
-    '@or' compiles to '||'
-    '==' compiles to '==='
-    '!=' compiles to '!=='
-    '@not' compiles to '!'
+    '@and' compilesTo '&&'
+    '@or' compilesTo '||'
+    '==' compilesTo '==='
+    '!=' compilesTo '!=='
+    '@not' compilesTo '!'
+    '^^' compilesTo '^'
 
-    (higher) is higher in precedence than (lower) =
+    (higher) isHigherInPrecedenceThan (lower) =
         it "parses #(higher) as higher precedence than #(lower)"
-            (expression "a #(higher) b #(lower) c") should contain fields (
+            (expression "a #(higher) b #(lower) c") shouldContainFields (
                 terms.operator (
-                    compiled name for (lower)
+                    compiledNameFor (lower)
                     [
                         terms.operator (
-                            compiled name for (higher)
+                            compiledNameFor (higher)
                             [
                                 terms.variable ['a']
                                 terms.variable ['b']
@@ -53,13 +54,13 @@ describe 'operator expression'
             )
 
         it "parses #(lower) as lower precedence than #(higher)"
-            (expression "a #(lower) b #(higher) c") should contain fields (
+            (expression "a #(lower) b #(higher) c") shouldContainFields (
                 terms.operator (
-                    compiled name for (lower)
+                    compiledNameFor (lower)
                     [
                         terms.variable ['a']
                         terms.operator (
-                            compiled name for (higher)
+                            compiledNameFor (higher)
                             [
                                 terms.variable ['b']
                                 terms.variable ['c']
@@ -71,25 +72,25 @@ describe 'operator expression'
 
     describe 'custom operators'
         it 'throws when a custom operator is used before other operators'
-            operator = terms.operator expression (variable 'a')
-            operator.add operator '@custom' expression (variable 'b')
-            operator.add operator '@and' expression (variable 'c')
+            operator = terms.operatorExpression (variable 'a')
+            operator.addOperator '@custom' expression (variable 'b')
+            operator.addOperator '@and' expression (variable 'c')
 
             @{operator.expression ()}.should.throw '@custom cannot be used with other operators'
 
         it 'throws when a custom operator is used after other operators'
-            operator = terms.operator expression (variable 'a')
-            operator.add operator '@and' expression (variable 'b')
-            operator.add operator '@custom' expression (variable 'c')
+            operator = terms.operatorExpression (variable 'a')
+            operator.addOperator '@and' expression (variable 'b')
+            operator.addOperator '@custom' expression (variable 'c')
 
             @{operator.expression ()}.should.throw '@custom cannot be used with other operators'
 
         it "parses two custom unary operators, outer to inner"
-            (expression "@outer @inner a") should contain fields (
-                terms.function call (
+            (expression "@outer @inner a") shouldContainFields (
+                terms.functionCall (
                     terms.variable ['outer']
                     [
-                        terms.function call (
+                        terms.functionCall (
                             terms.variable ['inner']
                             [
                                 terms.variable ['a']
@@ -100,51 +101,51 @@ describe 'operator expression'
             )
 
         it "parses @custom binary operator as function call"
-            (expression "a @custom b") should contain fields (
-                terms.function call (terms.variable ['custom'], [terms.variable ['a'], terms.variable ['b']])
+            (expression "a @custom b") shouldContainFields (
+                terms.functionCall (terms.variable ['custom'], [terms.variable ['a'], terms.variable ['b']])
             )
 
         it "parses @你好 binary operator as function call"
-            (expression "a @你好 b") should contain fields (
-                terms.function call (terms.variable ['你好'], [terms.variable ['a'], terms.variable ['b']])
+            (expression "a @你好 b") shouldContainFields (
+                terms.functionCall (terms.variable ['你好'], [terms.variable ['a'], terms.variable ['b']])
             )
 
         it "parses @custom unary operator as function call"
-            (expression "@custom a") should contain fields (
-                terms.function call (terms.variable ['custom'], [terms.variable ['a']])
+            (expression "@custom a") shouldContainFields (
+                terms.functionCall (terms.variable ['custom'], [terms.variable ['a']])
             )
 
         it "parses @你好 unary operator as function call"
-            (expression "@你好 a") should contain fields (
-                terms.function call (terms.variable ['你好'], [terms.variable ['a']])
+            (expression "@你好 a") shouldContainFields (
+                terms.functionCall (terms.variable ['你好'], [terms.variable ['a']])
             )
 
         it "parses camel case custom operators"
-            (expression "@customOp a") should contain fields (
-                terms.function call (terms.variable ['customOp'], [terms.variable ['a']])
+            (expression "@customOp a") shouldContainFields (
+                terms.functionCall (terms.variable ['customOp'], [terms.variable ['a']])
             )
 
-    operators in order of precedence = [
+    operatorsInOrderOfPrecedence = [
         ['/', '*', '%']
         ['-', '+']
         ['<<', '>>', '>>>']
         ['>', '>=', '<', '<=']
         ['==', '!=']
         '&'
-        '^'
+        '^^'
         '|'
         ['&&', '@and']
         ['||', '@or']
         ['<-']
     ]
 
-    the left operator (left) has higher precedence than the right operator (right) =
-        (expression "a #(left) b #(right) c") should contain fields (
+    theLeftOperator (left) hasHigherPrecedenceThanTheRightOperator (right) =
+        (expression "a #(left) b #(right) c") shouldContainFields (
             terms.operator (
-                compiled name for (right)
+                compiledNameFor (right)
                 [
                     terms.operator (
-                        compiled name for (left)
+                        compiledNameFor (left)
                         [
                             terms.variable ['a']
                             terms.variable ['b']
@@ -155,40 +156,40 @@ describe 'operator expression'
             )
         )
         
-    (operators) are the same precedence and are left associative =
+    (operators) areTheSamePrecedenceAndAreLeftAssociative =
         _.reduce (operators) @(left, right)
             it "parses #(left) with the same precedence as #(right) and both are left associative"
-                the left operator (left) has higher precedence than the right operator (right)
-                the left operator (right) has higher precedence than the right operator (left)
+                theLeftOperator (left) hasHigherPrecedenceThanTheRightOperator (right)
+                theLeftOperator (right) hasHigherPrecedenceThanTheRightOperator (left)
 
             right
 
-    _.reduce (operators in order of precedence) @(higher, lower)
+    _.reduce (operatorsInOrderOfPrecedence) @(higher, lower)
         if (higher :: Array)
-            (higher) are the same precedence and are left associative
+            (higher) areTheSamePrecedenceAndAreLeftAssociative
 
             if (lower :: Array)
-                (higher.0) is higher in precedence than (lower.0)
+                (higher.0) isHigherInPrecedenceThan (lower.0)
             else
-                (higher.0) is higher in precedence than (lower)
+                (higher.0) isHigherInPrecedenceThan (lower)
         else
             if (lower :: Array)
-                (higher) is higher in precedence than (lower.0)
+                (higher) isHigherInPrecedenceThan (lower.0)
             else
-                (higher) is higher in precedence than (lower)
+                (higher) isHigherInPrecedenceThan (lower)
 
         lower
 
-    it parses unary operator (op) =
+    itParsesUnaryOperator (op) =
         it "should parse unary #(op)"
-            (expression "#(op) a") should contain fields {
-                operator = compiled name for (op)
-                operator arguments = [
-                    {variable ['a'], is variable}
+            (expression "#(op) a") shouldContainFields {
+                operator = compiledNameFor (op)
+                operatorArguments = [
+                    {variable ['a'], isVariable}
                 ]
             }
 
-    unary operators = [
+    unaryOperators = [
         '!'
         '@not'
         '~'
@@ -196,5 +197,5 @@ describe 'operator expression'
         '-'
     ]
 
-    for each @(op) in (unary operators)
-        it parses unary operator (op)
+    for each @(op) in (unaryOperators)
+        itParsesUnaryOperator (op)

@@ -3,5 +3,5 @@ module.exports (terms) = terms.term {
         self.is nil = true
 
     generate (scope) =
-        self.code (terms.javascript 'void 0'.generate (scope))
+        self.code 'void 0'
 }

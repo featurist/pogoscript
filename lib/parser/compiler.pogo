@@ -58,7 +58,7 @@ exports.compile (
     if (async)
         statements.asyncify (returnCallToContinuation: returnResult)
 
-    output = exports.generateCode (statements, terms, inScope: inScope, global: global, returnResult: returnResult, outputFilename: outputFilename, sourceMap: true)
+    output = exports.generateCode (statements, terms, inScope: inScope, global: global, returnResult: returnResult, outputFilename: outputFilename, sourceMap: sourceMap)
 
     if (parser.errors.hasErrors ())
         memoryStream = new (ms.MemoryStream)
@@ -66,18 +66,18 @@ exports.compile (
         error = @new Error (memoryStream.toString ())
         error.isSemanticErrors = true
         @throw error
+    else if (sourceMap)
+        output.map.setSourceContent (filename, pogo)
+
+        {
+            code = output.code
+            map = JSON.parse (output.map.toString ())
+        }
     else
         if (@not ugly)
-            beautify (output.code)
-        else if (sourceMap)
-            output.map.setSourceContent (filename, pogo)
-
-            {
-                code = output.code
-                map = JSON.parse (output.map.toString ())
-            }
+            beautify (output)
         else
-            output.code
+            output
 
 exports.evaluate (pogo, definitions: {}, ugly: true, global: false) =
     js = exports.compile (pogo, ugly: ugly, inScope: @not global, global: global, returnResult: @not global)

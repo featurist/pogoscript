@@ -410,7 +410,6 @@ describe 'terms'
 
             (t.children ()) should only have [a, b]
 
-    describe 'children'
         it 'returns terms in arrays'
             a = new (Term)
             b = new (Term)
@@ -421,16 +420,26 @@ describe 'terms'
 
             (t.children ()) should only have [a, b]
 
-    describe 'children'
         it 'returns terms in objects'
             a = new (Term)
             b = new (Term)
 
             t = new (Term {
-                array = {a = a, b = b}
+                object = {a = a, b = b}
             })
 
             (t.children ()) should only have [a, b]
+
+        it "doesn't return members that start with _"
+            a = new (Term)
+            b = new (Term)
+
+            t = new (Term {
+                _member = a
+                member = b
+            })
+
+            (t.children ()) should only have [b]
 
     describe 'walk descendants'
         it "walks descendants, children, children's children, etc"

@@ -3,39 +3,32 @@ fs = require 'fs'
 spawn = require 'child_process'.spawn
 crypto = require 'crypto'
 
-pogo binary () =
+pogoBinary () =
   __dirname + "/../../bin/pogo"
 
-filename for (script) =
-    hash = crypto.create hash 'sha1'
+filenameFor (script) =
+    hash = crypto.createHash 'sha1'
     hash.update (script)
     hash.digest 'hex' + '.pogo'
 
 chomp (s) =
-    s.to string ().replace r/\n$/ ''
+    s.toString ().replace r/\n$/ ''
 
-execute script (script) with args (args, callback, script filename: filename for (script)) =
-    fs.write file (script filename, script) @(error)
-        if (error)
-            callback (error)
+executeScript (script) withArgs (args, scriptFilename: filenameFor (script))! =
+    fs.writeFile (scriptFilename, script)!
 
-        pogo = spawn (pogo binary (), [script filename].concat (args))
+    pogo = spawn (pogoBinary (), [scriptFilename].concat (args))
 
-        all output = ''
+    allOutput = ''
 
-        pogo.stdout.set encoding 'utf-8'
-        pogo.stdout.on 'data' @(output)
-            all output := all output + output
+    pogo.stdout.setEncoding 'utf-8'
+    pogo.stdout.on 'data' @(output)
+        allOutput := allOutput + output
 
-        pogo.on 'exit' @(code)
-            fs.unlink (script filename) @(code)
-                callback (undefined, all output)
+    pogo.on 'exit' @(code)
+        fs.unlink (scriptFilename) @(code)
+            continuation (allOutput)
 
-exports.(script) with args (args) should output (expected output, done, script filename: nil) =
-    execute script (script) with args (args, script filename: script filename) @(error, actual output)
-        if (error)
-            should.fail (error)
-        else
-            should.equal (chomp (actual output), chomp (expected output))
-
-        done ()
+exports.(script) withArgs (args) shouldOutput (expectedOutput, scriptFilename: nil)! =
+    actualOutput = executeScript (script) withArgs (args, scriptFilename: scriptFilename)!
+    should.equal (chomp (actualOutput), chomp (expectedOutput))

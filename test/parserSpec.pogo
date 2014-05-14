@@ -403,7 +403,7 @@ describe 'parser'
         it 'async operator and comma are separate operators'
             (statements 'f!,a') should contain fields (
                 terms.async statements [
-                    terms.function call (terms.variable ['f'], [], async: true)
+                    terms.resolve (terms.variable ['f'])
                     terms.variable ['a']
                 ]
             )
@@ -415,9 +415,9 @@ describe 'parser'
             }
 
         it 'async function call with no arguments'
-            (expression 'delete everything!') should contain fields (
+            (expression 'delete everything()!') should contain fields (
                 terms.async statements [
-                    terms.function call (terms.variable ['delete', 'everything'], [], async: true)
+                    terms.resolve (terms.function call (terms.variable ['delete', 'everything'], []))
                 ].statements.0
             )
 
@@ -553,15 +553,16 @@ describe 'parser'
                 name ['field']
             }
         
-        it 'parses no argument method with ! and field'
-            (expression 'object.method! . field') should contain fields (
+        it 'parses no argument method with ! and field and spaces'
+            (expression 'object.method()! . field') should contain fields (
                 terms.async statements [
                     terms.field reference (
-                        terms.method call (
-                            terms.variable ['object']
-                            ['method']
-                            []
-                            async: true
+                        terms.resolve (
+                            terms.method call (
+                                terms.variable ['object']
+                                ['method']
+                                []
+                            )
                         )
                         ['field']
                     )
@@ -569,14 +570,15 @@ describe 'parser'
             )
         
         it 'parses no argument method with ! and field'
-            (expression 'object.method!.field') should contain fields (
+            (expression 'object.method()!.field') should contain fields (
                 terms.async statements [
                     terms.field reference (
-                        terms.method call (
-                            terms.variable ['object']
-                            ['method']
-                            []
-                            async: true
+                        terms.resolve (
+                            terms.method call (
+                                terms.variable ['object']
+                                ['method']
+                                []
+                            )
                         )
                         ['field']
                     )
@@ -823,19 +825,16 @@ describe 'parser'
             }
 
         it 'assignment of async function'
-            (expression 'x! = 8') should contain fields {
-                is definition
-                target {variable ['x']}
-                source {
-                    is block
-                    parameters []
-                    body {
-                        statements [
-                            {integer 8}
-                        ]
-                    }
-                }
-            }
+            (expression 'x()! = 8') should contain fields (
+              terms.definition (
+                terms.variable ['x']
+                terms.closure (
+                  []
+                  terms.statements ([terms.integer 8], definitions: []).promisify ()
+                  returnPromise: true
+                )
+              )
+            )
 
         it 'definition of function with no arguments, using empty parens "()"'
             (expression 'x () = 8') should contain fields {

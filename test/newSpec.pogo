@@ -23,10 +23,12 @@ describe 'new'
                 print ((new (c)).n)' should output '''n'''
 
     it 'can construct with splat arguments'
-        script.'c (n) = =>
-                    this.n = n
+        script.'c (a, b, c) = =>
+                    this.a = a
+                    this.b = b
+                    this.c = c
                     nil
 
-                args = [7]
+                args = [1, 2, 3]
 
-                print (new (c (args, ...)))' should output '{ n: 7 }'
+                print (new (c (args, ...)))' should output '{ a: 1, b: 2, c: 3 }'

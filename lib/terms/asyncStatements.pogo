@@ -7,7 +7,6 @@ module.exports (terms) =
         callbackStatements
         resultVariable: nil
         forceAsync: false
-        global: false
         containsContinuation: containsContinuation
     ) =
         if ((callbackStatements.length == 1) && (callbackStatements.0.isAsyncResult))
@@ -34,11 +33,11 @@ module.exports (terms) =
             ) inCallbackForNextAsyncCall (
                 forceAsync: forceAsync
                 forceNotAsync: true
-                global: global
+                definitions: []
             )
             terms.asyncCallback (asyncStmts, resultVariable: resultVariable)
 
-    putStatements (statements) inCallbackForNextAsyncCall (forceAsync: false, forceNotAsync: false, global: false, globalDefinitions: nil) =
+    putStatements (statements) inCallbackForNextAsyncCall (forceAsync: false, forceNotAsync: false, definitions: nil) =
         containsContinuation =
             if (statements.length > 0)
                 [stmt.containsContinuation (), where: stmt <- statements].reduce @(l, r) @{l @or r}
@@ -52,7 +51,6 @@ module.exports (terms) =
                     statements.slice (n + 1)
                     resultVariable: resultVariable
                     forceAsync: forceAsync
-                    global: global
                     containsContinuation: containsContinuation
                 )
 
@@ -60,12 +58,17 @@ module.exports (terms) =
                 firstStatements = statements.slice (0, n)
                 firstStatements.push (asyncStatement)
 
-                return (terms.statements (firstStatements, async: @not forceNotAsync, globalDefinitions: globalDefinitions))
+                return (terms.statements (firstStatements, async: @not forceNotAsync, definitions: []))
 
-        terms.statements (statements, async: forceAsync)
+        terms.statements (statements, async: forceAsync, definitions: definitions)
 
-    asyncStatements (statements, forceAsync: false, global: false) =
-        globalDefinitions = [s <- statements, s.isDefinition, s]
+    asyncStatements (statements, forceAsync: false) =
+        definitions = [s <- statements, d <- s.definitions (), d]
 
         serialisedStatements = statementsUtils.serialiseStatements (statements)
-        putStatements (serialisedStatements) inCallbackForNextAsyncCall (forceAsync: forceAsync, global: global, globalDefinitions: globalDefinitions)
+        stmts = putStatements (serialisedStatements) inCallbackForNextAsyncCall (forceAsync: forceAsync, definitions: definitions)
+
+        if (stmts.isAsync)
+            stmts.promisify(definitions: definitions)
+        else
+            stmts

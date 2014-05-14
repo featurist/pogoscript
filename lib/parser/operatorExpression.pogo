@@ -60,7 +60,7 @@ module.exports (terms) =
             > >= < <= left
             == != left
             & left
-            ^ left
+            ^^ left
             | left
             && @and left
             || @or left

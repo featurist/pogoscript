@@ -1,37 +1,37 @@
 _ = require 'underscore'
-codegen utils = require "./codegenUtils"
+codegenUtils = require "./codegenUtils"
 
 module.exports (terms) =
-    optional parameters (optional parameters, next) =
-        if (optional parameters.length > 0)
+    optionalParameters (optionalParameters, next) =
+        if (optionalParameters.length > 0)
             {
-                options = terms.generated variable ['options']
+                options = terms.generatedVariable ['options']
                 
                 parameters () =
                     next.parameters ().concat [self.options]
 
                 statements () =
-                    optional statements = _.map(optional parameters) @(parm)
+                    optionalStatements = _.map(optionalParameters) @(parm)
                         terms.definition (terms.variable (parm.field), optional (self.options, parm.field, parm.value), shadow: true)
                     
-                    optional statements.concat (next.statements ())
+                    optionalStatements.concat (next.statements ())
                 
-                has optionals = true
+                hasOptionals = true
             }
         else
             next
 
     optional = terms.term {
-        constructor (options, name, default value) =
+        constructor (options, name, defaultValue) =
             self.options = options
             self.name = name
-            self.default value = default value
+            self.defaultValue = defaultValue
       
-        proper default value () =
-            if (self.default value == nil)
+        properDefaultValue () =
+            if (self.defaultValue == nil)
                 terms.variable ['undefined']
             else
-                self.default value
+                self.defaultValue
 
         generate (scope) =
             self.code (
@@ -39,16 +39,16 @@ module.exports (terms) =
                 self.options.generate (scope)
                 '&&'
                 self.options.generate (scope)
-                ".hasOwnProperty('" + codegen utils.concat name (self.name) + "')&&"
+                ".hasOwnProperty('" + codegenUtils.concatName (self.name) + "')&&"
                 self.options.generate (scope)
-                "." + codegen utils.concat name (self.name) + "!==void 0)?"
+                "." + codegenUtils.concatName (self.name) + "!==void 0)?"
                 self.options.generate (scope)
-                '.' + codegen utils.concat name (self.name) + ':'
-                self.proper default value ().generate (scope)
+                '.' + codegenUtils.concatName (self.name) + ':'
+                self.properDefaultValue ().generate (scope)
             )
     }
 
-    async parameters (closure, next) = {
+    asyncParameters (closure, next) = {
         parameters () =
             next.parameters ()
 
@@ -56,204 +56,172 @@ module.exports (terms) =
             next.statements ()
     }
 
-    (closure) contains splat parameter =
+    (closure) containsSplatParameter =
         _.any (closure.parameters) @(parameter)
-            parameter.is splat
+            parameter.isSplat
 
-    create splat parameter strategy for (closure) =
-        non splat params = take from (closure.parameters) while @(parameter)
-            !parameter.is splat
+    createSplatParameterStrategyFor (closure) =
+        nonSplatParams = takeFrom (closure.parameters) while @(parameter)
+            !parameter.isSplat
 
-        before = non splat params.slice (0, non splat params.length - 1)
-        splat = non splat params.(non splat params.length - 1)
-        after = closure.parameters.slice (non splat params.length + 1)
+        before = nonSplatParams.slice (0, nonSplatParams.length - 1)
+        splat = nonSplatParams.(nonSplatParams.length - 1)
+        after = closure.parameters.slice (nonSplatParams.length + 1)
 
-        terms.closure parameter strategies.splat strategy (
+        terms.closureParameterStrategies.splatStrategy (
             before: before
             splat: splat
             after: after
         )
 
-    create optional parameter strategy for (closure) =
-        terms.closure parameter strategies.optional strategy (
+    createOptionalParameterStrategyFor (closure) =
+        terms.closureParameterStrategies.optionalStrategy (
             before: closure.parameters
-            options: closure.optional parameters
+            options: closure.optionalParameters
         )
-
-    promisifyBody (body) =
-      promiseFunction = terms.promise()
-
-      terms.moduleConstants.define ['Promise'] as (
-        terms.javascript('require("es6-promise").Promise')
-        generated: false
-      )
-
-      terms.statements (
-        [
-          terms.returnStatement (
-            terms.functionCall (
-              promiseFunction
-              [
-                terms.closure (
-                  [terms.resolveFunction]
-                  body
-                  inPromise: true
-                  async: true
-                )
-              ]
-            )
-          )
-        ]
-        returnsPromise: true
-      )
 
     terms.term {
         constructor (
             parameters
             body
-            optional parameters: []
-            return last statement: true
-            redefines self: false
+            optionalParameters: []
+            returnLastStatement: true
+            redefinesSelf: false
             async: false
-            defines module constants: false
-            inPromise: false
+            definesModuleConstants: false
             returnPromise: false
         ) =
-            self.is block = true
-            self.is closure = true
+            self.isBlock = true
+            self.isClosure = true
             self.parameters = parameters
 
-            if ((body.isAsync @or returnPromise) @and @not inPromise)
-              self.body = promisifyBody (body)
-              self.returnsPromise = true
+            self.body = if (returnPromise)
+              body.promisify()
             else
-              self.body = body
+              body
 
-            self.redefines self = redefines self
-            self.optional parameters = optional parameters
-            self.make async (async || self.body.is async)
-            self.return last statement = return last statement
-            self.defines module constants = defines module constants
+            self.returnsPromise = self.body.returnsPromise
 
-        blockify (parameters, optional parameters: [], returnPromise: false, redefines self: nil) =
+            self.redefinesSelf = redefinesSelf
+            self.optionalParameters = optionalParameters
+            self.makeAsync (async || self.body.isAsync)
+            self.returnLastStatement = returnLastStatement
+            self.definesModuleConstants = definesModuleConstants
+
+        blockify (parameters, optionalParameters: [], returnPromise: false, redefinesSelf: nil) =
             self.parameters = parameters
-            self.optional parameters = optional parameters
+            self.optionalParameters = optionalParameters
 
-            if (returnPromise @and @not self.returnsPromise)
-              self.body = promisifyBody(self.body)
-              self.returnsPromise = true
+            if (returnPromise)
+              self.body = self.body.promisify()
+              self.returnsPromise = self.body.returnsPromise
 
-            if (redefines self != nil)
-                self.redefines self = redefines self
+            if (redefinesSelf != nil)
+                self.redefinesSelf = redefinesSelf
 
             self
 
-        make async (a) =
-            self.is async = a
+        makeAsync (a) =
+            self.isAsync = a
       
         scopify () =
-            if ((self.parameters.length == 0) @and (self.optional parameters.length == 0) @and @not self.notScope)
+            if ((self.parameters.length == 0) @and (self.optionalParameters.length == 0) @and @not self.notScope)
                 if (self.body.returnsPromise)
-                    terms.resolve (terms.function call (self, []))
+                    terms.resolve (terms.functionCall (self, []))
                 else
                     terms.scope (self.body.statements, async: false)
             else
                 self
       
-        parameter transforms () =
-            if (self._parameter transforms)
-                return (self._parameter transforms)
+        parameterTransforms () =
+            if (self._parameterTransforms)
+                return (self._parameterTransforms)
 
-            optionals = optional parameters (
-                self.optional parameters
-                self parameter (
+            optionals = optionalParameters (
+                self.optionalParameters
+                selfParameter (
                     terms
-                    self.redefines self
-                    block parameters (self)
+                    self.redefinesSelf
+                    blockParameters (self)
                 )
             )
         
-            splat = splat parameters (
+            splat = splatParameters (
                 terms
                 optionals
             )
         
-            if (optionals.has optionals && splat.has splat)
-                terms.errors.add terms (self.optional parameters) with message 'cannot have splat parameters with optional parameters'
+            if (optionals.hasOptionals && splat.hasSplat)
+                terms.errors.addTerms (self.optionalParameters) withMessage 'cannot have splat parameters with optional parameters'
         
-            self._parameter transforms = splat
+            self._parameterTransforms = splat
       
-        transformed statements () =
-            terms.statements (self.parameter transforms ().statements ())
+        transformedStatements () =
+            terms.statements (self.parameterTransforms ().statements ())
       
-        transformed parameters () =
-            self.parameter transforms ().parameters ()
+        transformedParameters () =
+            self.parameterTransforms ().parameters ()
       
-        define parameters (scope, parameters) =
+        defineParameters (scope, parameters) =
             for each @(parameter) in (parameters)
-                scope.define (parameter.canonical name (scope))
+                scope.define (parameter.canonicalName (scope))
 
         generate (scope) =
-            self.generate into buffer @(buffer)
-                parameters strategy = self.parameters strategy ()
+            self.generateIntoBuffer @(buffer)
+                parametersStrategy = self.parametersStrategy ()
 
-                self.rewrite result term to return ()
+                self.rewriteResultTermToReturn ()
 
                 buffer.write ('function(')
-                defined parameters = parameters strategy.defined parameters ()
-                parameters strategy.generate java script parameters (buffer, scope)
+                definedParameters = parametersStrategy.definedParameters ()
+                parametersStrategy.generateJavaScriptParameters (buffer, scope)
                 buffer.write ('){')
-                body scope = scope.sub scope ()
-                self.define parameters (body scope, defined parameters)
+                bodyScope = scope.subScope ()
+                self.defineParameters (bodyScope, definedParameters)
 
-                if (self.defines module constants)
-                    buffer.write (terms.module constants.generate (scope))
+                if (self.definesModuleConstants)
+                    buffer.write (terms.moduleConstants.generate (scope))
 
-                buffer.write (self.generate self assignment ())
+                buffer.write (self.generateSelfAssignment ())
 
-                parameters strategy.generate java script parameter statements (buffer, scope, terms.variable ['arguments'])
-                buffer.write (self.body.generate statements (body scope, in closure: true))
+                parametersStrategy.generateJavaScriptParameterStatements (buffer, scope, terms.variable ['arguments'])
+                buffer.write (self.body.generateStatements (bodyScope, inClosure: true))
 
                 buffer.write ('}')
 
-        generate function (scope) =
+        generateFunction (scope) =
             self.code (
                 '('
                 self.generate (scope)
                 ')'
             )
 
-        generate self assignment () =
-            if (self.redefines self)
+        generateSelfAssignment () =
+            if (self.redefinesSelf)
                 'var self=this;'
             else
                 ''
 
-        rewrite result term to return () =
-            if (self.return last statement && !self.body.is async)
-                self.body.rewrite last statement to return (async: self.is async)
+        rewriteResultTermToReturn () =
+            if (self.returnLastStatement && !self.body.isAsync)
+                self.body.rewriteLastStatementToReturn (async: self.isAsync)
 
         asyncify () =
-            self.body.asyncify (return call to continuation: self.return last statement)
-            self.make async (true)
+            self.body.asyncify (returnCallToContinuation: self.returnLastStatement)
+            self.makeAsync (true)
 
-        parameters strategy () =
-            inner strategy = if ((self) contains splat parameter)
-                create splat parameter strategy for (self)
-            else if (self.optional parameters.length > 0)
-                create optional parameter strategy for (self)
+        parametersStrategy () =
+            strategy = if ((self) containsSplatParameter)
+                createSplatParameterStrategyFor (self)
+            else if (self.optionalParameters.length > 0)
+                createOptionalParameterStrategyFor (self)
             else
-                terms.closure parameter strategies.normal strategy (self.parameters)
+                terms.closureParameterStrategies.normalStrategy (self.parameters)
 
-            strategy = if (self.is async)
-                terms.closure parameter strategies.callback strategy (inner strategy)
-            else
-                inner strategy
-
-            terms.closure parameter strategies.function strategy (strategy)
+            terms.closureParameterStrategies.functionStrategy (strategy)
     }
 
-block parameters (block) = {
+blockParameters (block) = {
     parameters () =
       block.parameters
     
@@ -261,94 +229,94 @@ block parameters (block) = {
       block.body.statements
 }
 
-self parameter (cg, redefines self, next) =
-    if (redefines self)
+selfParameter (cg, redefinesSelf, next) =
+    if (redefinesSelf)
         {
             parameters () =
                 next.parameters ()
         
             statements () =
-                [cg.definition (cg.self expression (), cg.variable ['this'], shadow: true)].concat (next.statements ())
+                [cg.definition (cg.selfExpression (), cg.variable ['this'], shadow: true)].concat (next.statements ())
         }
     else
         next
 
-splat parameters (cg, next) =
-    parsed splat parameters = parse splat parameters (cg, next.parameters ())
+splatParameters (cg, next) =
+    parsedSplatParameters = parseSplatParameters (cg, next.parameters ())
 
     {
         parameters () =
-            parsed splat parameters.first parameters
+            parsedSplatParameters.firstParameters
     
         statements () =
-            splat = parsed splat parameters
+            splat = parsedSplatParameters
             
-            if (splat.splat parameter)
-                last index = 'arguments.length'
+            if (splat.splatParameter)
+                lastIndex = 'arguments.length'
             
-                if (splat.last parameters.length > 0)
-                    last index := last index + ' - ' + splat.last parameters.length
+                if (splat.lastParameters.length > 0)
+                    lastIndex := lastIndex + ' - ' + splat.lastParameters.length
             
-                splat parameter =
+                splatParameter =
                     cg.definition (
-                        splat.splat parameter
-                        cg.javascript ('Array.prototype.slice.call(arguments, ' + splat.first parameters.length + ', ' + last index + ')')
+                        splat.splatParameter
+                        cg.javascript ('Array.prototype.slice.call(arguments, ' + splat.firstParameters.length + ', ' + lastIndex + ')')
                         shadow: true
                     )
             
-                last parameter statements = [splat parameter]
-                for (n = 0, n < splat.last parameters.length, ++n)
-                    param = splat.last parameters.(n)
-                    last parameter statements.push (
+                lastParameterStatements = [splatParameter]
+                for (n = 0, n < splat.lastParameters.length, ++n)
+                    param = splat.lastParameters.(n)
+                    lastParameterStatements.push (
                         cg.definition (
                             param
-                            cg.javascript('arguments[arguments.length - ' + (splat.last parameters.length - n) + ']')
+                            cg.javascript('arguments[arguments.length - ' + (splat.lastParameters.length - n) + ']')
                             shadow: true
                         )
                     )
 
-                last parameter statements.concat (next.statements ())
+                lastParameterStatements.concat (next.statements ())
             else
                 next.statements ()
         
-        has splat = parsed splat parameters.splat parameter
+        hasSplat = parsedSplatParameters.splatParameter
     }
 
-parse splat parameters = module.exports.parse splat parameters (cg, parameters) =
-    first parameters = take from (parameters) while @(param)
-        !param.is splat
+parseSplatParameters = module.exports.parseSplatParameters (cg, parameters) =
+    firstParameters = takeFrom (parameters) while @(param)
+        !param.isSplat
     
-    maybe splat = parameters.(first parameters.length)
-    splat param = nil
-    last parameters = nil
+    maybeSplat = parameters.(firstParameters.length)
+    splatParam = nil
+    lastParameters = nil
     
-    if (maybe splat && maybe splat.is splat)
-        splat param := first parameters.pop ()
-        splat param.shadow = true
-        last parameters := parameters.slice (first parameters.length + 2)
+    if (maybeSplat && maybeSplat.isSplat)
+        splatParam := firstParameters.pop ()
+        splatParam.shadow = true
+        lastParameters := parameters.slice (firstParameters.length + 2)
         
-        last parameters := _.filter(last parameters) @(param)
-            if (param.is splat)
-                cg.errors.add term (param) with message 'cannot have more than one splat parameter'
+        lastParameters := _.filter(lastParameters) @(param)
+            if (param.isSplat)
+                cg.errors.addTerm (param) withMessage 'cannot have more than one splat parameter'
                 false
             else
                 true
     else
-        last parameters := []
+        lastParameters := []
     
     {
-        first parameters = first parameters
-        splat parameter = splat param
-        last parameters = last parameters
+        firstParameters = firstParameters
+        splatParameter = splatParam
+        lastParameters = lastParameters
     }
 
-take from (list) while (can take) =
-    taken list = []
+takeFrom (list) while (canTake) =
+    takenList = []
     
     for each @(item) in (list)
-        if (can take (item))
-            taken list.push (item)
+        if (canTake (item))
+            takenList.push (item)
         else
-            return (taken list)
+            return (takenList)
 
-    taken list
+    takenList

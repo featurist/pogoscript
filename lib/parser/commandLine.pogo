@@ -85,7 +85,6 @@ exports.repl () =
             inScope: false
             global: true
             returnResult: false
-            async: true
             terms: terms
         )
 
@@ -108,8 +107,14 @@ exports.repl () =
             callback ()
         else
             try
-                global.(terms.continuationFunction.canonicalName ()) = callback
-                eval (js)
+                result = eval (js)
+                if (result @and (result.then :: Function))
+                  result.then @(r)
+                    callback (nil, r)
+                  @(e)
+                    callback (e)
+                else
+                  callback (nil, result)
             catch (error)
                 callback (error)
 

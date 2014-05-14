@@ -168,11 +168,20 @@ describe 'functions'
                                    'running a'
                                    'a'"
 
-    it 'can return a promise just by adding ! to the name'
-      'f()! = 6
-       
-       f().then @(result)
-         print (result)' shouldOutput '6'
+    describe 'forcing return of promises'
+      context 'when the function is defined with a !'
+        it 'returns a promise if the body is not in a block'
+          'f()! = 6
+           
+           f().then @(result)
+             print (result)' shouldOutput '6'
+
+        it 'returns a promise if the body is in a block'
+          'f()! =
+             6
+           
+           f().then @(result)
+             print (result)' shouldOutput '6'
 
     describe 'throwing exceptions'
       context 'when the exception is thrown before a promise is resolved in the body'

@@ -77,3 +77,11 @@ describe 'methods'
        }
 
        print (o.method()!.method()!)' shouldOutput "'result'"
+
+    it 'can return a promise if defined with !'
+      'o = {
+         method ()! = "result"
+       }
+
+       o.method().then @(result)
+         print (result)' shouldOutput "'result'"

@@ -1,40 +1,40 @@
 module.exports (terms) = terms.term {
     constructor (target, source, async: false, shadow: false, assignment: false) =
-        self.is definition = true
+        self.isDefinition = true
         self.target = target
         self.source = source
-        self.is async = async
+        self.isAsync = async
         self.shadow = shadow
         self.global = false
-        self.is assignment = assignment
+        self.isAssignment = assignment
 
     expression () =
         self
   
-    hash entry () =
-        self.cg.hash entry (self.target.hash entry field (), self.source)
+    hashEntry () =
+        self.cg.hashEntry (self.target.hashEntryField (), self.source)
 
     generate (scope) =
         self.code (
-            self.target.generate target (scope)
+            self.target.generateTarget (scope)
             '='
             self.source.generate (scope)
         )
   
-    define variables (variables) =
-        name = self.target.canonical name (variables.scope)
+    defineVariables (variables) =
+        name = self.target.canonicalName (variables.scope)
 
         if (name)
-            if (@not self.is assignment)
-                if (variables.is (name) defined in this scope @and @not self.shadow)
-                    terms.errors.add term (self) with message "variable #(self.target.display name ()) is already defined, use := to reassign it"
+            if (@not self.isAssignment)
+                if (variables.is (name) definedInThisScope @and @not self.shadow)
+                    terms.errors.addTerm (self) withMessage "variable #(self.target.displayName ()) is already defined, use := to reassign it"
                 else if (@not self.global)
                     variables.define (name)
             else if (@not variables.is (name) defined)
-                terms.errors.add term (self) with message "variable #(self.target.display name ()) is not defined, use = to define it"
+                terms.errors.addTerm (self) withMessage "variable #(self.target.displayName ()) is not defined, use = to define it"
 
-    make async with callback for result (create callback for result) =
-        if (self.is async)
-            callback = create callback for result (self.target)
-            self.source.make async call with callback (callback)
+    makeAsyncWithCallbackForResult (createCallbackForResult) =
+        if (self.isAsync)
+            callback = createCallbackForResult (self.target)
+            self.source.makeAsyncCallWithCallback (callback)
 }

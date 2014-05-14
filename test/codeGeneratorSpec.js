@@ -367,7 +367,7 @@ describe('code generator', function () {
     it('chained definitions', function () {
       var st = cg.statements([cg.definition(cg.variable(['one']), cg.definition(cg.variable(['two']), cg.integer(9)))]);
       
-      generatesStatements(st, 'var one,two;one=two=9;');
+      generatesStatements(st, 'var two,one;one=two=9;');
     });
     
     it('with two definitions of the same variable', function () {

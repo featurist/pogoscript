@@ -96,17 +96,4 @@ module.exports (terms) = {
                     buffer.write (option.value.generate (scope))
                     buffer.write ";"
         }
-
-    callbackStrategy (strategy, continuationOrDefault: nil) =
-        {
-            strategy = strategy
-
-            functionParameters () =
-                self.strategy.functionParameters ().concat (terms.continuationFunction)
-
-            definedParameters () = strategy.definedParameters ().concat [terms.continuationFunction]
-
-            generateJavaScriptParameterStatements (buffer, scope, args) =
-                self.strategy.generateJavaScriptParameterStatements (buffer, scope, args)
-        }
 }

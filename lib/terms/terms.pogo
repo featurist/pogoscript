@@ -134,7 +134,7 @@ module.exports (cg) =
 
             add members in object (object) =
                 for @(property) in (object)
-                    if (object.has own property (property))
+                    if (object.has own property (property) @and property.0 != '_')
                         member = object.(property)
 
                         add member (member)
@@ -247,8 +247,22 @@ module.exports (cg) =
                     term.serialise statements ()
             )
 
-        define variables () = nil
+        defineVariables () = nil
         canonical name () = nil
+
+        definitions () =
+          defs = []
+
+          self.walkDescendants @(term)
+            if (term.isDefinition)
+              defs.push(term)
+          notBelow @(term) if
+            term.isClosure
+
+          if (self.isDefinition)
+            defs.push(self)
+
+          defs
 
         make async with callback for result (create callback for result) = nil
 

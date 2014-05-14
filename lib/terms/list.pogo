@@ -26,7 +26,6 @@ module.exports (terms) =
             item = items.(n)
             itemsWithSplats.push(item)
             if (item.isRange)
-                console.log 'setting inlist'
                 item.inList = true
                 itemsWithSplats.push(terms.splat())
 

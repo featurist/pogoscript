@@ -37,8 +37,8 @@ describe 'pogo'
         it 'can evaluate pogoscript and pass in a variable'
             pogo.evaluate ('2 * x', definitions: {x = 4}).should.equal 8
 
-        it 'can evaluate async pogoscript' @(done)
-            pogo.evaluate ('process.next tick! (), done ()', definitions: {done = done})
+        it 'can evaluate async pogoscript'
+            pogo.evaluate ('process.next tick ^!', definitions: {require = require})
 
     describe 'lex'
 

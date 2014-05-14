@@ -7,29 +7,29 @@ net = require 'net'
 
 describe 'pogo command'
     it "`process.argv` contains 'pogo', the name of the
-         script executed, and the arguments from the command line" @(done)
-    
+         script executed, and the arguments from the command line"
+
         'console.log (process.argv)' withArgs ['one', 'two'] shouldOutput "[ 'pogo',
                                                                              '#(path.resolve '343111c34d666435dd7e88265c816cbfdbe68cd3.pogo')',
                                                                              'one',
-                                                                             'two' ]" (done)
+                                                                             'two' ]"
 
-    it "`__filename` should be the name of the script" @(done)
-        'console.log (__filename)' withArgs [] shouldOutput (path.resolve "5be55a44c52f14d048d19c020fd913199ae2e61c.pogo") (done)
+    it "`__filename` should be the name of the script"
+        'console.log (__filename)' withArgs [] shouldOutput (path.resolve "5be55a44c52f14d048d19c020fd913199ae2e61c.pogo")
 
-    it "`__dirname` should be the name of the script" @(done)
-        'console.log (__dirname)' withArgs [] shouldOutput (path.resolve ".") (done)
-    
-    it "runs script files even if they don't use the .pogo extension" @(done)
-        'console.log "hi"' withArgs [] shouldOutput 'hi' (scriptFilename: 'ascript', done)
-    
-    it "script can take same switches as pogo script, like --compile" @(done)
+    it "`__dirname` should be the name of the script"
+        'console.log (__dirname)' withArgs [] shouldOutput (path.resolve ".")
+
+    it "runs script files even if they don't use the .pogo extension"
+        'console.log "hi"' withArgs [] shouldOutput 'hi' (scriptFilename: 'ascript')
+
+    it "script can take same switches as pogo script, like --compile"
         'console.log (process.argv)' withArgs ['--compile'] shouldOutput "[ 'pogo',
                                                                             '#(path.resolve '343111c34d666435dd7e88265c816cbfdbe68cd3.pogo')',
-                                                                            '--compile' ]" (done)
+                                                                            '--compile' ]"
 
-writeFile (filename, content, done) =
-    fs.writeFile ("#(__dirname)/#(filename)", content, done)
+writeFile (filename, content) =
+    fs.writeFile ("#(__dirname)/#(filename)", content, ^)
 
 expandPogoCommand (command) =
     if (r/^pogo( |$)/.test (command))
@@ -38,50 +38,45 @@ expandPogoCommand (command) =
         command.replace r/^pogo/ (pogo)
     else
         command
-    
-spawn (command, args, done) =
-    process = childProcess.spawn (expandPogoCommand (command), args, {cwd = __dirname, customFds = [0, 1, 2]})
-    done (nil, process)
 
-run (command, callback) =
+runShim (command, callback) =
     expandedCommand = expandPogoCommand (command)
     childProcess.exec (expandedCommand, {cwd = __dirname}) @(error, stdout, stderr)
         callback (error, {stdout = stdout, stderr = stderr})
 
+run (command) = runShim (command, ^)
+
 describe 'pogo --compile'
     afterEach
-        fs.unlink! "#(__dirname)/toCompile.pogo"
-        fs.unlink! "#(__dirname)/toCompile.js"
+        unlink "#(__dirname)/toCompile.pogo"!
+        unlink "#(__dirname)/toCompile.js"!
 
     it 'can compile a script'
-        writeFile! "toCompile.pogo" "console.log 'hi'"
-        pogoOutput = run! "pogo -c toCompile.pogo"
+        writeFile "toCompile.pogo" "console.log 'hi'"!
+        pogoOutput = run "pogo -c toCompile.pogo"!
         pogoOutput.stdout.should.equal ''
         pogoOutput.stderr.should.equal ''
 
-        nodeOutput = run! "node toCompile.js"
+        nodeOutput = run "node toCompile.js"!
         nodeOutput.stdout.should.equal "hi\n"
         nodeOutput.stderr.should.equal ''
 
 (n)ms = n
 (n)s = n * 1000
 
-wait (milliseconds, doSomething) =
-    setTimeout (doSomething, milliseconds)
+wait (milliseconds) =
+    setTimeout (^, milliseconds)
 
-unlink! (file) =
+unlink (file)! =
     try
-        fs.unlink! (file)
+        fs.unlink (file, ^)!
     catch (error)
         if (error.code != 'ENOENT')
             throw (error)
 
-        // bug #6, remove this
-        nil
-
 describe 'pogo --help'
     it 'prints out help'
-        pogoOutput = run! "pogo --help"
+        pogoOutput = run "pogo --help"!
 
         pogoOutput.stdout.should.match r/usage:/
         pogoOutput.stdout.should.match r/--compile/
@@ -89,46 +84,46 @@ describe 'pogo --help'
 
 describe 'pogo --compile --if-stale'
     beforeEach
-        unlink! "#(__dirname)/toCompile.pogo"
-        unlink! "#(__dirname)/toCompile.js"
+        unlink "#(__dirname)/toCompile.pogo"!
+        unlink "#(__dirname)/toCompile.js"!
 
     afterEach
-        unlink! "#(__dirname)/toCompile.pogo"
-        unlink! "#(__dirname)/toCompile.js"
+        unlink "#(__dirname)/toCompile.pogo"!
+        unlink "#(__dirname)/toCompile.js"!
 
     it 'compiles a pogo script if the js is missing'
-        writeFile! "toCompile.pogo" "console.log 'hi'"
-        pogoOutput = run! "pogo -cs toCompile.pogo"
+        writeFile "toCompile.pogo" "console.log 'hi'"!
+        pogoOutput = run "pogo -cs toCompile.pogo"!
         pogoOutput.stdout.should.equal "compiling toCompile.pogo => toCompile.js\n"
         pogoOutput.stderr.should.equal ''
 
-        nodeOutput = run! "node toCompile.js"
+        nodeOutput = run "node toCompile.js"!
         nodeOutput.stdout.should.equal "hi\n"
         nodeOutput.stderr.should.equal ''
 
     it 'compiles a pogo script if the js is out of date'
-        writeFile! "toCompile.js" "console.log('old')"
-        wait! (1s)
-        writeFile! "toCompile.pogo" "console.log 'new'"
+        writeFile "toCompile.js" "console.log('old')"!
+        wait (1s)!
+        writeFile "toCompile.pogo" "console.log 'new'"!
 
-        pogoOutput = run! "pogo -cs toCompile.pogo"
+        pogoOutput = run "pogo -cs toCompile.pogo"!
         pogoOutput.stdout.should.equal "compiling toCompile.pogo => toCompile.js\n"
         pogoOutput.stderr.should.equal ''
 
-        nodeOutput = run! "node toCompile.js"
+        nodeOutput = run "node toCompile.js"!
         nodeOutput.stdout.should.equal "new\n"
         nodeOutput.stderr.should.equal ''
 
     it "doesn't recompile the js if it the pogo is older"
-        writeFile! "toCompile.pogo" "console.log 'pogo'"
-        wait! (1s)
-        writeFile! "toCompile.js" "console.log('js')"
+        writeFile "toCompile.pogo" "console.log 'pogo'"!
+        wait (1s)!
+        writeFile "toCompile.js" "console.log('js')"!
 
-        pogoOutput = run! "pogo -cs toCompile.pogo"
+        pogoOutput = run "pogo -cs toCompile.pogo"!
         pogoOutput.stdout.should.equal ''
         pogoOutput.stderr.should.equal ''
 
-        nodeOutput = run! "node toCompile.js"
+        nodeOutput = run "node toCompile.js"!
         nodeOutput.stdout.should.equal "js\n"
         nodeOutput.stderr.should.equal ''
 
@@ -137,8 +132,8 @@ describe 'debugging'
         this.timeout 3000
 
         it 'starts remote debugging'
-            writeFile! "toDebug.pogo" "console.log 'bug!'"
-            pogoOutput = run! 'pogo --debug toDebug.pogo'
+            writeFile "toDebug.pogo" "console.log 'bug!'"!
+            pogoOutput = run 'pogo --debug toDebug.pogo'!
             pogoOutput.stderr.should.equal "debugger listening on port 5858\n"
             pogoOutput.stdout.should.equal "bug!\n"
 
@@ -171,57 +166,56 @@ describe '`pogo` (interactive)'
             console.log (data.toString ())
 
         {
-            issue (command, done) =
+            issue (command)! =
                 handleResult (actualResult) :=
-                    done ()
+                    continuation ()
 
                 pogo.stdin.write "#(command)\n"
 
-            issue (command) andExpect (result, done) =
+            issue (command) andExpect (result)! =
                 handleResult (actualResult) :=
                     actualResult.should.equal (result)
-                    done ()
+                    continuation ()
 
                 pogo.stdin.write "#(command)\n"
 
-            exit (done) =
+            exit ()! =
                 pogo.on 'exit' @(code)
-                    done (nil, code)
+                    continuation (nil, code)
 
                 pogo.stdin.end ()
         }
 
     it 'evaluates a simple line of pogoscript'
         pogo = pogoSession ()
-        pogo.issue '8' andExpect! '8'
-        pogo.exit!
+        pogo.issue '8' andExpect '8'!
+        pogo.exit()!
 
     it 'variables are shared among different lines'
         pogo = pogoSession ()
-        pogo.issue 'a = 8' andExpect! '8'
-        pogo.issue 'a' andExpect! '8'
-        pogo.exit!
+        pogo.issue 'a = 8' andExpect '8'!
+        pogo.issue 'a' andExpect '8'!
+        pogo.exit()!
 
     it 'evaluates async operations'
         pogo = pogoSession ()
-        pogo.issue 'a! = 8' andExpect! '[Function]'
-        pogo.issue 'a!' andExpect! '8'
-        pogo.exit!
+        pogo.issue 'a()! = 8' andExpect '[Function]'!
+        pogo.issue 'a()!' andExpect '8'!
+        pogo.exit()!
 
     it 'evaluates async assignments'
         pogo = pogoSession ()
-        pogo.issue 'a! = 8' andExpect! '[Function]'
-        pogo.issue 'b = a!' andExpect! '8'
-        pogo.issue 'b' andExpect! '8'
-        pogo.exit!
+        pogo.issue 'a()! = 8' andExpect '[Function]'!
+        pogo.issue 'b = a()!' andExpect '8'!
+        pogo.issue 'b' andExpect '8'!
+        pogo.exit()!
 
     it 'evaluates async assignments properly'
         pogo = pogoSession ()
-        pogo.issue 'a (c) = setTimeout (@{ t = (@new Date).getTime (), console.log (t), c (nil, {t = t}) }, 100)'!
-        pogo.issue 'b = a!'!
+        pogo.issue 'a ()! = @{ setTimeout (^, 100), t = (@new Date).getTime (), console.log (t), {t = t} }'!
+        pogo.issue 'b = a()!'!
         pogo.issue 'c = b'!
         pogo.issue 'c == b'!
-        pogo.issue 'b = a!'!
+        pogo.issue 'b = a()!'!
         pogo.issue 'c == b' andExpect 'false'!
-        pogo.exit!
-        
+        pogo.exit()!
