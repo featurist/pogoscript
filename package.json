@@ -1,6 +1,6 @@
 {
   "name": "pogo",
-  "version": "0.7.1",
+  "version": "0.8.0-beta1",
   "description": "A readable, DSL friendly programming language that compiles to JavaScript",
   "author": "Tim Macfarlane <timmacfarlane@gmail.com>",
   "repository": {
