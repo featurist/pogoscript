@@ -3,49 +3,49 @@ codegenUtils = require "./codegenUtils"
 
 module.exports (terms) =
     optionalParameters (optionalParameters, next) =
-        if (optionalParameters.length > 0)
-            {
-                options = terms.generatedVariable ['options']
-                
-                parameters () =
-                    next.parameters ().concat [self.options]
+      if (optionalParameters.length > 0)
+        {
+          options = terms.generatedVariable ['options']
 
-                statements () =
-                    optionalStatements = _.map(optionalParameters) @(parm)
-                        terms.definition (terms.variable (parm.field), optional (self.options, parm.field, parm.value), shadow: true)
-                    
-                    optionalStatements.concat (next.statements ())
-                
-                hasOptionals = true
-            }
-        else
-            next
+          parameters () =
+            next.parameters ().concat [self.options]
+
+          statements () =
+            optionalStatements = _.map(optionalParameters) @(parm)
+              terms.definition (terms.variable (parm.field), optional (self.options, parm.field, parm.value), shadow: true)
+
+            optionalStatements.concat (next.statements ())
+
+          hasOptionals = true
+        }
+      else
+        next
 
     optional = terms.term {
-        constructor (options, name, defaultValue) =
-            self.options = options
-            self.name = name
-            self.defaultValue = defaultValue
-      
-        properDefaultValue () =
-            if (self.defaultValue == nil)
-                terms.variable ['undefined']
-            else
-                self.defaultValue
+      constructor (options, name, defaultValue) =
+        self.options = options
+        self.name = name
+        self.defaultValue = defaultValue
 
-        generate (scope) =
-            self.code (
-                '('
-                self.options.generate (scope)
-                '&&'
-                self.options.generate (scope)
-                ".hasOwnProperty('" + codegenUtils.concatName (self.name) + "')&&"
-                self.options.generate (scope)
-                "." + codegenUtils.concatName (self.name) + "!==void 0)?"
-                self.options.generate (scope)
-                '.' + codegenUtils.concatName (self.name) + ':'
-                self.properDefaultValue ().generate (scope)
-            )
+      properDefaultValue () =
+        if (self.defaultValue == nil)
+          terms.variable ['undefined']
+        else
+          self.defaultValue
+
+      generate (scope) =
+        self.code (
+          '('
+          self.options.generate (scope)
+          '&&'
+          self.options.generate (scope)
+          ".hasOwnProperty('" + codegenUtils.concatName (self.name) + "')&&"
+          self.options.generate (scope)
+          "." + codegenUtils.concatName (self.name) + "!==void 0)?"
+          self.options.generate (scope)
+          '.' + codegenUtils.concatName (self.name) + ':'
+          self.properDefaultValue ().generate (scope)
+        )
     }
 
     asyncParameters (closure, next) = {
@@ -123,7 +123,7 @@ module.exports (terms) =
 
         makeAsync (a) =
             self.isAsync = a
-      
+
         scopify () =
             if ((self.parameters.length == 0) @and (self.optionalParameters.length == 0) @and @not self.notScope)
                 if (self.body.returnsPromise)
@@ -132,7 +132,7 @@ module.exports (terms) =
                     terms.scope (self.body.statements, async: false)
             else
                 self
-      
+
         parameterTransforms () =
             if (self._parameterTransforms)
                 return (self._parameterTransforms)
@@ -145,23 +145,23 @@ module.exports (terms) =
                     blockParameters (self)
                 )
             )
-        
+
             splat = splatParameters (
                 terms
                 optionals
             )
-        
+
             if (optionals.hasOptionals && splat.hasSplat)
                 terms.errors.addTerms (self.optionalParameters) withMessage 'cannot have splat parameters with optional parameters'
-        
+
             self._parameterTransforms = splat
-      
+
         transformedStatements () =
             terms.statements (self.parameterTransforms ().statements ())
-      
+
         transformedParameters () =
             self.parameterTransforms ().parameters ()
-      
+
         defineParameters (scope, parameters) =
             for each @(parameter) in (parameters)
                 scope.define (parameter.canonicalName (scope))
@@ -224,7 +224,7 @@ module.exports (terms) =
 blockParameters (block) = {
     parameters () =
       block.parameters
-    
+
     statements () =
       block.body.statements
 }
@@ -234,7 +234,7 @@ selfParameter (cg, redefinesSelf, next) =
         {
             parameters () =
                 next.parameters ()
-        
+
             statements () =
                 [cg.definition (cg.selfExpression (), cg.variable ['this'], shadow: true)].concat (next.statements ())
         }
@@ -247,23 +247,23 @@ splatParameters (cg, next) =
     {
         parameters () =
             parsedSplatParameters.firstParameters
-    
+
         statements () =
             splat = parsedSplatParameters
-            
+
             if (splat.splatParameter)
                 lastIndex = 'arguments.length'
-            
+
                 if (splat.lastParameters.length > 0)
                     lastIndex := lastIndex + ' - ' + splat.lastParameters.length
-            
+
                 splatParameter =
                     cg.definition (
                         splat.splatParameter
                         cg.javascript ('Array.prototype.slice.call(arguments, ' + splat.firstParameters.length + ', ' + lastIndex + ')')
                         shadow: true
                     )
-            
+
                 lastParameterStatements = [splatParameter]
                 for (n = 0, n < splat.lastParameters.length, ++n)
                     param = splat.lastParameters.(n)
@@ -278,23 +278,23 @@ splatParameters (cg, next) =
                 lastParameterStatements.concat (next.statements ())
             else
                 next.statements ()
-        
+
         hasSplat = parsedSplatParameters.splatParameter
     }
 
 parseSplatParameters = module.exports.parseSplatParameters (cg, parameters) =
     firstParameters = takeFrom (parameters) while @(param)
         !param.isSplat
-    
+
     maybeSplat = parameters.(firstParameters.length)
     splatParam = nil
     lastParameters = nil
-    
+
     if (maybeSplat && maybeSplat.isSplat)
         splatParam := firstParameters.pop ()
         splatParam.shadow = true
         lastParameters := parameters.slice (firstParameters.length + 2)
-        
+
         lastParameters := _.filter(lastParameters) @(param)
             if (param.isSplat)
                 cg.errors.addTerm (param) withMessage 'cannot have more than one splat parameter'
@@ -303,7 +303,7 @@ parseSplatParameters = module.exports.parseSplatParameters (cg, parameters) =
                 true
     else
         lastParameters := []
-    
+
     {
         firstParameters = firstParameters
         splatParameter = splatParam
@@ -312,7 +312,7 @@ parseSplatParameters = module.exports.parseSplatParameters (cg, parameters) =
 
 takeFrom (list) while (canTake) =
     takenList = []
-    
+
     for each @(item) in (list)
         if (canTake (item))
             takenList.push (item)

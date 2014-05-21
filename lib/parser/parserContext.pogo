@@ -31,8 +31,10 @@ exports.createParserContext =
         interpolation = createInterpolation ()
         
         lexOperator (parserContext, op) =
-          if (r/[?!][.;]|\^!/.test (op))
+          if (r/^!\.|\^!$/.test (op))
             parserContext.tokens [op.0, op.1]
+          else if (r/^\^!\.$/.test (op))
+            parserContext.tokens [op.0, op.1, op.2]
           else if (r/^(=>|\.\.\.|@:|[#@:!?^,.=;]|:=)$/.test (op))
             op
           else

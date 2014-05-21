@@ -102,32 +102,19 @@ module.exports (terms) =
                 async result
             ]
         else if (@not promisify @and [a <- args, a.isCallback, a].length > 0)
-          promisifyFunction = terms.moduleConstants.defineAs (
-            ['promisify']
-            terms.javascript(asyncControl.promisify.toString())
-          )
-
-          @return terms.functionCall (
-            promisifyFunction
-            [
-              terms.closure (
-                [terms.callbackFunction]
-                terms.statements [
-                  method call (
-                     object
-                     name
-                     args
-                     optional arguments: []
-                     async: false
-                     future: false
-                     originally async: false
-                     async callback argument: nil
-                     contains splat arguments: false
-                     promisify: true
-                  )
-                ]
-              )
-            ]
+          @return terms.promisify (
+            method call (
+               object
+               name
+               args
+               optional arguments: []
+               async: false
+               future: false
+               originally async: false
+               async callback argument: nil
+               contains splat arguments: false
+               promisify: true
+            )
           )
         else if (future)
             future function =

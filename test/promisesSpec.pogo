@@ -21,3 +21,11 @@ describe 'promises'
          1
        
        print (f ^!)' shouldOutput "'result'"
+
+    it '^!. can be used'
+      'f (cb) =
+         setTimeout
+           cb (nil, {result = "result"})
+         1
+       
+       print (f ^!.result)' shouldOutput "'result'"

@@ -130,32 +130,19 @@ module.exports (terms) =
                 )
             )
         else if (@not promisify @and [a <- args, a.isCallback, a].length > 0)
-          promisifyFunction = terms.moduleConstants.defineAs (
-            ['promisify']
-            terms.javascript(asyncControl.promisify.toString())
-          )
-
-          @return terms.functionCall (
-            promisifyFunction
-            [
-              terms.closure (
-                [terms.callbackFunction]
-                terms.statements [
-                  terms.functionCall (
-                     fun
-                     args
-                     optionalArguments: []
-                     async: false
-                     passThisToApply: false
-                     originallyAsync: false
-                     asyncCallbackArgument: nil
-                     couldBeMacro: true
-                     future: false
-                     promisify: true
-                  )
-                ]
-              )
-            ]
+          @return terms.promisify (
+            terms.functionCall (
+               fun
+               args
+               optionalArguments: []
+               async: false
+               passThisToApply: false
+               originallyAsync: false
+               asyncCallbackArgument: nil
+               couldBeMacro: true
+               future: false
+               promisify: true
+            )
           )
         else if (fun.variable @and couldBeMacro)
             name = fun.variable
