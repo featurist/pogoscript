@@ -85,7 +85,7 @@ exports.grammar = {
             ['', '$$ = [];']
         ]
         parameter_list [
-            ['parameter_list , statement', '$1.push($3); $$ = $1;']
+            ['parameter_list , parameter', '$1.push($3); $$ = $1;']
             ['parameter', '$$ = [$1];']
         ]
         parameter [

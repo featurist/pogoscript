@@ -16,3 +16,11 @@ describe 'blocks'
            optional
          
          print (x)' shouldOutput "'optional'"
+
+    it 'can be given optional parameters after normal'
+        'f (block) = block ("arg", optional: "optional")
+         
+         x = f @(arg, optional: nil)
+           arg + optional
+         
+         print (x)' shouldOutput "'argoptional'"
