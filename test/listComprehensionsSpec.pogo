@@ -12,7 +12,7 @@ describe 'list comprehensions'
 
         it 'can map items to new values with async function'
             'f! (x) =
-                 promise()!
+                 p()!
                  x + 1
 
              print [x <- [1, 2, 3], f (x)!]' shouldOutput '[ 2, 3, 4 ]'
@@ -23,7 +23,7 @@ describe 'list comprehensions'
 
         it 'can filter out items before mapping with async filter'
             'f! (x) =
-                 promise()!
+                 p()!
                  x > 1
 
              print [x <- [1, 2, 3], f (x)!, x]' shouldOutput '[ 2, 3 ]'
@@ -34,7 +34,7 @@ describe 'list comprehensions'
 
         it 'can map a new definition with async function'
             'f! (x) =
-                 promise()!
+                 p()!
                  x + 1
 
              print [x <- [1, 2, 3], y = f! (x), y]' shouldOutput '[ 2, 3, 4 ]'
@@ -45,7 +45,7 @@ describe 'list comprehensions'
 
         it 'can map a new definition with async function'
             'f! (x) =
-                promise()!
+                p()!
                 [x, -x]
 
              print [x <- [1, 2], y <- f! (x), [x, y]]' shouldOutput '[ [ 1, 1 ], [ 1, -1 ], [ 2, 2 ], [ 2, -2 ] ]'
@@ -71,7 +71,7 @@ describe 'list comprehensions'
 
             'a (x)! =
                  print "started #(x)"
-                 promise()!
+                 p()!
                  print "finished #(x)"
                  x
              
@@ -86,7 +86,7 @@ describe 'list comprehensions'
         it 'can start all async processes, then wait for results, no need for futures'
             'a (x)! =
                  print "started #(x)"
-                 promise()!
+                 p()!
                  print "finished #(x)"
                  x
              

@@ -43,7 +43,7 @@ describe 'methods'
     it 'can return a promise'
       'o = {
          method () =
-           promise "result"
+           p "result"
        }
 
        print (o.method()!)' shouldOutput "'result'"
@@ -51,7 +51,7 @@ describe 'methods'
     it 'can return a promise by resolving one'
       'o = {
          method () =
-           promise "result"!
+           p "result"!
        }
 
        print (o.method()!)' shouldOutput "'result'"
@@ -59,7 +59,7 @@ describe 'methods'
     it 'can resolve a promise then return a value'
       'o = {
          method () =
-           promise ()!
+           p ()!
            "result"
        }
 
@@ -68,10 +68,10 @@ describe 'methods'
     it 'can chain method calls by resolving promises'
       'o = {
          method () =
-           promise ()!
+           p ()!
            {
              method () =
-               promise ()!
+               p ()!
                "result"
            }
        }

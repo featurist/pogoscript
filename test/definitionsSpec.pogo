@@ -52,19 +52,19 @@ describe 'definitions'
     describe 'promises'
       it 'promises can be resolved in a scope'
         'a =
-           promise ("a")!
+           p ("a")!
 
          print(a)' shouldOutput "'a'"
 
       it 'promise expressions can be resolved in a scope'
         'a =
-           promise ("a")! + "b"
+           p ("a")! + "b"
 
          print(a)' shouldOutput "'ab'"
 
       it 'promise statements can be resolved in a scope'
         'a =
-           b = promise ("a")!
+           b = p ("a")!
            b + "c"
 
          print(a)' shouldOutput "'ac'"

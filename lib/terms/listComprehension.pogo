@@ -33,8 +33,6 @@ module.exports (terms) =
 
         generate (isAsync, result, index) =
             if (isAsync)
-                promiseFunction = terms.promise()
-
                 listComprehension =
                     terms.moduleConstants.define ['list', 'comprehension'] as (
                         terms.javascript (asyncControl.listComprehension.toString ())

@@ -129,36 +129,36 @@ describe 'functions'
 
   describe 'returning promises'
     it 'can return a promise'
-      'f () = promise 8
+      'f () = p 8
        print (f()!)' shouldOutput '8'
 
     it 'can return a promise by resolving one'
-      'f () = promise 8!
+      'f () = p 8!
        print (f()!)' shouldOutput '8'
 
     it 'can return a promise by resolving one, then returning a value'
       'f () =
-         promise 8!
+         p 8!
          4
 
        print (f()!)' shouldOutput '4'
 
     it 'can resolve multiple times, but the function only runs once'
       'a() =
-         promise ()!
+         p ()!
          print "running a"
          "a"
 
-       p = a()
+       b = a()
 
-       print (p!)
-       print (p!)' shouldOutput "'running a'
+       print (b!)
+       print (b!)' shouldOutput "'running a'
                                  'a'
                                  'a'"
 
     it 'can be executed multiple times'
       'a() =
-         promise ()!
+         p ()!
          print "running a"
          "a"
 
@@ -188,24 +188,24 @@ describe 'functions'
         it 'only throws the exception when the promise is resolved'
           'a() =
              @throw @new Error "uh oh"
-             promise "result"!
+             p "result"!
 
-           p = a()
+           b = a()
 
            try
-             p!
+             b!
            catch (error)
              print (error.message)' shouldOutput "'uh oh'"
 
       context 'when the exception is thrown after a promise is resolved in the body'
         it 'only throws the exception when the promise is resolved'
           'a() =
-             promise "result"!
+             p "result"!
              @throw @new Error "uh oh"
 
-           p = a()
+           b = a()
 
            try
-             p!
+             b!
            catch (error)
              print (error.message)' shouldOutput "'uh oh'"

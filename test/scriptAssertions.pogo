@@ -12,11 +12,11 @@ exports.evaluateScript (script) =
     print (arg) =
         printedItems.push (arg)
 
-    promise (n) =
+    p (n) =
         process.nextTick ^!
         n
 
-    r = compiler.evaluate (script, definitions: {print = print, require = require, promise = promise})
+    r = compiler.evaluate (script, definitions: {print = print, require = require, p = p})
 
     collatePrintedItems() =
       _.map (printedItems) @(item)

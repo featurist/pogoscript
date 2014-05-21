@@ -16,7 +16,7 @@ describe 'if'
     context 'when there no else clause'
       it 'resolves promises when in the then clause'
         'result = if (true)
-           promise ()!
+           p ()!
            "result"
          
          print (result)' shouldOutput "'result'"
@@ -24,10 +24,10 @@ describe 'if'
     context 'when there is an else clause'
       it 'resolves promises when in the else clause'
         'result = if (false)
-           promise ()!
+           p ()!
            print "then"
          else
-           promise()!
+           p()!
            print "else"
            "result"
          
@@ -37,14 +37,14 @@ describe 'if'
     context 'when there are if else and else clauses'
       it 'resolves promises when in the else clause'
         'result = if (false)
-           promise ()!
+           p ()!
            print "then"
          else if (true)
-           promise()!
+           p()!
            print "else if"
            "result"
          else
-           promise()!
+           p()!
            print "else"
          
          print (result)' shouldOutput "'else if'

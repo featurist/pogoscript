@@ -25,7 +25,7 @@ module.exports (terms) = terms.term {
         terms.statements (
           [
             terms.functionCall (
-              terms.promise()
+              terms.createPromise()
               [
                 terms.closure (
                   [terms.resolveFunction, terms.continuationFunction]

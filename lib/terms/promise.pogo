@@ -4,7 +4,3 @@ module.exports (terms) =
       terms.javascript('require("bluebird")')
       generated: false
     )
-
-    terms.moduleConstants.define ['promise'] as (
-      terms.javascript(asyncControl.promise.toString())
-    )

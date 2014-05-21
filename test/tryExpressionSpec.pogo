@@ -46,11 +46,11 @@ describe 'try'
       context "and there isn't a finally"
         it "doesn't run the catch and returns the body expression"
           'result = try
-             promise ()!
+             p ()!
              print "good"
              "result"
            catch (ex)
-             promise()!
+             p()!
              print "bad"
           
            print (result)' shouldOutput "'good'
@@ -59,14 +59,14 @@ describe 'try'
       context "and there is a finally"
         it "doesn't run the catch, and does run the finally"
           'result = try
-             promise ()!
+             p ()!
              print "good"
              "result"
            catch (ex)
-             promise()!
+             p()!
              print "bad"
            finally
-             promise()!
+             p()!
              print "finally"
            
            print (result)' shouldOutput "'good'
@@ -77,14 +77,14 @@ describe 'try'
       context "and there isn't a finally"
         it "runs the catch clause and returns the catch clause expression"
           'promiseError () =
-             promise ()!
+             p ()!
              @throw @new Error "uh oh"
            
            result = try
              promiseError ()!
              print "good"
            catch (ex)
-             promise()!
+             p()!
              print (ex.message)
              "result"
           
@@ -94,18 +94,18 @@ describe 'try'
       context "and there is a finally"
         it "runs the catch clause and returns the catch clause expression"
           'promiseError () =
-             promise ()!
+             p ()!
              @throw @new Error "uh oh"
            
            result = try
              promiseError ()!
              print "good"
            catch (ex)
-             promise()!
+             p()!
              print (ex.message)
              "result"
            finally
-             promise()!
+             p()!
              print "finally"
            
            print (result)' shouldOutput "'uh oh'

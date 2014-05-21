@@ -4,11 +4,11 @@ shouldOutput = script.shouldOutput
 
 describe 'promises'
   it 'can resolve a promise'
-    'print (promise 6!)' shouldOutput "6"
+    'print (p 6!)' shouldOutput "6"
 
   it 'only exits once'
     'a() =
-       promise ()!
+       p ()!
 
      a()!
      print "finished"' shouldOutput "'finished'"
@@ -29,3 +29,35 @@ describe 'promises'
          1
        
        print (f ^!.result)' shouldOutput "'result'"
+
+  describe 'explicit promises'
+    it 'can create explicit promises'
+      'x = promise @(success)
+        success "result"
+
+       print (x!)' shouldOutput "'result'"
+
+    it 'an exception inside promise causes the promise to fail'
+      'x = promise @(success)
+        throw (new (Error "uh oh"))
+
+       try
+         x!
+       catch (e)
+         print (e.message)' shouldOutput "'uh oh'"
+
+    it 'calling the error inside the promise causes the promise to fail'
+      'x = promise @(success, error)
+        error (new (Error "uh oh"))
+
+       try
+         x!
+       catch (e)
+         print (e.message)' shouldOutput "'uh oh'"
+
+    it 'can resolve other promises inside the promise, but must call success'
+      'x = promise @(success)
+         setTimeout ^ 1!
+         success("result")
+
+       print (x!)' shouldOutput "'result'"
