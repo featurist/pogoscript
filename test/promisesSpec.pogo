@@ -61,3 +61,12 @@ describe 'promises'
          success("result")
 
        print (x!)' shouldOutput "'result'"
+
+    it "doesn't take the last expression as the result"
+      'x = promise @(success)
+         setTimeout
+            success("result")
+         1!
+         "uh oh"
+
+       print (x!)' shouldOutput "'result'"
