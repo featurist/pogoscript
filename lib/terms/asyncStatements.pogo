@@ -10,23 +10,7 @@ module.exports (terms) =
     containsContinuation: containsContinuation
   ) =
     if ((callbackStatements.length == 1) && (callbackStatements.0.isAsyncResult))
-        if (containsContinuation)
-          errorVariable = terms.generatedVariable ['error']
-          terms.closure (
-            [errorVariable]
-            terms.statements [
-              terms.ifExpression (
-                [{
-                  condition = errorVariable
-                  body = terms.statements [
-                    terms.functionCall (terms.continuationFunction, [errorVariable])
-                  ]
-                }]
-              )
-            ]
-          )
-        else
-          terms.onFulfilledFunction
+      terms.onFulfilledFunction
     else
       asyncStmts = putStatements (
         callbackStatements

@@ -4,18 +4,26 @@ module.exports (terms) =
       self.isResolve = true
       self.term = term
 
-      resolve = terms.methodCall (terms.promise(), ['resolve'], [self.term])
-      self._methodCall = terms.methodCall (resolve, ['then'], [])
-      self._onFulfilled = terms.functionCall (terms.onFulfilledFunction, [self._methodCall])
+      if (@not term.isNewPromise)
+        self._resolve = terms.methodCall (terms.promise(), ['resolve'], [term])
+      else
+        self._resolve = term
+
+      self._onFulfilled = terms.functionCall (terms.onFulfilledFunction, [self._resolve])
 
     generate (scope) =
       self._onFulfilled.generate (scope)
 
     makeAsyncCallWithCallback (onFulfilled, onRejected) =
-      args = [
-        onFulfilled @or terms.onFulfilledFunction
-      ]
-      self._methodCall.methodArguments = args
+      args = []
+
+      if (onFulfilled @and onFulfilled != terms.onFulfilledFunction)
+        args.push (onFulfilled)
+
+      if (args.length > 0)
+        self._then = terms.methodCall (self._resolve, ['then'], args)
+        self._onFulfilled = terms.functionCall (terms.onFulfilledFunction, [self._then])
+
       self
   }
 

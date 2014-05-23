@@ -1,6 +1,6 @@
 module.exports (terms) =
   newPromise (closure: nil, statements: nil, term: nil) =
-    terms.newOperator (
+    p = terms.newOperator (
       terms.functionCall (
         terms.promise()
         [
@@ -14,3 +14,6 @@ module.exports (terms) =
         ]
       )
     )
+
+    p.isNewPromise = true
+    p
