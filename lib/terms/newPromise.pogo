@@ -1,5 +1,5 @@
 module.exports (terms) =
-  newPromise (closure: nil, statements: nil, term: nil) =
+  newPromise (closure: nil, statements: nil, term: nil, callsFulfillOnReturn: true) =
     p = terms.newOperator (
       terms.functionCall (
         terms.promise()
@@ -10,6 +10,7 @@ module.exports (terms) =
             ]
             statements @or terms.statements [term]
             inPromise: true
+            callsFulfillOnReturn: callsFulfillOnReturn
           )
         ]
       )

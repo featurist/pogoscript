@@ -4,4 +4,5 @@ module.exports (terms) =
   @(term)
     terms.newPromise (
       statements: terms.statements [term] (returnsPromise: true)
+      callsFulfillOnReturn: false
     )

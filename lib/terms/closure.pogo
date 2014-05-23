@@ -90,6 +90,7 @@ module.exports (terms) =
           async: false
           definesModuleConstants: false
           returnPromise: false
+          callsFulfillOnReturn: false
         ) =
           self.isBlock = true
           self.isClosure = true
@@ -100,13 +101,12 @@ module.exports (terms) =
           else
             body
 
-          self.returnsPromise = self.body.returnsPromise
-
           self.redefinesSelf = redefinesSelf
           self.optionalParameters = optionalParameters
           self.makeAsync (async || self.body.isAsync)
           self.returnLastStatement = returnLastStatement
           self.definesModuleConstants = definesModuleConstants
+          self.callsFulfillOnReturn = callsFulfillOnReturn
 
         blockify (parameters, optionalParameters: [], returnPromise: false, redefinesSelf: nil) =
           self.parameters = parameters
@@ -114,7 +114,6 @@ module.exports (terms) =
 
           if (returnPromise)
             self.body = self.body.promisify()
-            self.returnsPromise = self.body.returnsPromise
 
           if (redefinesSelf != nil)
             self.redefinesSelf = redefinesSelf
@@ -203,8 +202,8 @@ module.exports (terms) =
             ''
 
         rewriteResultTermToReturn () =
-          if (self.returnLastStatement && !self.body.isAsync)
-            self.body.rewriteLastStatementToReturn (async: self.isAsync)
+          if (self.returnLastStatement)
+            self.body.rewriteLastStatementToReturn (async: self.callsFulfillOnReturn)
 
         asyncify () =
           self.body.asyncify (returnCallToContinuation: self.returnLastStatement)

@@ -9,10 +9,8 @@ module.exports (terms) =
       else
         self._resolve = term
 
-      self._onFulfilled = terms.functionCall (terms.onFulfilledFunction, [self._resolve])
-
     generate (scope) =
-      self._onFulfilled.generate (scope)
+      self._resolve.generate (scope)
 
     makeAsyncCallWithCallback (onFulfilled, onRejected) =
       args = []
@@ -21,10 +19,12 @@ module.exports (terms) =
         args.push (onFulfilled)
 
       if (args.length > 0)
-        self._then = terms.methodCall (self._resolve, ['then'], args)
-        self._onFulfilled = terms.functionCall (terms.onFulfilledFunction, [self._then])
+        self._resolve = terms.methodCall (self._resolve, ['then'], args)
 
       self
+
+    rewriteResultTermInto (returnTerm, async: false) =
+      returnTerm (self._resolve)
   }
 
   @(term)

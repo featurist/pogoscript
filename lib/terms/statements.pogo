@@ -50,17 +50,13 @@ module.exports (terms) = terms.term {
         else if (async)
             self.statements.push(terms.functionCall (terms.onFulfilledFunction, []))
 
-    rewriteLastStatementToReturn (async: false, returnCallToContinuation: true) =
+    rewriteLastStatementToReturn (async: false) =
         containsContinuation = self.containsContinuation ()
 
-        self.rewriteResultTerm @(term) into (async: async)
-            if (async @and @not containsContinuation)
-                callToContinuation = terms.functionCall (terms.onFulfilledFunction, [term])
-
-                if (returnCallToContinuation)
-                    terms.returnStatement (callToContinuation, implicit: true)
-                else
-                    callToContinuation
+        self.show()
+        self.rewriteResultTerm @(term) into ()
+            if (async)
+                terms.functionCall (terms.onFulfilledFunction, [term])
             else
                 terms.returnStatement (term, implicit: true)
 
