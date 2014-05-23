@@ -25,17 +25,28 @@ module.exports (terms) = terms.term {
                 statement = self.statements.(s)
                 buffer.write (statement.generateStatement (subScope))
 
-    promisify (definitions: nil) =
+    promisify (definitions: nil, statements: false) =
       if (@not self.returnsPromise)
-        terms.statements (
-          [
+        newPromise = terms.newPromise (statements: self)
+
+        if (statements)
+          terms.statements (
+            [
+              terms.newPromise (statements: self)
+            ]
+            returnsPromise: true
+            definitions: definitions
+          )
+        else
+          if (self.statements.length == 1)
+            self.statements.0.promisify ()
+          else
             terms.newPromise (statements: self)
-          ]
-          returnsPromise: true
-          definitions: definitions
-        )
       else
-        self
+        if (statements)
+          self
+        else
+          self.statements.0
 
     rewriteResultTermInto (returnTerm, async: false) =
         if (self.statements.length > 0)
@@ -53,7 +64,6 @@ module.exports (terms) = terms.term {
     rewriteLastStatementToReturn (async: false) =
         containsContinuation = self.containsContinuation ()
 
-        self.show()
         self.rewriteResultTerm @(term) into ()
             if (async)
                 terms.functionCall (terms.onFulfilledFunction, [term])

@@ -47,18 +47,35 @@ module.exports (terms) =
 
     try expression (body, catch body: nil, catch parameter: nil, finally body: nil) =
         if ((body.returnsPromise || (catch body && catch body.returnsPromise)) || (finally body && finally body.returnsPromise))
-            async try function =
-                terms.module constants.define ['async', 'try'] as (terms.javascript (async control.try.to string ()))
-
+          if (catchBody)
+            if (finallyBody)
+              terms.resolve (body)
+            else
+              terms.resolve (terms.methodCall (body.promisify(), ['then'], [terms.nil(), terms.closure ([catchParameter], catchBody)]), alreadyPromise: true)
+          else if (finallyBody)
+            result = terms.generatedVariable ['result']
             terms.resolve (
-              terms.functionCall (
-                asyncTryFunction
+              terms.methodCall (
+                body.promisify()
+                ['then']
                 [
-                    terms.argument utils.asyncify body (body)
-                    terms.argument utils.asyncify body (catch body, [catch parameter])
-                    terms.argument utils.asyncify body (finally body)
+                  terms.closure (
+                    [result]
+                    terms.statements [
+                      terms.methodCall (
+                        finallyBody.promisify()
+                        ['then']
+                        [
+                          terms.closure ([], terms.statements [result])
+                        ]
+                      )
+                    ]
+                  )
                 ]
               )
+              alreadyPromise: true
             )
+          else
+            terms.resolve (body)
         else
             try expression term (body, catch body: catch body, catch parameter: catch parameter, finally body: finally body)

@@ -1,16 +1,14 @@
 module.exports (terms) =
   resolve = terms.term {
-    constructor (term) =
+    constructor (term, alreadyPromise: false) =
       self.isResolve = true
       self.term = term
 
-      if (@not term.isNewPromise)
-        self._resolve = terms.methodCall (terms.promise(), ['resolve'], [term])
-      else
-        self._resolve = term
-
-    generate (scope) =
-      self._resolve.generate (scope)
+      self._resolve =
+        if (alreadyPromise)
+          term
+        else
+          term.promisify ()
 
     makeAsyncCallWithCallback (onFulfilled, onRejected) =
       args = []
@@ -19,21 +17,18 @@ module.exports (terms) =
         args.push (onFulfilled)
 
       if (args.length > 0)
-        self._resolve = terms.methodCall (self._resolve, ['then'], args)
-
-      self
-
-    rewriteResultTermInto (returnTerm, async: false) =
-      returnTerm (self._resolve)
+        terms.methodCall (self._resolve, ['then'], args)
+      else
+        self._resolve
   }
 
-  @(term)
+  createResolve (term, alreadyPromise: false) =
     asyncResult = terms.asyncResult ()
 
     terms.subStatements [
       terms.definition (
         asyncResult
-        resolve (term)
+        resolve (term, alreadyPromise: alreadyPromise)
         async: true
       )
       asyncResult

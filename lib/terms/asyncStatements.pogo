@@ -53,6 +53,6 @@ module.exports (terms) =
     stmts = putStatements (serialisedStatements) inCallbackForNextAsyncCall (forceAsync: forceAsync, definitions: definitions)
 
     if (stmts.isAsync)
-      stmts.promisify(definitions: definitions)
+      stmts.promisify(definitions: definitions, statements: true)
     else
       stmts

@@ -113,7 +113,7 @@ module.exports (terms) =
           self.optionalParameters = optionalParameters
 
           if (returnPromise)
-            self.body = self.body.promisify()
+            self.body = self.body.promisify(statements: true)
 
           if (redefinesSelf != nil)
             self.redefinesSelf = redefinesSelf

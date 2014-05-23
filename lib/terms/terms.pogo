@@ -285,12 +285,11 @@ module.exports (cg) =
             isAsync
 
         rewriteResultTermInto (returnTerm) =
-            if (self.containsContinuation ())
-                self
-            else
-                returnTerm (self)
+          returnTerm (self)
 
         asyncify () = nil
+
+        promisify () = cg.methodCall (cg.promise(), ['resolve'], [self])
 
         code (chunks, ...) =
             location = self.location ()

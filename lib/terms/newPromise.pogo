@@ -1,8 +1,10 @@
-module.exports (terms) =
-  newPromise (closure: nil, statements: nil, term: nil, callsFulfillOnReturn: true) =
-    p = terms.newOperator (
+module.exports (terms) = terms.term {
+  constructor (closure: nil, statements: nil, term: nil, callsFulfillOnReturn: true) =
+    self.isNewPromise = true
+
+    self._newPromise = terms.newOperator (
       terms.functionCall (
-        terms.promise()
+        terms.variable ['Promise']
         [
           closure @or terms.closure (
             [
@@ -16,5 +18,8 @@ module.exports (terms) =
       )
     )
 
-    p.isNewPromise = true
-    p
+  generate (scope) =
+    self._newPromise.generate (scope)
+
+  promisify () = self
+}
