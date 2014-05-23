@@ -23,45 +23,7 @@ module.exports (terms) =
 
             methodCall = terms.methodCall (terms.subExpression (scope), ['call'], args)
             call = if (statements.isAsync)
-              errorVariable = terms.variable ['error']
-
-              terms.function call (
-                  terms.variable ['set', 'timeout']
-                  [
-                      terms.closure (
-                          []
-                          terms.statements [
-                              terms.throw statement (error variable)
-                          ]
-                      )
-                      terms.integer 0
-                  ]
-              )
-
-              terms.methodCall (
-                methodCall
-                ['then']
-                [
-                  terms.nil ()
-                  terms.closure (
-                    [errorVariable]
-                    terms.statements [
-                      terms.functionCall (
-                          terms.variable ['set', 'timeout']
-                          [
-                              terms.closure (
-                                  []
-                                  terms.statements [
-                                      terms.throwStatement (errorVariable)
-                                  ]
-                              )
-                              terms.integer 0
-                          ]
-                      )
-                    ]
-                  )
-                ]
-              )
+              methodCall
             else
               methodCall
 

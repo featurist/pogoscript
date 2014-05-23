@@ -97,7 +97,7 @@ module.exports (terms) =
           self.parameters = parameters
 
           self.body = if (returnPromise)
-            body.promisify()
+            body.promisify(statements: true)
           else
             body
 
