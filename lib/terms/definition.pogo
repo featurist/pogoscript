@@ -1,40 +1,40 @@
 module.exports (terms) = terms.term {
-    constructor (target, source, async: false, shadow: false, assignment: false) =
-        self.isDefinition = true
-        self.target = target
-        self.source = source
-        self.isAsync = async
-        self.shadow = shadow
-        self.global = false
-        self.isAssignment = assignment
+  constructor (target, source, async: false, shadow: false, assignment: false) =
+    self.isDefinition = true
+    self.target = target
+    self.source = source
+    self.isAsync = async
+    self.shadow = shadow
+    self.global = false
+    self.isAssignment = assignment
 
-    expression () =
-        self
-  
-    hashEntry () =
-        self.cg.hashEntry (self.target.hashEntryField (), self.source)
+  expression () =
+    self
 
-    generate (scope) =
-        self.code (
-            self.target.generateTarget (scope)
-            '='
-            self.source.generate (scope)
-        )
-  
-    defineVariables (variables) =
-        name = self.target.canonicalName (variables.scope)
+  hashEntry () =
+    self.cg.hashEntry (self.target.hashEntryField (), self.source)
 
-        if (name)
-            if (@not self.isAssignment)
-                if (variables.is (name) definedInThisScope @and @not self.shadow)
-                    terms.errors.addTerm (self) withMessage "variable #(self.target.displayName ()) is already defined, use := to reassign it"
-                else if (@not self.global)
-                    variables.define (name)
-            else if (@not variables.is (name) defined)
-                terms.errors.addTerm (self) withMessage "variable #(self.target.displayName ()) is not defined, use = to define it"
+  generate (scope) =
+    self.code (
+      self.target.generateTarget (scope)
+      '='
+      self.source.generate (scope)
+    )
 
-    makeAsyncWithCallbackForResult (createCallbackForResult) =
-        if (self.isAsync)
-            callback = createCallbackForResult (self.target)
-            self.source.makeAsyncCallWithCallback (callback)
+  defineVariables (scope) =
+    name = self.target.canonicalName (scope)
+
+    if (name)
+      if (@not self.isAssignment)
+        if (scope.is (name) definedInThisScope @and @not self.shadow)
+          terms.errors.addTerm (self) withMessage "variable #(self.target.displayName ()) is already defined, use := to reassign it"
+        else if (@not self.global)
+          self.target.declare (scope)
+      else if (@not scope.is (name) defined)
+        terms.errors.addTerm (self) withMessage "variable #(self.target.displayName ()) is not defined, use = to define it"
+
+  makeAsyncWithCallbackForResult (createCallbackForResult) =
+    if (self.isAsync)
+      callback = createCallbackForResult (self.target)
+      self.source.makeAsyncCallWithCallback (callback)
 }

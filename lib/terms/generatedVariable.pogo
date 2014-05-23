@@ -1,27 +1,42 @@
-codegen utils = require './codegenUtils'
+codegenUtils = require './codegenUtils'
 
 module.exports (terms) = terms.term {
-    constructor (name) =
+    constructor (name, tag: nil) =
         self.name = name
-        self.is variable = true
-        self.gen var = nil
+        self.isVariable = true
+        self.genVar = nil
+        self.tag = tag
 
-    dont clone = true
+    dontClone = true
 
-    generated name (scope) =
-        if (!self.gen var)
-            self.gen var = scope.generate variable (codegen utils.concat name (self.name))
+    declare (scope) =
+      if (self.tag)
+        scope.define (self.canonicalName (scope)) withTag (self.tag)
+      else
+        scope.define (self.canonicalName (scope))
 
-        self.gen var
+    generatedName (scope) =
+        if (!self.genVar)
+            self.genVar = scope.generateVariable (codegenUtils.concatName (self.name))
 
-    canonical name (scope) =
-        self.generated name (scope)
+        self.genVar
 
-    display name () =
+    canonicalName (scope) =
+        self.generatedName (scope)
+
+    displayName () =
         self.name
 
     generate (scope) =
-        self.code (self.generated name (scope))
+      if (self.tag)
+        variable = scope.findTag (self.tag)
 
-    generate target (args, ...) = self.generate (args, ...)
+        if (variable)
+          self.code (variable)
+        else
+          self.code (self.canonicalName (scope))
+      else
+        self.code (self.canonicalName (scope))
+
+    generateTarget (args, ...) = self.generate (args, ...)
 }

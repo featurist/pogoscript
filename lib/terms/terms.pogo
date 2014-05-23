@@ -1,8 +1,8 @@
 class = require '../class'.class
-class extending = require '../class'.class extending
+classExtending = require '../class'.classExtending
 _ = require 'underscore'
 ms = require '../memorystream'
-source map = require 'source-map'
+sourceMap = require 'source-map'
 
 buffer () =
     chunks = []
@@ -18,11 +18,11 @@ module.exports (cg) =
         constructor (members) =
             if (members)
                 for @(member) in (members)
-                    if (members.has own property (member))
+                    if (members.hasOwnProperty (member))
                         self.(member) = members.(member)
 
-        set location (new location) =
-            Object.defineProperty(self, '_location', value: new location, writable: true)
+        setLocation (newLocation) =
+            Object.defineProperty(self, '_location', value: newLocation, writable: true)
 
         location () =
             if (self._location)
@@ -33,222 +33,222 @@ module.exports (cg) =
                 locations = [c <- children, loc = c.location (), loc, loc]
 
                 if (locations.length > 0)
-                    first line = _.min [l <- locations, l.first line]
-                    last line = _.max [l <- locations, l.last line]
+                    firstLine = _.min [l <- locations, l.firstLine]
+                    lastLine = _.max [l <- locations, l.lastLine]
 
-                    locations on first line = [l <- locations, l.first line == first line, l]
-                    locations on last line = [l <- locations, l.last line == last line, l]
+                    locationsOnFirstLine = [l <- locations, l.firstLine == firstLine, l]
+                    locationsOnLastLine = [l <- locations, l.lastLine == lastLine, l]
 
                     {
-                        first line = first line
-                        last line = last line
-                        first column = _.min [l <- locations on first line, l.first column]
-                        last column = _.max [l <- locations on last line, l.last column]
+                        firstLine = firstLine
+                        lastLine = lastLine
+                        firstColumn = _.min [l <- locationsOnFirstLine, l.firstColumn]
+                        lastColumn = _.max [l <- locationsOnLastLine, l.lastColumn]
                         filename = locations.0.filename
                     }
                 else
                     nil
 
-        clone (rewrite (subterm): nil, limit (subterm): false, create object (node): Object.create (Object.get prototype of (node))) =
-            clone object (node, allow rewrite, path) =
-                t = create object (node)
+        clone (rewrite (subterm): nil, limit (subterm): false, createObject (node): Object.create (Object.getPrototypeOf (node))) =
+            cloneObject (node, allowRewrite, path) =
+                t = createObject (node)
 
                 for @(member) in (node)
-                    if (node.has own property (member))
-                        t.(member) = clone subterm (node.(member), allow rewrite, path)
+                    if (node.hasOwnProperty (member))
+                        t.(member) = cloneSubterm (node.(member), allowRewrite, path)
 
                 t
 
-            clone node (original node, allow rewrite, path) =
-                if (original node.dont clone)
-                    original node
+            cloneNode (originalNode, allowRewrite, path) =
+                if (originalNode.dontClone)
+                    originalNode
                 else
                     try
-                        path.push (original node)
-                        rewritten node =
-                            if ((original node :: Node) && allow rewrite)
-                                sub clone (node) =
+                        path.push (originalNode)
+                        rewrittenNode =
+                            if ((originalNode :: Node) && allowRewrite)
+                                subClone (node) =
                                     if (node)
-                                        clone subterm (node, allow rewrite, path)
+                                        cloneSubterm (node, allowRewrite, path)
                                     else
-                                        clone object (original node, allow rewrite, path)
+                                        cloneObject (originalNode, allowRewrite, path)
 
                                 rewrite (
-                                    original node
+                                    originalNode
                                     path: path
-                                    clone: sub clone
-                                    rewrite: sub clone
+                                    clone: subClone
+                                    rewrite: subClone
                                 )
                             else
                                 nil
 
-                        if (!rewritten node)
-                            clone object (original node, allow rewrite, path)
+                        if (!rewrittenNode)
+                            cloneObject (originalNode, allowRewrite, path)
                         else
-                            if (!(rewritten node :: Node))
+                            if (!(rewrittenNode :: Node))
                                 throw (new (Error "rewritten node not an instance of Node"))
 
-                            rewritten node.is derived from (original node)
-                            rewritten node
+                            rewrittenNode.isDerivedFrom (originalNode)
+                            rewrittenNode
                     finally
                         path.pop ()
                 
-            clone array (terms, allow rewrite, path) =
+            cloneArray (terms, allowRewrite, path) =
                 try
                     path.push (terms)
-                    [node <- terms, clone subterm (node, allow rewrite, path)]
+                    [node <- terms, cloneSubterm (node, allowRewrite, path)]
                 finally
                     path.pop ()
 
-            clone subterm (subterm, allow rewrite, path) =
+            cloneSubterm (subterm, allowRewrite, path) =
                 if (subterm :: Array)
-                    clone array (subterm, allow rewrite, path)
+                    cloneArray (subterm, allowRewrite, path)
                 else if (subterm :: Function)
                     subterm
                 else if (subterm :: Object)
-                    clone node (subterm, allow rewrite && !limit (subterm, path: path), path)
+                    cloneNode (subterm, allowRewrite && !limit (subterm, path: path), path)
                 else
                     subterm
             
-            clone subterm (self, true, [])
+            cloneSubterm (self, true, [])
 
-        is derived from (ancestor node) =
-            self.set location (ancestor node.location ())
+        isDerivedFrom (ancestorNode) =
+            self.setLocation (ancestorNode.location ())
 
         rewrite (options) =
             options := options || {}
-            options.create object (node) = node
+            options.createObject (node) = node
             self.clone (options)
 
         children () =
             children = []
 
-            add member (member) =
+            addMember (member) =
                 if (member :: Node)
                     children.push (member)
                 else if (member :: Array)
                     for each @(item) in (member)
-                        add member (item)
+                        addMember (item)
                 else if (member :: Object)
-                    add members in object (member)
+                    addMembersInObject (member)
 
-            add members in object (object) =
+            addMembersInObject (object) =
                 for @(property) in (object)
-                    if (object.has own property (property) @and property.0 != '_')
+                    if (object.hasOwnProperty (property) @and property.0 != '_')
                         member = object.(property)
 
-                        add member (member)
+                        addMember (member)
 
-            add members in object (self)
+            addMembersInObject (self)
 
             children
 
-        walk descendants (walker, limit (): false) =
+        walkDescendants (walker, limit (): false) =
             path = []
 
-            walk children (node) =
+            walkChildren (node) =
                 try
                     path.push (node)
                     for each @(child) in (node.children ())
                         walker (child, path)
                         if (!limit (child, path))
-                            walk children (child)
+                            walkChildren (child)
                 finally
                     path.pop ()
 
-            walk children (self)
+            walkChildren (self)
 
-        walk descendants (walker) not below if (limit) = self.walk descendants (walker, limit: limit)
+        walkDescendants (walker) notBelowIf (limit) = self.walkDescendants (walker, limit: limit)
 
-        reduce with reduced children into (reducer, limit (term): false, cache name: nil) =
+        reduceWithReducedChildrenInto (reducer, limit (term): false, cacheName: nil) =
             path = []
 
-            caching reducer =
-                if (cache name)
-                    @(node, reduced children)
-                        if (node.has own property 'reductionCache')
-                            if (node.reduction cache.has own property (cache name))
-                                node.reduction cache.(cache name)
+            cachingReducer =
+                if (cacheName)
+                    @(node, reducedChildren)
+                        if (node.hasOwnProperty 'reductionCache')
+                            if (node.reductionCache.hasOwnProperty (cacheName))
+                                node.reductionCache.(cacheName)
                         else
-                            reduced value = reducer (node, reduced children)
+                            reducedValue = reducer (node, reducedChildren)
 
-                            if (!node.has own property 'reductionCache')
-                                node.reduction cache = {}
+                            if (!node.hasOwnProperty 'reductionCache')
+                                node.reductionCache = {}
 
-                            node.reduction cache.(cache name) = reduced value
+                            node.reductionCache.(cacheName) = reducedValue
 
-                            reduced value
+                            reducedValue
                 else
                     reducer
 
-            map reduce children (node) =
+            mapReduceChildren (node) =
                 try
                     path.push (node)
-                    mapped children = []
+                    mappedChildren = []
                     for each @(child) in (node.children ())
                         if (!limit (child, path))
-                            mapped children.push (map reduce children (child))
+                            mappedChildren.push (mapReduceChildren (child))
 
-                    caching reducer (node, mapped children)
+                    cachingReducer (node, mappedChildren)
                 finally
                     path.pop ()
 
-            map reduce children (self)
+            mapReduceChildren (self)
     }
 
-    Term = class extending (Node) {
+    Term = classExtending (Node) {
         arguments () = self
 
-        inspect term (depth: 20) =
+        inspectTerm (depth: 20) =
             util = require 'util'
             util.inspect (self, false, depth)
 
         show (desc: nil, depth: 20) =
             if (desc)
-                console.log (desc, self.inspect term (depth: depth))
+                console.log (desc, self.inspectTerm (depth: depth))
             else
-                console.log (self.inspect term (depth: depth))
+                console.log (self.inspectTerm (depth: depth))
 
-        hash entry () =
-            self.cg.errors.add term (self) with message 'cannot be used as a hash entry'
+        hashEntry () =
+            self.cg.errors.addTerm (self) withMessage 'cannot be used as a hash entry'
 
-        hash entry field () =
-            self.cg.errors.add term (self) with message 'cannot be used as a field name'
+        hashEntryField () =
+            self.cg.errors.addTerm (self) withMessage 'cannot be used as a field name'
 
         blockify (parameters, options) =
-            self.cg.block (parameters, self.cg.async statements [self], options)
+            self.cg.block (parameters, self.cg.asyncStatements [self], options)
 
         scopify () = self
 
         parameter () =
-            self.cg.errors.add term (self) with message 'this cannot be used as a parameter'
+            self.cg.errors.addTerm (self) withMessage 'this cannot be used as a parameter'
 
         subterms () = nil
 
-        expand macro () = nil
+        expandMacro () = nil
 
-        expand macros () =
+        expandMacros () =
             self.clone (
-                rewrite (term, clone: nil): term.expand macro (clone)
+                rewrite (term, clone: nil): term.expandMacro (clone)
             )
 
-        rewrite statements () = nil
+        rewriteStatements () = nil
 
-        rewrite all statements () =
+        rewriteAllStatements () =
             self.clone (
-                rewrite (term, clone: nil): term.rewrite statements (clone)
+                rewrite (term, clone: nil): term.rewriteStatements (clone)
             )
 
-        serialise sub statements () = nil
-        serialise statements () = nil
-        serialise all statements () =
+        serialiseSubStatements () = nil
+        serialiseStatements () = nil
+        serialiseAllStatements () =
             self.rewrite (
                 rewrite (term):
-                    term.serialise statements ()
+                    term.serialiseStatements ()
             )
 
         defineVariables () = nil
-        canonical name () = nil
+        canonicalName () = nil
 
         definitions () =
           defs = []
@@ -264,31 +264,31 @@ module.exports (cg) =
 
           defs
 
-        make async with callback for result (create callback for result) = nil
+        makeAsyncWithCallbackForResult (createCallbackForResult) = nil
 
-        contains continuation () =
+        containsContinuation () =
             found = false
 
-            self.walk descendants @(term)
-                found := term.is continuation @or found
-            (limit (term): term.is closure @and term.is async)
+            self.walkDescendants @(term)
+                found := term.isContinuation @or found
+            (limit (term): term.isClosure @and term.isAsync)
 
             found
 
-        contains async () =
-            is async = false
+        containsAsync () =
+            isAsync = false
 
-            self.walk descendants @(term)
-                is async := is async @or (term.is definition @and term.is async)
-            (limit (term): term.is closure)
+            self.walkDescendants @(term)
+                isAsync := isAsync @or (term.isDefinition @and term.isAsync)
+            (limit (term): term.isClosure)
 
-            is async
+            isAsync
 
-        rewrite result term into (return term) =
-            if (self.contains continuation ())
+        rewriteResultTermInto (returnTerm) =
+            if (self.containsContinuation ())
                 self
             else
-                return term (self)
+                returnTerm (self)
 
         asyncify () = nil
 
@@ -296,51 +296,51 @@ module.exports (cg) =
             location = self.location ()
 
             if (location)
-                @new source map.Source Node (
-                    location.first line
-                    location.first column
+                @new sourceMap.SourceNode (
+                    location.firstLine
+                    location.firstColumn
                     location.filename
                     chunks
                 )
             else
                 chunks
 
-        generate into buffer (generate code into buffer) =
+        generateIntoBuffer (generateCodeIntoBuffer) =
             chunks = 
                 b = buffer ()
-                generate code into buffer (b)
+                generateCodeIntoBuffer (b)
                 b.chunks ()
 
             location = self.location ()
 
             if (location)
-                @new source map.Source Node (
-                    location.first line
-                    location.first column
+                @new sourceMap.SourceNode (
+                    location.firstLine
+                    location.firstColumn
                     location.filename
                     chunks
                 )
             else
                 chunks
 
-        generate statement (scope) =
+        generateStatement (scope) =
             self.code (self.generate (scope), ';')
 
-        generate function (scope) =
+        generateFunction (scope) =
             self.generate (scope)
     }
 
-    term prototype = new (Term)
+    termPrototype = new (Term)
 
     term (members) =
-        term constructor = class extending (Term, members)
+        termConstructor = classExtending (Term, members)
 
         @(args, ...)
-            new (term constructor (args, ...))
+            new (termConstructor (args, ...))
 
     {
         Node = Node
         Term = Term
         term = term
-        term prototype = term prototype
+        termPrototype = termPrototype
     }

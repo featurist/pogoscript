@@ -1,18 +1,12 @@
 module.exports (terms) =
     asyncCallback (body, resultVariable: nil) =
-        errorVariable = terms.generatedVariable ['error']
-        catchErrorVariable = terms.generatedVariable ['exception']
-
-        if (@not body.containsContinuation ())
-            body.rewriteResultTerm @(term) into (async: true)
-                if (@not term.originallyAsync)
-                    terms.returnStatement (terms.functionCall (terms.continuationFunction, [term]), implicit: true)
-                else
-                    term
-
+        params =
+          if (resultVariable)
+            [resultVariable]
+          else
+            []
 
         terms.closure (
-            [resultVariable]
+            params
             body
-            returnLastStatement: false
         )

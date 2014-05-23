@@ -12,29 +12,24 @@ module.exports (terms) = terms.term {
 
     generateStatements (scope, inClosure: false, global: false) =
         self.generateIntoBuffer @(buffer)
-            if (inClosure)
-                definedVariables = self.findDefinedVariables (scope)
-                self.generateVariableDeclarations (definedVariables, buffer, scope, global: global)
+            subScope =
+              if (inClosure)
+                definitionScope = scope.subScope()
+                definedVariables = self.findDefinedVariables (definitionScope)
+                self.generateVariableDeclarations (definedVariables, buffer, global: global)
+                definitionScope
+              else
+                scope
 
             for (s = 0, s < self.statements.length, ++s)
                 statement = self.statements.(s)
-                buffer.write (statement.generateStatement (scope))
+                buffer.write (statement.generateStatement (subScope))
 
     promisify (definitions: nil) =
       if (@not self.returnsPromise)
         terms.statements (
           [
-            terms.functionCall (
-              terms.createPromise()
-              [
-                terms.closure (
-                  [terms.resolveFunction, terms.continuationFunction]
-                  self
-                  inPromise: true
-                  async: true
-                )
-              ]
-            )
+            terms.newPromise (statements: self)
           ]
           returnsPromise: true
           definitions: definitions
@@ -53,14 +48,14 @@ module.exports (terms) = terms.term {
             else
                 self.statements.push (returnTerm (terms.nil ()))
         else if (async)
-            self.statements.push(terms.functionCall (terms.continuationFunction, []))
+            self.statements.push(terms.functionCall (terms.onFulfilledFunction, []))
 
     rewriteLastStatementToReturn (async: false, returnCallToContinuation: true) =
         containsContinuation = self.containsContinuation ()
 
         self.rewriteResultTerm @(term) into (async: async)
             if (async @and @not containsContinuation)
-                callToContinuation = terms.functionCall (terms.continuationFunction, [term])
+                callToContinuation = terms.functionCall (terms.onFulfilledFunction, [term])
 
                 if (returnCallToContinuation)
                     terms.returnStatement (callToContinuation, implicit: true)
@@ -69,11 +64,8 @@ module.exports (terms) = terms.term {
             else
                 terms.returnStatement (term, implicit: true)
 
-    generateVariableDeclarations (variables, buffer, scope, global: false) =
+    generateVariableDeclarations (variables, buffer, global: false) =
         if (variables.length > 0)
-            _(variables).each @(name)
-                scope.define (name)
-
             if (@not global)
                 buffer.write ('var ')
 
@@ -84,12 +76,11 @@ module.exports (terms) = terms.term {
 
     findDefinedVariables (scope) =
         definitions = self._definitions @or self.definitions()
-        variables = codegenUtils.definedVariables (scope)
 
         for each @(def) in (definitions)
-            def.defineVariables (variables)
+            def.defineVariables (scope)
 
-        variables.uniqueVariables ()
+        scope.names ()
 
     blockify (parameters, options) =
         statements = if (self.isExpressionStatements)

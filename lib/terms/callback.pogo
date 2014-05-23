@@ -6,5 +6,5 @@ module.exports (terms) = terms.term {
         self
 
     generate (scope) =
-      terms.callbackFunction.generate (scope)
+      terms.onFulfilledFunction.generate (scope)
 }

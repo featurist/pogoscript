@@ -1,16 +1,7 @@
+asyncControl = require '../asyncControl'
+
 module.exports (terms) =
   @(term)
-    promisifyFunction = terms.moduleConstants.defineAs (
-      ['promisify']
-      terms.javascript(asyncControl.promisify.toString())
-    )
-
-    terms.functionCall (
-      promisifyFunction
-      [
-        terms.closure (
-          [terms.callbackFunction]
-          terms.statements [term]
-        )
-      ]
+    terms.newPromise (
+      statements: terms.statements [term] (returnsPromise: true)
     )

@@ -42,6 +42,6 @@ try {
   if (error.isSemanticErrors) {
     process.stderr.write(error.message);
   } else {
-    throw error;
+    console.log(error);
   }
 }

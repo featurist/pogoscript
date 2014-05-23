@@ -1,27 +1,27 @@
 module.exports (terms) = terms.term {
-    constructor (expr, implicit: false) =
-        self.is return = true
-        self.expression = expr
-        self.is implicit = implicit
+  constructor (expr, implicit: false) =
+    self.isReturn = true
+    self.expression = expr
+    self.isImplicit = implicit
 
-    generate statement (scope) =
-        self.generate into buffer @(buffer)
-            if (self.expression)
-                buffer.write ('return ')
-                buffer.write (self.expression.generate (scope))
-                buffer.write (';')
-            else
-                buffer.write ('return;')
-    
-    rewrite result term into (return term, async: false) =
-        if (async)
-            arguments =
-                if (self.expression)
-                    [terms.nil (), self.expression]
-                else
-                    []
+  generateStatement (scope) =
+    self.generateIntoBuffer @(buffer)
+      if (self.expression)
+        buffer.write ('return ')
+        buffer.write (self.expression.generate (scope))
+        buffer.write (';')
+      else
+        buffer.write ('return;')
 
-            terms.function call (terms.continuation function, arguments)
+  rewriteResultTermInto (returnTerm, async: false) =
+    if (async)
+      arguments =
+        if (self.expression)
+          [self.expression]
         else
-            self
+          []
+
+      terms.functionCall (terms.onRejectedFunction, arguments)
+    else
+      self
 }

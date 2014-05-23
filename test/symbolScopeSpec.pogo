@@ -24,6 +24,15 @@ describe 'symbolScope'
 
       it 'not defined in scope B'
         b.is 'x' definedInThisScope.should.be.false
+
+    describe 'tags'
+      it 'can define a tag and look it up in same scope'
+        a.define 'x' withTag 'onFulfilled'
+        a.findTag 'onFulfilled'.should.equal 'x'
+
+      it 'can define a tag and look it up in subscope'
+        a.define 'x' withTag 'onFulfilled'
+        b.findTag 'onFulfilled'.should.equal 'x'
     
     describe 'generated variables'
       it 'generates unique variables'

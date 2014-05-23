@@ -7,28 +7,28 @@ chomp (s) =
     s.toString ().replace r/\n$/ ''
 
 exports.evaluateScript (script) =
-    printedItems = []
+  printedItems = []
 
-    print (arg) =
-        printedItems.push (arg)
+  print (arg) =
+    printedItems.push (arg)
 
-    p (n) =
-        process.nextTick ^!
-        n
+  p (n) =
+    process.nextTick ^!
+    n
 
-    r = compiler.evaluate (script, definitions: {print = print, require = require, p = p})
+  r = compiler.evaluate (script, definitions: {print = print, require = require, p = p})
 
-    collatePrintedItems() =
-      _.map (printedItems) @(item)
-          util.inspect (item)
-      .join "\n"
+  collatePrintedItems() =
+    _.map (printedItems) @(item)
+        util.inspect (item)
+    .join "\n"
 
-    if (r @and (r.then :: Function))
-      fork
-        r!
-        collatePrintedItems()
-    else
+  if (r @and (r.then :: Function))
+    fork
+      r!
       collatePrintedItems()
+  else
+    collatePrintedItems()
 
 exports.(script) shouldOutput (expectedOutput) =
     assertion (result) = should.equal (chomp (result), chomp (expectedOutput))

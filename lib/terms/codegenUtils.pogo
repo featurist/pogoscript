@@ -1,7 +1,7 @@
 _ = require 'underscore'
 grammar = require '../parser/grammar'
 
-exports.write to buffer with delimiter (array, delimiter, buffer, scope) =
+exports.writeToBufferWithDelimiter (array, delimiter, buffer, scope) =
   writer = nil
   if (scope :: Function)
       writer := scope
@@ -100,17 +100,3 @@ exports.normaliseOperatorName (name) =
             match.1
         else
             name
-
-exports.definedVariables (scope) = {
-    variables = []
-    scope = scope
-
-    define (variable) =
-        scope.define (variable)
-        self.variables.push (variable)
-
-    is (variable) defined = scope.is (variable) defined
-    is (variable) definedInThisScope = scope.is (variable) definedInThisScope
-
-    uniqueVariables () = _.uniq (self.variables)
-}

@@ -1,37 +1,47 @@
-codegen utils = require './codegenUtils'
+codegenUtils = require './codegenUtils'
 
 module.exports (terms) =
-    variable term = terms.term {
-        constructor (name, location: nil) =
-            self.variable = name
-            self.is variable = true
-            self.set location (location)
+  variableTerm = terms.term {
+    constructor (name, location: nil, tag: nil) =
+      self.variable = name
+      self.isVariable = true
+      self.setLocation (location)
+      self.tag = tag
 
-        canonical name () =
-            codegen utils.concat name (self.variable, escape: true)
+    declare (scope) =
+      if (self.tag)
+        scope.define (self.canonicalName ()) withTag (self.tag)
+      else
+        scope.define (self.canonicalName ())
 
-        display name () =
-            self.variable.join ' '
-      
-        generate (scope) =
-            self.code (self.canonical name ())
-      
-        generate target (args, ...) = self.generate (args, ...)
-      
-        hash entry field () =
-            self.variable
-      
-        parameter () =
-            self
-    }
+    canonicalName () =
+      codegenUtils.concatName (self.variable, escape: true)
 
-    variable (name, could be macro: true, location: nil) =
-        v = variable term (name, location: location)
+    displayName () =
+      self.variable.join ' '
+  
+    generate (scope) =
+      if (self.tag)
+        self.code (scope.findTag (self.tag))
+      else
+        self.code (self.canonicalName ())
+  
+    generateTarget (args, ...) = self.generate (args, ...)
+  
+    hashEntryField () =
+      self.variable
+  
+    parameter () =
+      self
+  }
 
-        if (could be macro)
-            macro = terms.macros.find macro (name)
-        
-            if (macro)
-                return (macro (v, name))
+  variable (name, couldBeMacro: true, location: nil, tag: nil) =
+    v = variableTerm (name, location: location, tag: tag)
 
-        v
+    if (couldBeMacro)
+      macro = terms.macros.findMacro (name)
+  
+      if (macro)
+        return (macro (v, name))
+
+    v

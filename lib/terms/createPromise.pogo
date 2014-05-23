@@ -1,3 +1,5 @@
+asyncControl = require '../asyncControl'
+
 module.exports (terms) =
   @()
     terms.promise()
