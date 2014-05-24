@@ -1,153 +1,4 @@
 ;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-exports.try = function(body, catchBody, finallyBody, cb) {
-  var callbackCalled = false;
-
-  var callback = function (error, result) {
-    if (!callbackCalled) {
-      callbackCalled = true;
-      cb(error, result);
-    }
-  };
-
-  try {
-    body(function (error, result) {
-      if (error) {
-        if (finallyBody && catchBody) {
-          try {
-            catchBody(error, function (error, result) {
-              try {
-                finallyBody(function (finallyError) {
-                  callback(finallyError || error, finallyError || error? undefined: result);
-                });
-              } catch (error) {
-                callback(error);
-              }
-            });
-          } catch (error) {
-            try {
-              finallyBody(function (finallyError) {
-                callback(finallyError || error);
-              });
-            } catch (error) {
-              callback(error);
-            }
-          }
-        } else if (catchBody) {
-          try {
-            catchBody(error, callback);
-          } catch (error) {
-            callback(error);
-          }
-        } else {
-          try {
-            finallyBody(function (finallyError) {
-              callback(finallyError || error, finallyError? undefined: result);
-            });
-          } catch (error) {
-            callback(error);
-          }
-        }
-      } else {
-        if (finallyBody) {
-          try {
-            finallyBody(function (finallyError) {
-              callback(finallyError, finallyError? undefined: result);
-            });
-          } catch (error) {
-            callback(error);
-          }
-        } else {
-          callback(undefined, result);
-        }
-      }
-    });
-  } catch (error) {
-    if (finallyBody && catchBody) {
-      try {
-        catchBody(error, function (error, result) {
-          try {
-            finallyBody(function (finallyError) {
-              callback(finallyError || error, finallyError? undefined: result);
-            });
-          } catch (error) {
-            callback(error);
-          }
-        });
-      } catch (error) {
-        try {
-          finallyBody(function (finallyError) {
-            callback(finallyError || error);
-          });
-        } catch (error) {
-          callback(error);
-        }
-      }
-    } else if (catchBody) {
-      try {
-        catchBody(error, callback);
-      } catch (error) {
-        callback(error);
-      }
-    } else {
-      try {
-        finallyBody(function (finallyError) {
-          callback(finallyError || error);
-        });
-      } catch (error) {
-        callback(error);
-      }
-    }
-  }
-};
-
-exports.fork = function (block) {
-    block(function () {});
-};
-
-exports.if = function (condition, thenBody, cb) {
-  if (condition) {
-    try {
-      thenBody(cb);
-    } catch (ex) {
-      cb(ex);
-    }
-  } else {
-    cb();
-  }
-};
-
-exports.ifElse = function (condition, thenBody, elseBody, cb) {
-  if (condition) {
-    try {
-      thenBody(cb);
-    } catch (ex) {
-      cb(ex);
-    }
-  } else {
-    try {
-      elseBody(cb);
-    } catch (ex) {
-      cb(ex);
-    }
-  }
-};
-
-exports.ifElseIfElse = function (cases, cb) {
-    for (var n = 0; n < cases.length; n++) {
-        var _case = cases[n];
-        if (_case.condition) {
-            try {
-                _case.body (cb)
-            } catch (error) {
-                cb(error);
-            }
-            return;
-        }
-    }
-
-    cb();
-};
-
 exports.while = function (conditionBody, body, cb) {
   var loop = function () {
     try {
@@ -214,82 +65,54 @@ exports.for = function (test, incr, loop, cb) {
   }
 };
 
-exports.future = function (action) {
-    var operationComplete = false;
-    var operationError, operationResult;
-    var futureCallbacks = [];
-
-    function callback (error, result) {
-        operationComplete = true;
-        operationError = error;
-        operationResult = result;
-        future.complete = true;
-
-        for (var n = 0; n < futureCallbacks.length; n++) {
-            futureCallbacks[n](operationError, operationResult);
-        }
-    }
-
-    var future = function (callback) {
-        if (operationComplete) {
-            callback(operationError, operationResult);
-        } else {
-            futureCallbacks.push(callback);
-        }
-    };
-
-    future.complete = false;
-    callback.future = future;
-
-    try {
-      action(callback);
-    } catch (error) {
-      operationComplete = true;
-      operationError = error;
-    }
-
-    return future;
+exports.promisify = function (fn) {
+  return new Promise(function (onFulfilled, onRejected) {
+    fn(function (error, result) {
+      if (error) {
+        onRejected(error);
+      } else {
+        onFulfilled(result);
+      }
+    });
+  });
 };
 
-exports.listComprehension = function (items, areRanges, block, continuation) {
-  var indexes = [];
-  var results = {};
-  var completed = 0;
-  var wasError = false;
+exports.listComprehension = function (items, areRanges, block) {
+  return new Promise(function (onFulfilled, onRejected) {
+    var indexes = [];
+    var results = {};
+    var completed = 0;
+    var wasError = false;
 
-  if (items.length > 0) {
-    for (var n = 0; n < items.length; n++) {
-      block(n, items[n], function (result, index) {
-        indexes.push(index);
-        results[index] = result;
-      }, function (error, result) {
-        if (error) {
-          wasError = true;
-          continuation(error);
-        }
+    if (items.length > 0) {
+      for (var n = 0; n < items.length; n++) {
+        Promise.resolve(block(n, items[n], function (result, index) {
+          indexes.push(index);
+          results[index] = result;
+        })).then(function (result) {
+          completed++;
 
-        completed++;
+          if (completed == items.length && !wasError) {
+            var sortedResults = [];
 
-        if (completed == items.length && !wasError) {
-          var sortedResults = [];
+            indexes.sort();
 
-          indexes.sort();
-
-          for (n = 0; n < indexes.length; n++) {
-            if (areRanges) {
-              sortedResults.push.apply(sortedResults, results[indexes[n]]);
-            } else {
-              sortedResults.push(results[indexes[n]]);
+            for (n = 0; n < indexes.length; n++) {
+              if (areRanges) {
+                sortedResults.push.apply(sortedResults, results[indexes[n]]);
+              } else {
+                sortedResults.push(results[indexes[n]]);
+              }
             }
-          }
 
-          continuation(void 0, sortedResults);
-        }
-      });
+            onFulfilled(sortedResults);
+          }
+        }, onRejected);
+      }
+    } else {
+      onFulfilled([]);
     }
-  } else {
-    continuation(void 0, []);
-  }
+  });
 };
 
 },{}],2:[function(require,module,exports){
@@ -364,7 +187,7 @@ exports.oldTerm = function (members) {
   return new constructor();
 };
 
-},{"./parser/runtime":23,"./terms/codegenUtils":36,"underscore":102}],4:[function(require,module,exports){
+},{"./parser/runtime":23,"./terms/codegenUtils":38,"underscore":108}],4:[function(require,module,exports){
 (function() {
     var self = this;
     var $class, _;
@@ -459,7 +282,7 @@ exports.oldTerm = function (members) {
         };
     };
 }).call(this);
-},{"./class":2,"underscore":102}],5:[function(require,module,exports){
+},{"./class":2,"underscore":108}],5:[function(require,module,exports){
 var MemoryStream = function () {
   var buffer = [];
   
@@ -508,15 +331,23 @@ exports.MemoryStream = MemoryStream;
                 self.namedDefinitions = {};
                 return self.listeners = [];
             },
-            defineAs: function(name, expression) {
+            defineAs: function(name, expression, gen1_options) {
                 var self = this;
+                var generated;
+                generated = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "generated") && gen1_options.generated !== void 0 ? gen1_options.generated : true;
                 var canonicalName, existingDefinition, variable;
                 canonicalName = codegenUtils.concatName(name);
                 existingDefinition = self.namedDefinitions[canonicalName];
                 if (existingDefinition) {
                     return existingDefinition.target;
                 } else {
-                    variable = terms.generatedVariable(name);
+                    variable = function() {
+                        if (generated) {
+                            return terms.generatedVariable(name);
+                        } else {
+                            return terms.variable(name);
+                        }
+                    }();
                     self.namedDefinitions[canonicalName] = function() {
                         var definition;
                         definition = terms.definition(variable, expression);
@@ -541,10 +372,10 @@ exports.MemoryStream = MemoryStream;
             },
             notifyNewDefinition: function(d) {
                 var self = this;
-                var gen1_items, gen2_i, listener;
-                gen1_items = self.listeners;
-                for (gen2_i = 0; gen2_i < gen1_items.length; ++gen2_i) {
-                    listener = gen1_items[gen2_i];
+                var gen2_items, gen3_i, listener;
+                gen2_items = self.listeners;
+                for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
+                    listener = gen2_items[gen3_i];
                     listener(d);
                 }
                 return void 0;
@@ -556,10 +387,10 @@ exports.MemoryStream = MemoryStream;
             generate: function(scope) {
                 var self = this;
                 return self.generateIntoBuffer(function(buffer) {
-                    var gen3_items, gen4_i, def;
-                    gen3_items = self.definitions();
-                    for (gen4_i = 0; gen4_i < gen3_items.length; ++gen4_i) {
-                        def = gen3_items[gen4_i];
+                    var gen4_items, gen5_i, def;
+                    gen4_items = self.definitions();
+                    for (gen5_i = 0; gen5_i < gen4_items.length; ++gen5_i) {
+                        def = gen4_items[gen5_i];
                         buffer.write("var ");
                         buffer.write(def.generate(scope));
                         buffer.write(";");
@@ -570,7 +401,7 @@ exports.MemoryStream = MemoryStream;
         });
     };
 }).call(this);
-},{"./class":2,"./terms/codegenUtils":36}],7:[function(require,module,exports){
+},{"./class":2,"./terms/codegenUtils":38}],7:[function(require,module,exports){
 var _ = require('underscore');
 
 module.exports = function (terminals) {
@@ -608,6 +439,12 @@ module.exports = function (terminals) {
     this.hasFutureArgument = function () {
       return this._hasFutureArgument || (this._hasFutureArgument =
         _.any(this.terminals, function (t) { return t.isFutureArgument; })
+      );
+    };
+    
+    this.hasCallbackArgument = function () {
+      return this._hasCallbackArgument || (this._hasCallbackArgument =
+        _.any(this.terminals, function (t) { return t.isCallback; })
       );
     };
     
@@ -745,7 +582,7 @@ module.exports = function (terminals) {
   });
 };
 
-},{"underscore":102}],8:[function(require,module,exports){
+},{"underscore":108}],8:[function(require,module,exports){
 (function() {
     var self = this;
     window.pogoscript = require("./compiler");
@@ -801,6 +638,7 @@ exports.codeGenerator = function () {
   codegen.operatorExpression = require('../parser/operatorExpression')(codegen);
   codegen.unaryOperatorExpression = require('../parser/unaryOperatorExpression')(codegen);
   codegen.operator = require('../terms/operator')(codegen);
+  codegen.callback = require('../terms/callback')(codegen);
   codegen.splat = require('../terms/splat')(codegen);
   codegen.range = require('../terms/range')(codegen);
   codegen.hashEntry = require('../terms/hashEntry')(codegen);
@@ -838,8 +676,18 @@ exports.codeGenerator = function () {
   codegen.loc = loc;
   codegen.asyncCallback = require('../terms/asyncCallback')(codegen);
   codegen.continuationOrDefault = require('../terms/continuationOrDefault')(codegen);
-  codegen.callbackFunction = codegen.variable(['continuation'], {couldBeMacro: false});
-  codegen.callbackFunction.isContinuation = true;
+  codegen.continuationFunction = codegen.variable(['continuation'], {couldBeMacro: false});
+  codegen.continuationFunction.isContinuation = true;
+  codegen.onFulfilledFunction = codegen.generatedVariable(['onFulfilled'], {couldBeMacro: false, tag: 'onFulfilled'});
+  codegen.onFulfilledFunction.isContinuation = true;
+  codegen.onRejectedFunction = codegen.generatedVariable(['onRejected'], {couldBeMacro: false, tag: 'onRejected'});
+  codegen.callbackFunction = codegen.generatedVariable(['callback'], {couldBeMacro: false});
+  codegen.resolveFunction = codegen.generatedVariable(['resolve'], {couldBeMacro: false});
+  codegen.resolve = require('../resolve')(codegen);
+  codegen.newPromise = require('../terms/newPromise')(codegen);
+  codegen.promise = require('../terms/promise')(codegen);
+  codegen.createPromise = require('../terms/createPromise')(codegen);
+  codegen.promisify = require('../terms/promisify')(codegen);
   codegen.optional = cg.optional;
   codegen.postIncrement = cg.postIncrement;
   codegen.oldTerm = cg.oldTerm;
@@ -868,10 +716,10 @@ var loc = function (term, location) {
   return term;
 };
 
-},{"../codeGenerator":3,"../macroDirectory":4,"../moduleConstants":6,"../parser/operatorExpression":20,"../parser/unaryOperatorExpression":24,"../symbolScope":25,"../terms/argumentList":26,"../terms/argumentUtils":27,"../terms/asyncArgument":28,"../terms/asyncCallback":29,"../terms/asyncResult":30,"../terms/asyncStatements":31,"../terms/boolean":32,"../terms/breakStatement":33,"../terms/closure":34,"../terms/closureParameterStrategies":35,"../terms/continuationOrDefault":37,"../terms/continueStatement":38,"../terms/definition":39,"../terms/fieldReference":40,"../terms/float":41,"../terms/forEach":42,"../terms/forExpression":43,"../terms/forIn":44,"../terms/functionCall":45,"../terms/futureArgument":46,"../terms/generatedVariable":47,"../terms/generator":48,"../terms/hash":49,"../terms/hashEntry":50,"../terms/identifier":51,"../terms/ifExpression":52,"../terms/increment":53,"../terms/indexer":54,"../terms/integer":55,"../terms/interpolatedString":56,"../terms/javascript":57,"../terms/list":58,"../terms/listComprehension":59,"../terms/methodCall":60,"../terms/module":61,"../terms/newOperator":62,"../terms/nil":63,"../terms/normalParameters":64,"../terms/operator":65,"../terms/parameters":66,"../terms/range":67,"../terms/regExp":68,"../terms/returnStatement":69,"../terms/scope":70,"../terms/selfExpression":71,"../terms/semanticError":72,"../terms/splat":73,"../terms/splatArguments":74,"../terms/splatParameters":75,"../terms/statements":76,"../terms/string":78,"../terms/subExpression":79,"../terms/subStatements":80,"../terms/terms":81,"../terms/throwStatement":82,"../terms/tryExpression":83,"../terms/typeof":84,"../terms/variable":85,"../terms/whileExpression":86,"../terms/withExpression":87,"./basicExpression":7,"./complexExpression":11,"./errors":13,"./listMacros":18,"./macros":19}],10:[function(require,module,exports){
+},{"../codeGenerator":3,"../macroDirectory":4,"../moduleConstants":6,"../parser/operatorExpression":20,"../parser/unaryOperatorExpression":24,"../resolve":25,"../symbolScope":26,"../terms/argumentList":27,"../terms/argumentUtils":28,"../terms/asyncArgument":29,"../terms/asyncCallback":30,"../terms/asyncResult":31,"../terms/asyncStatements":32,"../terms/boolean":33,"../terms/breakStatement":34,"../terms/callback":35,"../terms/closure":36,"../terms/closureParameterStrategies":37,"../terms/continuationOrDefault":39,"../terms/continueStatement":40,"../terms/createPromise":41,"../terms/definition":42,"../terms/fieldReference":43,"../terms/float":44,"../terms/forEach":45,"../terms/forExpression":46,"../terms/forIn":47,"../terms/functionCall":48,"../terms/futureArgument":49,"../terms/generatedVariable":50,"../terms/generator":51,"../terms/hash":52,"../terms/hashEntry":53,"../terms/identifier":54,"../terms/ifExpression":55,"../terms/increment":56,"../terms/indexer":57,"../terms/integer":58,"../terms/interpolatedString":59,"../terms/javascript":60,"../terms/list":61,"../terms/listComprehension":62,"../terms/methodCall":63,"../terms/module":64,"../terms/newOperator":65,"../terms/newPromise":66,"../terms/nil":67,"../terms/normalParameters":68,"../terms/operator":69,"../terms/parameters":70,"../terms/promise":71,"../terms/promisify":72,"../terms/range":73,"../terms/regExp":74,"../terms/returnStatement":75,"../terms/scope":76,"../terms/selfExpression":77,"../terms/semanticError":78,"../terms/splat":79,"../terms/splatArguments":80,"../terms/splatParameters":81,"../terms/statements":82,"../terms/string":84,"../terms/subExpression":85,"../terms/subStatements":86,"../terms/terms":87,"../terms/throwStatement":88,"../terms/tryExpression":89,"../terms/typeof":90,"../terms/variable":91,"../terms/whileExpression":92,"../terms/withExpression":93,"./basicExpression":7,"./complexExpression":11,"./errors":13,"./listMacros":18,"./macros":19}],10:[function(require,module,exports){
 (function() {
     var self = this;
-    var ms, createParser, createTerms, object, sm, beautify, sourceLocationPrinter;
+    var ms, createParser, createTerms, object, sm, beautify, serialise, sourceLocationPrinter;
     ms = require("../memorystream");
     createParser = require("./parser").createParser;
     createTerms = function() {
@@ -889,21 +737,35 @@ var loc = function (term, location) {
         ast.print(stream);
         return stream.toString();
     };
+    serialise = function(code) {
+        if (code instanceof sm.SourceNode) {
+            return code;
+        } else {
+            return new sm.SourceNode(0, 0, 0, code);
+        }
+    };
     exports.generateCode = function(term, terms, gen1_options) {
         var self = this;
-        var inScope, global, returnResult;
+        var inScope, global, returnResult, outputFilename, sourceMap;
         inScope = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "inScope") && gen1_options.inScope !== void 0 ? gen1_options.inScope : true;
         global = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "global") && gen1_options.global !== void 0 ? gen1_options.global : false;
         returnResult = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "returnResult") && gen1_options.returnResult !== void 0 ? gen1_options.returnResult : false;
-        var moduleTerm, output;
+        outputFilename = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "outputFilename") && gen1_options.outputFilename !== void 0 ? gen1_options.outputFilename : outputFilename;
+        sourceMap = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "sourceMap") && gen1_options.sourceMap !== void 0 ? gen1_options.sourceMap : false;
+        var moduleTerm, code;
         moduleTerm = terms.module(term, {
             inScope: inScope,
             global: global,
             returnLastStatement: returnResult
         });
-        return output = moduleTerm.generateModule().toStringWithSourceMap({
-            file: outputFilename
-        });
+        code = serialise(moduleTerm.generateModule());
+        if (sourceMap) {
+            return code.toStringWithSourceMap({
+                file: outputFilename
+            });
+        } else {
+            return code.toString();
+        }
     };
     exports.compile = function(pogo, gen2_options) {
         var self = this;
@@ -931,7 +793,9 @@ var loc = function (term, location) {
         output = exports.generateCode(statements, terms, {
             inScope: inScope,
             global: global,
-            returnResult: returnResult
+            returnResult: returnResult,
+            outputFilename: outputFilename,
+            sourceMap: sourceMap
         });
         if (parser.errors.hasErrors()) {
             memoryStream = new ms.MemoryStream();
@@ -942,17 +806,17 @@ var loc = function (term, location) {
             error = new Error(memoryStream.toString());
             error.isSemanticErrors = true;
             throw error;
+        } else if (sourceMap) {
+            output.map.setSourceContent(filename, pogo);
+            return {
+                code: output.code,
+                map: JSON.parse(output.map.toString())
+            };
         } else {
             if (!ugly) {
-                return beautify(output.code);
-            } else if (sourceMap) {
-                output.map.setSourceContent(filename, pogo);
-                return {
-                    code: output.code,
-                    map: JSON.parse(output.map.toString())
-                };
+                return beautify(output);
             } else {
-                return output.code;
+                return output;
             }
         }
     };
@@ -1055,8 +919,9 @@ var loc = function (term, location) {
         return parser.lex(pogo);
     };
 }).call(this);
-},{"../memorystream":5,"./codeGenerator":9,"./parser":21,"./runtime":23,"source-map":92,"uglify-js":"SqkSOK"}],11:[function(require,module,exports){
+},{"../memorystream":5,"./codeGenerator":9,"./parser":21,"./runtime":23,"source-map":98,"uglify-js":"SqkSOK"}],11:[function(require,module,exports){
 var _ = require('underscore');
+var asyncControl = require('../asyncControl')
 
 module.exports = function (listOfTerminals) {
   var terms = this;
@@ -1104,9 +969,9 @@ module.exports = function (listOfTerminals) {
     this.isFutureCall = function () {
       return this.head().hasFutureArgument();
     };
-    
-    this.isCall = function () {
-      return this.isAsyncCall() || this.isFutureCall();
+
+    this.isCallbackCall = function () {
+      return this.head().hasCallbackArgument();
     };
     
     this.tailBlock = function () {
@@ -1155,15 +1020,15 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return terms.functionCall(terms.variable(head.name(), {couldBeMacro: false, location: this.location()}), this.arguments(), {optionalArguments: this.optionalArguments(), async: this.isAsyncCall(), future: this.isFutureCall()});
+          return this.wrap(terms.functionCall(terms.variable(head.name(), {couldBeMacro: false, location: this.location()}), this.arguments(), {optionalArguments: this.optionalArguments()}));
         } else {
-          return terms.variable(head.name(), {location: this.location()});
+          return this.wrap(terms.variable(head.name(), {location: this.location()}));
         }
       } else {
-        if (!this.hasTail() && this.arguments().length === 1 && !this.isCall() && !this.head().isCall()) {
+        if (!this.hasTail() && this.arguments().length === 1 && !this.head().isCall()) {
           return this.arguments()[0];
         } else {
-          return terms.functionCall(this.arguments()[0], this.arguments().slice(1), {async: this.isAsyncCall(), future: this.isFutureCall()});
+          return this.wrap(terms.functionCall(this.arguments()[0], this.arguments().slice(1)));
         }
       }
     };
@@ -1173,7 +1038,7 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return terms.methodCall(object, head.name(), this.arguments(), {optionalArguments: this.optionalArguments(), async: this.isAsyncCall(), future: this.isFutureCall()});
+          return this.wrap(terms.methodCall(object, head.name(), this.arguments(), {optionalArguments: this.optionalArguments()}));
         } else {
           return terms.fieldReference(object, head.name());
         }
@@ -1181,9 +1046,17 @@ module.exports = function (listOfTerminals) {
         if (!this.hasTail() && !head.isCall() && !this.isAsyncCall()) {
           return terms.indexer(object, this.arguments()[0]);
         } else {
-          return terms.functionCall(terms.indexer(object, this.arguments()[0]), this.arguments().slice(1), {async: this.isAsyncCall(), future: this.isFutureCall()});
+          return this.wrap(terms.functionCall(terms.indexer(object, this.arguments()[0]), this.arguments().slice(1)));
         }
       }
+    };
+
+    this.wrap = function (term) {
+      if (this.isAsyncCall()) {
+        term = terms.resolve(term);
+      }
+
+      return term;
     };
     
     this.parameters = function (options) {
@@ -1214,7 +1087,7 @@ module.exports = function (listOfTerminals) {
         expression: function () {
           if (self.head().hasName()) {
             if (self.hasParameters()) {
-              var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.isAsyncCall(), redefinesSelf: true});
+              var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), returnPromise: self.isAsyncCall(), redefinesSelf: true});
               return terms.definition(terms.fieldReference(object, self.head().name()), block, {assignment: true});
             } else {
               return terms.definition(terms.fieldReference(object, self.head().name()), source.scopify(), {assignment: true});
@@ -1223,7 +1096,7 @@ module.exports = function (listOfTerminals) {
             if (!self.hasTail() && self.arguments().length === 1 && !self.isAsyncCall()) {
               return terms.definition(terms.indexer(object, self.arguments()[0]), source.scopify(), {assignment: true});
             } else {
-              var block = source.blockify(self.parameters({skipFirstParameter: true}), {optionalParameters: self.optionalParameters(), async: self.isAsyncCall(), redefinesSelf: true});
+              var block = source.blockify(self.parameters({skipFirstParameter: true}), {optionalParameters: self.optionalParameters(), returnPromise: self.isAsyncCall(), redefinesSelf: true});
               return terms.definition(terms.indexer(object, self.arguments()[0]), block, {assignment: true});
             }
           }
@@ -1260,10 +1133,10 @@ module.exports = function (listOfTerminals) {
         if (self.hasParameters()) {
           return {
             expression: function () {
-              return terms.definition(terms.variable(self.head().name(), {location: self.location()}), source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.isAsyncCall()}), {assignment: assignment});
+              return terms.definition(terms.variable(self.head().name(), {location: self.location()}), source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), returnPromise: self.isAsyncCall()}), {assignment: assignment});
             },
             hashEntry: function (isOptionalArgument) {
-              var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), async: self.isAsyncCall(), redefinesSelf: !isOptionalArgument});
+              var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), returnPromise: self.isAsyncCall(), redefinesSelf: !isOptionalArgument});
 
               return terms.hashEntry(self.head().name(), block);
             }
@@ -1297,7 +1170,7 @@ module.exports = function (listOfTerminals) {
   });
 };
 
-},{"underscore":102}],12:[function(require,module,exports){
+},{"../asyncControl":1,"underscore":108}],12:[function(require,module,exports){
 (function() {
     var self = this;
     var createDynamicLexer;
@@ -1374,7 +1247,7 @@ exports.errors = function (terms) {
   };
 };
 
-},{"underscore":102}],14:[function(require,module,exports){
+},{"underscore":108}],14:[function(require,module,exports){
 (function() {
     var self = this;
     var comments, identifier;
@@ -1403,7 +1276,7 @@ exports.errors = function (terms) {
             arguments_list: [ [ "arguments_list , argument", "$1.push($3); $$ = $1;" ], [ "argument", "$$ = [$1];" ] ],
             argument: [ [ "expression : expression", "$$ = $1.definition($3.expression()).hashEntry(true);" ], [ "statement", "$$ = $1" ] ],
             parameters: [ [ "parameter_list", "$$ = $1;" ], [ "", "$$ = [];" ] ],
-            parameter_list: [ [ "parameter_list , statement", "$1.push($3); $$ = $1;" ], [ "parameter", "$$ = [$1];" ] ],
+            parameter_list: [ [ "parameter_list , parameter", "$1.push($3); $$ = $1;" ], [ "parameter", "$$ = [$1];" ] ],
             parameter: [ [ "expression : expression", "$$ = $1.definition($3.expression()).hashEntry(true);" ], [ "statement", "$$ = $1" ] ],
             statement: [ [ "expression", "$$ = $1.expression();" ] ],
             expression: [ [ "expression = expression", "$$ = $1.definition($3.expression());" ], [ "expression := expression", "$$ = $1.definition($3.expression(), {assignment: true});" ], [ "operator_expression", "$$ = $1;" ] ],
@@ -1416,7 +1289,7 @@ exports.errors = function (terms) {
             basic_expression_list: [ [ "terminal_list", "$$ = [$1];" ] ],
             terminal_list: [ [ "terminal_list terminal", "$1.push($2); $$ = $1;" ], [ "terminal_list call_operator", "$1.push($2); $$ = $1;" ], [ "terminal", "$$ = [$1];" ] ],
             call_operator: [ [ "!", "$$ = yy.loc(yy.terms.asyncArgument(), @$);" ], [ "?", "$$ = yy.loc(yy.terms.futureArgument(), @$);" ] ],
-            terminal: [ [ "( arguments )", "$$ = yy.loc(yy.terms.argumentList($arguments), @$);" ], [ "@ ( parameters )", "$$ = yy.loc(yy.terms.parameters($3), @$);" ], [ "block_start statements }", "$$ = yy.loc(yy.terms.block([], $2), @$);" ], [ "=> block_start statements }", "$$ = yy.loc(yy.terms.block([], $3, {redefinesSelf: true}), @$);" ], [ "[ arguments ]", "$$ = yy.loc(yy.terms.list($2), @$);" ], [ "{ hash_entries }", "$$ = yy.loc(yy.terms.hash($2), @$);" ], [ "float", "$$ = yy.loc(yy.terms.float(parseFloat(yytext)), @$);" ], [ "integer", "$$ = yy.loc(yy.terms.integer(parseInt(yytext, 10)), @$);" ], [ "hex", "$$ = yy.loc(yy.terms.integer(parseInt(yytext, 16)), @$);" ], [ "identifier", "$$ = yy.loc(yy.terms.identifier(yytext), @$);" ], [ "string", "$$ = yy.loc(yy.terms.string(yy.unindentBy(yy.normaliseString(yytext), @$.first_column + 1)), @$);" ], [ "reg_exp", "$$ = yy.loc(yy.terms.regExp(yy.parseRegExp(yy.unindentBy(yytext, @$.first_column + 2))), @$);" ], [ "interpolated_string", "$$ = yy.loc($1, @$);" ], [ "...", "$$ = yy.loc(yy.terms.splat(), @$);" ] ],
+            terminal: [ [ "( arguments )", "$$ = yy.loc(yy.terms.argumentList($arguments), @$);" ], [ "@ ( parameters )", "$$ = yy.loc(yy.terms.parameters($3), @$);" ], [ "block_start statements }", "$$ = yy.loc(yy.terms.block([], $2), @$);" ], [ "=> block_start statements }", "$$ = yy.loc(yy.terms.block([], $3, {redefinesSelf: true}), @$);" ], [ "[ arguments ]", "$$ = yy.loc(yy.terms.list($2), @$);" ], [ "{ hash_entries }", "$$ = yy.loc(yy.terms.hash($2), @$);" ], [ "float", "$$ = yy.loc(yy.terms.float(parseFloat(yytext)), @$);" ], [ "integer", "$$ = yy.loc(yy.terms.integer(parseInt(yytext, 10)), @$);" ], [ "hex", "$$ = yy.loc(yy.terms.integer(parseInt(yytext, 16)), @$);" ], [ "identifier", "$$ = yy.loc(yy.terms.identifier(yytext), @$);" ], [ "string", "$$ = yy.loc(yy.terms.string(yy.unindentBy(yy.normaliseString(yytext), @$.first_column + 1)), @$);" ], [ "reg_exp", "$$ = yy.loc(yy.terms.regExp(yy.parseRegExp(yy.unindentBy(yytext, @$.first_column + 2))), @$);" ], [ "interpolated_string", "$$ = yy.loc($1, @$);" ], [ "...", "$$ = yy.loc(yy.terms.splat(), @$);" ], [ "^", "$$ = yy.loc(yy.terms.callback(), @$);" ] ],
             block_start: [ [ "@ {", "$$ = '@{'" ], [ "@{", "$$ = '@{'" ] ],
             unary_operator: [ [ "operator", "$$ = $1;" ], [ "!", "$$ = $1;" ] ],
             interpolated_terminal: [ [ "( statement )", "$$ = $2;" ] ],
@@ -1634,9 +1507,9 @@ var process=require("__browserify_process");/* parser generated by jison 0.4.13 
 var parser = (function(){
 var parser = {trace: function trace() { },
 yy: {},
-symbols_: {"error":2,"module_statements":3,"statements":4,"eof":5,"statements_list":6,"hash_entries":7,",":8,"expression":9,"statement":10,"arguments":11,"arguments_list":12,"argument":13,":":14,"parameters":15,"parameter_list":16,"parameter":17,"=":18,":=":19,"operator_expression":20,"operator_with_newline":21,"operator":22,"unary_operator_expression":23,"object_operation":24,"unary_operator":25,"object_reference_with_newline":26,".":27,"complex_expression":28,"basic_expression_list":29,"terminal_list":30,"terminal":31,"call_operator":32,"!":33,"?":34,"(":35,")":36,"@":37,"block_start":38,"}":39,"=>":40,"[":41,"]":42,"{":43,"float":44,"integer":45,"hex":46,"identifier":47,"string":48,"reg_exp":49,"interpolated_string":50,"...":51,"@{":52,"interpolated_terminal":53,"start_interpolated_string":54,"interpolated_string_components":55,"end_interpolated_string":56,"interpolated_string_component":57,"interpolated_string_body":58,"escaped_interpolated_string_terminal_start":59,"escape_sequence":60,"$accept":0,"$end":1},
-terminals_: {2:"error",5:"eof",8:",",14:":",18:"=",19:":=",22:"operator",27:".",33:"!",34:"?",35:"(",36:")",37:"@",39:"}",40:"=>",41:"[",42:"]",43:"{",44:"float",45:"integer",46:"hex",47:"identifier",48:"string",49:"reg_exp",51:"...",52:"@{",54:"start_interpolated_string",56:"end_interpolated_string",58:"interpolated_string_body",59:"escaped_interpolated_string_terminal_start",60:"escape_sequence"},
-productions_: [0,[3,2],[4,1],[7,3],[7,1],[7,0],[6,3],[6,1],[6,0],[11,1],[11,0],[12,3],[12,1],[13,3],[13,1],[15,1],[15,0],[16,3],[16,1],[17,3],[17,1],[10,1],[9,3],[9,3],[9,1],[21,2],[21,1],[20,3],[20,1],[23,1],[23,2],[26,2],[26,1],[24,3],[24,1],[28,1],[29,1],[30,2],[30,2],[30,1],[32,1],[32,1],[31,3],[31,4],[31,3],[31,4],[31,3],[31,3],[31,1],[31,1],[31,1],[31,1],[31,1],[31,1],[31,1],[31,1],[38,2],[38,1],[25,1],[25,1],[53,3],[50,3],[50,2],[55,2],[55,1],[57,1],[57,1],[57,1],[57,1]],
+symbols_: {"error":2,"module_statements":3,"statements":4,"eof":5,"statements_list":6,"hash_entries":7,",":8,"expression":9,"statement":10,"arguments":11,"arguments_list":12,"argument":13,":":14,"parameters":15,"parameter_list":16,"parameter":17,"=":18,":=":19,"operator_expression":20,"operator_with_newline":21,"operator":22,"unary_operator_expression":23,"object_operation":24,"unary_operator":25,"object_reference_with_newline":26,".":27,"complex_expression":28,"basic_expression_list":29,"terminal_list":30,"terminal":31,"call_operator":32,"!":33,"?":34,"(":35,")":36,"@":37,"block_start":38,"}":39,"=>":40,"[":41,"]":42,"{":43,"float":44,"integer":45,"hex":46,"identifier":47,"string":48,"reg_exp":49,"interpolated_string":50,"...":51,"^":52,"@{":53,"interpolated_terminal":54,"start_interpolated_string":55,"interpolated_string_components":56,"end_interpolated_string":57,"interpolated_string_component":58,"interpolated_string_body":59,"escaped_interpolated_string_terminal_start":60,"escape_sequence":61,"$accept":0,"$end":1},
+terminals_: {2:"error",5:"eof",8:",",14:":",18:"=",19:":=",22:"operator",27:".",33:"!",34:"?",35:"(",36:")",37:"@",39:"}",40:"=>",41:"[",42:"]",43:"{",44:"float",45:"integer",46:"hex",47:"identifier",48:"string",49:"reg_exp",51:"...",52:"^",53:"@{",55:"start_interpolated_string",57:"end_interpolated_string",59:"interpolated_string_body",60:"escaped_interpolated_string_terminal_start",61:"escape_sequence"},
+productions_: [0,[3,2],[4,1],[7,3],[7,1],[7,0],[6,3],[6,1],[6,0],[11,1],[11,0],[12,3],[12,1],[13,3],[13,1],[15,1],[15,0],[16,3],[16,1],[17,3],[17,1],[10,1],[9,3],[9,3],[9,1],[21,2],[21,1],[20,3],[20,1],[23,1],[23,2],[26,2],[26,1],[24,3],[24,1],[28,1],[29,1],[30,2],[30,2],[30,1],[32,1],[32,1],[31,3],[31,4],[31,3],[31,4],[31,3],[31,3],[31,1],[31,1],[31,1],[31,1],[31,1],[31,1],[31,1],[31,1],[31,1],[38,2],[38,1],[25,1],[25,1],[54,3],[50,3],[50,2],[56,2],[56,1],[58,1],[58,1],[58,1],[58,1]],
 performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */) {
 /* this == yyval */
 
@@ -1752,36 +1625,38 @@ case 54:this.$ = yy.loc($$[$0], this._$);
 break;
 case 55:this.$ = yy.loc(yy.terms.splat(), this._$);
 break;
-case 56:this.$ = '@{'
+case 56:this.$ = yy.loc(yy.terms.callback(), this._$);
 break;
 case 57:this.$ = '@{'
 break;
-case 58:this.$ = $$[$0];
+case 58:this.$ = '@{'
 break;
 case 59:this.$ = $$[$0];
 break;
-case 60:this.$ = $$[$0-1];
+case 60:this.$ = $$[$0];
 break;
-case 61:this.$ = yy.terms.interpolatedString(yy.normaliseStringComponentsUnindentingBy($$[$0-1], this._$.first_column + 1));
+case 61:this.$ = $$[$0-1];
 break;
-case 62:this.$ = yy.terms.interpolatedString([]);
+case 62:this.$ = yy.terms.interpolatedString(yy.normaliseStringComponentsUnindentingBy($$[$0-1], this._$.first_column + 1));
 break;
-case 63:$$[$0-1].push($$[$0]); this.$ = $$[$0-1];
+case 63:this.$ = yy.terms.interpolatedString([]);
 break;
-case 64:this.$ = [$$[$0]];
+case 64:$$[$0-1].push($$[$0]); this.$ = $$[$0-1];
 break;
-case 65:this.$ = $$[$0];
+case 65:this.$ = [$$[$0]];
 break;
-case 66:this.$ = yy.terms.string(yy.normaliseInterpolatedString($$[$0]));
+case 66:this.$ = $$[$0];
 break;
-case 67:this.$ = yy.terms.string("#");
+case 67:this.$ = yy.terms.string(yy.normaliseInterpolatedString($$[$0]));
 break;
-case 68:this.$ = yy.terms.string(yy.normaliseInterpolatedString($$[$0]));
+case 68:this.$ = yy.terms.string("#");
+break;
+case 69:this.$ = yy.terms.string(yy.normaliseInterpolatedString($$[$0]));
 break;
 }
 },
-table: [{3:1,4:2,5:[2,8],6:3,8:[2,8],9:5,10:4,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{1:[3]},{5:[1,32]},{5:[2,2],8:[1,33],39:[2,2]},{5:[2,7],8:[2,7],39:[2,7]},{5:[2,21],8:[2,21],18:[1,34],19:[1,35],36:[2,21],39:[2,21]},{5:[2,24],8:[2,24],14:[2,24],18:[2,24],19:[2,24],21:36,22:[1,37],36:[2,24],39:[2,24],42:[2,24]},{5:[2,28],8:[2,28],14:[2,28],18:[2,28],19:[2,28],22:[2,28],36:[2,28],39:[2,28],42:[2,28]},{5:[2,29],8:[2,29],14:[2,29],18:[2,29],19:[2,29],22:[2,29],26:38,27:[1,39],36:[2,29],39:[2,29],42:[2,29]},{22:[1,11],23:40,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{5:[2,34],8:[2,34],14:[2,34],18:[2,34],19:[2,34],22:[2,34],27:[2,34],36:[2,34],39:[2,34],42:[2,34]},{22:[2,58],33:[2,58],35:[2,58],37:[2,58],40:[2,58],41:[2,58],43:[2,58],44:[2,58],45:[2,58],46:[2,58],47:[2,58],48:[2,58],49:[2,58],51:[2,58],52:[2,58],54:[2,58]},{22:[2,59],33:[2,59],35:[2,59],37:[2,59],40:[2,59],41:[2,59],43:[2,59],44:[2,59],45:[2,59],46:[2,59],47:[2,59],48:[2,59],49:[2,59],51:[2,59],52:[2,59],54:[2,59]},{5:[2,35],8:[2,35],14:[2,35],18:[2,35],19:[2,35],22:[2,35],27:[2,35],36:[2,35],39:[2,35],42:[2,35]},{5:[2,36],8:[2,36],14:[2,36],18:[2,36],19:[2,36],22:[2,36],27:[2,36],31:41,32:42,33:[1,43],34:[1,44],35:[1,16],36:[2,36],37:[1,17],38:18,39:[2,36],40:[1,19],41:[1,20],42:[2,36],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{5:[2,39],8:[2,39],14:[2,39],18:[2,39],19:[2,39],22:[2,39],27:[2,39],33:[2,39],34:[2,39],35:[2,39],36:[2,39],37:[2,39],39:[2,39],40:[2,39],41:[2,39],42:[2,39],43:[2,39],44:[2,39],45:[2,39],46:[2,39],47:[2,39],48:[2,39],49:[2,39],51:[2,39],52:[2,39],54:[2,39]},{9:48,10:49,11:45,12:46,13:47,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],36:[2,10],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{35:[1,50],43:[1,51]},{4:52,6:3,8:[2,8],9:5,10:4,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,39:[2,8],40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{37:[1,54],38:53,52:[1,30]},{9:48,10:49,11:55,12:46,13:47,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],42:[2,10],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{7:56,8:[2,5],9:57,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,39:[2,5],40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{5:[2,48],8:[2,48],14:[2,48],18:[2,48],19:[2,48],22:[2,48],27:[2,48],33:[2,48],34:[2,48],35:[2,48],36:[2,48],37:[2,48],39:[2,48],40:[2,48],41:[2,48],42:[2,48],43:[2,48],44:[2,48],45:[2,48],46:[2,48],47:[2,48],48:[2,48],49:[2,48],51:[2,48],52:[2,48],54:[2,48]},{5:[2,49],8:[2,49],14:[2,49],18:[2,49],19:[2,49],22:[2,49],27:[2,49],33:[2,49],34:[2,49],35:[2,49],36:[2,49],37:[2,49],39:[2,49],40:[2,49],41:[2,49],42:[2,49],43:[2,49],44:[2,49],45:[2,49],46:[2,49],47:[2,49],48:[2,49],49:[2,49],51:[2,49],52:[2,49],54:[2,49]},{5:[2,50],8:[2,50],14:[2,50],18:[2,50],19:[2,50],22:[2,50],27:[2,50],33:[2,50],34:[2,50],35:[2,50],36:[2,50],37:[2,50],39:[2,50],40:[2,50],41:[2,50],42:[2,50],43:[2,50],44:[2,50],45:[2,50],46:[2,50],47:[2,50],48:[2,50],49:[2,50],51:[2,50],52:[2,50],54:[2,50]},{5:[2,51],8:[2,51],14:[2,51],18:[2,51],19:[2,51],22:[2,51],27:[2,51],33:[2,51],34:[2,51],35:[2,51],36:[2,51],37:[2,51],39:[2,51],40:[2,51],41:[2,51],42:[2,51],43:[2,51],44:[2,51],45:[2,51],46:[2,51],47:[2,51],48:[2,51],49:[2,51],51:[2,51],52:[2,51],54:[2,51]},{5:[2,52],8:[2,52],14:[2,52],18:[2,52],19:[2,52],22:[2,52],27:[2,52],33:[2,52],34:[2,52],35:[2,52],36:[2,52],37:[2,52],39:[2,52],40:[2,52],41:[2,52],42:[2,52],43:[2,52],44:[2,52],45:[2,52],46:[2,52],47:[2,52],48:[2,52],49:[2,52],51:[2,52],52:[2,52],54:[2,52]},{5:[2,53],8:[2,53],14:[2,53],18:[2,53],19:[2,53],22:[2,53],27:[2,53],33:[2,53],34:[2,53],35:[2,53],36:[2,53],37:[2,53],39:[2,53],40:[2,53],41:[2,53],42:[2,53],43:[2,53],44:[2,53],45:[2,53],46:[2,53],47:[2,53],48:[2,53],49:[2,53],51:[2,53],52:[2,53],54:[2,53]},{5:[2,54],8:[2,54],14:[2,54],18:[2,54],19:[2,54],22:[2,54],27:[2,54],33:[2,54],34:[2,54],35:[2,54],36:[2,54],37:[2,54],39:[2,54],40:[2,54],41:[2,54],42:[2,54],43:[2,54],44:[2,54],45:[2,54],46:[2,54],47:[2,54],48:[2,54],49:[2,54],51:[2,54],52:[2,54],54:[2,54]},{5:[2,55],8:[2,55],14:[2,55],18:[2,55],19:[2,55],22:[2,55],27:[2,55],33:[2,55],34:[2,55],35:[2,55],36:[2,55],37:[2,55],39:[2,55],40:[2,55],41:[2,55],42:[2,55],43:[2,55],44:[2,55],45:[2,55],46:[2,55],47:[2,55],48:[2,55],49:[2,55],51:[2,55],52:[2,55],54:[2,55]},{8:[2,57],22:[2,57],33:[2,57],35:[2,57],37:[2,57],39:[2,57],40:[2,57],41:[2,57],43:[2,57],44:[2,57],45:[2,57],46:[2,57],47:[2,57],48:[2,57],49:[2,57],51:[2,57],52:[2,57],54:[2,57]},{35:[1,65],53:61,55:58,56:[1,59],57:60,58:[1,62],59:[1,63],60:[1,64]},{1:[2,1]},{9:5,10:66,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{9:67,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{9:68,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{22:[1,11],23:69,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{8:[1,70],22:[2,26],33:[2,26],35:[2,26],37:[2,26],40:[2,26],41:[2,26],43:[2,26],44:[2,26],45:[2,26],46:[2,26],47:[2,26],48:[2,26],49:[2,26],51:[2,26],52:[2,26],54:[2,26]},{28:71,29:13,30:14,31:15,35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{8:[1,72],35:[2,32],37:[2,32],40:[2,32],41:[2,32],43:[2,32],44:[2,32],45:[2,32],46:[2,32],47:[2,32],48:[2,32],49:[2,32],51:[2,32],52:[2,32],54:[2,32]},{5:[2,30],8:[2,30],14:[2,30],18:[2,30],19:[2,30],22:[2,30],36:[2,30],39:[2,30],42:[2,30]},{5:[2,37],8:[2,37],14:[2,37],18:[2,37],19:[2,37],22:[2,37],27:[2,37],33:[2,37],34:[2,37],35:[2,37],36:[2,37],37:[2,37],39:[2,37],40:[2,37],41:[2,37],42:[2,37],43:[2,37],44:[2,37],45:[2,37],46:[2,37],47:[2,37],48:[2,37],49:[2,37],51:[2,37],52:[2,37],54:[2,37]},{5:[2,38],8:[2,38],14:[2,38],18:[2,38],19:[2,38],22:[2,38],27:[2,38],33:[2,38],34:[2,38],35:[2,38],36:[2,38],37:[2,38],39:[2,38],40:[2,38],41:[2,38],42:[2,38],43:[2,38],44:[2,38],45:[2,38],46:[2,38],47:[2,38],48:[2,38],49:[2,38],51:[2,38],52:[2,38],54:[2,38]},{5:[2,40],8:[2,40],14:[2,40],18:[2,40],19:[2,40],22:[2,40],27:[2,40],33:[2,40],34:[2,40],35:[2,40],36:[2,40],37:[2,40],39:[2,40],40:[2,40],41:[2,40],42:[2,40],43:[2,40],44:[2,40],45:[2,40],46:[2,40],47:[2,40],48:[2,40],49:[2,40],51:[2,40],52:[2,40],54:[2,40]},{5:[2,41],8:[2,41],14:[2,41],18:[2,41],19:[2,41],22:[2,41],27:[2,41],33:[2,41],34:[2,41],35:[2,41],36:[2,41],37:[2,41],39:[2,41],40:[2,41],41:[2,41],42:[2,41],43:[2,41],44:[2,41],45:[2,41],46:[2,41],47:[2,41],48:[2,41],49:[2,41],51:[2,41],52:[2,41],54:[2,41]},{36:[1,73]},{8:[1,74],36:[2,9],42:[2,9]},{8:[2,12],36:[2,12],42:[2,12]},{8:[2,21],14:[1,75],18:[1,34],19:[1,35],36:[2,21],42:[2,21]},{8:[2,14],36:[2,14],42:[2,14]},{9:79,10:80,15:76,16:77,17:78,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],36:[2,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{8:[2,56],22:[2,56],33:[2,56],35:[2,56],37:[2,56],39:[2,56],40:[2,56],41:[2,56],43:[2,56],44:[2,56],45:[2,56],46:[2,56],47:[2,56],48:[2,56],49:[2,56],51:[2,56],52:[2,56],54:[2,56]},{39:[1,81]},{4:82,6:3,8:[2,8],9:5,10:4,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,39:[2,8],40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{43:[1,51]},{42:[1,83]},{8:[1,85],39:[1,84]},{8:[2,4],18:[1,34],19:[1,35],39:[2,4]},{35:[1,65],53:61,56:[1,86],57:87,58:[1,62],59:[1,63],60:[1,64]},{5:[2,62],8:[2,62],14:[2,62],18:[2,62],19:[2,62],22:[2,62],27:[2,62],33:[2,62],34:[2,62],35:[2,62],36:[2,62],37:[2,62],39:[2,62],40:[2,62],41:[2,62],42:[2,62],43:[2,62],44:[2,62],45:[2,62],46:[2,62],47:[2,62],48:[2,62],49:[2,62],51:[2,62],52:[2,62],54:[2,62]},{35:[2,64],56:[2,64],58:[2,64],59:[2,64],60:[2,64]},{35:[2,65],56:[2,65],58:[2,65],59:[2,65],60:[2,65]},{35:[2,66],56:[2,66],58:[2,66],59:[2,66],60:[2,66]},{35:[2,67],56:[2,67],58:[2,67],59:[2,67],60:[2,67]},{35:[2,68],56:[2,68],58:[2,68],59:[2,68],60:[2,68]},{9:5,10:88,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{5:[2,6],8:[2,6],39:[2,6]},{5:[2,22],8:[2,22],14:[2,22],18:[1,34],19:[1,35],36:[2,22],39:[2,22],42:[2,22]},{5:[2,23],8:[2,23],14:[2,23],18:[1,34],19:[1,35],36:[2,23],39:[2,23],42:[2,23]},{5:[2,27],8:[2,27],14:[2,27],18:[2,27],19:[2,27],22:[2,27],36:[2,27],39:[2,27],42:[2,27]},{22:[2,25],33:[2,25],35:[2,25],37:[2,25],40:[2,25],41:[2,25],43:[2,25],44:[2,25],45:[2,25],46:[2,25],47:[2,25],48:[2,25],49:[2,25],51:[2,25],52:[2,25],54:[2,25]},{5:[2,33],8:[2,33],14:[2,33],18:[2,33],19:[2,33],22:[2,33],27:[2,33],36:[2,33],39:[2,33],42:[2,33]},{35:[2,31],37:[2,31],40:[2,31],41:[2,31],43:[2,31],44:[2,31],45:[2,31],46:[2,31],47:[2,31],48:[2,31],49:[2,31],51:[2,31],52:[2,31],54:[2,31]},{5:[2,42],8:[2,42],14:[2,42],18:[2,42],19:[2,42],22:[2,42],27:[2,42],33:[2,42],34:[2,42],35:[2,42],36:[2,42],37:[2,42],39:[2,42],40:[2,42],41:[2,42],42:[2,42],43:[2,42],44:[2,42],45:[2,42],46:[2,42],47:[2,42],48:[2,42],49:[2,42],51:[2,42],52:[2,42],54:[2,42]},{9:48,10:49,13:89,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{9:90,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{36:[1,91]},{8:[1,92],36:[2,15]},{8:[2,18],36:[2,18]},{8:[2,21],14:[1,93],18:[1,34],19:[1,35],36:[2,21]},{8:[2,20],36:[2,20]},{5:[2,44],8:[2,44],14:[2,44],18:[2,44],19:[2,44],22:[2,44],27:[2,44],33:[2,44],34:[2,44],35:[2,44],36:[2,44],37:[2,44],39:[2,44],40:[2,44],41:[2,44],42:[2,44],43:[2,44],44:[2,44],45:[2,44],46:[2,44],47:[2,44],48:[2,44],49:[2,44],51:[2,44],52:[2,44],54:[2,44]},{39:[1,94]},{5:[2,46],8:[2,46],14:[2,46],18:[2,46],19:[2,46],22:[2,46],27:[2,46],33:[2,46],34:[2,46],35:[2,46],36:[2,46],37:[2,46],39:[2,46],40:[2,46],41:[2,46],42:[2,46],43:[2,46],44:[2,46],45:[2,46],46:[2,46],47:[2,46],48:[2,46],49:[2,46],51:[2,46],52:[2,46],54:[2,46]},{5:[2,47],8:[2,47],14:[2,47],18:[2,47],19:[2,47],22:[2,47],27:[2,47],33:[2,47],34:[2,47],35:[2,47],36:[2,47],37:[2,47],39:[2,47],40:[2,47],41:[2,47],42:[2,47],43:[2,47],44:[2,47],45:[2,47],46:[2,47],47:[2,47],48:[2,47],49:[2,47],51:[2,47],52:[2,47],54:[2,47]},{9:95,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{5:[2,61],8:[2,61],14:[2,61],18:[2,61],19:[2,61],22:[2,61],27:[2,61],33:[2,61],34:[2,61],35:[2,61],36:[2,61],37:[2,61],39:[2,61],40:[2,61],41:[2,61],42:[2,61],43:[2,61],44:[2,61],45:[2,61],46:[2,61],47:[2,61],48:[2,61],49:[2,61],51:[2,61],52:[2,61],54:[2,61]},{35:[2,63],56:[2,63],58:[2,63],59:[2,63],60:[2,63]},{36:[1,96]},{8:[2,11],36:[2,11],42:[2,11]},{8:[2,13],18:[1,34],19:[1,35],36:[2,13],42:[2,13]},{5:[2,43],8:[2,43],14:[2,43],18:[2,43],19:[2,43],22:[2,43],27:[2,43],33:[2,43],34:[2,43],35:[2,43],36:[2,43],37:[2,43],39:[2,43],40:[2,43],41:[2,43],42:[2,43],43:[2,43],44:[2,43],45:[2,43],46:[2,43],47:[2,43],48:[2,43],49:[2,43],51:[2,43],52:[2,43],54:[2,43]},{9:5,10:97,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{9:98,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],54:[1,31]},{5:[2,45],8:[2,45],14:[2,45],18:[2,45],19:[2,45],22:[2,45],27:[2,45],33:[2,45],34:[2,45],35:[2,45],36:[2,45],37:[2,45],39:[2,45],40:[2,45],41:[2,45],42:[2,45],43:[2,45],44:[2,45],45:[2,45],46:[2,45],47:[2,45],48:[2,45],49:[2,45],51:[2,45],52:[2,45],54:[2,45]},{8:[2,3],18:[1,34],19:[1,35],39:[2,3]},{35:[2,60],56:[2,60],58:[2,60],59:[2,60],60:[2,60]},{8:[2,17],36:[2,17]},{8:[2,19],18:[1,34],19:[1,35],36:[2,19]}],
-defaultActions: {32:[2,1]},
+table: [{3:1,4:2,5:[2,8],6:3,8:[2,8],9:5,10:4,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{1:[3]},{5:[1,33]},{5:[2,2],8:[1,34],39:[2,2]},{5:[2,7],8:[2,7],39:[2,7]},{5:[2,21],8:[2,21],18:[1,35],19:[1,36],36:[2,21],39:[2,21]},{5:[2,24],8:[2,24],14:[2,24],18:[2,24],19:[2,24],21:37,22:[1,38],36:[2,24],39:[2,24],42:[2,24]},{5:[2,28],8:[2,28],14:[2,28],18:[2,28],19:[2,28],22:[2,28],36:[2,28],39:[2,28],42:[2,28]},{5:[2,29],8:[2,29],14:[2,29],18:[2,29],19:[2,29],22:[2,29],26:39,27:[1,40],36:[2,29],39:[2,29],42:[2,29]},{22:[1,11],23:41,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{5:[2,34],8:[2,34],14:[2,34],18:[2,34],19:[2,34],22:[2,34],27:[2,34],36:[2,34],39:[2,34],42:[2,34]},{22:[2,59],33:[2,59],35:[2,59],37:[2,59],40:[2,59],41:[2,59],43:[2,59],44:[2,59],45:[2,59],46:[2,59],47:[2,59],48:[2,59],49:[2,59],51:[2,59],52:[2,59],53:[2,59],55:[2,59]},{22:[2,60],33:[2,60],35:[2,60],37:[2,60],40:[2,60],41:[2,60],43:[2,60],44:[2,60],45:[2,60],46:[2,60],47:[2,60],48:[2,60],49:[2,60],51:[2,60],52:[2,60],53:[2,60],55:[2,60]},{5:[2,35],8:[2,35],14:[2,35],18:[2,35],19:[2,35],22:[2,35],27:[2,35],36:[2,35],39:[2,35],42:[2,35]},{5:[2,36],8:[2,36],14:[2,36],18:[2,36],19:[2,36],22:[2,36],27:[2,36],31:42,32:43,33:[1,44],34:[1,45],35:[1,16],36:[2,36],37:[1,17],38:18,39:[2,36],40:[1,19],41:[1,20],42:[2,36],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{5:[2,39],8:[2,39],14:[2,39],18:[2,39],19:[2,39],22:[2,39],27:[2,39],33:[2,39],34:[2,39],35:[2,39],36:[2,39],37:[2,39],39:[2,39],40:[2,39],41:[2,39],42:[2,39],43:[2,39],44:[2,39],45:[2,39],46:[2,39],47:[2,39],48:[2,39],49:[2,39],51:[2,39],52:[2,39],53:[2,39],55:[2,39]},{9:49,10:50,11:46,12:47,13:48,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],36:[2,10],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{35:[1,51],43:[1,52]},{4:53,6:3,8:[2,8],9:5,10:4,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,39:[2,8],40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{37:[1,55],38:54,53:[1,31]},{9:49,10:50,11:56,12:47,13:48,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],42:[2,10],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{7:57,8:[2,5],9:58,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,39:[2,5],40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{5:[2,48],8:[2,48],14:[2,48],18:[2,48],19:[2,48],22:[2,48],27:[2,48],33:[2,48],34:[2,48],35:[2,48],36:[2,48],37:[2,48],39:[2,48],40:[2,48],41:[2,48],42:[2,48],43:[2,48],44:[2,48],45:[2,48],46:[2,48],47:[2,48],48:[2,48],49:[2,48],51:[2,48],52:[2,48],53:[2,48],55:[2,48]},{5:[2,49],8:[2,49],14:[2,49],18:[2,49],19:[2,49],22:[2,49],27:[2,49],33:[2,49],34:[2,49],35:[2,49],36:[2,49],37:[2,49],39:[2,49],40:[2,49],41:[2,49],42:[2,49],43:[2,49],44:[2,49],45:[2,49],46:[2,49],47:[2,49],48:[2,49],49:[2,49],51:[2,49],52:[2,49],53:[2,49],55:[2,49]},{5:[2,50],8:[2,50],14:[2,50],18:[2,50],19:[2,50],22:[2,50],27:[2,50],33:[2,50],34:[2,50],35:[2,50],36:[2,50],37:[2,50],39:[2,50],40:[2,50],41:[2,50],42:[2,50],43:[2,50],44:[2,50],45:[2,50],46:[2,50],47:[2,50],48:[2,50],49:[2,50],51:[2,50],52:[2,50],53:[2,50],55:[2,50]},{5:[2,51],8:[2,51],14:[2,51],18:[2,51],19:[2,51],22:[2,51],27:[2,51],33:[2,51],34:[2,51],35:[2,51],36:[2,51],37:[2,51],39:[2,51],40:[2,51],41:[2,51],42:[2,51],43:[2,51],44:[2,51],45:[2,51],46:[2,51],47:[2,51],48:[2,51],49:[2,51],51:[2,51],52:[2,51],53:[2,51],55:[2,51]},{5:[2,52],8:[2,52],14:[2,52],18:[2,52],19:[2,52],22:[2,52],27:[2,52],33:[2,52],34:[2,52],35:[2,52],36:[2,52],37:[2,52],39:[2,52],40:[2,52],41:[2,52],42:[2,52],43:[2,52],44:[2,52],45:[2,52],46:[2,52],47:[2,52],48:[2,52],49:[2,52],51:[2,52],52:[2,52],53:[2,52],55:[2,52]},{5:[2,53],8:[2,53],14:[2,53],18:[2,53],19:[2,53],22:[2,53],27:[2,53],33:[2,53],34:[2,53],35:[2,53],36:[2,53],37:[2,53],39:[2,53],40:[2,53],41:[2,53],42:[2,53],43:[2,53],44:[2,53],45:[2,53],46:[2,53],47:[2,53],48:[2,53],49:[2,53],51:[2,53],52:[2,53],53:[2,53],55:[2,53]},{5:[2,54],8:[2,54],14:[2,54],18:[2,54],19:[2,54],22:[2,54],27:[2,54],33:[2,54],34:[2,54],35:[2,54],36:[2,54],37:[2,54],39:[2,54],40:[2,54],41:[2,54],42:[2,54],43:[2,54],44:[2,54],45:[2,54],46:[2,54],47:[2,54],48:[2,54],49:[2,54],51:[2,54],52:[2,54],53:[2,54],55:[2,54]},{5:[2,55],8:[2,55],14:[2,55],18:[2,55],19:[2,55],22:[2,55],27:[2,55],33:[2,55],34:[2,55],35:[2,55],36:[2,55],37:[2,55],39:[2,55],40:[2,55],41:[2,55],42:[2,55],43:[2,55],44:[2,55],45:[2,55],46:[2,55],47:[2,55],48:[2,55],49:[2,55],51:[2,55],52:[2,55],53:[2,55],55:[2,55]},{5:[2,56],8:[2,56],14:[2,56],18:[2,56],19:[2,56],22:[2,56],27:[2,56],33:[2,56],34:[2,56],35:[2,56],36:[2,56],37:[2,56],39:[2,56],40:[2,56],41:[2,56],42:[2,56],43:[2,56],44:[2,56],45:[2,56],46:[2,56],47:[2,56],48:[2,56],49:[2,56],51:[2,56],52:[2,56],53:[2,56],55:[2,56]},{8:[2,58],22:[2,58],33:[2,58],35:[2,58],37:[2,58],39:[2,58],40:[2,58],41:[2,58],43:[2,58],44:[2,58],45:[2,58],46:[2,58],47:[2,58],48:[2,58],49:[2,58],51:[2,58],52:[2,58],53:[2,58],55:[2,58]},{35:[1,66],54:62,56:59,57:[1,60],58:61,59:[1,63],60:[1,64],61:[1,65]},{1:[2,1]},{9:5,10:67,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{9:68,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{9:69,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{22:[1,11],23:70,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{8:[1,71],22:[2,26],33:[2,26],35:[2,26],37:[2,26],40:[2,26],41:[2,26],43:[2,26],44:[2,26],45:[2,26],46:[2,26],47:[2,26],48:[2,26],49:[2,26],51:[2,26],52:[2,26],53:[2,26],55:[2,26]},{28:72,29:13,30:14,31:15,35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{8:[1,73],35:[2,32],37:[2,32],40:[2,32],41:[2,32],43:[2,32],44:[2,32],45:[2,32],46:[2,32],47:[2,32],48:[2,32],49:[2,32],51:[2,32],52:[2,32],53:[2,32],55:[2,32]},{5:[2,30],8:[2,30],14:[2,30],18:[2,30],19:[2,30],22:[2,30],36:[2,30],39:[2,30],42:[2,30]},{5:[2,37],8:[2,37],14:[2,37],18:[2,37],19:[2,37],22:[2,37],27:[2,37],33:[2,37],34:[2,37],35:[2,37],36:[2,37],37:[2,37],39:[2,37],40:[2,37],41:[2,37],42:[2,37],43:[2,37],44:[2,37],45:[2,37],46:[2,37],47:[2,37],48:[2,37],49:[2,37],51:[2,37],52:[2,37],53:[2,37],55:[2,37]},{5:[2,38],8:[2,38],14:[2,38],18:[2,38],19:[2,38],22:[2,38],27:[2,38],33:[2,38],34:[2,38],35:[2,38],36:[2,38],37:[2,38],39:[2,38],40:[2,38],41:[2,38],42:[2,38],43:[2,38],44:[2,38],45:[2,38],46:[2,38],47:[2,38],48:[2,38],49:[2,38],51:[2,38],52:[2,38],53:[2,38],55:[2,38]},{5:[2,40],8:[2,40],14:[2,40],18:[2,40],19:[2,40],22:[2,40],27:[2,40],33:[2,40],34:[2,40],35:[2,40],36:[2,40],37:[2,40],39:[2,40],40:[2,40],41:[2,40],42:[2,40],43:[2,40],44:[2,40],45:[2,40],46:[2,40],47:[2,40],48:[2,40],49:[2,40],51:[2,40],52:[2,40],53:[2,40],55:[2,40]},{5:[2,41],8:[2,41],14:[2,41],18:[2,41],19:[2,41],22:[2,41],27:[2,41],33:[2,41],34:[2,41],35:[2,41],36:[2,41],37:[2,41],39:[2,41],40:[2,41],41:[2,41],42:[2,41],43:[2,41],44:[2,41],45:[2,41],46:[2,41],47:[2,41],48:[2,41],49:[2,41],51:[2,41],52:[2,41],53:[2,41],55:[2,41]},{36:[1,74]},{8:[1,75],36:[2,9],42:[2,9]},{8:[2,12],36:[2,12],42:[2,12]},{8:[2,21],14:[1,76],18:[1,35],19:[1,36],36:[2,21],42:[2,21]},{8:[2,14],36:[2,14],42:[2,14]},{9:80,10:81,15:77,16:78,17:79,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],36:[2,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{8:[2,57],22:[2,57],33:[2,57],35:[2,57],37:[2,57],39:[2,57],40:[2,57],41:[2,57],43:[2,57],44:[2,57],45:[2,57],46:[2,57],47:[2,57],48:[2,57],49:[2,57],51:[2,57],52:[2,57],53:[2,57],55:[2,57]},{39:[1,82]},{4:83,6:3,8:[2,8],9:5,10:4,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,39:[2,8],40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{43:[1,52]},{42:[1,84]},{8:[1,86],39:[1,85]},{8:[2,4],18:[1,35],19:[1,36],39:[2,4]},{35:[1,66],54:62,57:[1,87],58:88,59:[1,63],60:[1,64],61:[1,65]},{5:[2,63],8:[2,63],14:[2,63],18:[2,63],19:[2,63],22:[2,63],27:[2,63],33:[2,63],34:[2,63],35:[2,63],36:[2,63],37:[2,63],39:[2,63],40:[2,63],41:[2,63],42:[2,63],43:[2,63],44:[2,63],45:[2,63],46:[2,63],47:[2,63],48:[2,63],49:[2,63],51:[2,63],52:[2,63],53:[2,63],55:[2,63]},{35:[2,65],57:[2,65],59:[2,65],60:[2,65],61:[2,65]},{35:[2,66],57:[2,66],59:[2,66],60:[2,66],61:[2,66]},{35:[2,67],57:[2,67],59:[2,67],60:[2,67],61:[2,67]},{35:[2,68],57:[2,68],59:[2,68],60:[2,68],61:[2,68]},{35:[2,69],57:[2,69],59:[2,69],60:[2,69],61:[2,69]},{9:5,10:89,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{5:[2,6],8:[2,6],39:[2,6]},{5:[2,22],8:[2,22],14:[2,22],18:[1,35],19:[1,36],36:[2,22],39:[2,22],42:[2,22]},{5:[2,23],8:[2,23],14:[2,23],18:[1,35],19:[1,36],36:[2,23],39:[2,23],42:[2,23]},{5:[2,27],8:[2,27],14:[2,27],18:[2,27],19:[2,27],22:[2,27],36:[2,27],39:[2,27],42:[2,27]},{22:[2,25],33:[2,25],35:[2,25],37:[2,25],40:[2,25],41:[2,25],43:[2,25],44:[2,25],45:[2,25],46:[2,25],47:[2,25],48:[2,25],49:[2,25],51:[2,25],52:[2,25],53:[2,25],55:[2,25]},{5:[2,33],8:[2,33],14:[2,33],18:[2,33],19:[2,33],22:[2,33],27:[2,33],36:[2,33],39:[2,33],42:[2,33]},{35:[2,31],37:[2,31],40:[2,31],41:[2,31],43:[2,31],44:[2,31],45:[2,31],46:[2,31],47:[2,31],48:[2,31],49:[2,31],51:[2,31],52:[2,31],53:[2,31],55:[2,31]},{5:[2,42],8:[2,42],14:[2,42],18:[2,42],19:[2,42],22:[2,42],27:[2,42],33:[2,42],34:[2,42],35:[2,42],36:[2,42],37:[2,42],39:[2,42],40:[2,42],41:[2,42],42:[2,42],43:[2,42],44:[2,42],45:[2,42],46:[2,42],47:[2,42],48:[2,42],49:[2,42],51:[2,42],52:[2,42],53:[2,42],55:[2,42]},{9:49,10:50,13:90,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{9:91,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{36:[1,92]},{8:[1,93],36:[2,15]},{8:[2,18],36:[2,18]},{8:[2,21],14:[1,94],18:[1,35],19:[1,36],36:[2,21]},{8:[2,20],36:[2,20]},{5:[2,44],8:[2,44],14:[2,44],18:[2,44],19:[2,44],22:[2,44],27:[2,44],33:[2,44],34:[2,44],35:[2,44],36:[2,44],37:[2,44],39:[2,44],40:[2,44],41:[2,44],42:[2,44],43:[2,44],44:[2,44],45:[2,44],46:[2,44],47:[2,44],48:[2,44],49:[2,44],51:[2,44],52:[2,44],53:[2,44],55:[2,44]},{39:[1,95]},{5:[2,46],8:[2,46],14:[2,46],18:[2,46],19:[2,46],22:[2,46],27:[2,46],33:[2,46],34:[2,46],35:[2,46],36:[2,46],37:[2,46],39:[2,46],40:[2,46],41:[2,46],42:[2,46],43:[2,46],44:[2,46],45:[2,46],46:[2,46],47:[2,46],48:[2,46],49:[2,46],51:[2,46],52:[2,46],53:[2,46],55:[2,46]},{5:[2,47],8:[2,47],14:[2,47],18:[2,47],19:[2,47],22:[2,47],27:[2,47],33:[2,47],34:[2,47],35:[2,47],36:[2,47],37:[2,47],39:[2,47],40:[2,47],41:[2,47],42:[2,47],43:[2,47],44:[2,47],45:[2,47],46:[2,47],47:[2,47],48:[2,47],49:[2,47],51:[2,47],52:[2,47],53:[2,47],55:[2,47]},{9:96,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{5:[2,62],8:[2,62],14:[2,62],18:[2,62],19:[2,62],22:[2,62],27:[2,62],33:[2,62],34:[2,62],35:[2,62],36:[2,62],37:[2,62],39:[2,62],40:[2,62],41:[2,62],42:[2,62],43:[2,62],44:[2,62],45:[2,62],46:[2,62],47:[2,62],48:[2,62],49:[2,62],51:[2,62],52:[2,62],53:[2,62],55:[2,62]},{35:[2,64],57:[2,64],59:[2,64],60:[2,64],61:[2,64]},{36:[1,97]},{8:[2,11],36:[2,11],42:[2,11]},{8:[2,13],18:[1,35],19:[1,36],36:[2,13],42:[2,13]},{5:[2,43],8:[2,43],14:[2,43],18:[2,43],19:[2,43],22:[2,43],27:[2,43],33:[2,43],34:[2,43],35:[2,43],36:[2,43],37:[2,43],39:[2,43],40:[2,43],41:[2,43],42:[2,43],43:[2,43],44:[2,43],45:[2,43],46:[2,43],47:[2,43],48:[2,43],49:[2,43],51:[2,43],52:[2,43],53:[2,43],55:[2,43]},{9:80,10:81,17:98,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{9:99,20:6,22:[1,11],23:7,24:8,25:9,28:10,29:13,30:14,31:15,33:[1,12],35:[1,16],37:[1,17],38:18,40:[1,19],41:[1,20],43:[1,21],44:[1,22],45:[1,23],46:[1,24],47:[1,25],48:[1,26],49:[1,27],50:28,51:[1,29],52:[1,30],53:[1,31],55:[1,32]},{5:[2,45],8:[2,45],14:[2,45],18:[2,45],19:[2,45],22:[2,45],27:[2,45],33:[2,45],34:[2,45],35:[2,45],36:[2,45],37:[2,45],39:[2,45],40:[2,45],41:[2,45],42:[2,45],43:[2,45],44:[2,45],45:[2,45],46:[2,45],47:[2,45],48:[2,45],49:[2,45],51:[2,45],52:[2,45],53:[2,45],55:[2,45]},{8:[2,3],18:[1,35],19:[1,36],39:[2,3]},{35:[2,61],57:[2,61],59:[2,61],60:[2,61],61:[2,61]},{8:[2,17],36:[2,17]},{8:[2,19],18:[1,35],19:[1,36],36:[2,19]}],
+defaultActions: {33:[2,1]},
 parseError: function parseError(str, hash) {
     if (hash.recoverable) {
         this.trace(str);
@@ -2293,19 +2168,19 @@ case 21:return 5;
 break;
 case 22:return 48;
 break;
-case 23:this.begin('interpolated_string'); return 54;
+case 23:this.begin('interpolated_string'); return 55;
 break;
-case 24:return 59;
+case 24:return 60;
 break;
 case 25:yy.setIndentation('('); yy.interpolation.startInterpolation(); this.begin('INITIAL'); return 35;
 break;
-case 26:return 58;
+case 26:return 59;
 break;
-case 27:this.popState(); return 56;
+case 27:this.popState(); return 57;
 break;
-case 28:return 60;
+case 28:return 61;
 break;
-case 29:return 58;
+case 29:return 59;
 break;
 case 30:return 'non_token';
 break;
@@ -2341,7 +2216,7 @@ if (typeof module !== 'undefined' && require.main === module) {
   exports.main(process.argv.slice(1));
 }
 }
-},{"__browserify_process":91,"fs":"7fr4ay","path":89}],18:[function(require,module,exports){
+},{"__browserify_process":97,"fs":"7fr4ay","path":95}],18:[function(require,module,exports){
 (function() {
     var self = this;
     var _;
@@ -2478,7 +2353,7 @@ if (typeof module !== 'undefined' && require.main === module) {
         return macros;
     };
 }).call(this);
-},{"underscore":102}],19:[function(require,module,exports){
+},{"underscore":108}],19:[function(require,module,exports){
 var _ = require('underscore');
 var errors = require('./errors');
 var codegenUtils = require('../terms/codegenUtils');
@@ -2509,8 +2384,7 @@ exports.macros = function (cg) {
     '%',
     '>>',
     '>>>',
-    '<<',
-    '^'
+    '<<'
   ];
 
   _.each(javaScriptOperators, function(op) {
@@ -2519,6 +2393,10 @@ exports.macros = function (cg) {
 
   macros.addMacro(['=='], function (term, name, args) {
     return cg.operator('===', args);
+  });
+
+  macros.addMacro(['^^'], function (term, name, args) {
+    return cg.operator('^', args);
   });
 
   macros.addMacro(['!='], function (term, name, args) {
@@ -2614,6 +2492,10 @@ exports.macros = function (cg) {
   };
 
   macros.addWildCardMacro(['if'], matchIfMacro);
+
+  macros.addMacro(['promise'], function(term, name, args) {
+    return cg.newPromise({closure: args[0]});
+  });
 
   macros.addMacro(['new'], function(term, name, args) {
     var constructor;
@@ -2741,9 +2623,9 @@ exports.macros = function (cg) {
 
   macros.addMacro(['continuation'], function(term, name, args) {
     if (args) {
-      return cg.functionCall(cg.callbackFunction, args, {couldBeMacro: false});
+      return cg.functionCall(cg.continuationFunction, args, {couldBeMacro: false});
     } else {
-      return cg.callbackFunction;
+      return cg.continuationFunction;
     }
   });
 
@@ -2810,7 +2692,7 @@ exports.macros = function (cg) {
   return macros;
 };
 
-},{"../terms/codegenUtils":36,"./errors":13,"underscore":102}],20:[function(require,module,exports){
+},{"../terms/codegenUtils":38,"./errors":13,"underscore":108}],20:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils;
@@ -2878,7 +2760,7 @@ exports.macros = function (cg) {
         };
         operatorTable = function() {
             var table;
-            table = operatorsInDecreasingPrecedenceOrder("\n            / * % left\n            - + left\n            << >> >>> left\n            > >= < <= left\n            == != left\n            & left\n            ^ left\n            | left\n            && @and left\n            || @or left\n            <- left\n        ");
+            table = operatorsInDecreasingPrecedenceOrder("\n            / * % left\n            - + left\n            << >> >>> left\n            > >= < <= left\n            == != left\n            & left\n            ^^ left\n            | left\n            && @and left\n            || @or left\n            <- left\n        ");
             return {
                 findOp: function(op) {
                     var self = this;
@@ -2974,7 +2856,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{"../terms/codegenUtils":36,"underscore":102}],21:[function(require,module,exports){
+},{"../terms/codegenUtils":38,"underscore":108}],21:[function(require,module,exports){
 (function() {
     var self = this;
     var ms, createParserContext, createDynamicLexer, parser, jisonLexer;
@@ -3098,9 +2980,11 @@ exports.macros = function (cg) {
             interpolation: createInterpolation(),
             lexOperator: function(parserContext, op) {
                 var self = this;
-                if (/[?!][.;]/.test(op)) {
+                if (/^!\.|\^!$/.test(op)) {
                     return parserContext.tokens([ op[0], op[1] ]);
-                } else if (/^(=>|\.\.\.|@:|[#@:!?,.=;]|:=)$/.test(op)) {
+                } else if (/^\^!\.$/.test(op)) {
+                    return parserContext.tokens([ op[0], op[1], op[2] ]);
+                } else if (/^(=>|\.\.\.|@:|[#@:!?^,.=;]|:=)$/.test(op)) {
                     return op;
                 } else {
                     return "operator";
@@ -3202,7 +3086,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./indentStack":15,"./interpolation":16,"./runtime":23,"underscore":102}],23:[function(require,module,exports){
+},{"./indentStack":15,"./interpolation":16,"./runtime":23,"underscore":108}],23:[function(require,module,exports){
 (function() {
     var self = this;
     var constructor;
@@ -3273,7 +3157,55 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{"../terms/codegenUtils":36}],25:[function(require,module,exports){
+},{"../terms/codegenUtils":38}],25:[function(require,module,exports){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        var resolve, createResolve;
+        resolve = terms.term({
+            constructor: function(term, gen1_options) {
+                var self = this;
+                var alreadyPromise;
+                alreadyPromise = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "alreadyPromise") && gen1_options.alreadyPromise !== void 0 ? gen1_options.alreadyPromise : false;
+                self.isResolve = true;
+                self.term = term;
+                return self._resolve = function() {
+                    if (alreadyPromise) {
+                        return term;
+                    } else {
+                        return term.promisify();
+                    }
+                }();
+            },
+            makeAsyncCallWithCallback: function(onFulfilled, onRejected) {
+                var self = this;
+                var args;
+                args = [];
+                if (onFulfilled && onFulfilled !== terms.onFulfilledFunction) {
+                    args.push(onFulfilled);
+                }
+                if (args.length > 0) {
+                    return terms.methodCall(self._resolve, [ "then" ], args);
+                } else {
+                    return self._resolve;
+                }
+            }
+        });
+        return createResolve = function(term, gen2_options) {
+            var alreadyPromise;
+            alreadyPromise = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "alreadyPromise") && gen2_options.alreadyPromise !== void 0 ? gen2_options.alreadyPromise : false;
+            var asyncResult;
+            asyncResult = terms.asyncResult();
+            return terms.subStatements([ terms.definition(asyncResult, resolve(term, {
+                alreadyPromise: alreadyPromise
+            }), {
+                async: true
+            }), asyncResult ]);
+        };
+    };
+}).call(this);
+},{}],26:[function(require,module,exports){
 (function() {
     var self = this;
     var UniqueNames, SymbolScope;
@@ -3292,8 +3224,9 @@ exports.macros = function (cg) {
         var self = this;
         var uniqueNames;
         uniqueNames = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "uniqueNames") && gen1_options.uniqueNames !== void 0 ? gen1_options.uniqueNames : new UniqueNames();
-        var variables;
+        var variables, tags;
         variables = {};
+        tags = {};
         self.define = function(name) {
             var self = this;
             return variables[name] = true;
@@ -3316,10 +3249,36 @@ exports.macros = function (cg) {
                 uniqueNames: uniqueNames
             });
         };
+        self.defineWithTag = function(name, tag) {
+            var self = this;
+            self.define(name);
+            return tags[tag] = name;
+        };
+        self.findTag = function(tag) {
+            var self = this;
+            return tags[tag] || parentScope && parentScope.findTag(tag);
+        };
+        self.names = function() {
+            var self = this;
+            return function() {
+                var gen2_results, gen3_items, gen4_i, key;
+                gen2_results = [];
+                gen3_items = Object.keys(variables);
+                for (gen4_i = 0; gen4_i < gen3_items.length; ++gen4_i) {
+                    key = gen3_items[gen4_i];
+                    (function(key) {
+                        if (variables.hasOwnProperty(key)) {
+                            return gen2_results.push(key);
+                        }
+                    })(key);
+                }
+                return gen2_results;
+            }();
+        };
         return void 0;
     };
 }).call(this);
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3337,7 +3296,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3360,11 +3319,8 @@ exports.macros = function (cg) {
             },
             asyncifyBody: function(body, args) {
                 var self = this;
-                var closure;
                 if (body) {
-                    closure = terms.closure(args || [], body);
-                    closure.asyncify();
-                    return closure;
+                    return terms.closure(args || [], body);
                 } else {
                     return terms.nil();
                 }
@@ -3372,7 +3328,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3384,12 +3340,12 @@ exports.macros = function (cg) {
             },
             arguments: function() {
                 var self = this;
-                return [];
+                return void 0;
             }
         });
     };
 }).call(this);
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3398,30 +3354,19 @@ exports.macros = function (cg) {
         return asyncCallback = function(body, gen1_options) {
             var resultVariable;
             resultVariable = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "resultVariable") && gen1_options.resultVariable !== void 0 ? gen1_options.resultVariable : void 0;
-            var errorVariable, catchErrorVariable, rethrowErrors;
-            errorVariable = terms.generatedVariable([ "error" ]);
-            catchErrorVariable = terms.generatedVariable([ "exception" ]);
-            if (!body.containsContinuation()) {
-                body.rewriteResultTermInto(function(term) {
-                    if (!term.originallyAsync) {
-                        return terms.returnStatement(terms.functionCall(terms.callbackFunction, [ terms.nil(), term ]), {
-                            implicit: true
-                        });
-                    } else {
-                        return term;
-                    }
-                }, {
-                    async: true
-                });
-            }
-            rethrowErrors = terms.moduleConstants.defineAs([ "rethrow", "errors" ], terms.javascript("function (continuation,block){return function(error,result){if(error){return continuation(error);}else{try{return block(result);}catch(ex){return continuation(ex);}}}}"));
-            return terms.functionCall(rethrowErrors, [ terms.callbackFunction, terms.closure([ resultVariable ], body, {
-                returnLastStatement: false
-            }) ]);
+            var params;
+            params = function() {
+                if (resultVariable) {
+                    return [ resultVariable ];
+                } else {
+                    return [];
+                }
+            }();
+            return terms.closure(params, body);
         };
     };
 }).call(this);
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3435,7 +3380,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils, statementsUtils;
@@ -3446,27 +3391,18 @@ exports.macros = function (cg) {
         var self = this;
         var createCallbackWithStatements, putStatementsInCallbackForNextAsyncCall, asyncStatements;
         createCallbackWithStatements = function(callbackStatements, gen1_options) {
-            var resultVariable, forceAsync, global, containsContinuation;
+            var resultVariable, forceAsync, containsContinuation;
             resultVariable = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "resultVariable") && gen1_options.resultVariable !== void 0 ? gen1_options.resultVariable : void 0;
             forceAsync = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "forceAsync") && gen1_options.forceAsync !== void 0 ? gen1_options.forceAsync : false;
-            global = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "global") && gen1_options.global !== void 0 ? gen1_options.global : false;
             containsContinuation = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "containsContinuation") && gen1_options.containsContinuation !== void 0 ? gen1_options.containsContinuation : containsContinuation;
-            var errorVariable, asyncStmts;
+            var asyncStmts;
             if (callbackStatements.length === 1 && callbackStatements[0].isAsyncResult) {
-                if (containsContinuation) {
-                    errorVariable = terms.generatedVariable([ "error" ]);
-                    return terms.closure([ errorVariable ], terms.statements([ terms.ifExpression([ {
-                        condition: errorVariable,
-                        body: terms.statements([ terms.functionCall(terms.callbackFunction, [ errorVariable ]) ])
-                    } ]) ]));
-                } else {
-                    return terms.callbackFunction;
-                }
+                return terms.onFulfilledFunction;
             } else {
                 asyncStmts = putStatementsInCallbackForNextAsyncCall(callbackStatements, {
                     forceAsync: forceAsync,
                     forceNotAsync: true,
-                    global: global
+                    definitions: []
                 });
                 return terms.asyncCallback(asyncStmts, {
                     resultVariable: resultVariable
@@ -3474,11 +3410,10 @@ exports.macros = function (cg) {
             }
         };
         putStatementsInCallbackForNextAsyncCall = function(statements, gen2_options) {
-            var forceAsync, forceNotAsync, global, globalDefinitions;
+            var forceAsync, forceNotAsync, definitions;
             forceAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "forceAsync") && gen2_options.forceAsync !== void 0 ? gen2_options.forceAsync : false;
             forceNotAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "forceNotAsync") && gen2_options.forceNotAsync !== void 0 ? gen2_options.forceNotAsync : false;
-            global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
-            globalDefinitions = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "globalDefinitions") && gen2_options.globalDefinitions !== void 0 ? gen2_options.globalDefinitions : void 0;
+            definitions = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "definitions") && gen2_options.definitions !== void 0 ? gen2_options.definitions : void 0;
             var containsContinuation, n, gen3_forResult;
             containsContinuation = function() {
                 if (statements.length > 0) {
@@ -3507,7 +3442,6 @@ exports.macros = function (cg) {
                         return createCallbackWithStatements(statements.slice(n + 1), {
                             resultVariable: resultVariable,
                             forceAsync: forceAsync,
-                            global: global,
                             containsContinuation: containsContinuation
                         });
                     });
@@ -3516,7 +3450,7 @@ exports.macros = function (cg) {
                         firstStatements.push(asyncStatement);
                         gen3_forResult = terms.statements(firstStatements, {
                             async: !forceNotAsync,
-                            globalDefinitions: globalDefinitions
+                            definitions: []
                         });
                         return true;
                     }
@@ -3525,36 +3459,51 @@ exports.macros = function (cg) {
                 }
             }
             return terms.statements(statements, {
-                async: forceAsync
+                async: forceAsync,
+                definitions: definitions
             });
         };
         return asyncStatements = function(statements, gen7_options) {
-            var forceAsync, global;
+            var forceAsync;
             forceAsync = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "forceAsync") && gen7_options.forceAsync !== void 0 ? gen7_options.forceAsync : false;
-            global = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "global") && gen7_options.global !== void 0 ? gen7_options.global : false;
-            var globalDefinitions, serialisedStatements;
-            globalDefinitions = function() {
+            var definitions, serialisedStatements, stmts;
+            definitions = function() {
                 var gen8_results, gen9_items, gen10_i, s;
                 gen8_results = [];
                 gen9_items = statements;
                 for (gen10_i = 0; gen10_i < gen9_items.length; ++gen10_i) {
                     s = gen9_items[gen10_i];
-                    if (s.isDefinition) {
-                        gen8_results.push(s);
-                    }
+                    (function(s) {
+                        var gen11_items, gen12_i, d;
+                        gen11_items = s.definitions();
+                        for (gen12_i = 0; gen12_i < gen11_items.length; ++gen12_i) {
+                            d = gen11_items[gen12_i];
+                            (function(d) {
+                                return gen8_results.push(d);
+                            })(d);
+                        }
+                        return void 0;
+                    })(s);
                 }
                 return gen8_results;
             }();
             serialisedStatements = statementsUtils.serialiseStatements(statements);
-            return putStatementsInCallbackForNextAsyncCall(serialisedStatements, {
+            stmts = putStatementsInCallbackForNextAsyncCall(serialisedStatements, {
                 forceAsync: forceAsync,
-                global: global,
-                globalDefinitions: globalDefinitions
+                definitions: definitions
             });
+            if (stmts.isAsync) {
+                return stmts.promisify({
+                    definitions: definitions,
+                    statements: true
+                });
+            } else {
+                return stmts;
+            }
         };
     };
 }).call(this);
-},{"./codegenUtils":36,"./statementsUtils":77,"underscore":102}],32:[function(require,module,exports){
+},{"./codegenUtils":38,"./statementsUtils":83,"underscore":108}],33:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(cg) {
@@ -3578,7 +3527,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3599,7 +3548,28 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function() {
+                var self = this;
+                return self.isCallback = true;
+            },
+            parameter: function() {
+                var self = this;
+                return self;
+            },
+            generate: function(scope) {
+                var self = this;
+                return terms.callbackFunction.generate(scope);
+            }
+        });
+    };
+}).call(this);
+},{}],36:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils, blockParameters, selfParameter, splatParameters, parseSplatParameters, takeFromWhile;
@@ -3656,11 +3626,7 @@ exports.macros = function (cg) {
             return {
                 parameters: function() {
                     var self = this;
-                    if (closure.isAsync) {
-                        return next.parameters().concat([ terms.callbackFunction ]);
-                    } else {
-                        return next.parameters();
-                    }
+                    return next.parameters();
                 },
                 statements: function() {
                     var self = this;
@@ -3696,31 +3662,46 @@ exports.macros = function (cg) {
         return terms.term({
             constructor: function(parameters, body, gen1_options) {
                 var self = this;
-                var optionalParameters, returnLastStatement, redefinesSelf, async, definesModuleConstants;
+                var optionalParameters, returnLastStatement, redefinesSelf, async, definesModuleConstants, returnPromise, callsFulfillOnReturn;
                 optionalParameters = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "optionalParameters") && gen1_options.optionalParameters !== void 0 ? gen1_options.optionalParameters : [];
                 returnLastStatement = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "returnLastStatement") && gen1_options.returnLastStatement !== void 0 ? gen1_options.returnLastStatement : true;
                 redefinesSelf = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "redefinesSelf") && gen1_options.redefinesSelf !== void 0 ? gen1_options.redefinesSelf : false;
                 async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
                 definesModuleConstants = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "definesModuleConstants") && gen1_options.definesModuleConstants !== void 0 ? gen1_options.definesModuleConstants : false;
+                returnPromise = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "returnPromise") && gen1_options.returnPromise !== void 0 ? gen1_options.returnPromise : false;
+                callsFulfillOnReturn = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "callsFulfillOnReturn") && gen1_options.callsFulfillOnReturn !== void 0 ? gen1_options.callsFulfillOnReturn : false;
                 self.isBlock = true;
                 self.isClosure = true;
                 self.parameters = parameters;
-                self.body = body;
+                self.body = function() {
+                    if (returnPromise) {
+                        return body.promisify({
+                            statements: true
+                        });
+                    } else {
+                        return body;
+                    }
+                }();
                 self.redefinesSelf = redefinesSelf;
                 self.optionalParameters = optionalParameters;
-                self.makeAsync(async || body.isAsync);
+                self.makeAsync(async || self.body.isAsync);
                 self.returnLastStatement = returnLastStatement;
-                return self.definesModuleConstants = definesModuleConstants;
+                self.definesModuleConstants = definesModuleConstants;
+                return self.callsFulfillOnReturn = callsFulfillOnReturn;
             },
             blockify: function(parameters, gen2_options) {
                 var self = this;
-                var optionalParameters, async, redefinesSelf;
+                var optionalParameters, returnPromise, redefinesSelf;
                 optionalParameters = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "optionalParameters") && gen2_options.optionalParameters !== void 0 ? gen2_options.optionalParameters : [];
-                async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
+                returnPromise = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "returnPromise") && gen2_options.returnPromise !== void 0 ? gen2_options.returnPromise : false;
                 redefinesSelf = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "redefinesSelf") && gen2_options.redefinesSelf !== void 0 ? gen2_options.redefinesSelf : void 0;
                 self.parameters = parameters;
                 self.optionalParameters = optionalParameters;
-                self.makeAsync(self.isAsync || async);
+                if (returnPromise) {
+                    self.body = self.body.promisify({
+                        statements: true
+                    });
+                }
                 if (redefinesSelf !== void 0) {
                     self.redefinesSelf = redefinesSelf;
                 }
@@ -3728,21 +3709,16 @@ exports.macros = function (cg) {
             },
             makeAsync: function(a) {
                 var self = this;
-                self.isAsync = a;
-                if (a) {
-                    return self.continuationOrDefault = terms.continuationOrDefault();
-                }
+                return self.isAsync = a;
             },
             scopify: function() {
                 var self = this;
                 if (self.parameters.length === 0 && self.optionalParameters.length === 0 && !self.notScope) {
-                    if (self.isAsync) {
-                        return terms.functionCall(terms.subExpression(self), [], {
-                            async: true
-                        });
+                    if (self.body.returnsPromise) {
+                        return terms.resolve(terms.functionCall(self, []));
                     } else {
                         return terms.scope(self.body.statements, {
-                            async: self.isAsync
+                            async: false
                         });
                     }
                 } else {
@@ -3751,13 +3727,12 @@ exports.macros = function (cg) {
             },
             parameterTransforms: function() {
                 var self = this;
-                var optionals, async, splat;
+                var optionals, splat;
                 if (self._parameterTransforms) {
                     return self._parameterTransforms;
                 }
                 optionals = optionalParameters(self.optionalParameters, selfParameter(terms, self.redefinesSelf, blockParameters(self)));
-                async = asyncParameters(self, optionals);
-                splat = splatParameters(terms, async);
+                splat = splatParameters(terms, optionals);
                 if (optionals.hasOptionals && splat.hasSplat) {
                     terms.errors.addTermsWithMessage(self.optionalParameters, "cannot have splat parameters with optional parameters");
                 }
@@ -3777,7 +3752,7 @@ exports.macros = function (cg) {
                 gen3_items = parameters;
                 for (gen4_i = 0; gen4_i < gen3_items.length; ++gen4_i) {
                     parameter = gen3_items[gen4_i];
-                    scope.define(parameter.canonicalName(scope));
+                    parameter.declare(scope);
                 }
                 return void 0;
             },
@@ -3804,11 +3779,9 @@ exports.macros = function (cg) {
                     return buffer.write("}");
                 });
             },
-            generateJavaScriptFunction: function(buffer, scope) {
+            generateFunction: function(scope) {
                 var self = this;
-                buffer.write("(");
-                self.generateJavaScript(buffer, scope);
-                return buffer.write(")");
+                return self.code("(", self.generate(scope), ")");
             },
             generateSelfAssignment: function() {
                 var self = this;
@@ -3820,9 +3793,9 @@ exports.macros = function (cg) {
             },
             rewriteResultTermToReturn: function() {
                 var self = this;
-                if (self.returnLastStatement && !self.body.isAsync) {
+                if (self.returnLastStatement) {
                     return self.body.rewriteLastStatementToReturn({
-                        async: self.isAsync
+                        async: self.callsFulfillOnReturn
                     });
                 }
             },
@@ -3835,23 +3808,14 @@ exports.macros = function (cg) {
             },
             parametersStrategy: function() {
                 var self = this;
-                var innerStrategy, strategy;
-                innerStrategy = function() {
+                var strategy;
+                strategy = function() {
                     if (containsSplatParameter(self)) {
                         return createSplatParameterStrategyFor(self);
                     } else if (self.optionalParameters.length > 0) {
                         return createOptionalParameterStrategyFor(self);
                     } else {
                         return terms.closureParameterStrategies.normalStrategy(self.parameters);
-                    }
-                }();
-                strategy = function() {
-                    if (self.isAsync) {
-                        return terms.closureParameterStrategies.callbackStrategy(innerStrategy, {
-                            continuationOrDefault: self.continuationOrDefault
-                        });
-                    } else {
-                        return innerStrategy;
                     }
                 }();
                 return terms.closureParameterStrategies.functionStrategy(strategy);
@@ -3975,7 +3939,7 @@ exports.macros = function (cg) {
         return takenList;
     };
 }).call(this);
-},{"./codegenUtils":36,"underscore":102}],35:[function(require,module,exports){
+},{"./codegenUtils":38,"underscore":108}],37:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils;
@@ -4133,56 +4097,11 @@ exports.macros = function (cg) {
                         return void 0;
                     }
                 };
-            },
-            callbackStrategy: function(strategy, gen8_options) {
-                var self = this;
-                var continuationOrDefault;
-                continuationOrDefault = gen8_options !== void 0 && Object.prototype.hasOwnProperty.call(gen8_options, "continuationOrDefault") && gen8_options.continuationOrDefault !== void 0 ? gen8_options.continuationOrDefault : void 0;
-                return {
-                    strategy: strategy,
-                    functionParameters: function() {
-                        var self = this;
-                        return self.strategy.functionParameters().concat(terms.callbackFunction);
-                    },
-                    definedParameters: function() {
-                        var self = this;
-                        return strategy.definedParameters().concat([ terms.callbackFunction ]);
-                    },
-                    generateJavaScriptParameterStatements: function(buffer, scope, args) {
-                        var self = this;
-                        var gen, innerArgs, a, functionParameters, n, namedParam;
-                        gen = function() {
-                            var terms = Array.prototype.slice.call(arguments, 0, arguments.length);
-                            var gen9_items, gen10_i, term;
-                            gen9_items = terms;
-                            for (gen10_i = 0; gen10_i < gen9_items.length; ++gen10_i) {
-                                term = gen9_items[gen10_i];
-                                if (typeof term === "string") {
-                                    buffer.write(term);
-                                } else {
-                                    buffer.write(term.generate(scope));
-                                }
-                            }
-                            return void 0;
-                        };
-                        innerArgs = terms.generatedVariable([ "arguments" ]);
-                        a = terms.generatedVariable([ "a" ]);
-                        gen("var ", a, "=", continuationOrDefault, "(", args, ");");
-                        gen(terms.callbackFunction, "=", a, ".continuation;");
-                        gen("var ", innerArgs, "=", a, ".arguments;");
-                        functionParameters = self.strategy.functionParameters();
-                        for (n = 0; n < functionParameters.length; ++n) {
-                            namedParam = self.strategy.functionParameters()[n];
-                            gen(namedParam, "=", innerArgs, "[" + n + "];");
-                        }
-                        return self.strategy.generateJavaScriptParameterStatements(buffer, scope, innerArgs);
-                    }
-                };
             }
         };
     };
 }).call(this);
-},{"./codegenUtils":36,"underscore":102}],36:[function(require,module,exports){
+},{"./codegenUtils":38,"underscore":108}],38:[function(require,module,exports){
 (function() {
     var self = this;
     var _, grammar, actualCharacters, nameSegmentRenderedInJavaScript, operatorRenderedInJavaScript, capitalise, reservedWords, escapeReservedWord;
@@ -4306,6 +4225,14 @@ exports.macros = function (cg) {
                 scope.define(variable);
                 return self.variables.push(variable);
             },
+            defineWithTag: function(name, tag) {
+                var self = this;
+                return scope.defineWithTag(name, tag);
+            },
+            generateVariable: function(name) {
+                var self = this;
+                return scope.generateVariable(name);
+            },
             isDefined: function(variable) {
                 var self = this;
                 return scope.isDefined(variable);
@@ -4314,14 +4241,14 @@ exports.macros = function (cg) {
                 var self = this;
                 return scope.isDefinedInThisScope(variable);
             },
-            uniqueVariables: function() {
+            names: function() {
                 var self = this;
                 return _.uniq(self.variables);
             }
         };
     };
 }).call(this);
-},{"../parser/grammar":14,"underscore":102}],37:[function(require,module,exports){
+},{"../parser/grammar":14,"underscore":108}],39:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4332,7 +4259,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],38:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4353,7 +4280,20 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],39:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
+(function() {
+    var self = this;
+    var asyncControl;
+    asyncControl = require("../asyncControl");
+    module.exports = function(terms) {
+        var self = this;
+        return function() {
+            terms.promise();
+            return terms.moduleConstants.defineAs([ "promise" ], terms.javascript(asyncControl.promise.toString()));
+        };
+    };
+}).call(this);
+},{"../asyncControl":1}],42:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4385,18 +4325,18 @@ exports.macros = function (cg) {
                 var self = this;
                 return self.code(self.target.generateTarget(scope), "=", self.source.generate(scope));
             },
-            defineVariables: function(variables) {
+            defineVariables: function(scope) {
                 var self = this;
                 var name;
-                name = self.target.canonicalName(variables.scope);
+                name = self.target.canonicalName(scope);
                 if (name) {
                     if (!self.isAssignment) {
-                        if (variables.isDefinedInThisScope(name) && !self.shadow) {
+                        if (scope.isDefinedInThisScope(name) && !self.shadow) {
                             return terms.errors.addTermWithMessage(self, "variable " + self.target.displayName() + " is already defined, use := to reassign it");
                         } else if (!self.global) {
-                            return variables.define(name);
+                            return self.target.declare(scope);
                         }
-                    } else if (!variables.isDefined(name)) {
+                    } else if (!scope.isDefined(name)) {
                         return terms.errors.addTermWithMessage(self, "variable " + self.target.displayName() + " is not defined, use = to define it");
                     }
                 }
@@ -4412,7 +4352,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],40:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -4440,7 +4380,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{"./codegenUtils":36}],41:[function(require,module,exports){
+},{"./codegenUtils":38}],44:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(cg) {
@@ -4458,7 +4398,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],42:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4481,7 +4421,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],43:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 (function() {
     var self = this;
     var asyncControl;
@@ -4566,7 +4506,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1}],44:[function(require,module,exports){
+},{"../asyncControl":1}],47:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4599,7 +4539,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],45:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils, argumentUtils, _, asyncControl;
@@ -4638,7 +4578,7 @@ exports.macros = function (cg) {
                 var self = this;
                 return self.generateIntoBuffer(function(buffer) {
                     var args, splattedArguments;
-                    buffer.write(self.function.generate(scope));
+                    buffer.write(self.function.generateFunction(scope));
                     args = codegenUtils.concatArgs(self.functionArguments, {
                         optionalArgs: self.optionalArguments,
                         asyncCallbackArg: self.asyncCallbackArgument,
@@ -4667,15 +4607,10 @@ exports.macros = function (cg) {
                         return buffer.write(")");
                     }
                 });
-            },
-            makeAsyncCallWithCallback: function(callback) {
-                var self = this;
-                self.asyncCallbackArgument = callback;
-                return self;
             }
         });
         return functionCall = function(fun, args, gen2_options) {
-            var optionalArguments, async, passThisToApply, originallyAsync, asyncCallbackArgument, couldBeMacro, future;
+            var optionalArguments, async, passThisToApply, originallyAsync, asyncCallbackArgument, couldBeMacro, future, promisify;
             optionalArguments = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "optionalArguments") && gen2_options.optionalArguments !== void 0 ? gen2_options.optionalArguments : [];
             async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
             passThisToApply = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "passThisToApply") && gen2_options.passThisToApply !== void 0 ? gen2_options.passThisToApply : false;
@@ -4683,10 +4618,10 @@ exports.macros = function (cg) {
             asyncCallbackArgument = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "asyncCallbackArgument") && gen2_options.asyncCallbackArgument !== void 0 ? gen2_options.asyncCallbackArgument : void 0;
             couldBeMacro = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "couldBeMacro") && gen2_options.couldBeMacro !== void 0 ? gen2_options.couldBeMacro : true;
             future = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "future") && gen2_options.future !== void 0 ? gen2_options.future : false;
+            promisify = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "promisify") && gen2_options.promisify !== void 0 ? gen2_options.promisify : false;
             var asyncResult, futureFunction, callback, name, macro, funCall;
             if (async) {
                 asyncResult = terms.asyncResult();
-                terms.argumentUtils.asyncifyArguments(args, optionalArguments);
                 return terms.subStatements([ terms.definition(asyncResult, functionCallTerm(fun, args, {
                     optionalArguments: optionalArguments,
                     passThisToApply: passThisToApply,
@@ -4705,6 +4640,28 @@ exports.macros = function (cg) {
                     asyncCallbackArgument: callback,
                     couldBeMacro: couldBeMacro
                 }) ])) ]);
+            } else if (!promisify && function() {
+                var gen3_results, gen4_items, gen5_i, a;
+                gen3_results = [];
+                gen4_items = args;
+                for (gen5_i = 0; gen5_i < gen4_items.length; ++gen5_i) {
+                    a = gen4_items[gen5_i];
+                    if (a.isCallback) {
+                        gen3_results.push(a);
+                    }
+                }
+                return gen3_results;
+            }().length > 0) {
+                return terms.promisify(terms.functionCall(fun, args, {
+                    optionalArguments: [],
+                    async: false,
+                    passThisToApply: false,
+                    originallyAsync: false,
+                    asyncCallbackArgument: void 0,
+                    couldBeMacro: true,
+                    future: false,
+                    promisify: true
+                }));
             } else if (fun.variable && couldBeMacro) {
                 name = fun.variable;
                 macro = terms.macros.findMacro(name);
@@ -4724,7 +4681,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1,"./argumentUtils":27,"./codegenUtils":36,"underscore":102}],46:[function(require,module,exports){
+},{"../asyncControl":1,"./argumentUtils":28,"./codegenUtils":38,"underscore":108}],49:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4741,7 +4698,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],47:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -4749,13 +4706,24 @@ exports.macros = function (cg) {
     module.exports = function(terms) {
         var self = this;
         return terms.term({
-            constructor: function(name) {
+            constructor: function(name, gen1_options) {
                 var self = this;
+                var tag;
+                tag = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "tag") && gen1_options.tag !== void 0 ? gen1_options.tag : void 0;
                 self.name = name;
                 self.isVariable = true;
-                return self.genVar = void 0;
+                self.genVar = void 0;
+                return self.tag = tag;
             },
             dontClone: true,
+            declare: function(scope) {
+                var self = this;
+                if (self.tag) {
+                    return scope.defineWithTag(self.canonicalName(scope), self.tag);
+                } else {
+                    return scope.define(self.canonicalName(scope));
+                }
+            },
             generatedName: function(scope) {
                 var self = this;
                 if (!self.genVar) {
@@ -4773,19 +4741,29 @@ exports.macros = function (cg) {
             },
             generate: function(scope) {
                 var self = this;
-                return self.code(self.generatedName(scope));
+                var variable;
+                if (self.tag) {
+                    variable = scope.findTag(self.tag);
+                    if (variable) {
+                        return self.code(variable);
+                    } else {
+                        return self.code(self.canonicalName(scope));
+                    }
+                } else {
+                    return self.code(self.canonicalName(scope));
+                }
             },
             generateTarget: function() {
                 var self = this;
                 var args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var gen1_o;
-                gen1_o = self;
-                return gen1_o.generate.apply(gen1_o, args);
+                var gen2_o;
+                gen2_o = self;
+                return gen2_o.generate.apply(gen2_o, args);
             }
         });
     };
 }).call(this);
-},{"./codegenUtils":36}],48:[function(require,module,exports){
+},{"./codegenUtils":38}],51:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4803,7 +4781,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],49:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -4829,7 +4807,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{"./codegenUtils":36}],50:[function(require,module,exports){
+},{"./codegenUtils":38}],53:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils, isLegalJavaScriptIdentifier;
@@ -4878,7 +4856,7 @@ exports.macros = function (cg) {
         return /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(id);
     };
 }).call(this);
-},{"./codegenUtils":36}],51:[function(require,module,exports){
+},{"./codegenUtils":38}],54:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(cg) {
@@ -4896,7 +4874,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],52:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils, _, asyncControl;
@@ -4950,49 +4928,29 @@ exports.macros = function (cg) {
                 if (self.elseBody) {
                     self.elseBody.rewriteResultTermInto(returnTerm);
                 } else if (async) {
-                    self.elseBody = terms.statements([ terms.functionCall(terms.callbackFunction, []) ]);
+                    self.elseBody = terms.statements([ terms.functionCall(terms.continuationFunction, []) ]);
                 }
                 return self;
             }
         });
-        return ifExpression = function(cases, elseBody) {
-            var anyAsyncCases, caseForConditionAndBody, casesList, asyncIfElseIfElseFunction, asyncIfElseFunction, asyncIfFunction;
+        return ifExpression = function(cases, elseBody, gen4_options) {
+            var isPromise;
+            isPromise = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "isPromise") && gen4_options.isPromise !== void 0 ? gen4_options.isPromise : false;
+            var anyAsyncCases;
             anyAsyncCases = _.any(cases, function(_case) {
-                return _case.body.isAsync;
+                return _case.body.returnsPromise;
             });
-            if (anyAsyncCases || elseBody && elseBody.isAsync) {
-                if (cases.length > 1) {
-                    caseForConditionAndBody = function(condition, body) {
-                        return terms.hash([ terms.hashEntry([ "condition" ], condition), terms.hashEntry([ "body" ], terms.argumentUtils.asyncifyBody(body)) ]);
-                    };
-                    casesList = _.map(cases, function(_case) {
-                        return caseForConditionAndBody(_case.condition, _case.body);
-                    });
-                    if (elseBody) {
-                        casesList.push(caseForConditionAndBody(terms.boolean(true), elseBody));
-                    }
-                    asyncIfElseIfElseFunction = terms.moduleConstants.defineAs([ "async", "if", "else", "if", "else" ], terms.javascript(asyncControl.ifElseIfElse.toString()));
-                    return terms.functionCall(asyncIfElseIfElseFunction, [ terms.list(casesList) ], {
-                        async: true
-                    });
-                } else if (elseBody) {
-                    asyncIfElseFunction = terms.moduleConstants.defineAs([ "async", "if", "else" ], terms.javascript(asyncControl.ifElse.toString()));
-                    return terms.functionCall(asyncIfElseFunction, [ cases[0].condition, terms.argumentUtils.asyncifyBody(cases[0].body), terms.argumentUtils.asyncifyBody(elseBody) ], {
-                        async: true
-                    });
-                } else {
-                    asyncIfFunction = terms.moduleConstants.defineAs([ "async", "if" ], terms.javascript(asyncControl.if.toString()));
-                    return terms.functionCall(asyncIfFunction, [ cases[0].condition, terms.argumentUtils.asyncifyBody(cases[0].body) ], {
-                        async: true
-                    });
-                }
+            if (!isPromise && (anyAsyncCases || elseBody && elseBody.returnsPromise)) {
+                return terms.resolve(ifExpression(cases, elseBody, {
+                    isPromise: true
+                }));
             } else {
                 return ifExpressionTerm(cases, elseBody);
             }
         };
     };
 }).call(this);
-},{"../asyncControl":1,"./codegenUtils":36,"underscore":102}],53:[function(require,module,exports){
+},{"../asyncControl":1,"./codegenUtils":38,"underscore":108}],56:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5010,7 +4968,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],54:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5036,7 +4994,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],55:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(cg) {
@@ -5054,7 +5012,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],56:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -5088,7 +5046,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./codegenUtils":36}],57:[function(require,module,exports){
+},{"./codegenUtils":38}],60:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5106,7 +5064,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],58:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils, _;
@@ -5127,7 +5085,7 @@ exports.macros = function (cg) {
                     var splatArguments;
                     splatArguments = terms.splatArguments(self.items);
                     if (splatArguments) {
-                        return splatArguments.generateJavaScript(buffer, scope);
+                        return buffer.write(splatArguments.generate(scope));
                     } else {
                         buffer.write("[");
                         codegenUtils.writeToBufferWithDelimiter(self.items, ",", buffer, scope);
@@ -5173,7 +5131,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./codegenUtils":36,"underscore":102}],59:[function(require,module,exports){
+},{"./codegenUtils":38,"underscore":108}],62:[function(require,module,exports){
 (function() {
     var self = this;
     var _, asyncControl;
@@ -5229,9 +5187,7 @@ exports.macros = function (cg) {
                         innerResult = terms.generatedVariable([ "result" ]);
                         innerIndex = terms.generatedVariable([ "index" ]);
                         asyncStatements = terms.asyncStatements(self.next.generate(isAsync, innerResult, innerIndex));
-                        call = terms.functionCall(listComprehension, [ self.collection, terms.boolean(self.next.hasGenerator()), terms.closure([ innerIndex, self.iterator, innerResult ], asyncStatements) ], {
-                            async: true
-                        });
+                        call = terms.resolve(terms.functionCall(listComprehension, [ self.collection, terms.boolean(self.next.hasGenerator()), terms.closure([ innerIndex, self.iterator, innerResult ], asyncStatements) ]));
                         if (result) {
                             return [ terms.functionCall(result, [ call, index ]) ];
                         } else {
@@ -5259,7 +5215,7 @@ exports.macros = function (cg) {
                         resultsVariable = terms.generatedVariable([ "results" ]);
                         statements = [ terms.definition(resultsVariable, terms.list([])) ];
                         gen4_o = statements;
-                        gen4_o.push.apply(gen4_o, self.next.generate(isAsync, resultsVariable));
+                        statements.push.apply(statements, self.next.generate(isAsync, resultsVariable));
                         statements.push(resultsVariable);
                         return terms.scope(statements);
                     }
@@ -5295,7 +5251,7 @@ exports.macros = function (cg) {
                     var statements, gen5_o;
                     statements = [ expression ];
                     gen5_o = statements;
-                    gen5_o.push.apply(gen5_o, self.next.generate(isAsync, result, index));
+                    statements.push.apply(statements, self.next.generate(isAsync, result, index));
                     return statements;
                 }
             };
@@ -5329,7 +5285,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1,"underscore":102}],60:[function(require,module,exports){
+},{"../asyncControl":1,"underscore":108}],63:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils, argumentUtils, asyncControl;
@@ -5384,22 +5340,18 @@ exports.macros = function (cg) {
                         return buffer.write(")");
                     }
                 });
-            },
-            makeAsyncCallWithCallback: function(callback) {
-                var self = this;
-                self.asyncCallbackArgument = callback;
-                return self;
             }
         });
         return methodCall = function(object, name, args, gen2_options) {
-            var optionalArguments, async, future, originallyAsync, asyncCallbackArgument, containsSplatArguments;
+            var optionalArguments, async, future, originallyAsync, asyncCallbackArgument, containsSplatArguments, promisify;
             optionalArguments = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "optionalArguments") && gen2_options.optionalArguments !== void 0 ? gen2_options.optionalArguments : [];
             async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
             future = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "future") && gen2_options.future !== void 0 ? gen2_options.future : false;
             originallyAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "originallyAsync") && gen2_options.originallyAsync !== void 0 ? gen2_options.originallyAsync : false;
             asyncCallbackArgument = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "asyncCallbackArgument") && gen2_options.asyncCallbackArgument !== void 0 ? gen2_options.asyncCallbackArgument : void 0;
             containsSplatArguments = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "containsSplatArguments") && gen2_options.containsSplatArguments !== void 0 ? gen2_options.containsSplatArguments : false;
-            var splattedArgs, objectVar, asyncResult, futureFunction;
+            promisify = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "promisify") && gen2_options.promisify !== void 0 ? gen2_options.promisify : false;
+            var splattedArgs, objectVar, asyncResult;
             splattedArgs = terms.splatArguments(args, optionalArguments);
             if (splattedArgs && !containsSplatArguments) {
                 objectVar = terms.generatedVariable([ "o" ]);
@@ -5410,7 +5362,6 @@ exports.macros = function (cg) {
                     containsSplatArguments: true
                 }) ]);
             } else if (async) {
-                terms.argumentUtils.asyncifyArguments(args, optionalArguments);
                 asyncResult = terms.asyncResult();
                 return terms.subStatements([ terms.definition(asyncResult, methodCallTerm(object, name, args, {
                     optionalArguments: optionalArguments,
@@ -5419,13 +5370,29 @@ exports.macros = function (cg) {
                 }), {
                     async: true
                 }), asyncResult ]);
-            } else if (future) {
-                futureFunction = terms.moduleConstants.defineAs([ "future" ], terms.javascript(asyncControl.future.toString()));
-                return terms.functionCall(futureFunction, [ terms.closure([ terms.callbackFunction ], terms.statements([ methodCallTerm(object, name, args, {
-                    optionalArguments: optionalArguments,
-                    originallyAsync: true,
-                    asyncCallbackArgument: terms.callbackFunction
-                }) ])) ]);
+            } else if (!promisify && function() {
+                var gen3_results, gen4_items, gen5_i, a;
+                gen3_results = [];
+                gen4_items = args;
+                for (gen5_i = 0; gen5_i < gen4_items.length; ++gen5_i) {
+                    a = gen4_items[gen5_i];
+                    (function(a) {
+                        if (a.isCallback) {
+                            return gen3_results.push(a);
+                        }
+                    })(a);
+                }
+                return gen3_results;
+            }().length > 0) {
+                return terms.promisify(methodCall(object, name, args, {
+                    optionalArguments: [],
+                    async: false,
+                    future: false,
+                    originallyAsync: false,
+                    asyncCallbackArgument: void 0,
+                    containsSplatArguments: false,
+                    promisify: true
+                }));
             } else {
                 return methodCallTerm(object, name, args, {
                     optionalArguments: optionalArguments,
@@ -5437,7 +5404,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1,"./argumentUtils":27,"./codegenUtils":36}],61:[function(require,module,exports){
+},{"../asyncControl":1,"./argumentUtils":28,"./codegenUtils":38}],64:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5453,10 +5420,7 @@ exports.macros = function (cg) {
                 self.statements = statements;
                 self.isModule = true;
                 self.global = global;
-                self.bodyStatements = bodyStatements || statements;
-                if (global) {
-                    return self.bodyStatements.makeDefinitionsGlobal();
-                }
+                return self.bodyStatements = bodyStatements || statements;
             },
             generateModule: function() {
                 var self = this;
@@ -5474,7 +5438,7 @@ exports.macros = function (cg) {
             global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
             returnLastStatement = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "returnLastStatement") && gen2_options.returnLastStatement !== void 0 ? gen2_options.returnLastStatement : false;
             bodyStatements = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "bodyStatements") && gen2_options.bodyStatements !== void 0 ? gen2_options.bodyStatements : bodyStatements;
-            var scope, args, errorVariable, throwIfError, methodCall;
+            var scope, args, methodCall, call;
             if (returnLastStatement) {
                 statements.rewriteLastStatementToReturn({
                     async: false
@@ -5487,16 +5451,15 @@ exports.macros = function (cg) {
                     definesModuleConstants: true
                 });
                 args = [ terms.variable([ "this" ]) ];
-                if (statements.isAsync) {
-                    errorVariable = terms.generatedVariable([ "error" ]);
-                    throwIfError = terms.ifExpression([ {
-                        condition: errorVariable,
-                        body: terms.statements([ terms.functionCall(terms.variable([ "set", "timeout" ]), [ terms.closure([], terms.statements([ terms.throwStatement(errorVariable) ])), terms.integer(0) ]) ])
-                    } ]);
-                    args.push(terms.closure([ errorVariable ], terms.statements([ throwIfError ])));
-                }
                 methodCall = terms.methodCall(terms.subExpression(scope), [ "call" ], args);
-                return moduleTerm(terms.statements([ methodCall ]), {
+                call = function() {
+                    if (statements.isAsync) {
+                        return methodCall;
+                    } else {
+                        return methodCall;
+                    }
+                }();
+                return moduleTerm(terms.statements([ call ]), {
                     bodyStatements: statements,
                     global: global
                 });
@@ -5510,7 +5473,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],62:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5556,7 +5519,37 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],63:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(gen1_options) {
+                var self = this;
+                var closure, statements, term, callsFulfillOnReturn;
+                closure = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "closure") && gen1_options.closure !== void 0 ? gen1_options.closure : void 0;
+                statements = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "statements") && gen1_options.statements !== void 0 ? gen1_options.statements : void 0;
+                term = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "term") && gen1_options.term !== void 0 ? gen1_options.term : void 0;
+                callsFulfillOnReturn = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "callsFulfillOnReturn") && gen1_options.callsFulfillOnReturn !== void 0 ? gen1_options.callsFulfillOnReturn : true;
+                self.isNewPromise = true;
+                return self._newPromise = terms.newOperator(terms.functionCall(terms.promise(), [ closure || terms.closure([ terms.onFulfilledFunction ], statements || terms.statements([ term ]), {
+                    inPromise: true,
+                    callsFulfillOnReturn: callsFulfillOnReturn
+                }) ]));
+            },
+            generate: function(scope) {
+                var self = this;
+                return self._newPromise.generate(scope);
+            },
+            promisify: function() {
+                var self = this;
+                return self;
+            }
+        });
+    };
+}).call(this);
+},{}],67:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5568,12 +5561,12 @@ exports.macros = function (cg) {
             },
             generate: function(scope) {
                 var self = this;
-                return self.code(terms.javascript("void 0").generate(scope));
+                return self.code("void 0");
             }
         });
     };
 }).call(this);
-},{}],64:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5586,7 +5579,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],65:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5633,7 +5626,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],66:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5651,7 +5644,44 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],67:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
+(function() {
+    var self = this;
+    module.exports = function(terms) {
+        var self = this;
+        return function() {
+            return terms.moduleConstants.defineAs([ "Promise" ], terms.javascript('require("bluebird")'), {
+                generated: false
+            });
+        };
+    };
+}).call(this);
+},{}],72:[function(require,module,exports){
+(function() {
+    var self = this;
+    var asyncControl;
+    asyncControl = require("../asyncControl");
+    module.exports = function(terms) {
+        var self = this;
+        return terms.term({
+            constructor: function(term) {
+                var self = this;
+                self.isPromisify = true;
+                self.promisifyFunction = terms.moduleConstants.defineAs([ "promisify" ], terms.javascript(asyncControl.promisify.toString()));
+                return self.term = term;
+            },
+            generate: function(scope) {
+                var self = this;
+                return terms.functionCall(self.promisifyFunction, [ terms.closure([ terms.callbackFunction ], terms.statements([ self.term ])) ]).generate(scope);
+            },
+            promisify: function() {
+                var self = this;
+                return self;
+            }
+        });
+    };
+}).call(this);
+},{"../asyncControl":1}],73:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5664,18 +5694,18 @@ exports.macros = function (cg) {
                 self.inList = false;
                 return self.range = terms.moduleConstants.defineAs([ "range" ], terms.javascript("function (a, b) {\n   var items = [];\n   for (var n = a; n <= b; n++) {\n       items.push(n);\n   }\n   return items;\n                }"));
             },
-            generateJavaScript: function(buffer, scope) {
+            generate: function(scope) {
                 var self = this;
                 if (self.inList) {
-                    return terms.functionCall(self.range, self.items).generateJavaScript(buffer, scope);
+                    return terms.functionCall(self.range, self.items).generate(scope);
                 } else {
-                    return terms.errors.addTermWithMessage(self, "range operator can only be used in a list, as in [1..3]");
+                    return terms.errors.addTermWithMessage(self, "range operator can only be used in a list, as in [1..3]").generate(scope);
                 }
             }
         });
     };
 }).call(this);
-},{}],68:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5696,7 +5726,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],69:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5730,12 +5760,12 @@ exports.macros = function (cg) {
                 if (async) {
                     arguments = function() {
                         if (self.expression) {
-                            return [ terms.nil(), self.expression ];
+                            return [ self.expression ];
                         } else {
                             return [];
                         }
                     }();
-                    return terms.functionCall(terms.callbackFunction, arguments);
+                    return terms.functionCall(terms.onRejectedFunction, arguments);
                 } else {
                     return self;
                 }
@@ -5743,7 +5773,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],70:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5770,7 +5800,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],71:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5783,7 +5813,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],72:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5811,7 +5841,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],73:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5828,7 +5858,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],74:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 (function() {
     var self = this;
     var _;
@@ -5902,9 +5932,9 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"underscore":102}],75:[function(require,module,exports){
-module.exports=require(64)
-},{}],76:[function(require,module,exports){
+},{"underscore":108}],81:[function(require,module,exports){
+module.exports=require(68)
+},{}],82:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils, statementsUtils;
@@ -5916,35 +5946,26 @@ module.exports=require(64)
         return terms.term({
             constructor: function(statements, gen1_options) {
                 var self = this;
-                var async, globalDefinitions;
+                var async, definitions, returnsPromise;
                 async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
-                globalDefinitions = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "globalDefinitions") && gen1_options.globalDefinitions !== void 0 ? gen1_options.globalDefinitions : globalDefinitions;
+                definitions = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "definitions") && gen1_options.definitions !== void 0 ? gen1_options.definitions : definitions;
+                returnsPromise = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "returnsPromise") && gen1_options.returnsPromise !== void 0 ? gen1_options.returnsPromise : false;
                 self.isStatements = true;
                 self.statements = statements;
                 self.isAsync = async;
-                return self.makeDefinitionsGlobal = function() {
-                    var self = this;
-                    var gen2_items, gen3_i, definition;
-                    if (globalDefinitions) {
-                        gen2_items = globalDefinitions;
-                        for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
-                            definition = gen2_items[gen3_i];
-                            definition.global = true;
-                        }
-                        return void 0;
-                    }
-                };
+                self.returnsPromise = returnsPromise;
+                return self._definitions = definitions;
             },
-            generateStatements: function(scope, gen4_options) {
+            generateStatements: function(scope, gen2_options) {
                 var self = this;
                 var inClosure, global;
-                inClosure = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "inClosure") && gen4_options.inClosure !== void 0 ? gen4_options.inClosure : false;
-                global = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "global") && gen4_options.global !== void 0 ? gen4_options.global : false;
+                inClosure = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "inClosure") && gen2_options.inClosure !== void 0 ? gen2_options.inClosure : false;
+                global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
                 return self.generateIntoBuffer(function(buffer) {
                     var definedVariables, s, statement;
                     if (inClosure) {
                         definedVariables = self.findDefinedVariables(scope);
-                        self.generateVariableDeclarations(definedVariables, buffer, scope, {
+                        self.generateVariableDeclarations(definedVariables, buffer, {
                             global: global
                         });
                     }
@@ -5955,10 +5976,44 @@ module.exports=require(64)
                     return void 0;
                 });
             },
-            rewriteResultTermInto: function(returnTerm, gen5_options) {
+            promisify: function(gen3_options) {
+                var self = this;
+                var definitions, statements;
+                definitions = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "definitions") && gen3_options.definitions !== void 0 ? gen3_options.definitions : void 0;
+                statements = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "statements") && gen3_options.statements !== void 0 ? gen3_options.statements : false;
+                var newPromise;
+                if (!self.returnsPromise) {
+                    newPromise = terms.newPromise({
+                        statements: self
+                    });
+                    if (statements) {
+                        return terms.statements([ terms.newPromise({
+                            statements: self
+                        }) ], {
+                            returnsPromise: true,
+                            definitions: definitions
+                        });
+                    } else {
+                        if (self.statements.length === 1) {
+                            return self.statements[0].promisify();
+                        } else {
+                            return terms.newPromise({
+                                statements: self
+                            });
+                        }
+                    }
+                } else {
+                    if (statements) {
+                        return self;
+                    } else {
+                        return self.statements[0];
+                    }
+                }
+            },
+            rewriteResultTermInto: function(returnTerm, gen4_options) {
                 var self = this;
                 var async;
-                async = gen5_options !== void 0 && Object.prototype.hasOwnProperty.call(gen5_options, "async") && gen5_options.async !== void 0 ? gen5_options.async : false;
+                async = gen4_options !== void 0 && Object.prototype.hasOwnProperty.call(gen4_options, "async") && gen4_options.async !== void 0 ? gen4_options.async : false;
                 var lastStatement, rewrittenLastStatement;
                 if (self.statements.length > 0) {
                     lastStatement = self.statements[self.statements.length - 1];
@@ -5973,44 +6028,30 @@ module.exports=require(64)
                         return self.statements.push(returnTerm(terms.nil()));
                     }
                 } else if (async) {
-                    return self.statements.push(terms.functionCall(terms.callbackFunction, []));
+                    return self.statements.push(terms.functionCall(terms.onFulfilledFunction, []));
                 }
             },
-            rewriteLastStatementToReturn: function(gen6_options) {
+            rewriteLastStatementToReturn: function(gen5_options) {
                 var self = this;
-                var async, returnCallToContinuation;
-                async = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "async") && gen6_options.async !== void 0 ? gen6_options.async : false;
-                returnCallToContinuation = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "returnCallToContinuation") && gen6_options.returnCallToContinuation !== void 0 ? gen6_options.returnCallToContinuation : true;
+                var async;
+                async = gen5_options !== void 0 && Object.prototype.hasOwnProperty.call(gen5_options, "async") && gen5_options.async !== void 0 ? gen5_options.async : false;
                 var containsContinuation;
                 containsContinuation = self.containsContinuation();
                 return self.rewriteResultTermInto(function(term) {
-                    var callToContinuation;
-                    if (async && !containsContinuation) {
-                        callToContinuation = terms.functionCall(terms.callbackFunction, [ terms.nil(), term ]);
-                        if (returnCallToContinuation) {
-                            return terms.returnStatement(callToContinuation, {
-                                implicit: true
-                            });
-                        } else {
-                            return callToContinuation;
-                        }
+                    if (async) {
+                        return terms.functionCall(terms.onFulfilledFunction, [ term ]);
                     } else {
                         return terms.returnStatement(term, {
                             implicit: true
                         });
                     }
-                }, {
-                    async: async
                 });
             },
-            generateVariableDeclarations: function(variables, buffer, scope, gen7_options) {
+            generateVariableDeclarations: function(variables, buffer, gen6_options) {
                 var self = this;
                 var global;
-                global = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "global") && gen7_options.global !== void 0 ? gen7_options.global : false;
+                global = gen6_options !== void 0 && Object.prototype.hasOwnProperty.call(gen6_options, "global") && gen6_options.global !== void 0 ? gen6_options.global : false;
                 if (variables.length > 0) {
-                    _(variables).each(function(name) {
-                        return scope.define(name);
-                    });
                     if (!global) {
                         buffer.write("var ");
                         codegenUtils.writeToBufferWithDelimiter(variables, ",", buffer, function(variable) {
@@ -6022,14 +6063,15 @@ module.exports=require(64)
             },
             findDefinedVariables: function(scope) {
                 var self = this;
-                var variables;
+                var definitions, variables, gen7_items, gen8_i, def;
+                definitions = self._definitions || self.definitions();
                 variables = codegenUtils.definedVariables(scope);
-                self.walkDescendantsNotBelowIf(function(subterm, path) {
-                    return subterm.defineVariables(variables, scope);
-                }, function(subterm, path) {
-                    return subterm.isClosure;
-                });
-                return variables.uniqueVariables();
+                gen7_items = definitions;
+                for (gen8_i = 0; gen8_i < gen7_items.length; ++gen8_i) {
+                    def = gen7_items[gen8_i];
+                    def.defineVariables(variables);
+                }
+                return variables.names();
             },
             blockify: function(parameters, options) {
                 var self = this;
@@ -6076,10 +6118,10 @@ module.exports=require(64)
                 self.statements = statementsUtils.serialiseStatements(self.statements);
                 return void 0;
             },
-            asyncify: function(gen8_options) {
+            asyncify: function(gen9_options) {
                 var self = this;
                 var returnCallToContinuation;
-                returnCallToContinuation = gen8_options !== void 0 && Object.prototype.hasOwnProperty.call(gen8_options, "returnCallToContinuation") && gen8_options.returnCallToContinuation !== void 0 ? gen8_options.returnCallToContinuation : true;
+                returnCallToContinuation = gen9_options !== void 0 && Object.prototype.hasOwnProperty.call(gen9_options, "returnCallToContinuation") && gen9_options.returnCallToContinuation !== void 0 ? gen9_options.returnCallToContinuation : true;
                 if (!self.isAsync) {
                     self.rewriteLastStatementToReturn({
                         async: true,
@@ -6091,7 +6133,7 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{"./codegenUtils":36,"./statementsUtils":77,"underscore":102}],77:[function(require,module,exports){
+},{"./codegenUtils":38,"./statementsUtils":83,"underscore":108}],83:[function(require,module,exports){
 (function() {
     var self = this;
     exports.serialiseStatements = function(statements) {
@@ -6116,7 +6158,7 @@ module.exports=require(64)
         return serialisedStatements;
     };
 }).call(this);
-},{}],78:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -6136,7 +6178,7 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{"./codegenUtils":36}],79:[function(require,module,exports){
+},{"./codegenUtils":38}],85:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -6154,7 +6196,7 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{}],80:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils;
@@ -6196,7 +6238,7 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{"./codegenUtils":36,"underscore":102}],81:[function(require,module,exports){
+},{"./codegenUtils":38,"underscore":108}],87:[function(require,module,exports){
 (function() {
     var self = this;
     var $class, classExtending, _, ms, sourceMap, buffer;
@@ -6253,15 +6295,18 @@ module.exports=require(64)
                 } else {
                     children = self.children();
                     locations = function() {
-                        var gen1_results, gen2_items, gen3_i, c, loc;
+                        var gen1_results, gen2_items, gen3_i, c;
                         gen1_results = [];
                         gen2_items = children;
                         for (gen3_i = 0; gen3_i < gen2_items.length; ++gen3_i) {
                             c = gen2_items[gen3_i];
-                            loc = c.location();
-                            if (loc) {
-                                gen1_results.push(loc);
-                            }
+                            (function(c) {
+                                var loc;
+                                loc = c.location();
+                                if (loc) {
+                                    return gen1_results.push(loc);
+                                }
+                            })(c);
                         }
                         return gen1_results;
                     }();
@@ -6272,7 +6317,9 @@ module.exports=require(64)
                             gen5_items = locations;
                             for (gen6_i = 0; gen6_i < gen5_items.length; ++gen6_i) {
                                 l = gen5_items[gen6_i];
-                                gen4_results.push(l.firstLine);
+                                (function(l) {
+                                    return gen4_results.push(l.firstLine);
+                                })(l);
                             }
                             return gen4_results;
                         }());
@@ -6282,7 +6329,9 @@ module.exports=require(64)
                             gen8_items = locations;
                             for (gen9_i = 0; gen9_i < gen8_items.length; ++gen9_i) {
                                 l = gen8_items[gen9_i];
-                                gen7_results.push(l.lastLine);
+                                (function(l) {
+                                    return gen7_results.push(l.lastLine);
+                                })(l);
                             }
                             return gen7_results;
                         }());
@@ -6292,9 +6341,11 @@ module.exports=require(64)
                             gen11_items = locations;
                             for (gen12_i = 0; gen12_i < gen11_items.length; ++gen12_i) {
                                 l = gen11_items[gen12_i];
-                                if (l.firstLine === firstLine) {
-                                    gen10_results.push(l);
-                                }
+                                (function(l) {
+                                    if (l.firstLine === firstLine) {
+                                        return gen10_results.push(l);
+                                    }
+                                })(l);
                             }
                             return gen10_results;
                         }();
@@ -6304,9 +6355,11 @@ module.exports=require(64)
                             gen14_items = locations;
                             for (gen15_i = 0; gen15_i < gen14_items.length; ++gen15_i) {
                                 l = gen14_items[gen15_i];
-                                if (l.lastLine === lastLine) {
-                                    gen13_results.push(l);
-                                }
+                                (function(l) {
+                                    if (l.lastLine === lastLine) {
+                                        return gen13_results.push(l);
+                                    }
+                                })(l);
                             }
                             return gen13_results;
                         }();
@@ -6319,7 +6372,9 @@ module.exports=require(64)
                                 gen17_items = locationsOnFirstLine;
                                 for (gen18_i = 0; gen18_i < gen17_items.length; ++gen18_i) {
                                     l = gen17_items[gen18_i];
-                                    gen16_results.push(l.firstColumn);
+                                    (function(l) {
+                                        return gen16_results.push(l.firstColumn);
+                                    })(l);
                                 }
                                 return gen16_results;
                             }()),
@@ -6329,7 +6384,9 @@ module.exports=require(64)
                                 gen20_items = locationsOnLastLine;
                                 for (gen21_i = 0; gen21_i < gen20_items.length; ++gen21_i) {
                                     l = gen20_items[gen21_i];
-                                    gen19_results.push(l.lastColumn);
+                                    (function(l) {
+                                        return gen19_results.push(l.lastColumn);
+                                    })(l);
                                 }
                                 return gen19_results;
                             }()),
@@ -6413,7 +6470,9 @@ module.exports=require(64)
                             gen24_items = terms;
                             for (gen25_i = 0; gen25_i < gen24_items.length; ++gen25_i) {
                                 node = gen24_items[gen25_i];
-                                gen23_results.push(cloneSubterm(node, allowRewrite, path));
+                                (function(node) {
+                                    return gen23_results.push(cloneSubterm(node, allowRewrite, path));
+                                })(node);
                             }
                             return gen23_results;
                         }();
@@ -6473,7 +6532,7 @@ module.exports=require(64)
                     for (property in object) {
                         (function(property) {
                             var member;
-                            if (object.hasOwnProperty(property)) {
+                            if (object.hasOwnProperty(property) && property[0] !== "_") {
                                 member = object[property];
                                 addMember(member);
                             }
@@ -6671,6 +6730,22 @@ module.exports=require(64)
                 var self = this;
                 return void 0;
             },
+            definitions: function() {
+                var self = this;
+                var defs;
+                defs = [];
+                self.walkDescendantsNotBelowIf(function(term) {
+                    if (term.isDefinition) {
+                        return defs.push(term);
+                    }
+                }, function(term) {
+                    return term.isClosure;
+                });
+                if (self.isDefinition) {
+                    defs.push(self);
+                }
+                return defs;
+            },
             makeAsyncWithCallbackForResult: function(createCallbackForResult) {
                 var self = this;
                 return void 0;
@@ -6703,15 +6778,15 @@ module.exports=require(64)
             },
             rewriteResultTermInto: function(returnTerm) {
                 var self = this;
-                if (self.containsContinuation()) {
-                    return self;
-                } else {
-                    return returnTerm(self);
-                }
+                return returnTerm(self);
             },
             asyncify: function() {
                 var self = this;
                 return void 0;
+            },
+            promisify: function() {
+                var self = this;
+                return cg.methodCall(cg.promise(), [ "resolve" ], [ self ]);
             },
             code: function() {
                 var self = this;
@@ -6743,6 +6818,10 @@ module.exports=require(64)
             generateStatement: function(scope) {
                 var self = this;
                 return self.code(self.generate(scope), ";");
+            },
+            generateFunction: function(scope) {
+                var self = this;
+                return self.generate(scope);
             }
         });
         termPrototype = new Term();
@@ -6767,7 +6846,7 @@ module.exports=require(64)
         };
     };
 }).call(this);
-},{"../class":2,"../memorystream":5,"source-map":92,"underscore":102,"util":90}],82:[function(require,module,exports){
+},{"../class":2,"../memorystream":5,"source-map":98,"underscore":108,"util":96}],88:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -6789,14 +6868,14 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{}],83:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 (function() {
     var self = this;
     var asyncControl;
     asyncControl = require("../asyncControl");
     module.exports = function(terms) {
         var self = this;
-        var tryExpressionTerm, tryExpression;
+        var tryExpressionTerm, catchClause, finallyClause, tryExpression;
         tryExpressionTerm = terms.term({
             constructor: function(body, gen1_options) {
                 var self = this;
@@ -6851,17 +6930,37 @@ module.exports=require(64)
                 return self;
             }
         });
+        catchClause = function(body, catchParameter, catchBody) {
+            return terms.methodCall(body, [ "then" ], [ terms.nil(), terms.closure([ catchParameter ], catchBody) ]);
+        };
+        finallyClause = function(body, finallyBody) {
+            var result;
+            result = terms.generatedVariable([ "result" ]);
+            return terms.methodCall(body, [ "then" ], [ terms.closure([ result ], terms.statements([ terms.methodCall(finallyBody.promisify(), [ "then" ], [ terms.closure([], terms.statements([ result ])) ]) ])) ]);
+        };
         return tryExpression = function(body, gen2_options) {
             var catchBody, catchParameter, finallyBody;
             catchBody = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "catchBody") && gen2_options.catchBody !== void 0 ? gen2_options.catchBody : void 0;
             catchParameter = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "catchParameter") && gen2_options.catchParameter !== void 0 ? gen2_options.catchParameter : void 0;
             finallyBody = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "finallyBody") && gen2_options.finallyBody !== void 0 ? gen2_options.finallyBody : void 0;
-            var asyncTryFunction;
-            if (body.isAsync || catchBody && catchBody.isAsync || finallyBody && finallyBody.isAsync) {
-                asyncTryFunction = terms.moduleConstants.defineAs([ "async", "try" ], terms.javascript(asyncControl.try.toString()));
-                return terms.functionCall(asyncTryFunction, [ terms.argumentUtils.asyncifyBody(body), terms.argumentUtils.asyncifyBody(catchBody, [ catchParameter ]), terms.argumentUtils.asyncifyBody(finallyBody) ], {
-                    async: true
-                });
+            if (body.returnsPromise || catchBody && catchBody.returnsPromise || finallyBody && finallyBody.returnsPromise) {
+                if (catchBody) {
+                    if (finallyBody) {
+                        return terms.resolve(finallyClause(catchClause(body.promisify(), catchParameter, catchBody), finallyBody), {
+                            alreadyPromise: true
+                        });
+                    } else {
+                        return terms.resolve(catchClause(body.promisify(), catchParameter, catchBody), {
+                            alreadyPromise: true
+                        });
+                    }
+                } else if (finallyBody) {
+                    return terms.resolve(finallyClause(body.promisify(), finallyBody), {
+                        alreadyPromise: true
+                    });
+                } else {
+                    return terms.resolve(body);
+                }
             } else {
                 return tryExpressionTerm(body, {
                     catchBody: catchBody,
@@ -6872,7 +6971,7 @@ module.exports=require(64)
         };
     };
 }).call(this);
-},{"../asyncControl":1}],84:[function(require,module,exports){
+},{"../asyncControl":1}],90:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -6891,7 +6990,7 @@ module.exports=require(64)
         });
     };
 }).call(this);
-},{}],85:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -6902,11 +7001,21 @@ module.exports=require(64)
         variableTerm = terms.term({
             constructor: function(name, gen1_options) {
                 var self = this;
-                var location;
+                var location, tag;
                 location = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "location") && gen1_options.location !== void 0 ? gen1_options.location : void 0;
+                tag = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "tag") && gen1_options.tag !== void 0 ? gen1_options.tag : void 0;
                 self.variable = name;
                 self.isVariable = true;
-                return self.setLocation(location);
+                self.setLocation(location);
+                return self.tag = tag;
+            },
+            declare: function(scope) {
+                var self = this;
+                if (self.tag) {
+                    return scope.defineWithTag(self.canonicalName(), self.tag);
+                } else {
+                    return scope.define(self.canonicalName());
+                }
             },
             canonicalName: function() {
                 var self = this;
@@ -6920,7 +7029,11 @@ module.exports=require(64)
             },
             generate: function(scope) {
                 var self = this;
-                return self.code(self.canonicalName());
+                if (self.tag) {
+                    return self.code(scope.findTag(self.tag));
+                } else {
+                    return self.code(self.canonicalName());
+                }
             },
             generateTarget: function() {
                 var self = this;
@@ -6939,12 +7052,14 @@ module.exports=require(64)
             }
         });
         return variable = function(name, gen3_options) {
-            var couldBeMacro, location;
+            var couldBeMacro, location, tag;
             couldBeMacro = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "couldBeMacro") && gen3_options.couldBeMacro !== void 0 ? gen3_options.couldBeMacro : true;
             location = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "location") && gen3_options.location !== void 0 ? gen3_options.location : void 0;
+            tag = gen3_options !== void 0 && Object.prototype.hasOwnProperty.call(gen3_options, "tag") && gen3_options.tag !== void 0 ? gen3_options.tag : void 0;
             var v, macro;
             v = variableTerm(name, {
-                location: location
+                location: location,
+                tag: tag
             });
             if (couldBeMacro) {
                 macro = terms.macros.findMacro(name);
@@ -6956,7 +7071,7 @@ module.exports=require(64)
         };
     };
 }).call(this);
-},{"./codegenUtils":36}],86:[function(require,module,exports){
+},{"./codegenUtils":38}],92:[function(require,module,exports){
 (function() {
     var self = this;
     var asyncControl;
@@ -7001,7 +7116,7 @@ module.exports=require(64)
         };
     };
 }).call(this);
-},{"../asyncControl":1}],87:[function(require,module,exports){
+},{"../asyncControl":1}],93:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -7035,7 +7150,7 @@ module.exports=require(64)
         };
     };
 }).call(this);
-},{}],88:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 
 
 //
@@ -7253,7 +7368,7 @@ if (typeof Object.getOwnPropertyDescriptor === 'function') {
   exports.getOwnPropertyDescriptor = valueObject;
 }
 
-},{}],89:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 var process=require("__browserify_process");// Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7464,7 +7579,7 @@ exports.extname = function(path) {
   return splitPath(path)[3];
 };
 
-},{"__browserify_process":91,"_shims":88,"util":90}],90:[function(require,module,exports){
+},{"__browserify_process":97,"_shims":94,"util":96}],96:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -8009,7 +8124,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-},{"_shims":88}],91:[function(require,module,exports){
+},{"_shims":94}],97:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -8063,7 +8178,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],92:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 /*
  * Copyright 2009-2011 Mozilla Foundation and contributors
  * Licensed under the New BSD license. See LICENSE.txt or:
@@ -8073,7 +8188,7 @@ exports.SourceMapGenerator = require('./source-map/source-map-generator').Source
 exports.SourceMapConsumer = require('./source-map/source-map-consumer').SourceMapConsumer;
 exports.SourceNode = require('./source-map/source-node').SourceNode;
 
-},{"./source-map/source-map-consumer":97,"./source-map/source-map-generator":98,"./source-map/source-node":99}],93:[function(require,module,exports){
+},{"./source-map/source-map-consumer":103,"./source-map/source-map-generator":104,"./source-map/source-node":105}],99:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8172,7 +8287,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./util":100,"amdefine":101}],94:[function(require,module,exports){
+},{"./util":106,"amdefine":107}],100:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8318,7 +8433,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./base64":95,"amdefine":101}],95:[function(require,module,exports){
+},{"./base64":101,"amdefine":107}],101:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8362,7 +8477,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":101}],96:[function(require,module,exports){
+},{"amdefine":107}],102:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8445,7 +8560,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":101}],97:[function(require,module,exports){
+},{"amdefine":107}],103:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8924,7 +9039,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":93,"./base64-vlq":94,"./binary-search":96,"./util":100,"amdefine":101}],98:[function(require,module,exports){
+},{"./array-set":99,"./base64-vlq":100,"./binary-search":102,"./util":106,"amdefine":107}],104:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -9306,7 +9421,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":93,"./base64-vlq":94,"./util":100,"amdefine":101}],99:[function(require,module,exports){
+},{"./array-set":99,"./base64-vlq":100,"./util":106,"amdefine":107}],105:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -9679,7 +9794,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./source-map-generator":98,"./util":100,"amdefine":101}],100:[function(require,module,exports){
+},{"./source-map-generator":104,"./util":106,"amdefine":107}],106:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -9886,7 +10001,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":101}],101:[function(require,module,exports){
+},{"amdefine":107}],107:[function(require,module,exports){
 var process=require("__browserify_process"),__filename="/../../node_modules/source-map/node_modules/amdefine/amdefine.js";/** vim: et:ts=4:sw=4:sts=4
  * @license amdefine 0.1.0 Copyright (c) 2011, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
@@ -10187,7 +10302,7 @@ function amdefine(module, requireFn) {
 
 module.exports = amdefine;
 
-},{"__browserify_process":91,"path":89}],102:[function(require,module,exports){
+},{"__browserify_process":97,"path":95}],108:[function(require,module,exports){
 //     Underscore.js 1.4.4
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud Inc.

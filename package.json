@@ -23,15 +23,11 @@
     "bluebird": "^1.2.4",
     "browserify": "",
     "chai": "^1.9.1",
-    "es6-promise": "~1.0.0",
     "glob": "",
     "install": "~0.1.7",
     "jison": "",
     "mocha": "^1.18.2",
-    "npm": "~1.4.10",
-    "pogoify": "",
-    "promises-aplus-tests": "^2.0.4",
-    "should": ""
+    "pogoify": "0.0.3"
   },
   "bugs": {
     "url": "https://github.com/featurist/pogoscript/issues"

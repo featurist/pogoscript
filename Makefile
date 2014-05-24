@@ -26,7 +26,7 @@ browser-test :
 html/pogo.js : browser
 
 browser : all
-	browserify -t pogoify -x fs -x uglify-js lib/parser/browser.js > html/pogo.js
+	browserify -t pogoify -x fs -x uglify-js lib/parser/browser.js > pogo.js
 
 clean:
 	for subdir in src/bootstrap lib; do \

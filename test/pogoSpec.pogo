@@ -38,7 +38,13 @@ describe 'pogo'
             pogo.evaluate ('2 * x', definitions: {x = 4}).should.equal 8
 
         it 'can evaluate async pogoscript'
-            pogo.evaluate ('process.next tick ^!', definitions: {require = require})
+            pogo.evaluate ('f (n) =
+                              promise @(result)
+                                setTimeout
+                                  result (n)
+                                10!
+                            
+                            f 8!', definitions: {require = require})!.should.equal 8
 
     describe 'lex'
 
