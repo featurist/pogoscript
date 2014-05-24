@@ -1,4 +1,5 @@
 script = require './scriptAssertions'
+require 'chai'.should()
 
 shouldOutput = script.shouldOutput
 

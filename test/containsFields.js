@@ -1,5 +1,5 @@
 var util = require('util');
-var should = require('should');
+var should = require('chai').should();
 var _ = require('underscore');
 
 var inspect = function (o) {

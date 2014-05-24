@@ -1,7 +1,7 @@
 terms = require '../lib/parser/codeGenerator'.code generator ()
 strategies = (require '../lib/terms/closureParameterStrategies') (terms)
 Memory Stream = require '../lib/memorystream'.Memory Stream
-should = require 'should'
+should = require 'chai'.should()
 
 describe 'closure parameter strategies'
     generate with buffer and scope (block) =

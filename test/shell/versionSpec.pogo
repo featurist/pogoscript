@@ -1,4 +1,5 @@
 versions = require '../../lib/versions'
+require 'chai'.should()
 
 describe 'comparing versions'
     it returns (result) when asked if (version1) is less than (version2) =

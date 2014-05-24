@@ -1,4 +1,4 @@
-should = require 'should'
+should = require 'chai'.should()
 fs = require 'fs'
 spawn = require 'child_process'.spawn
 crypto = require 'crypto'

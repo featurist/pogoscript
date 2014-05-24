@@ -1,6 +1,6 @@
 script = require './scriptAssertions'
 
-should output = script.should output
+shouldOutput = script.shouldOutput
 
 describe 'methods'
   describe 'preserving self'
@@ -16,7 +16,7 @@ describe 'methods'
                      print (self.name)
          }
 
-         o.my method ()' should output "'name'"
+         o.my method ()' shouldOutput "'name'"
 
   describe 'splats'
     it 'can be called with splat arguments'
@@ -25,7 +25,7 @@ describe 'methods'
                print (args)
        }
 
-       o.a method ([1, 2, 3], ...)' should output "[ 1, 2, 3 ]"
+       o.a method ([1, 2, 3], ...)' shouldOutput "[ 1, 2, 3 ]"
 
     context 'when the object is an expression'
       it 'is only invoked once'
@@ -36,8 +36,8 @@ describe 'methods'
                      print (args)
              }
 
-         o ().a method ([1, 2, 3], ...)' should output "'created object'
-                                                        [ 1, 2, 3 ]"
+         o ().a method ([1, 2, 3], ...)' shouldOutput "'created object'
+                                                       [ 1, 2, 3 ]"
 
   describe 'returning promises'
     it 'can return a promise'

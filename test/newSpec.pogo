@@ -6,21 +6,21 @@ describe 'new'
                     this.n = n
                     nil
 
-                print (new (c 7))' should output '{ n: 7 }'
+                print (new (c 7))' shouldOutput '{ n: 7 }'
 
     it 'can construct without arguments'
         script.'c () = =>
                     this.n = "n"
                     nil
 
-                print (new (c))' should output '{ n: ''n'' }'
+                print (new (c))' shouldOutput '{ n: ''n'' }'
 
     it 'can construct without arguments and get field reference'
         script.'c () = =>
                     this.n = "n"
                     nil
 
-                print ((new (c)).n)' should output '''n'''
+                print ((new (c)).n)' shouldOutput '''n'''
 
     it 'can construct with splat arguments'
         script.'c (a, b, c) = =>
@@ -31,4 +31,4 @@ describe 'new'
 
                 args = [1, 2, 3]
 
-                print (new (c (args, ...)))' should output '{ a: 1, b: 2, c: 3 }'
+                print (new (c (args, ...)))' shouldOutput '{ a: 1, b: 2, c: 3 }'

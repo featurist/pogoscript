@@ -1,4 +1,5 @@
 interpolation = require '../lib/parser/interpolation'
+require 'chai'.should()
 
 (x) should be false =
     x.should.not.be.ok

@@ -23,6 +23,7 @@
   "devDependencies": {
     "bluebird": "^1.2.4",
     "browserify": "",
+    "chai": "^1.9.1",
     "es6-promise": "~1.0.0",
     "glob": "",
     "install": "~0.1.7",

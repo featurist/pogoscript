@@ -4,7 +4,7 @@ module.exports (terms) = terms.term {
 
     self._newPromise = terms.newOperator (
       terms.functionCall (
-        terms.variable ['Promise']
+        terms.promise()
         [
           closure @or terms.closure (
             [

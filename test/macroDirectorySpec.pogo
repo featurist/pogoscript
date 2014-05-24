@@ -1,6 +1,6 @@
 cg = require '../lib/parser/codeGenerator'.code generator ()
 require './assertions'
-should = require 'should'
+should = require 'chai'.should()
 
 describe 'macro directory'
     it 'one macro'

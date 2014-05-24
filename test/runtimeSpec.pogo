@@ -1,6 +1,7 @@
 runtime = require '../lib/parser/runtime'
 object = runtime.object
 object extending = runtime.object extending
+require 'chai'.should()
 
 describe 'runtime'
     it 'creates objects with constructor'

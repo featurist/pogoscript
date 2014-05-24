@@ -1,5 +1,5 @@
 var codegenUtils = require('../lib/terms/codegenUtils');
-var should = require('should');
+var should = require('chai').should();
 
 describe('codegen utils', function () {
   describe('concatName', function () {

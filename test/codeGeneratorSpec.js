@@ -1,6 +1,6 @@
 var cg = require('../lib/parser/codeGenerator').codeGenerator();
 var MemoryStream = require('../lib/memorystream').MemoryStream;
-var should = require('should');
+var should = require('chai').should();
 var _ = require('underscore');
 var sm = require('source-map');
 

@@ -2,6 +2,7 @@ require '../assertions'
 require '../parserAssertions'
 terms = require '../../lib/parser/codeGenerator'.codeGenerator ()
 _ = require 'underscore'
+require 'chai'.should()
 
 describe 'operator expression'
     variable (name) = terms.complexExpression [[terms.variable [name]]]

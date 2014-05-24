@@ -1,5 +1,5 @@
 option parser = require '../../lib/optionParser'
-should = require 'should'
+should = require 'chai'.should()
 
 describe 'option parser'
     describe 'long options'

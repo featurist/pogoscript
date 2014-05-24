@@ -2,7 +2,7 @@ cg = require '../lib/parser/codeGenerator'.code generator ()
 require './assertions'
 Term = (require '../lib/terms/terms') {}.Term
 _ = require 'underscore'
-should = require 'should'
+should = require 'chai'.should()
 
 (actual list) should only have (expected list) =
     actual list.length.should.equal (expected list.length)

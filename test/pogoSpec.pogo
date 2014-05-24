@@ -1,5 +1,5 @@
 pogo = require '../lib/parser/compiler'
-should = require 'should'
+should = require 'chai'.should()
 sm = require 'source-map'
 
 describe 'pogo'

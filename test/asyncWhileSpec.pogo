@@ -1,5 +1,5 @@
 async = require '../lib/asyncControl'
-should = require 'should'
+should = require 'chai'.should()
 
 describe 'while statement'
     throws (error) =

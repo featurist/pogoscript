@@ -1,7 +1,7 @@
 script = require './scriptAssertions'
 
-should output = script.should output
-evaluate script = script.evaluate script
+shouldOutput = script.shouldOutput
+evaluateScript = script.evaluateScript
 
 describe 'definitions'
   describe 'definitions cannot shadow other definitions'
@@ -13,11 +13,11 @@ describe 'definitions'
            print (a)
        
        f ()
-       print (a)' should output "3
+       print (a)' shouldOutput "3
                                  1"
 
     it 'throws when a variable has already been defined in the same scope'
-      @{evaluate script 'a = 1
+      @{evaluateScript 'a = 1
                          a = 3'}.should.throw r/variable a is already defined/
 
     it 'can assign to a variable after it has been defined'
@@ -25,7 +25,7 @@ describe 'definitions'
        print (a)
 
        a := 2
-       print (a)' should output "1
+       print (a)' shouldOutput "1
                                  2"
 
     it 'can define variable inside if expression'
@@ -33,19 +33,19 @@ describe 'definitions'
            if (true)
                b = 1
                b + 1
-       )' should output "2"
+       )' shouldOutput "2"
 
     it "throws when an assignment is made to a variable that hasn't been defined yet"
-      @{evaluate script 'a := 1'}.should.throw r/variable a is not defined/
+      @{evaluateScript 'a := 1'}.should.throw r/variable a is not defined/
 
     context 'when in functions'
       describe 'parameters cannot be redefined'
         it 'throws when a function redefines a parameter'
-          @{evaluate script 'f (a) =
+          @{evaluateScript 'f (a) =
                                  a = 6'}.should.throw r/variable a is already defined/
 
         it 'throws when a function redefines an optional parameter'
-          @{evaluate script 'f (a: nil) =
+          @{evaluateScript 'f (a: nil) =
                                  a = 6'}.should.throw r/variable a is already defined/
 
   describe 'scopes'

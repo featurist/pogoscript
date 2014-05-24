@@ -1,4 +1,5 @@
 SymbolScope = require '../lib/symbolScope'.SymbolScope
+require 'chai'.should()
 
 describe 'symbolScope'
   context 'when scope A has sub scope B'

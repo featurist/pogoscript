@@ -1,4 +1,4 @@
-should = require 'should'
+should = require 'chai'.should()
 compiler = require '../lib/parser/compiler'
 util = require 'util'
 _ = require 'underscore'
@@ -31,7 +31,8 @@ exports.evaluateScript (script) =
     collatePrintedItems()
 
 exports.(script) shouldOutput (expectedOutput) =
-    assertion (result) = should.equal (chomp (result), chomp (expectedOutput))
+    assertion (result) =
+      should.equal (chomp (result), chomp (expectedOutput))
 
     result = exports.evaluateScript (script)
 
@@ -78,7 +79,7 @@ exports.async (script) shouldOutput (expectedOutput, done) =
 fork (block) =
   block ()
 
-exports.(script) should throw (expected error) =
+exports.(script) shouldThrow (expected error) =
     failed = false
     
     try

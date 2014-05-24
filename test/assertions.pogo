@@ -1,4 +1,4 @@
-should = require 'should'
+should = require 'chai'.should()
 
 global.should contain fields = (require './containsFields').contains fields
 global.(x) should equal (y) = should.equal (x) (y)

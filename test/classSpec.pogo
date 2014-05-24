@@ -1,3 +1,4 @@
+require 'chai'.should()
 cls = require '../lib/class'
 class = cls.class
 class extending = cls.class extending

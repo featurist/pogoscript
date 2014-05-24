@@ -4,6 +4,7 @@ script = require './pogoAssertions'
 withArgsShouldOutput = script.withArgsShouldOutput
 childProcess = require 'child_process'
 net = require 'net'
+require 'chai'.should()
 
 describe 'pogo command'
     it "`process.argv` contains 'pogo', the name of the

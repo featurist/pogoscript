@@ -1,5 +1,5 @@
 terms = require '../lib/parser/codeGenerator'.code generator ()
-should = require 'should'
+should = require 'chai'.should()
 sm = require 'source-map'
 
 serialise(code) =
