@@ -1,5 +1,7 @@
 var util = require('util');
-var should = require('chai').should();
+var chai = require('chai');
+var should = chai.should();
+var expect = chai.expect;
 var _ = require('underscore');
 
 var inspect = function (o) {
@@ -43,6 +45,6 @@ var containsFields = exports.containsFields = function (actual, expected, key, o
       }
     }
   } else {
-    should.deepEqual(actual, expected, message());
+    expect(actual).to.deep.equal(expected, message());
   }
 };

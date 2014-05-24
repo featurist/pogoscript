@@ -1,7 +1,9 @@
 terms = require '../lib/parser/codeGenerator'.code generator ()
 strategies = (require '../lib/terms/closureParameterStrategies') (terms)
 Memory Stream = require '../lib/memorystream'.Memory Stream
-should = require 'chai'.should()
+chai = require 'chai'
+chai.should()
+expect = chai.expect
 
 describe 'closure parameter strategies'
     generate with buffer and scope (block) =
@@ -46,10 +48,10 @@ describe 'closure parameter strategies'
                 generate statements from (fs).should.equal 'args;'
 
             it "requires underlying function parameters"
-                should.deep equal (fs.function parameters (), [terms.variable ['a'], terms.variable ['b']])
+                expect (fs.function parameters ()).to.deep.equal [terms.variable ['a'], terms.variable ['b']]
 
             it "requires underlying defined parameters"
-                should.deep equal (fs.defined parameters (), [terms.variable ['a'], terms.variable ['b']])
+                expect (fs.defined parameters ()).to.deep.equal [terms.variable ['a'], terms.variable ['b']]
 
     describe 'normal strategy'
         context 'when there are two parameters'
@@ -62,10 +64,10 @@ describe 'closure parameter strategies'
                 ]
 
             it 'requires those parameters'
-                should.deep equal (n.function parameters (), [terms.variable ['a'], terms.variable ['b']])
+                expect (n.function parameters ()).to.deep.equal [terms.variable ['a'], terms.variable ['b']]
 
             it 'defines those parameters'
-                should.deep equal (n.defined parameters (), [terms.variable ['a'], terms.variable ['b']])
+                expect (n.defined parameters ()).to.deep.equal [terms.variable ['a'], terms.variable ['b']]
 
             it "doesn't generate any statements"
                 generate statements from (n).should.equal ''
@@ -82,13 +84,13 @@ describe 'closure parameter strategies'
                 )
 
             it "doesn't require any parameters"
-                should.deep equal (splat.function parameters (), [])
+                expect (splat.function parameters ()).to.deep.equal []
 
             it 'generates full slice of arguments'
                 generate statements from (splat).should.equal 'var a=Array.prototype.slice.call(args,0,args.length);'
 
             it 'defines that splat parameter'
-                should.deep equal (splat.defined parameters (), [terms.variable ['a']])
+                expect (splat.defined parameters ()).to.deep.equal [terms.variable ['a']]
 
         context 'when there is one argument before the splat parameter'
             splat = nil
@@ -101,13 +103,13 @@ describe 'closure parameter strategies'
                 )
 
             it "doesn't require any parameters"
-                should.deep equal (splat.function parameters (), [terms.variable ['a']])
+                expect (splat.function parameters ()).to.deep.equal [terms.variable ['a']]
 
             it 'generates full slice of arguments'
                 generate statements from (splat).should.equal 'var b=Array.prototype.slice.call(args,1,args.length);'
 
             it 'defines the one before and the splat parameter'
-                should.deep equal (splat.defined parameters (), [terms.variable ['a'], terms.variable ['b']])
+                expect (splat.defined parameters ()).to.deep.equal [terms.variable ['a'], terms.variable ['b']]
 
         context 'when there is one argument after the splat parameter'
             splat = nil
@@ -120,13 +122,13 @@ describe 'closure parameter strategies'
                 )
 
             it "doesn't require any parameters"
-                should.deep equal (splat.function parameters (), [])
+                expect (splat.function parameters ()).to.deep.equal []
 
             it 'generates full slice of arguments'
                 generate statements from (splat).should.equal 'var a=Array.prototype.slice.call(args,0,args.length-1);var b=args[args.length-1];'
 
             it 'defines the one before, the splat parameter and the one after'
-                should.deep equal (splat.defined parameters (), [terms.variable ['a'], terms.variable ['b']])
+                expect (splat.defined parameters ()).to.deep.equal [terms.variable ['a'], terms.variable ['b']]
 
         context 'when there is one argument, a splat argument, then another argument'
             splat = nil
@@ -139,20 +141,17 @@ describe 'closure parameter strategies'
                 )
 
             it "doesn't require any parameters"
-                should.deep equal (splat.function parameters (), [terms.variable ['a']])
+                expect (splat.function parameters ()).to.deep.equal [terms.variable ['a']]
 
             it 'generates full slice of arguments'
                 generate statements from (splat).should.equal 'var b=Array.prototype.slice.call(args,1,args.length-1);if(args.length>1){var c=args[args.length-1];}'
 
             it 'defines the one before, the splat parameter and the one after'
-                should.deep equal (
-                    splat.defined parameters ()
-                    [
-                        terms.variable ['a']
-                        terms.variable ['b']
-                        terms.variable ['c']
-                    ]
-                )
+                expect (splat.defined parameters ()).to.deep.equal [
+                    terms.variable ['a']
+                    terms.variable ['b']
+                    terms.variable ['c']
+                ]
 
     describe 'optional strategy'
         context 'when there are no other arguments'
@@ -168,19 +167,16 @@ describe 'closure parameter strategies'
                 )
 
             it 'requires only an options parameter'
-                should.deep equal (opts.function parameters (), [terms.generated variable ['options']])
+                expect (opts.function parameters ()).to.deep.equal [terms.generated variable ['options']]
 
             it 'generates code to extract each named option from the options variable'
                 generate statements from (opts).should.equal "var a,b;a=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'a')&&gen1_options.a!==void 0?gen1_options.a:10;b=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'b')&&gen1_options.b!==void 0?gen1_options.b:'asdf';"
 
             it 'defines the optional parameters'
-                should.deep equal (
-                    opts.defined parameters ()
-                    [
-                        terms.variable ['a']
-                        terms.variable ['b']
-                    ]
-                )
+                expect (opts.defined parameters ()).to.deep.equal [
+                    terms.variable ['a']
+                    terms.variable ['b']
+                ]
 
         context 'when there are two other parameters'
             opts = nil
@@ -195,18 +191,15 @@ describe 'closure parameter strategies'
                 )
 
             it 'requires the normal parameters and the options parameter'
-                should.deep equal (opts.function parameters (), [terms.variable ['a'], terms.variable ['b'], terms.generated variable ['options']])
+                expect (opts.function parameters ()).to.deep.equal [terms.variable ['a'], terms.variable ['b'], terms.generated variable ['options']]
 
             it 'generates code to extract each named option from the options variable'
                 generate statements from (opts).should.equal "var c,d;c=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'c')&&gen1_options.c!==void 0?gen1_options.c:10;d=gen1_options!==void 0&&Object.prototype.hasOwnProperty.call(gen1_options,'d')&&gen1_options.d!==void 0?gen1_options.d:'asdf';"
 
             it 'defines the optional parameters, and those before'
-                should.deep equal (
-                    opts.defined parameters ()
-                    [
-                        terms.variable ['a']
-                        terms.variable ['b']
-                        terms.variable ['c']
-                        terms.variable ['d']
-                    ]
-                )
+                expect (opts.defined parameters ()).to.deep.equal [
+                    terms.variable ['a']
+                    terms.variable ['b']
+                    terms.variable ['c']
+                    terms.variable ['d']
+                ]

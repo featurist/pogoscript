@@ -830,7 +830,7 @@ describe 'parser'
                 terms.variable ['x']
                 terms.closure (
                   []
-                  terms.statements ([terms.integer 8], definitions: []).promisify ()
+                  terms.statements ([terms.integer 8], definitions: []).promisify (statements: true)
                   returnPromise: true
                 )
               )

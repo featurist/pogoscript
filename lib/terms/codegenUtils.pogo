@@ -100,3 +100,21 @@ exports.normaliseOperatorName (name) =
             match.1
         else
             name
+
+exports.definedVariables (scope) = {
+    variables = []
+    scope = scope
+
+    define (variable) =
+        scope.define (variable)
+        self.variables.push (variable)
+
+    define (name) withTag (tag) = scope.define (name) withTag (tag)
+
+    generateVariable (name) = scope.generateVariable (name)
+
+    is (variable) defined = scope.is (variable) defined
+    is (variable) definedInThisScope = scope.is (variable) definedInThisScope
+
+    names () = _.uniq (self.variables)
+}

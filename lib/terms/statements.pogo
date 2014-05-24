@@ -12,18 +12,13 @@ module.exports (terms) = terms.term {
 
     generateStatements (scope, inClosure: false, global: false) =
         self.generateIntoBuffer @(buffer)
-            subScope =
-              if (inClosure)
-                definitionScope = scope.subScope()
-                definedVariables = self.findDefinedVariables (definitionScope)
-                self.generateVariableDeclarations (definedVariables, buffer, global: global)
-                definitionScope
-              else
-                scope
+            if (inClosure)
+              definedVariables = self.findDefinedVariables (scope)
+              self.generateVariableDeclarations (definedVariables, buffer, global: global)
 
             for (s = 0, s < self.statements.length, ++s)
                 statement = self.statements.(s)
-                buffer.write (statement.generateStatement (subScope))
+                buffer.write (statement.generateStatement (scope))
 
     promisify (definitions: nil, statements: false) =
       if (@not self.returnsPromise)
@@ -82,11 +77,12 @@ module.exports (terms) = terms.term {
 
     findDefinedVariables (scope) =
         definitions = self._definitions @or self.definitions()
+        variables = codegenUtils.definedVariables (scope)
 
         for each @(def) in (definitions)
-            def.defineVariables (scope)
+            def.defineVariables (variables)
 
-        scope.names ()
+        variables.names ()
 
     blockify (parameters, options) =
         statements = if (self.isExpressionStatements)

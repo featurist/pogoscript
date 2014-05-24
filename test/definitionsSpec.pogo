@@ -14,11 +14,11 @@ describe 'definitions'
        
        f ()
        print (a)' shouldOutput "3
-                                 1"
+                                1"
 
     it 'throws when a variable has already been defined in the same scope'
       @{evaluateScript 'a = 1
-                         a = 3'}.should.throw r/variable a is already defined/
+                        a = 3'}.should.throw r/variable a is already defined/
 
     it 'can assign to a variable after it has been defined'
       'a = 1
@@ -26,7 +26,7 @@ describe 'definitions'
 
        a := 2
        print (a)' shouldOutput "1
-                                 2"
+                                2"
 
     it 'can define variable inside if expression'
       'print (
@@ -42,11 +42,11 @@ describe 'definitions'
       describe 'parameters cannot be redefined'
         it 'throws when a function redefines a parameter'
           @{evaluateScript 'f (a) =
-                                 a = 6'}.should.throw r/variable a is already defined/
+                                a = 6'}.should.throw r/variable a is already defined/
 
         it 'throws when a function redefines an optional parameter'
           @{evaluateScript 'f (a: nil) =
-                                 a = 6'}.should.throw r/variable a is already defined/
+                                a = 6'}.should.throw r/variable a is already defined/
 
   describe 'scopes'
     describe 'promises'
