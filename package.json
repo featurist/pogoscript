@@ -44,5 +44,6 @@
     "language",
     "pogo"
   ],
-  "license": "BSD-2-Clause"
+  "license": "BSD-2-Clause",
+  "browser": "lib/parser/compiler.js"
 }
