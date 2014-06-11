@@ -1,4 +1,4 @@
-comments = '\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/.*(\n|$))\s*)+'
+comments = '\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/.*(\r?\n|$))\s*)+'
 exports.identifier = identifier =
     ranges = 'a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$'
     "[#(ranges)][#(ranges)0-9]*"

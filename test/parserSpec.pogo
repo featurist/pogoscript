@@ -47,44 +47,44 @@ describe 'parser'
                 (expression '$') should contain fields {
                     variable ['$']
                 }
-        
+
         describe 'strings'
             it 'simple string'
                 (expression '''a string''') should contain fields {
                     is string
                     string 'a string'
                 }
-                    
+
             it 'string with single quotes'
                 (expression '''''''alright!'''' he said''') should contain fields {
                     is string
                     string '''alright!'' he said'
                 }
-                    
+
             it 'string with backslash'
                 (expression "'one \\ two'") should contain fields {
                     is string
                     string "one \\ two"
                 }
-                    
+
             it 'multiline string'
                 (expression "  'one\n   two'") should contain fields {
                     is string
                     string "one\ntwo"
                 }
-                    
+
             it 'multiline string with empty lines'
                 (expression "  'one\n\n   two\n\n   three'") should contain fields {
                     is string
                     string "one\n\ntwo\n\nthree"
                 }
-                    
+
             it 'multiline double-quote string'
                 (expression "  \"one\n   two\"") should contain fields {
                     is string
                     string "one\ntwo"
                 }
-                    
+
             it 'two multiline string in function'
                 (expression "x 'one\n   two' y \"three\n           four\"") should contain fields {
                     is function call
@@ -173,7 +173,7 @@ describe 'parser'
                         {string ' meters in length'}
                     ]
                 }
-                
+
             it 'in block'
                 (expression "abc =\n    \"\#(stuff)\"") should contain fields {
                     is definition
@@ -206,20 +206,20 @@ describe 'parser'
         describe 'sub expressions'
             it 'single expression'
                 (expression '(x)') should contain fields {variable ['x']}
-        
+
         describe 'lists'
             it 'empty'
                 (expression '[]') should contain fields {
                     is list
                     items []
                 }
-            
+
             it 'one item'
                 (expression '[1]') should contain fields {
                     is list
                     items [{integer 1}]
                 }
-            
+
             it 'two items'
                 (expression '[1, 2]') should contain fields {
                     is list
@@ -228,7 +228,7 @@ describe 'parser'
                         {integer 2}
                     ]
                 }
-            
+
             it 'two items separated by newlines'
                 (expression "[\n  1\n  2\n]") should contain fields {
                     is list
@@ -237,14 +237,14 @@ describe 'parser'
                         {integer 2}
                     ]
                 }
-        
+
         describe 'hashes'
             it 'empty hash'
                 (expression '{}') should contain fields {
                     is hash
                     entries []
                 }
-                    
+
             it 'hash with one entry'
                 (expression '{port 1234}') should contain fields {
                     is hash
@@ -255,7 +255,7 @@ describe 'parser'
                         }
                     ]
                 }
-                    
+
             it 'hash with two entries'
                 (expression '{port 1234, ip address ''1.1.1.1''}') should contain fields {
                     is hash
@@ -270,7 +270,7 @@ describe 'parser'
                         }
                     ]
                 }
-                    
+
             it 'hash with two entries on different lines'
                 (expression "{port = 1234\nip address = '1.1.1.1'}") should contain fields {
                     is hash
@@ -278,14 +278,14 @@ describe 'parser'
                         {
                             field ['port']
                             value {integer 1234}
-                        }   
+                        }
                         {
                             field ['ip', 'address']
                             value {string '1.1.1.1'}
                         }
                     ]
                 }
-                    
+
             it 'hash with string with assignment'
                 (expression "{'port' = 1234}") should contain fields {
                     is hash
@@ -296,7 +296,7 @@ describe 'parser'
                         }
                     ]
                 }
-                    
+
             it 'values can be specified on a new line'
                 (expression "{
                                  height =
@@ -310,7 +310,7 @@ describe 'parser'
                         }
                     ]
                 }
-                    
+
             it 'should allow methods to be defined, redefining self'
                 (expression '{say hi to (name, greeting: nil) = print (name)}') should contain fields {
                     is hash
@@ -340,7 +340,7 @@ describe 'parser'
                         }
                     ]
                 }
-                    
+
             it 'hash with true entry'
                 (expression '{port 1234, readonly}') should contain fields {
                     is hash
@@ -348,7 +348,7 @@ describe 'parser'
                         {
                             field ['port']
                             value {integer 1234}
-                        }   
+                        }
                         {
                             field ['readonly']
                             value (undefined)
@@ -371,7 +371,7 @@ describe 'parser'
                     {variable ['b']}
                 ]
             }
-            
+
         it 'two expressions'
             (expression '(x, y)') should contain fields {
                 is function call
@@ -491,7 +491,7 @@ describe 'parser'
                     }
                 ]
             }
-    
+
     describe 'object operations'
         it 'method call'
             (expression 'object.method (argument)') should contain fields {
@@ -500,7 +500,7 @@ describe 'parser'
                 name ['method']
                 method arguments [{variable ['argument']}]
             }
-        
+
         it 'method call with optional arguments'
             (expression 'object.method (argument, view: view)') should contain fields {
                 is method call
@@ -511,28 +511,28 @@ describe 'parser'
                     {field ['view'], value {variable ['view']}}
                 ]
             }
-        
+
         it 'field reference'
             (expression 'object.field') should contain fields {
                 is field reference
                 object {variable ['object']}
                 name ['field']
             }
-        
+
         it 'field reference with newline'
             (expression "object.\nfield") should contain fields {
                 is field reference
                 object {variable ['object']}
                 name ['field']
             }
-        
+
         it 'indexer'
             (expression 'object.(x)') should contain fields {
                 is indexer
                 object {variable ['object']}
                 indexer {variable ['x']}
             }
-        
+
         it 'parses no argument method with ()'
             (expression 'object.method()') should contain fields {
                 is method call
@@ -540,7 +540,7 @@ describe 'parser'
                 name ['method']
                 method arguments []
             }
-        
+
         it 'parses no argument method with () and field'
             (expression 'object.method().field') should contain fields {
                 is field reference
@@ -552,7 +552,7 @@ describe 'parser'
                 }
                 name ['field']
             }
-        
+
         it 'parses no argument method with ! and field and spaces'
             (expression 'object.method()! . field') should contain fields (
                 terms.async statements [
@@ -568,7 +568,7 @@ describe 'parser'
                     )
                 ].statements.0
             )
-        
+
         it 'parses no argument method with ! and field'
             (expression 'object.method()!.field') should contain fields (
                 terms.async statements [
@@ -593,7 +593,7 @@ describe 'parser'
                 redefines self (false)
                 body {statements []}
             }
-                
+
         it 'block'
             (expression '@{x, y}') should contain fields {
                 is block
@@ -604,7 +604,7 @@ describe 'parser'
                     {variable ['y']}
                 ]}
             }
-                
+
         it 'block with no parameters'
             (expression '@() @{x}') should contain fields {
                 is block
@@ -627,7 +627,7 @@ describe 'parser'
                     ]
                 }
             }
-        
+
         it 'block in parens'
             (expression "(one\n  two\n)") should contain fields {
                 is function call
@@ -656,7 +656,7 @@ describe 'parser'
                     ]
                 }
             }
-    
+
     describe 'statements'
         it 'can be separated by commas (,)'
             (statements 'a, b') should contain fields {
@@ -665,7 +665,7 @@ describe 'parser'
                     {variable ['b']}
                 ]
             }
-            
+
         it 'can be separated by unix new lines'
             (statements "a\nb") should contain fields {
                 statements [
@@ -673,7 +673,7 @@ describe 'parser'
                     {variable ['b']}
                 ]
             }
-            
+
         it 'can be separated by windows new lines'
             (statements "a\r\nb") should contain fields {
                 statements [
@@ -681,7 +681,7 @@ describe 'parser'
                     {variable ['b']}
                 ]
             }
-            
+
         it 'windows indentation'
             (statements "app (stuff) =\r
                            ok\r
@@ -714,12 +714,12 @@ describe 'parser'
                     }
                 ]
             }
-                
+
         it 'unary operators should be higher precedence than binary operators'
             (expression 'a && ! b') should contain fields {
                 is operator
                 operator '&&'
-                
+
                 operator arguments [
                     {variable ['a']}
                     {
@@ -729,18 +729,18 @@ describe 'parser'
                     }
                 ]
             }
-                
+
         it 'can have newlines immediately after operator'
             (expression "a &&\nb") should contain fields {
                 is operator
                 operator '&&'
-                
+
                 operator arguments [
                     {variable ['a']}
                     {variable ['b']}
                 ]
             }
-      
+
     describe 'definition and assignment'
         it 'definition'
             (expression 'x = y') should contain fields {
@@ -883,7 +883,7 @@ describe 'parser'
                     method arguments [{variable ['a']}]
                 }
             }
-    
+
     describe 'regexps'
         it 'simple'
             (expression 'r/abc/') should contain fields {
@@ -922,7 +922,7 @@ describe 'parser'
                     pattern "abc\\ndef"
                 }
             }
-    
+
     describe 'comments'
         it 'should not treat comment-like syntax as comments in strings'
             (statements "get 'http://pogoscript.org/'") should contain fields {
@@ -935,10 +935,19 @@ describe 'parser'
                     ]
                 }]
             }
-            
+
         describe 'should allow one-line C++ style comments, as in: // this is a comment'
             it 'when at the end of a line'
                 (statements "a // this is a comment\nb") should contain fields {
+                    is statements
+                    statements [
+                        {variable ['a']}
+                        {variable ['b']}
+                    ]
+                }
+
+            it 'when at the end of a line on windows'
+                (statements "a // this is a comment\r\nb") should contain fields {
                     is statements
                     statements [
                         {variable ['a']}
@@ -1074,6 +1083,14 @@ describe 'parser'
         (statements '#! /usr/bin/env pogo
                      a
                      b') should contain fields (
+            terms.async statements [
+                terms.variable ['a']
+                terms.variable ['b']
+            ]
+        )
+
+    it 'ignores hash bang #!, at the beginning of the file on windows'
+        (statements "#! /usr/bin/env pogo\r\na\r\nb") should contain fields (
             terms.async statements [
                 terms.variable ['a']
                 terms.variable ['b']
