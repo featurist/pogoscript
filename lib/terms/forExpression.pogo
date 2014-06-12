@@ -64,11 +64,11 @@ module.exports (terms) =
     }
 
     for expression (init, test, incr, body) =
-        init statements = terms.async statements [init]
-        test statements = terms.async statements [test]
-        incr statements = terms.async statements [incr]
+        initStatements = terms.asyncStatements [init]
+        testStatements = terms.asyncStatements [test]
+        incrStatements = terms.asyncStatements [incr]
 
-        if ((init statements.is async || test statements.is async) || (incr statements.is async || body.is async))
+        if ((initStatements.returnsPromise || testStatements.returnsPromise) || (incrStatements.returnsPromise || body.returnsPromise))
             async for function =
                 terms.module constants.define ['async', 'for'] as (
                     terms.javascript (async control.for.to string ())
@@ -76,14 +76,16 @@ module.exports (terms) =
 
             terms.scope [
                 init
-                terms.function call (
-                    async for function
-                    [
-                        terms.argument utils.asyncify body (test statements)
-                        terms.argument utils.asyncify body (incr statements)
-                        terms.argument utils.asyncify body (body)
-                    ]
-                    async: true
+                terms.resolve(
+                  terms.function call (
+                      async for function
+                      [
+                          terms.closure ([], testStatements)
+                          terms.closure ([], incrStatements)
+                          terms.closure ([], body)
+                      ]
+                  )
+                  alreadyPromise: true
                 )
             ]
         else

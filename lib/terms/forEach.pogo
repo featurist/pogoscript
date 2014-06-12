@@ -6,7 +6,7 @@ module.exports (terms) =
         s = [terms.definition(item variable, terms.indexer(items var, indexVar))]
         s.push (stmts.statements, ...)
 
-        statements with item assignment = terms.statements(s, async: stmts.is async)
+        statements with item assignment = terms.statements(s, returnsPromise: stmts.returnsPromise)
 
         init = terms.definition(indexVar, terms.integer(0))
         test = terms.operator('<', [index var, terms.field reference(items var, ['length'])])

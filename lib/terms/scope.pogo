@@ -9,4 +9,8 @@ module.exports (terms) =
                 statement
         else
             statements = terms.asyncStatements (statementList)
-            terms.functionCall (terms.subExpression (terms.block (variables, statements)), variables, async: statements.isAsync)
+            fn = terms.functionCall (terms.subExpression (terms.block (variables, statements)), variables)
+            if (statements.returnsPromise)
+              terms.resolve(fn, alreadyPromise: true)
+            else
+              fn
