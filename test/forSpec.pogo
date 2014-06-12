@@ -12,21 +12,32 @@ describe 'for'
                                                        2
                                                        1'
 
-      it "waits for loop to finish resolving promise before moving onto next loop"
-        script.'items = [1, 2, 3]
+      describe 'async'
+        it "waits for loop to finish resolving promise before moving onto next loop"
+          script.'items = [1, 2, 3]
 
-                for each @(item) in (items)
-                  print "before #(item)"
-                  p()!
-                  print "after #(item)"
+                  for each @(item) in (items)
+                    print "before #(item)"
+                    p()!
+                    print "after #(item)"
 
-                print "finished"' shouldOutput "'before 1'
-                                                'after 1'
-                                                'before 2'
-                                                'after 2'
-                                                'before 3'
-                                                'after 3'
-                                                'finished'"
+                  print "finished"' shouldOutput "'before 1'
+                                                  'after 1'
+                                                  'before 2'
+                                                  'after 2'
+                                                  'before 3'
+                                                  'after 3'
+                                                  'finished'"
+
+        it "doesn't loop if there aren't any items"
+          script.'items = []
+
+                  for each @(item) in (items)
+                    print "before #(item)"
+                    p()!
+                    print "after #(item)"
+
+                  print "finished"' shouldOutput "'finished'"
 
     describe 'for loop'
       it 'can be returned from'
@@ -53,19 +64,28 @@ describe 'for'
                                                  8
                                                  9'
 
-      it 'waits for loop to finish resolving promise before moving onto next loop'
-        script.'for (n = 0, n < 3, ++n)
-                  print "before #(n)"
-                  p()!
-                  print "after #(n)"
+      describe 'async'
+        it 'waits for loop to finish resolving promise before moving onto next loop'
+          script.'for (n = 0, n < 3, ++n)
+                    print "before #(n)"
+                    p()!
+                    print "after #(n)"
 
-                print "finished"' shouldOutput "'before 0'
-                                                'after 0'
-                                                'before 1'
-                                                'after 1'
-                                                'before 2'
-                                                'after 2'
-                                                'finished'"
+                  print "finished"' shouldOutput "'before 0'
+                                                  'after 0'
+                                                  'before 1'
+                                                  'after 1'
+                                                  'before 2'
+                                                  'after 2'
+                                                  'finished'"
+
+        it "doesn't loop if the test fails"
+          script.'for (n = 0, false, ++n)
+                    print "before #(n)"
+                    p()!
+                    print "after #(n)"
+
+                  print "finished"' shouldOutput "'finished'"
 
     describe 'for in'
         it "iterates over object's fields"
