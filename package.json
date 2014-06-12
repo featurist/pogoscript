@@ -1,6 +1,6 @@
 {
   "name": "pogo",
-  "version": "0.8.0-beta6",
+  "version": "0.8.0-beta7",
   "description": "A readable, DSL friendly programming language that compiles to JavaScript",
   "author": "Tim Macfarlane <timmacfarlane@gmail.com>",
   "repository": {
@@ -20,7 +20,7 @@
   },
   "main": "index.js",
   "devDependencies": {
-    "bluebird": "^2.0.7",
+    "bluebird": "^2.1.1",
     "browserify": "",
     "chai": "^1.9.1",
     "glob": "",
@@ -38,7 +38,7 @@
     "underscore": "1.4.4"
   },
   "peerDependencies": {
-    "bluebird": "~2.0.7"
+    "bluebird": "~2.1.1"
   },
   "keywords": [
     "language",
