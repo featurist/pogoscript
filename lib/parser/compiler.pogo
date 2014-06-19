@@ -1,6 +1,6 @@
 ms = require '../memorystream'
 createParser = require './parser'.createParser
-createTerms () = require './codeGenerator'.codeGenerator ()
+createTerms = require './codeGenerator'.codeGenerator
 object = require './runtime'.object
 sm = require 'source-map'
 
@@ -48,9 +48,10 @@ exports.compile (
     global: false
     returnResult: false
     async: false
-    terms: createTerms ()
     outputFilename: nil
     sourceMap: false
+    promises: nil
+    terms: createTerms (promises: promises)
 ) =
     parser = createParser (terms: terms, filename: filename)
     statements = parser.parse (pogo)

@@ -87,3 +87,44 @@ describe 'option parser'
 
             options = cli.parse (args)
             options._.should.eql []
+
+    describe 'string arguments'
+        it 'parses the argument following the short option'
+            args = ['-v', 'thing']
+
+            cli = option parser.create parser ()
+            cli.option '-v, --value=<something> this is a value'
+
+            options = cli.parse (args)
+            options.value.should.eql 'thing'
+            options._.should.eql []
+
+        it 'parses the argument following the long option'
+            args = ['--value', 'thing']
+
+            cli = option parser.create parser ()
+            cli.option '-v, --value=<something> this is a value'
+
+            options = cli.parse (args)
+            options.value.should.eql 'thing'
+            options._.should.eql []
+
+        it 'parses the argument following the long option and leaves the remaining arguments to _'
+            args = ['--value', 'thing', 'filename']
+
+            cli = option parser.create parser ()
+            cli.option '-v, --value=<something> this is a value'
+
+            options = cli.parse (args)
+            options.value.should.eql 'thing'
+            options._.should.eql ['filename']
+
+        it 'returns nil if not specified'
+            args = ['filename']
+
+            cli = option parser.create parser ()
+            cli.option '-v, --value=<something> this is a value'
+
+            options = cli.parse (args)
+            should.not.exist (options.value)
+            options._.should.eql ['filename']

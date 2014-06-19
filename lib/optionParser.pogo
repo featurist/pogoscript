@@ -1,22 +1,11 @@
 class = require './class'.class
 
-Boolean Option = class {
-    constructor (short name: nil, long name: nil, description: nil) =
-        self.short name = short name
-        self.name = self._camel case name (long name)
-        self.long name = long name
+BooleanOption = class {
+    constructor (shortName: nil, longName: nil, description: nil) =
+        self.shortName = shortName
+        self.name = camelCaseName (longName)
+        self.longName = longName
         self.description = description
-
-    _camel case name (long name) =
-        segments = long name.split r/-/
-
-        name = segments.0
-
-        for (n = 1, n < segments.length, ++n)
-            segment = segments.(n)
-            name := name + (segment.0.to upper case () + segment.substring (1))
-
-        name
 
     init (options) =
         options.(self.name) = false
@@ -24,10 +13,10 @@ Boolean Option = class {
     set (options) =
         options.(self.name) = true
 
-    to string () =
+    toString () =
         switches = [
-            if (self.short name) @{ "-" + self.short name}
-            if (self.long name) @{ "--" + self.long name}
+            if (self.shortName) @{ "-" + self.shortName}
+            if (self.longName) @{ "--" + self.longName}
         ].filter @(s)
             s
         .join ', '
@@ -35,48 +24,101 @@ Boolean Option = class {
         "    #(switches)\n\n        #(self.description)\n"
 }
 
-Option Parser = class {
+StringOption = class {
+    constructor (shortName: nil, longName: nil, description: nil) =
+        self.shortName = shortName
+        self.name = camelCaseName (longName)
+        self.longName = longName
+        self.description = description
+
+    init (options) =
+        options.(self.name) = nil
+
+    set (options, arguments) =
+        options.(self.name) = arguments.shift()
+
+    toString () =
+        switches = [
+            if (self.shortName) @{ "-" + self.shortName}
+            if (self.longName) @{ "--" + self.longName}
+        ].filter @(s)
+            s
+        .join ', '
+
+        "    #(switches)\n\n        #(self.description)\n"
+}
+
+camelCaseName (longName) =
+    segments = longName.split r/-/
+
+    name = segments.0
+
+    for (n = 1, n < segments.length, ++n)
+        segment = segments.(n)
+        name := name + (segment.0.toUpperCase () + segment.substring (1))
+
+    name
+
+parsers = [
+  string (description) =
+    match = r/(-([a-z0-9])\s*,\s*)?--([a-z0-9-]+)=<[a-z0-9-]+>\s*(.*)/i.exec (description)
+
+    if (match)
+      shortName = match.2
+      longName = match.3
+      new (StringOption (
+          shortName: shortName
+          longName: longName
+          description: match.4
+      ))
+
+  boolean (description) =
+    match = r/(-([a-z0-9])\s*,\s*)?--([a-z0-9-]*)\s*(.*)/i.exec (description)
+
+    if (match)
+      shortName = match.2
+      longName = match.3
+      new (BooleanOption (
+          shortName: shortName
+          longName: longName
+          description: match.4
+      ))
+]
+
+OptionParser = class {
     constructor () =
-        self._long options = {}
-        self._short options = {}
+        self._longOptions = {}
+        self._shortOptions = {}
         self._options = []
 
     option (description) =
-        match = r/(-([a-z0-9])\s*,\s*)?--([a-z0-9-]*)\s*(.*)/i.exec (description)
+        option = [parser <- parsers, option = parser (description), option, option].0
 
-        if (!match)
-            throw (new (Error "expected option be of the form '[-x, ]--xxxx some description of xxxx'"))
+        if (option)
+          self._addOption(option)
+        else
+          throw (new (Error "expected option be of the form '[-x, ]--xxxx[=<value>] some description of xxxx'"))
 
-        short name = match.2
-        long name = match.3
-        option = new (Boolean Option (
-            short name: short name
-            long name: long name
-            description: match.4
-        ))
-
-        self._add option (option)
-
-    _add option (option) =
-        self._long options.(option.long name) = option
-        self._short options.(option.short name) = option
+    _addOption (option) =
+        self._longOptions.(option.longName) = option
+        self._shortOptions.(option.shortName) = option
         self._options.push (option)
 
-    _find long option (name) =
-        option = self._long options.(name)
+    _findLongOption (name) =
+        option = self._longOptions.(name)
         if (option)
             option
         else
             throw (new (Error "no such option --#(name)"))
 
-    _find short option (name) =
-        option = self._short options.(name)
+    _findShortOption (name) =
+        option = self._shortOptions.(name)
         if (option)
             option
         else
             throw (new (Error "no such option -#(name)"))
 
-    _set default options (options) =
+    _setDefaultOptions (options) =
         for each @(option) in (self._options)
             option.init (options)
 
@@ -88,25 +130,26 @@ Option Parser = class {
             _ = []
         }
 
-        self._set default options (options)
+        self._setDefaultOptions (options)
 
-        for (n = 0, n < args.length, ++n)
-            arg = args.(n)
+        remainingArguments = args.slice()
+        while (remainingArguments.length > 0)
+            arg = remainingArguments.shift()
 
-            long match = r/^--([a-z0-9-]*)$/.exec (arg)
-            short match = r/^-([a-z0-9-]*)$/.exec (arg)
+            longMatch = r/^--([a-z0-9-]*)$/.exec (arg)
+            shortMatch = r/^-([a-z0-9-]*)$/.exec (arg)
 
             option = nil
 
-            if (long match)
-                option := self._find long option (long match.1)
-                option.set (options)
-            else if (short match)
-                for each @(short option) in (short match.1)
-                    option := self._find short option (short option)
-                    option.set (options)
+            if (longMatch)
+                option := self._findLongOption (longMatch.1)
+                option.set (options, remainingArguments)
+            else if (shortMatch)
+                for each @(shortOption) in (shortMatch.1)
+                    option := self._findShortOption (shortOption)
+                    option.set (options, remainingArguments)
             else
-                options._.push (args.slice (n), ...)
+                options._.push (arg, remainingArguments.slice (), ...)
                 return (options)
 
         options
@@ -125,4 +168,4 @@ Option Parser = class {
             process.stdout.write (option + "\n")
 }
 
-exports.create parser () = new (Option Parser)
+exports.createParser () = new (OptionParser)

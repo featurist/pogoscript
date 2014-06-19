@@ -10,6 +10,7 @@ cli.option("-s, --if-stale only compile files if they are out of date");
 cli.option("-h, --help print herlp!");
 cli.option("--debug run the node debugger");
 cli.option("--debug-brk run the node debugger, breaking on the first line");
+cli.option("-p, --promises=<promise-module> select a promises module, the default is bluebird");
 options = cli.parse(process.argv.slice(2));
 
 var commandLine = require('..');
@@ -26,17 +27,17 @@ try {
   } else if (options.compile) {
     for (var i in options._) {
       if (options.watch) {
-        commandLine.watchFile(options._[i], {ugly: options.ugly});
+        commandLine.watchFile(options._[i], options);
       } else if (options.ifStale) {
-        commandLine.compileFileIfStale(options._[i], {ugly: options.ugly});
+        commandLine.compileFileIfStale(options._[i], options);
       } else {
-        commandLine.compileFile(options._[i], {ugly: options.ugly});
+        commandLine.compileFile(options._[i], options);
       }
     }
   } else if (options._.length === 0) {
     commandLine.repl();
   } else {
-    commandLine.runMain(options._[0]);
+    commandLine.runMain(options._[0], options);
   }
 } catch (error) {
   if (error.isSemanticErrors) {

@@ -6,15 +6,15 @@ repl = require 'repl'
 versions = require '../versions'
 compiler = require './compiler'
 
-createTerms () = require './codeGenerator'.codeGenerator ()
+createTerms = require './codeGenerator'.codeGenerator
 
 runningOnNode (version) orHigher =
     @not versions.(process.version) isLessThan (version)
 
-exports.compileFile = compileFile (filename, ugly: false) =
+exports.compileFile = compileFile (filename, ugly: false, promises: nil) =
     fullFilename = fs.realpathSync (filename)
     jsFilename = jsFilenameFromPogoFilename (filename)
-    js = compileFromFile (filename, ugly: ugly, outputFilename: jsFilename)
+    js = compileFromFile (filename, ugly: ugly, promises: promises, outputFilename: jsFilename)
 
     fs.writeFileSync (jsFilename, js)
 
@@ -57,11 +57,11 @@ exports.lexFile (filename) =
 jsFilenameFromPogoFilename (pogo) =
     pogo.replace r/\.pogo$/ '' + '.js'
 
-exports.runFile (filename) inModule (module) =
-    js = compileFromFile (filename)
+exports.runFile (filename) inModule (module, options) =
+    js = compileFromFile (filename, options)
     module._compile (js, filename)
 
-exports.runMain (filename) =
+exports.runMain (filename, options) =
     fullFilename = fs.realpathSync (filename)
     
     process.argv.shift ()
@@ -73,10 +73,10 @@ exports.runMain (filename) =
     module.id = '.'
     module.filename = fullFilename
     module.paths = Module._nodeModulePaths (path.dirname (fullFilename))
-    exports.runFile (fullFilename) inModule (module)
+    exports.runFile (fullFilename) inModule (module, options)
     module.loaded = true
 
-exports.repl () =
+exports.repl (promises: nil) =
     compilePogo (source, filename, terms) =
         exports.compile (
             source
@@ -90,7 +90,7 @@ exports.repl () =
 
     evalPogo (sourceWithParens, context, filename, callback) =
         source = sourceWithParens.replace r/^\(((.|[\r\n])*)\)$/mg '$1'
-        terms = createTerms ()
+        terms = createTerms (promises: promises)
 
         terms.moduleConstants.onEachNewDefinition @(d)
             definitionJs = exports.generateCode (
@@ -126,9 +126,9 @@ exports.repl () =
     else
         repl.start (nil, nil, evalPogo)
 
-compileFromFile (filename, ugly: false, outputFilename: nil) =
+compileFromFile (filename, ugly: false, outputFilename: nil, promises: nil) =
     contents = fs.readFileSync (filename) 'utf-8'
-    exports.compile (contents, filename: filename, ugly: ugly, outputFilename: outputFilename)
+    exports.compile (contents, filename: filename, ugly: ugly, outputFilename: outputFilename, promises: promises)
 
 exports.compile = compiler.compile
 exports.generateCode = compiler.generateCode

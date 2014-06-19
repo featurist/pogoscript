@@ -29,7 +29,7 @@ describe 'pogo command'
                                                                             '#(path.resolve '343111c34d666435dd7e88265c816cbfdbe68cd3.pogo')',
                                                                             '--compile' ]"
 
-writeFile (filename, content) =
+write (content) toFile (filename) =
     fs.writeFile ("#(__dirname)/#(filename)", content, ^)
 
 expandPogoCommand (command) =
@@ -53,7 +53,7 @@ describe 'pogo --compile'
         unlink "#(__dirname)/toCompile.js"!
 
     it 'can compile a script'
-        writeFile "toCompile.pogo" "console.log 'hi'"!
+        write "console.log 'hi'" toFile "toCompile.pogo"!
         pogoOutput = run "pogo -c toCompile.pogo"!
         pogoOutput.stdout.should.equal ''
         pogoOutput.stderr.should.equal ''
@@ -93,7 +93,7 @@ describe 'pogo --compile --if-stale'
         unlink "#(__dirname)/toCompile.js"!
 
     it 'compiles a pogo script if the js is missing'
-        writeFile "toCompile.pogo" "console.log 'hi'"!
+        write "console.log 'hi'" toFile "toCompile.pogo"!
         pogoOutput = run "pogo -cs toCompile.pogo"!
         pogoOutput.stdout.should.equal "compiling toCompile.pogo => toCompile.js\n"
         pogoOutput.stderr.should.equal ''
@@ -103,9 +103,9 @@ describe 'pogo --compile --if-stale'
         nodeOutput.stderr.should.equal ''
 
     it 'compiles a pogo script if the js is out of date'
-        writeFile "toCompile.js" "console.log('old')"!
+        write "console.log('old')" toFile "toCompile.js"!
         wait (1s)!
-        writeFile "toCompile.pogo" "console.log 'new'"!
+        write "console.log 'new'" toFile "toCompile.pogo"!
 
         pogoOutput = run "pogo -cs toCompile.pogo"!
         pogoOutput.stdout.should.equal "compiling toCompile.pogo => toCompile.js\n"
@@ -116,9 +116,9 @@ describe 'pogo --compile --if-stale'
         nodeOutput.stderr.should.equal ''
 
     it "doesn't recompile the js if it the pogo is older"
-        writeFile "toCompile.pogo" "console.log 'pogo'"!
+        write "console.log 'pogo'" toFile "toCompile.pogo"!
         wait (1s)!
-        writeFile "toCompile.js" "console.log('js')"!
+        write "console.log('js')" toFile "toCompile.js"!
 
         pogoOutput = run "pogo -cs toCompile.pogo"!
         pogoOutput.stdout.should.equal ''
@@ -133,7 +133,7 @@ describe 'debugging'
         this.timeout 3000
 
         it 'starts remote debugging'
-            writeFile "toDebug.pogo" "console.log 'bug!'"!
+            write "console.log 'bug!'" toFile "toDebug.pogo"!
             pogoOutput = run 'pogo --debug toDebug.pogo'!
             pogoOutput.stderr.should.equal "debugger listening on port 5858\n"
             pogoOutput.stdout.should.equal "bug!\n"
@@ -168,21 +168,24 @@ describe '`pogo` (interactive)'
 
         {
             issue (command)! =
+              promise @(success)
                 handleResult (actualResult) :=
-                    continuation ()
+                  success()
 
                 pogo.stdin.write "#(command)\n"
 
             issue (command) andExpect (result)! =
+              promise @(success)
                 handleResult (actualResult) :=
-                    actualResult.should.equal (result)
-                    continuation ()
+                  actualResult.should.equal (result)
+                  success ()
 
                 pogo.stdin.write "#(command)\n"
 
             exit ()! =
+              promise @(success)
                 pogo.on 'exit' @(code)
-                    continuation (nil, code)
+                  success (code)
 
                 pogo.stdin.end ()
         }
@@ -220,3 +223,47 @@ describe '`pogo` (interactive)'
         pogo.issue 'b = a()!'!
         pogo.issue 'c == b' andExpect 'false'!
         pogo.exit()!
+
+describe 'pogo --promises'
+  promisesTests (runPogoCommand) =
+    it 'default is set to bluebird'
+      source = "wait () = setTimeout ^ 1!
+                bluebird = require 'bluebird'
+                console.log (bluebird == Promise)"
+      write (source) toFile "promiseTest.pogo"!
+      output = runPogoCommand "promiseTest.pogo"!
+      output.stdout.should.equal "true\n"
+
+    it 'can be set to bluebird'
+      source = "wait () = setTimeout ^ 1!
+                bluebird = require 'bluebird'
+                console.log (bluebird == Promise)"
+      write (source) toFile "promiseTest.pogo"!
+      output = runPogoCommand "--promises bluebird promiseTest.pogo"!
+      output.stdout.should.equal "true\n"
+
+    it 'can be set to something else'
+      source = "wait () = setTimeout ^ 1!
+                myPromiseLib = require './myPromiseLib'
+                console.log (myPromiseLib == Promise)"
+      write (source) toFile "promiseTest.pogo"!
+      write 'module.exports = "my promise";'  toFile "myPromiseLib.js"!
+      output = runPogoCommand "--promises ./myPromiseLib promiseTest.pogo"!
+      output.stdout.should.equal "true\n"
+
+    it 'can be set to none, using the global Promise'
+      source = "wait () = setTimeout ^ 1!
+                global.Promise = 'global promise'
+                console.log ('global promise' == Promise)"
+      write (source) toFile "promiseTest.pogo"!
+      output = runPogoCommand "--promises none promiseTest.pogo"!
+      output.stdout.should.equal "true\n"
+
+  context 'when evaluating'
+    promisesTests @(command)
+      run "pogo #(command)"!
+
+  context 'when compiling'
+    promisesTests @(command)
+      run "pogo -c #(command)"!
+      run "node promiseTest.js"!
