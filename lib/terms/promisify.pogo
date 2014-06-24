@@ -4,6 +4,8 @@ module.exports (terms) = terms.term {
   constructor (term) =
     self.isPromisify = true
 
+    terms.promise()
+
     self.promisifyFunction = terms.moduleConstants.defineAs (
       ['promisify']
       terms.javascript(asyncControl.promisify.toString())

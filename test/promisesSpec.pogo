@@ -30,6 +30,14 @@ describe 'promises'
        
        print (f ^!.result)' shouldOutput "'result'"
 
+    it '^. can be used'
+      'f (cb) =
+         setTimeout
+           cb (nil, {result = "result"})
+         1
+       
+       print (f ^.field)' shouldOutput "undefined"
+
   describe 'explicit promises'
     it 'can create explicit promises'
       'x = promise @(success)
