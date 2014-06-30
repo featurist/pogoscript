@@ -215,14 +215,20 @@ describe '`pogo` (interactive)'
         pogo.exit()!
 
     it 'evaluates async assignments properly'
-        pogo = pogoSession ()
-        pogo.issue 'a ()! = @{ setTimeout (^, 100), t = (@new Date).getTime (), console.log (t), {t = t} }'!
-        pogo.issue 'b = a()!'!
-        pogo.issue 'c = b'!
-        pogo.issue 'c == b'!
-        pogo.issue 'b = a()!'!
-        pogo.issue 'c == b' andExpect 'false'!
-        pogo.exit()!
+      pogo = pogoSession ()
+      pogo.issue 'a ()! = @{ setTimeout (^, 100), t = (@new Date).getTime (), console.log (t), {t = t} }'!
+      pogo.issue 'b = a()!'!
+      pogo.issue 'c = b'!
+      pogo.issue 'c == b'!
+      pogo.issue 'b = a()!'!
+      pogo.issue 'c == b' andExpect 'false'!
+      pogo.exit()!
+
+    it 'can require a local file'
+      write "exports.x = 'x'" toFile "local.pogo"!
+      pogo = pogoSession ()
+      pogo.issue 'require "./local"' andExpect "{ x: 'x' }"!
+      pogo.exit()!
 
 describe 'pogo --promises'
   promisesTests (runPogoCommand) =

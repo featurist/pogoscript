@@ -1,5 +1,6 @@
 ms = require '../memorystream'
 fs = require 'fs'
+vm = require 'vm'
 Module = require 'module'
 path = require 'path'
 repl = require 'repl'
@@ -77,54 +78,51 @@ exports.runMain (filename, options) =
     module.loaded = true
 
 exports.repl (promises: nil) =
-    compilePogo (source, filename, terms) =
-        exports.compile (
-            source
-            filename: filename
-            ugly: true
-            inScope: false
-            global: true
-            returnResult: false
-            terms: terms
-        )
+  compilePogo (source, filename, terms) =
+    exports.compile (
+      source
+      filename: filename
+      ugly: true
+      inScope: false
+      global: true
+      returnResult: false
+      terms: terms
+    )
 
-    evalPogo (sourceWithParens, context, filename, callback) =
-        source = sourceWithParens.replace r/^\(((.|[\r\n])*)\)$/mg '$1'
-        terms = createTerms (promises: promises)
+  evalPogo (sourceWithParens, context, filename, callback) =
+    source = sourceWithParens.replace r/^\(((.|[\r\n])*)\)$/mg '$1'
+    terms = createTerms (promises: promises)
 
-        terms.moduleConstants.onEachNewDefinition @(d)
-            definitionJs = exports.generateCode (
-                terms.statements [d]
-                terms
-                inScope: false
-                global: true
-            )
-            eval (definitionJs)
+    terms.moduleConstants.onEachNewDefinition @(d)
+      definitionJs = exports.generateCode (
+        terms.statements [d]
+        terms
+        inScope: false
+        global: true
+      )
+      vm.runInThisContext (definitionJs, filename)
 
-        js = compilePogo (source, filename, terms)
+    js = compilePogo (source, filename, terms)
 
-        if (source.trim () == '')
-            callback ()
-        else
-            try
-                result = eval (js)
-                if (result @and (result.then :: Function))
-                  result.then @(r)
-                    callback (nil, r)
-                  @(e)
-                    callback (e)
-                else
-                  callback (nil, result)
-            catch (error)
-                callback (error)
-
-    if (runningOnNode 'v0.8.0' orHigher)
-        repl.start (
-            eval: evalPogo
-            useGlobal: true
-        )
+    if (source.trim () == '')
+      callback ()
     else
-        repl.start (nil, nil, evalPogo)
+      try
+        result = vm.runInThisContext (js, filename)
+        if (result @and (typeof (result.then) == 'function'))
+          result.then @(r)
+            callback (nil, r)
+          @(e)
+            callback (e)
+        else
+          callback (nil, result)
+      catch (error)
+        callback (error)
+
+  if (runningOnNode 'v0.8.0' orHigher)
+    repl.start (eval: evalPogo, useGlobal: true)
+  else
+    repl.start (nil, nil, evalPogo)
 
 compileFromFile (filename, ugly: false, outputFilename: nil, promises: nil) =
     contents = fs.readFileSync (filename) 'utf-8'
