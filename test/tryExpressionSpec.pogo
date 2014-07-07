@@ -91,6 +91,21 @@ describe 'try'
            print (result)' shouldOutput "'uh oh'
                                          'result'"
 
+        it "when it throws a non-promise exception"
+          'promiseError () =
+             @throw @new Error "uh oh"
+           
+           result = try
+             promiseError ()!
+             print "good"
+           catch (ex)
+             p()!
+             print (ex.message)
+             "result"
+          
+           print (result)' shouldOutput "'uh oh'
+                                         'result'"
+
       context "and there is a finally"
         it "runs the catch clause and returns the catch clause expression"
           'promiseError () =
