@@ -84,8 +84,7 @@ module.exports (terms) =
                           terms.closure ([], incrStatements)
                           terms.closure ([], body)
                       ]
-                  )
-                  alreadyPromise: true
+                  ).alreadyPromise()
                 )
             ]
         else

@@ -53,50 +53,54 @@ module.exports (terms) =
           terms.nil()
           terms.closure ([catchParameter], catchBody)
         ]
-      )
+      ).alreadyPromise()
 
     finallyClause (body, finallyBody) =
       result = terms.generatedVariable ['result']
 
+      finallyBlock (throwResult: false) =
+        resultStatement =
+          if (throwResult)
+            terms.throwStatement(result)
+          else
+            result
+
+        terms.closure (
+          [result]
+          terms.statements [
+            terms.methodCall (
+              finallyBody.promisify()
+              ['then']
+              [
+                terms.closure ([], terms.statements [resultStatement])
+              ]
+            )
+          ]
+        )
+
       terms.methodCall (
         body
         ['then']
-        [
-          terms.closure (
-            [result]
-            terms.statements [
-              terms.methodCall (
-                finallyBody.promisify()
-                ['then']
-                [
-                  terms.closure ([], terms.statements [result])
-                ]
-              )
-            ]
-          )
-        ]
-      )
+        [finallyBlock(), finallyBlock(throwResult:true)]
+      ).alreadyPromise()
 
     try expression (body, catch body: nil, catch parameter: nil, finally body: nil) =
         if ((body.returnsPromise || (catch body && catch body.returnsPromise)) || (finally body && finally body.returnsPromise))
           if (catchBody)
             if (finallyBody)
-              terms.resolve (
+              terms.resolve(
                 finallyClause (
                   catchClause (body.promisify(), catchParameter, catchBody)
                   finallyBody
                 )
-                alreadyPromise: true
               )
             else
-              terms.resolve (
+              terms.resolve(
                 catchClause (body.promisify(), catchParameter, catchBody)
-                alreadyPromise: true
               )
           else if (finallyBody)
-            terms.resolve (
+            terms.resolve(
               finallyClause (body.promisify(), finallyBody)
-              alreadyPromise: true
             )
           else
             terms.resolve (body)

@@ -1,14 +1,10 @@
 module.exports (terms) =
   resolve = terms.term {
-    constructor (term, alreadyPromise: false) =
+    constructor (term) =
       self.isResolve = true
       self.term = term
 
-      self._resolve =
-        if (alreadyPromise)
-          term
-        else
-          term.promisify ()
+      self._resolve = term.promisify ()
 
     makeAsyncCallWithCallback (onFulfilled, onRejected) =
       args = []

@@ -11,6 +11,6 @@ module.exports (terms) =
             statements = terms.asyncStatements (statementList)
             fn = terms.functionCall (terms.subExpression (terms.block (variables, statements)), variables)
             if (statements.returnsPromise)
-              terms.resolve(fn, alreadyPromise: true)
+              terms.resolve(fn.alreadyPromise())
             else
               fn

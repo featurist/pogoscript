@@ -111,3 +111,49 @@ describe 'try'
            print (result)' shouldOutput "'uh oh'
                                          'finally'
                                          'result'"
+
+      context "and there is a finally, but no catch"
+        it "runs the finally clause and continues to throw the exception"
+          'promiseError () =
+             p ()!
+             @throw @new Error "uh oh"
+           
+           result =
+             try
+               try
+                 promiseError ()!
+                 print "good"
+               finally
+                 p()!
+                 print "finally"
+             catch (e)
+               print "outer catch"
+               "result"
+           
+           print (result)' shouldOutput "'finally'
+                                         'outer catch'
+                                         'result'"
+
+        context 'when the finally clause throws an exception'
+          it "runs the finally clause and throws the finally clause exception"
+            'promiseError (name) =
+               p ()!
+               @throw @new Error (name)
+             
+             result =
+               try
+                 try
+                   promiseError "body"!
+                   print "good"
+                 finally
+                   p()!
+                   print "finally"
+                   promiseError "finally"!
+                   print "finally finished"
+               catch (e)
+                 print "outer catch: #(e.message)"
+                 "result"
+             
+             print (result)' shouldOutput "'finally'
+                                           'outer catch: finally'
+                                           'result'"

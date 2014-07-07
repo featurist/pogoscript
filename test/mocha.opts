@@ -1,1 +1,1 @@
--r index.js
+-r index.js --reporter spec

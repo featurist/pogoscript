@@ -289,7 +289,15 @@ module.exports (cg) =
 
         asyncify () = nil
 
-        promisify () = cg.methodCall (cg.promise(), ['resolve'], [self])
+        alreadyPromise () =
+          self._alreadyPromise = true
+          self
+
+        promisify () =
+          if (self._alreadyPromise)
+            self
+          else
+            cg.methodCall (cg.promise(), ['resolve'], [self]).alreadyPromise()
 
         code (chunks, ...) =
             location = self.location ()
