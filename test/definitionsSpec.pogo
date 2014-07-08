@@ -48,6 +48,12 @@ describe 'definitions'
           @{evaluateScript 'f (a: nil) =
                                 a = 6'}.should.throw r/variable a is already defined/
 
+  describe 'or precedence'
+    it 'allows assignment in parens'
+      'obj = {}
+       obj.cache @or (obj.cache = 8)
+       print (obj.cache)' shouldOutput '8'
+
   describe 'scopes'
     describe 'promises'
       it 'promises can be resolved in a scope'
@@ -68,3 +74,16 @@ describe 'definitions'
            b + "c"
 
          print(a)' shouldOutput "'ac'"
+
+      it 'prepares scope correctly'
+        'x = 0
+ 
+         a()! =
+           if(true)
+             x = 7
+             p()!
+             x
+ 
+         print(a()!)
+         print(x)' shouldOutput '7
+                                 0'
