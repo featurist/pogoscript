@@ -49,3 +49,41 @@ describe 'if'
          
          print (result)' shouldOutput "'else if'
                                        'result'"
+
+    describe 'executing only enough conditions to find a true one'
+      it 'only executes the first one'
+        'condition (n, c) =
+           p()!
+           print "condition: #(n)"
+           c
+
+         result = if (condition (1, true)!)
+           p ()!
+           1
+         else if (condition (2, true)!)
+           p()!
+           2
+         else
+           3
+         
+         print (result)' shouldOutput "'condition: 1'
+                                       1"
+
+      it 'executes the first and second'
+        'condition (n, c) =
+           p()!
+           print "condition: #(n)"
+           c
+
+         result = if (condition (1, false)!)
+           p ()!
+           1
+         else if (condition (2, true)!)
+           p()!
+           2
+         else
+           3
+         
+         print (result)' shouldOutput "'condition: 1'
+                                       'condition: 2'
+                                       2"
