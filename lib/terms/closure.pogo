@@ -91,9 +91,11 @@ module.exports (terms) =
           definesModuleConstants: false
           returnPromise: false
           callsFulfillOnReturn: false
+          isNewScope: true
         ) =
           self.isBlock = true
           self.isClosure = true
+          self.isNewScope = isNewScope
           self.parameters = parameters
 
           self.body = if (returnPromise)

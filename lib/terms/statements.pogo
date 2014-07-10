@@ -44,79 +44,79 @@ module.exports (terms) = terms.term {
           self.statements.0
 
     rewriteResultTermInto (returnTerm, async: false) =
-        if (self.statements.length > 0)
-            lastStatement = self.statements.(self.statements.length - 1)
-            rewrittenLastStatement = lastStatement.rewriteResultTerm @(term) into (async: async)
-                returnTerm (term)
+      if (self.statements.length > 0)
+        lastStatement = self.statements.(self.statements.length - 1)
+        rewrittenLastStatement = lastStatement.rewriteResultTerm @(term) into (async: async)
+          returnTerm (term)
 
-            if (rewrittenLastStatement)
-                self.statements.(self.statements.length - 1) = rewrittenLastStatement
-            else
-                self.statements.push (returnTerm (terms.nil ()))
-        else if (async)
-            self.statements.push(terms.functionCall (terms.onFulfilledFunction, []))
+        if (rewrittenLastStatement)
+          self.statements.(self.statements.length - 1) = rewrittenLastStatement
+        else
+          self.statements.push (returnTerm (terms.nil ()))
+      else if (async)
+        self.statements.push(terms.functionCall (terms.onFulfilledFunction, []))
 
     rewriteLastStatementToReturn (async: false) =
-        containsContinuation = self.containsContinuation ()
+      containsContinuation = self.containsContinuation ()
 
-        self.rewriteResultTerm @(term) into ()
-            if (async)
-                terms.functionCall (terms.onFulfilledFunction, [term])
-            else
-                terms.returnStatement (term, implicit: true)
+      self.rewriteResultTerm @(term) into ()
+        if (async)
+          terms.functionCall (terms.onFulfilledFunction, [term])
+        else
+          terms.returnStatement (term, implicit: true)
 
     generateVariableDeclarations (variables, buffer, global: false) =
-        if (variables.length > 0)
-            if (@not global)
-                buffer.write ('var ')
+      if (variables.length > 0)
+        if (@not global)
+          buffer.write ('var ')
 
-                codegenUtils.writeToBufferWithDelimiter (variables, ',', buffer) @(variable)
-                    buffer.write (variable)
+          codegenUtils.writeToBufferWithDelimiter (variables, ',', buffer) @(variable)
+            buffer.write (variable)
 
-                buffer.write (';')
+          buffer.write (';')
 
     findDefinedVariables (scope) =
-        definitions = self._definitions @or self.definitions()
-        variables = codegenUtils.definedVariables (scope)
+      definitions = self._definitions @or self.definitions()
+      variables = codegenUtils.definedVariables (scope)
 
-        for each @(def) in (definitions)
-            def.defineVariables (variables)
+      for each @(def) in (definitions)
+        def.defineVariables (variables)
 
-        variables.names ()
+      variables.names ()
 
     blockify (parameters, options) =
-        statements = if (self.isExpressionStatements)
-            self.cg.statements ([self])
-        else
-            self
+      statements = if (self.isExpressionStatements)
+        self.cg.statements ([self])
+      else
+        self
 
-        terms.block (parameters, statements, options)
+      terms.block (parameters, statements, options)
 
     scopify () =
-        self.cg.functionCall (self.cg.block([], self), [])
+      self.cg.functionCall (self.cg.block([], self), [])
 
     generate (scope) =
-        self.generateIntoBuffer @(buffer)
-            if (self.statements.length > 0)
-                buffer.write (self.statements.(self.statements.length - 1).generate (scope))
+      self.generateIntoBuffer @(buffer)
+        if (self.statements.length > 0)
+          buffer.write (self.statements.(self.statements.length - 1).generate (scope))
 
     generateStatement (scope) =
-        self.generateIntoBuffer @(buffer)
-            if (self.statements.length > 0)
-                buffer.write (self.statements.(self.statements.length - 1).generateStatement (scope))
+      self.generateIntoBuffer @(buffer)
+        if (self.statements.length > 0)
+          buffer.write (self.statements.(self.statements.length - 1).generateStatement (scope))
 
     definitions (scope) =
-        _(self.statements).reduce @(list, statement)
-            defs = statement.definitions(scope)
-            list.concat (defs)
-        []
+      _(self.statements).reduce @(list, statement)
+        defs = statement.definitions(scope)
+        list.concat (defs)
+      []
 
     serialiseStatements () =
-        self.statements = statementsUtils.serialiseStatements (self.statements)
-        nil
+      self.statements = statementsUtils.serialiseStatements (self.statements)
+      nil
 
     asyncify (returnCallToContinuation: true) =
-        if (!self.isAsync)
-            self.rewriteLastStatementToReturn (async: true, returnCallToContinuation: returnCallToContinuation)
-            self.isAsync = true
+      if (!self.isAsync)
+        self.rewriteLastStatementToReturn (async: true, returnCallToContinuation: returnCallToContinuation)
+        self.isAsync = true
 }

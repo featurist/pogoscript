@@ -9,7 +9,7 @@ module.exports (terms) =
               terms.onFulfilledFunction
             ]
             statements @or terms.statements [term]
-            inPromise: true
+            isNewScope: false
             callsFulfillOnReturn: callsFulfillOnReturn
           )
         ]

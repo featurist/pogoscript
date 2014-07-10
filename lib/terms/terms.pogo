@@ -257,7 +257,7 @@ module.exports (cg) =
             if (term.isDefinition)
               defs.push(term)
           notBelow @(term) if
-            term.isClosure
+            term.isNewScope
 
           if (self.isDefinition)
             defs.push(self)

@@ -7,11 +7,11 @@ describe 'definitions'
   describe 'definitions cannot shadow other definitions'
     it 'definitions can shadow other definitions'
       'a = 1
-      
+
        f () =
            a = 3
            print (a)
-       
+
        f ()
        print (a)' shouldOutput "3
                                 1"
@@ -68,3 +68,16 @@ describe 'definitions'
            b + "c"
 
          print(a)' shouldOutput "'ac'"
+
+      it 'prepares scope correctly'
+        'x = 0
+
+         a()! =
+           if(true)
+             x = 7
+             p()!
+             x
+
+         print(a()!)
+         print(x)' shouldOutput '7
+                                 0'
