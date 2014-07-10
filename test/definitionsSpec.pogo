@@ -69,15 +69,28 @@ describe 'definitions'
 
          print(a)' shouldOutput "'ac'"
 
-      it 'prepares scope correctly'
+      it 'prepares scope correctly with ifs'
         'x = 0
 
          a()! =
            if(true)
-             x = 7
-             p()!
+             x = p(7)!
              x
 
          print(a()!)
          print(x)' shouldOutput '7
+                                 0'
+
+      it 'prepares scope correctly with tries'
+        'x = 0
+
+         a()! =
+           try
+             x = p(7)!
+             x + 1
+           catch (e)
+            print (e)
+
+         print(a()!)
+         print(x)' shouldOutput '8
                                  0'

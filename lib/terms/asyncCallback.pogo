@@ -9,4 +9,5 @@ module.exports (terms) =
         terms.closure (
             params
             body
+            isNewScope: false
         )
