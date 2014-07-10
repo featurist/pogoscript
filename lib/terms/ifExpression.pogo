@@ -1,59 +1,66 @@
-codegen utils = require "./codegenUtils"
+codegenUtils = require "./codegenUtils"
 _ = require 'underscore'
-async control = require '../asyncControl'
+asyncControl = require '../asyncControl'
 
 module.exports (terms) =
-    if expression term = terms.term {
-        constructor (cases, else body) =
-            self.is if expression = true 
+    ifExpressionTerm = terms.term {
+        constructor (cases, elseBody) =
+            self.isIfExpression = true 
             self.cases = cases
-            self.else body = else body
+            self.elseBody = elseBody
 
-        generate statement (scope) =
-            self.generate into buffer @(buffer)
-                codegen utils.write to buffer with delimiter (self.cases, 'else ', buffer) @(case_)
+        generateStatement (scope) =
+            self.generateIntoBuffer @(buffer)
+                codegenUtils.writeToBufferWithDelimiter (self.cases, 'else ', buffer) @(case_)
                     buffer.write ('if(')
                     buffer.write (case_.condition.generate (scope))
                     buffer.write ('){')
-                    buffer.write (case_.body.generate statements (scope))
+                    buffer.write (case_.body.generateStatements (scope))
                     buffer.write ('}')
 
-                if (self.else body)
+                if (self.elseBody)
                     buffer.write ('else{')
-                    buffer.write (self.else body.generate statements (scope))
+                    buffer.write (self.elseBody.generateStatements (scope))
                     buffer.write ('}')
 
         generate (scope) =
-            self.rewrite result term @(term) into
-                terms.return statement (term)
-                
+            self.rewriteResultTerm @(term) into
+                terms.returnStatement (term)
+
             self.code (
                 '(function(){'
-                self.generate statement (scope)
+                self.generateStatement (scope)
                 '})()'
             )
 
-        rewrite result term into (return term, async: false) =
+        rewriteResultTermInto (returnTerm, async: false) =
             for each @(_case) in (self.cases)
-                _case.body.rewrite result term into (return term)
+                _case.body.rewriteResultTermInto (returnTerm)
 
-            if (self.else body)
-                self.else body.rewrite result term into (return term)
+            if (self.elseBody)
+                self.elseBody.rewriteResultTermInto (returnTerm)
             else if (async)
-                self.else body = terms.statements [
-                    terms.function call (terms.continuation function, [])
+                self.elseBody = terms.statements [
+                    terms.functionCall (terms.continuationFunction, [])
                 ]
 
             self
     }
 
     ifExpression (cases, elseBody, isPromise: false) =
-        any async cases = _.any (cases) @(_case)
-            _case.body.returnsPromise
+        anyAsyncCases = _.any (cases) @(_case)
+            _case.body.returnsPromise @or _case.condition.containsAsync()
 
         if (@not isPromise @and (anyAsyncCases @or elseBody @and elseBody.returnsPromise))
+          splitIfElseIf (cases, elseBody) =
+            casesTail = cases.slice(1)
+            if (casesTail.length > 0)
+              ifExpressionTerm ([cases.0], terms.asyncStatements [splitIfElseIf(casesTail, elseBody)])
+            else
+              ifExpressionTerm (cases, elseBody)
+            
           terms.resolve (
-            ifExpression (cases, elseBody, isPromise: true)
+            splitIfElseIf(cases, elseBody)
           )
         else
-            if expression term (cases, else body)
+            ifExpressionTerm (cases, elseBody)

@@ -18,7 +18,7 @@ describe 'if'
         'result = if (true)
            p ()!
            "result"
-         
+
          print (result)' shouldOutput "'result'"
 
     context 'when there is an else clause'
@@ -30,7 +30,7 @@ describe 'if'
            p()!
            print "else"
            "result"
-         
+
          print (result)' shouldOutput "'else'
                                        'result'"
 
@@ -46,7 +46,7 @@ describe 'if'
          else
            p()!
            print "else"
-         
+
          print (result)' shouldOutput "'else if'
                                        'result'"
 
@@ -65,7 +65,7 @@ describe 'if'
            2
          else
            3
-         
+
          print (result)' shouldOutput "'condition: 1'
                                        1"
 
@@ -83,7 +83,7 @@ describe 'if'
            2
          else
            3
-         
+
          print (result)' shouldOutput "'condition: 1'
                                        'condition: 2'
                                        2"
