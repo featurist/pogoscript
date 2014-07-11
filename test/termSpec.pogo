@@ -91,9 +91,10 @@ describe 'terms'
             
             clone.should.equal (t)
 
-        it "can rewrite an object while being cloned"
+        it "can rewrite an object while being cloned, excluding members beginning with _"
             t = new (Term)
             t.a = new (Term {name = "jack"})
+            t._b = new (Term {name = "jack"})
 
             clone = t.clone (
                 rewrite (old term):
@@ -105,6 +106,7 @@ describe 'terms'
             
             (clone) should contain fields {
                 a = {name = "jill"}
+                _b = {name = "jack"}
             }
 
         it "rewrite is passed the clone function, which can be used to clone further members"

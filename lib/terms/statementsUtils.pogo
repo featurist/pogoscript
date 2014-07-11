@@ -1,15 +1,15 @@
 exports.serialiseStatements (statements) =
-    serialisedStatements = []
+  serialisedStatements = []
 
-    for (n = 0, n < statements.length, ++n)
-        statement = statements.(n).rewrite (
-            rewrite (term, rewrite: nil):
-                term.serialiseSubStatements (serialisedStatements, rewrite: rewrite)
-                
-            limit (term):
-                term.isStatements
-        )
+  for (n = 0, n < statements.length, ++n)
+    statement = statements.(n).rewrite (
+      rewrite (term, rewrite: nil):
+        term.serialiseSubStatements (serialisedStatements, rewrite: rewrite)
+          
+      limit (term):
+        term.isStatements
+    )
 
-        serialisedStatements.push (statement)
+    serialisedStatements.push (statement)
 
-    serialisedStatements
+  serialisedStatements

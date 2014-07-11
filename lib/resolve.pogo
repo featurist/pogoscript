@@ -2,9 +2,8 @@ module.exports (terms) =
   resolve = terms.term {
     constructor (term) =
       self.isResolve = true
-      self.term = term
 
-      self._resolve = term.promisify ()
+      self.resolve = term.promisify ()
 
     makeAsyncCallWithCallback (onFulfilled, onRejected) =
       args = []
@@ -13,9 +12,9 @@ module.exports (terms) =
         args.push (onFulfilled)
 
       if (args.length > 0)
-        terms.methodCall (self._resolve, ['then'], args)
+        terms.methodCall (self.resolve, ['then'], args)
       else
-        self._resolve
+        self.resolve
   }
 
   createResolve (term, alreadyPromise: false) =

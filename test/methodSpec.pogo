@@ -85,3 +85,13 @@ describe 'methods'
 
        o.method().then @(result)
          print (result)' shouldOutput "'result'"
+
+    it 'can be called with splat arguments'
+      'o = {
+         method (args, ...) =
+           p ()!
+           print (args)
+       }
+
+       if (true)
+         o.method ([1, 2, 3], ...)!' shouldOutput "[ 1, 2, 3 ]"

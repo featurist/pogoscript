@@ -55,7 +55,7 @@ module.exports (cg) =
 
                 for @(member) in (node)
                     if (node.hasOwnProperty (member))
-                        t.(member) = cloneSubterm (node.(member), allowRewrite, path)
+                        t.(member) = cloneSubterm (node.(member), allowRewrite @and member.0 != '_', path)
 
                 t
 

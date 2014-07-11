@@ -1,24 +1,24 @@
 _ = require 'underscore'
-codegen utils = require('./codegenUtils')
+codegenUtils = require('./codegenUtils')
 
 module.exports (terms) = terms.term {
     constructor (statements) =
-        self.is sub statements = true
+        self.isSubStatements = true
         self.statements = statements
 
-    serialise sub statements (statements, rewrite: nil) =
-        first statements = self.statements.slice (0, self.statements.length - 1)
-        rewritten statements = _.map @(statement) (first statements)
+    serialiseSubStatements (statements, rewrite: nil) =
+        firstStatements = self.statements.slice (0, self.statements.length - 1)
+        rewrittenStatements = _.map @(statement) (firstStatements)
             rewrite (statement)
 
-        statements.push (rewritten statements, ...)
+        statements.push (rewrittenStatements, ...)
 
-        last statement = self.statements.(self.statements.length - 1)
+        lastStatement = self.statements.(self.statements.length - 1)
 
-        if (last statement.is sub statements)
-            last statement.serialise sub statements (statements, rewrite: rewrite)
+        if (lastStatement.isSubStatements)
+            lastStatement.serialiseSubStatements (statements, rewrite: rewrite)
         else
-            last statement
+            lastStatement
 
     generate () =
         self.show ()
