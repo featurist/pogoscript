@@ -177,7 +177,11 @@ describe '`pogo` (interactive)'
             issue (command) andExpect (result)! =
               promise @(success)
                 handleResult (actualResult) :=
-                  actualResult.should.equal (result)
+                  if (result :: RegExp)
+                    actualResult.should.match (result)
+                  else
+                    actualResult.should.equal (result)
+
                   success ()
 
                 pogo.stdin.write "#(command)\n"
@@ -192,6 +196,12 @@ describe '`pogo` (interactive)'
 
     it 'evaluates a simple line of pogoscript'
         pogo = pogoSession ()
+        pogo.issue '8' andExpect '8'!
+        pogo.exit()!
+
+    it 'can continue in the face of syntax errors'
+        pogo = pogoSession ()
+        pogo.issue 'blah "' andExpect r/Expecting '\('/!
         pogo.issue '8' andExpect '8'!
         pogo.exit()!
 

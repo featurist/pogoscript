@@ -102,12 +102,12 @@ exports.repl (promises: nil) =
       )
       vm.runInThisContext (definitionJs, filename)
 
-    js = compilePogo (source, filename, terms)
+    try
+      js = compilePogo (source, filename, terms)
 
-    if (source.trim () == '')
-      callback ()
-    else
-      try
+      if (source.trim () == '')
+        callback ()
+      else
         result = vm.runInThisContext (js, filename)
         if (result @and (typeof (result.then) == 'function'))
           result.then @(r)
@@ -116,8 +116,8 @@ exports.repl (promises: nil) =
             callback (e)
         else
           callback (nil, result)
-      catch (error)
-        callback (error)
+    catch (error)
+      callback (error)
 
   if (runningOnNode 'v0.8.0' orHigher)
     repl.start (eval: evalPogo, useGlobal: true)
