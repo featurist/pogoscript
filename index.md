@@ -4,7 +4,7 @@ layout: main
 
 # Whaa?
 
-Pogoscript is a programming language that emphasises readability, is friendly to domain specific languages and compiles to regular Javascript.
+Pogoscript is a programming language that has amazing concurrency primitives, emphasises readability and compiles to regular Javascript.
 
 # Examples!
 

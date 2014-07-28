@@ -25,6 +25,7 @@ GEM
     jekyll-less (0.0.4)
       jekyll (>= 0.10.0)
       less (>= 2.0.5)
+    kramdown (1.4.0)
     less (2.5.0)
       commonjs (~> 0.2.7)
     libv8 (3.16.14.3)
@@ -61,4 +62,5 @@ PLATFORMS
 DEPENDENCIES
   jekyll
   jekyll-less
+  kramdown
   therubyracer
