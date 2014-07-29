@@ -39,6 +39,18 @@ describe 'methods'
          o ().a method ([1, 2, 3], ...)' shouldOutput "'created object'
                                                        [ 1, 2, 3 ]"
 
+  describeOptionalsWithDelimiter (block) =
+    block ':'
+    block '='
+
+  describeOptionalsWithDelimiter @(delim)
+    describe "optional arguments with #(delim)"
+      it 'methods can take optional arguments'
+        "object = {
+           method(opts) = print(opts)
+         }
+         object.method (size #(delim) 10)" shouldOutput '{ size: 10 }'
+
   describe 'returning promises'
     it 'can return a promise'
       'o = {

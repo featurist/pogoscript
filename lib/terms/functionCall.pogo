@@ -1,5 +1,4 @@
 codegenUtils = require './codegenUtils'
-argumentUtils = require './argumentUtils'
 _ = require 'underscore'
 asyncControl = require '../asyncControl'
 
@@ -8,7 +7,6 @@ module.exports (terms) =
         constructor (
           fun
           args
-          optionalArguments: []
           async: false
           passThisToApply: false
           originallyAsync: false
@@ -17,8 +15,8 @@ module.exports (terms) =
           self.isFunctionCall = true
 
           self.function = fun
-          self.functionArguments = args
-          self.optionalArguments = optionalArguments
+          self.functionArguments = terms.argumentUtils.positionalArguments(args)
+          self.optionalArguments = terms.argumentUtils.optionalArguments(args)
           self.passThisToApply = passThisToApply
           self.isAsync = async
           self.originallyAsync = originallyAsync
@@ -67,7 +65,6 @@ module.exports (terms) =
     functionCall (
       fun
       args
-      optionalArguments: []
       async: false
       passThisToApply: false
       originallyAsync: false
@@ -86,7 +83,6 @@ module.exports (terms) =
               functionCallTerm (
                 fun
                 args
-                optionalArguments: optionalArguments
                 passThisToApply: passThisToApply
                 originallyAsync: true
                 asyncCallbackArgument: asyncCallbackArgument
@@ -114,7 +110,6 @@ module.exports (terms) =
                   terms.functionCall (
                     fun
                     args
-                    optionalArguments: optionalArguments
                     passThisToApply: passThisToApply
                     originallyAsync: true
                     asyncCallbackArgument: callback
@@ -130,7 +125,6 @@ module.exports (terms) =
           terms.functionCall (
              fun
              args
-             optionalArguments: []
              async: false
              passThisToApply: false
              originallyAsync: false
@@ -143,15 +137,14 @@ module.exports (terms) =
       else if (fun.variable @and couldBeMacro)
         name = fun.variable
         macro = terms.macros.findMacro (name)
-        funCall = functionCallTerm (fun, args, optionalArguments: optionalArguments)
+        funCall = functionCallTerm (fun, args)
 
         if (macro)
-          return (macro (funCall, name, args, optionalArguments))
+          return (macro (funCall, name, args))
 
       functionCallTerm (
         fun
         args
-        optionalArguments: optionalArguments
         passThisToApply: passThisToApply
         originallyAsync: originallyAsync
         asyncCallbackArgument: asyncCallbackArgument

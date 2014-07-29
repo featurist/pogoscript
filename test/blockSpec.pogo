@@ -9,18 +9,30 @@ describe 'blocks'
          
          print (a())' shouldOutput "'a'"
 
-    it 'can be given optional parameters'
-        'f (block) = block (optional: "optional")
-         
-         x = f @(optional: nil)
-           optional
-         
-         print (x)' shouldOutput "'optional'"
+    describeOptionalsWithDelimiter (block) =
+      block ':'
+      block '='
 
-    it 'can be given optional parameters after normal'
-        'f (block) = block ("arg", optional: "optional")
+    describeOptionalsWithDelimiter @(delim)
+      it "can be given optional parameters with #(delim)"
+          "f (block) = block (optional #(delim) 'optional')
+           
+           x = f @(optional #(delim) nil)
+             optional
+           
+           print (x)" shouldOutput "'optional'"
+
+      it "can be given optional parameters after normal with #(delim)"
+          "f (block) = block ('arg', optional #(delim) 'optional')
+           
+           x = f @(arg, optional #(delim) nil)
+             arg + optional
+           
+           print (x)" shouldOutput "'argoptional'"
+
+    describe 'splat parameters'
+      it 'can accept splat parameters'
+        "f (block) = block (1, 2, 3)
          
-         x = f @(arg, optional: nil)
-           arg + optional
-         
-         print (x)' shouldOutput "'argoptional'"
+         f @(args, ...)
+           print (args)" shouldOutput "[ 1, 2, 3 ]"

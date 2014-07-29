@@ -103,7 +103,7 @@ describe('code generator', function () {
       });
 
       it('splat with optional args', function () {
-        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['b']), cg.splat()], {optionalArguments: [cg.hashEntry(['port'], cg.variable(['p']))]});
+        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['b']), cg.splat(), cg.hashEntry(['port'], cg.variable(['p']))]);
       
         generatesExpression(f, 'f.apply(null,b.concat([{port:p}]))');
       });
@@ -111,18 +111,18 @@ describe('code generator', function () {
 
     describe('optional arguments', function () {
       it('with no arguments and an optional argument', function () {
-        var f = cg.functionCall(cg.variable(['f']), [], {optionalArguments: [cg.hashEntry(['port'], cg.variable(['p']))]});
+        var f = cg.functionCall(cg.variable(['f']), [cg.hashEntry(['port'], cg.variable(['p']))]);
 
         generatesExpression(f, 'f({port:p})');
       });
 
       it('with an argument and two optional arguments', function () {
-        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['a'])],
-          {optionalArguments: [
-            cg.hashEntry(['port'], cg.variable(['p'])),
-            cg.hashEntry(['server'], cg.variable(['s'])),
-            cg.hashEntry(['start'])
-          ]});
+        var f = cg.functionCall(cg.variable(['f']), [
+          cg.variable(['a']),
+          cg.hashEntry(['port'], cg.variable(['p'])),
+          cg.hashEntry(['server'], cg.variable(['s'])),
+          cg.hashEntry(['start'])
+        ]);
 
         generatesExpression(f, 'f(a,{port:p,server:s,start:true})');
       });
@@ -446,7 +446,7 @@ describe('code generator', function () {
 
     describe('optional arguments', function () {
       it('method call with optional argument', function () {
-        var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff'])], {optionalArguments: [cg.hashEntry(['port'], cg.integer(45))]});
+        var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff']), cg.hashEntry(['port'], cg.integer(45))]);
 
         generatesExpression(m, 'console.log(stuff,{port:45})');
       });

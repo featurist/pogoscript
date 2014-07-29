@@ -11,4 +11,6 @@ module.exports (terms) = terms.term {
         buffer.write(self.message + "\n")
 
     generate hash entry () = ''
+
+    declare() = nil
 }

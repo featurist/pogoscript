@@ -49,68 +49,73 @@ describe 'functions'
          foo "inner a"
          print (a)' shouldOutput "'inner a'
                                   'outer a'"
+
+  describeOptionalsWithDelimiter (block) =
+    block ':'
+    block '='
   
-  describe 'optional arguments'
+  describeOptionalsWithDelimiter @(delim)
+    describe "optional arguments with #(delim)"
       it 'functions can take optional arguments'
-        'print (size: 10)' shouldOutput '{ size: 10 }'
+        "print (size #(delim) 10)" shouldOutput '{ size: 10 }'
 
       it 'a function can be defined to take an optional argument'
-        'open tcp connection (host: nil, port: nil) =
+        "open tcp connection (host #(delim) nil, port #(delim) nil) =
            print (host)
            print (port)
          
-         open tcp connection (host: "pogoscript.org", port: 80)' shouldOutput "'pogoscript.org'
-                                                                               80"
+         open tcp connection (host #(delim) 'pogoscript.org', port #(delim) 80)" shouldOutput "'pogoscript.org'
+                                                                                               80"
       
       it 'if the optional parameter has a default value
         and no optional arguments are passed by the caller,
         then that default value is used'
           
-        'open tcp connection (port: 80) =
+        "open tcp connection (port #(delim) 80) =
            print (port)
          
-         open tcp connection ()' shouldOutput "80"
+         open tcp connection ()" shouldOutput "80"
       
       it 'if the optional parameter has a default value
         and other optional arguments are passed by the caller
         but not that one, then that default value is used'
           
-        'open tcp connection (port: 80) =
+        "open tcp connection (port #(delim) 80) =
            print (port)
          
-         open tcp connection (host: "pogoscript.org")' shouldOutput "80"
+         open tcp connection (host #(delim) 'pogoscript.org')" shouldOutput "80"
       
       it "a function's optional parameter shadows variables in outer scope"
-        'foo (bar: nil) =
+        "foo (bar #(delim) nil) =
            print (bar)
          
-         bar = "outer bar"
-         foo (bar: "inner bar")
-         print (bar)' shouldOutput "'inner bar'
+         bar = 'outer bar'
+         foo (bar #(delim) 'inner bar')
+         print (bar)" shouldOutput "'inner bar'
                                     'outer bar'"
       
       it "a function's optional parameter shadows variables in outer scope,
         even if it has a default value"
           
-        'foo (bar: 80) =
+        "foo (bar #(delim) 80) =
            print (bar)
          
-         bar = "outer bar"
-         foo (bar: "inner bar")
-         print (bar)' shouldOutput "'inner bar'
+         bar = 'outer bar'
+         foo (bar #(delim) 'inner bar')
+         print (bar)" shouldOutput "'inner bar'
                                     'outer bar'"
       
       it "when a block is passed as an optional argument, it does not redefine self"
-        'foo (bar: nil) =
+        "foo (bar #(delim) nil) =
              bar ()
          
          obj = {
-           field = "field value"
+           field = 'field value'
            method () =
-             foo (bar (): print (self.field))
+             foo (bar () #(delim) print (self.field))
          }
 
-         obj.method ()' shouldOutput "'field value'"
+         obj.method ()" shouldOutput "'field value'"
 
   describe 'redefining self'
     it 'redefines self with the => operator'

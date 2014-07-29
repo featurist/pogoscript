@@ -84,7 +84,6 @@ module.exports (terms) =
         constructor (
           parameters
           body
-          optionalParameters: []
           returnLastStatement: true
           redefinesSelf: false
           async: false
@@ -96,7 +95,7 @@ module.exports (terms) =
           self.isBlock = true
           self.isClosure = true
           self.isNewScope = isNewScope
-          self.parameters = parameters
+          self.setParameters(parameters)
 
           self.body = if (returnPromise)
             body.promisify(statements: true)
@@ -104,15 +103,13 @@ module.exports (terms) =
             body
 
           self.redefinesSelf = redefinesSelf
-          self.optionalParameters = optionalParameters
           self.makeAsync (async || self.body.isAsync)
           self.returnLastStatement = returnLastStatement
           self.definesModuleConstants = definesModuleConstants
           self.callsFulfillOnReturn = callsFulfillOnReturn
 
-        blockify (parameters, optionalParameters: [], returnPromise: false, redefinesSelf: nil) =
-          self.parameters = parameters
-          self.optionalParameters = optionalParameters
+        blockify (parameters, returnPromise: false, redefinesSelf: nil) =
+          self.setParameters(parameters)
 
           if (returnPromise)
             self.body = self.body.promisify(statements: true)
@@ -121,6 +118,10 @@ module.exports (terms) =
             self.redefinesSelf = redefinesSelf
 
           self
+
+        setParameters(parameters) =
+          self.parameters = terms.argumentUtils.positionalArguments(parameters)
+          self.optionalParameters = terms.argumentUtils.optionalArguments(parameters)
 
         makeAsync (a) =
           self.isAsync = a

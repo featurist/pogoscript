@@ -11,6 +11,9 @@ module.exports (terms) = terms.term {
   expression () =
     self
 
+  parameter () =
+    self
+
   hashEntry () =
     self.cg.hashEntry (self.target.hashEntryField (), self.source)
 
