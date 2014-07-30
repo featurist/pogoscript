@@ -40,3 +40,5 @@ Of course, you can define fields and methods from outside the object too. We cou
     a philosopher.say something! = 
         console.log "It is always the same: once you are liberated,
                      you are forced to ask who you are."
+
+More to come!
