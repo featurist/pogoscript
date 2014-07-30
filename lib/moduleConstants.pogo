@@ -18,7 +18,7 @@ module.exports (terms) =
           variable = if (generated)
             terms.generatedVariable (name)
           else
-            terms.variable (name)
+            terms.variable (name, couldBeMacro: false)
 
           self.namedDefinitions.(canonicalName) =
             definition = terms.definition (

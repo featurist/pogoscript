@@ -43,6 +43,6 @@ try {
   if (error.isSemanticErrors) {
     process.stderr.write(error.message);
   } else {
-    console.log(error.stack);
+    console.log(error);
   }
 }
