@@ -2,12 +2,14 @@ require 'chai'.should()
 
 describe 'prototypes'
   it 'can create a prototype'
-    a = prototype {
+    a = {
       base = 'base'
       overridden = 'a'
     }
 
-    b = a {
+    p = prototype (a)
+
+    b = p {
       overridden = 'b'
       derived = 'derived'
     }
@@ -15,6 +17,7 @@ describe 'prototypes'
     b.base.should.equal 'base'
     b.overridden.should.equal 'b'
     b.derived.should.equal 'derived'
+    Object.getPrototypeOf(b).should.equal(a)
 
   it 'properties are shared between derived objects'
     array = [1, 2, 3]
@@ -48,9 +51,13 @@ describe 'prototypes'
 
     objectA.a.should.equal (true)
     objectA.name.should.equal 'a'
+    (objectA :: a).should.equal(true)
+
     objectB.a.should.equal (true)
     objectB.b.should.equal (true)
     objectB.name.should.equal 'b'
+    (objectB :: a).should.equal(true)
+    (objectB :: b).should.equal(true)
 
   it 'prototype is a function'
     (prototype :: Function).should.equal (true)
