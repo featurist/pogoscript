@@ -6,32 +6,30 @@ weight: 2
 
 Variables are the building blocks, but functions have all the fun. In Pogoscript functions are called by passing arguments. Arguments can be numbers, strings or other expressions like variables or indeed the results of other functions.
 
-    is (wind speed) strong enough for my kite
+    is (windSpeed) strongEnoughForMyKite
 
-Here we called a function named `is strong enough for my kite`. We passed one argument in parenthesis, `wind speed`.
+Here we called a function named `isStrongEnoughForMyKite`, but we passed the `windSpeed` argument in the _middle_ of the function, between the `is` and the `strong`. This is possible because we can also write the function like this:
 
-The actual position of the arguments does not matter, in fact, we could call the same function like this:
+    is (windSpeed) strong enough for my kite
 
-    (wind speed) is strong enough for my kite
+Identifiers in Pogoscript can be written in both **space-case** and **camel-case**. The actual position of the arguments does not matter, just the order. In fact, we could call the same function like this:
+
+    (windSpeed) isStrongEnoughForMyKite
 
 Or
 
-    is strong enough for my (wind speed) kite
+    isStrongEnoughForMy (windSpeed) kite
 
 Neither of which read as well as the first, but are nevertheless effectively the same thing.
 
-As with variables, function names can be written in camel case, so we could write it in classical JavaScript style too:
-
-    isStrongEnoughForMyKite(windSpeed)
-
 Eventually, you'll want to define your own functions too. Like variables, we use equals `=`, like this:
 
-    is (wind speed) too strong for my kite = wind speed > 30
+    is (windSpeed) tooStrongForMyKite = windSpeed > 30
 
 We can also drop the function's body onto an indented line like this:
 
-    is (wind speed) too strong for my kite =
-        wind speed > 30
+    is (windSpeed) tooStrongForMyKite =
+        windSpeed > 30
 
 The last statement in a function is the functions ultimate value.
 
@@ -72,5 +70,5 @@ Then the *first* argument is taken as the function and the remaining arguments t
 
 If there's only *one* argument and no name, then that argument is taken as a value, not a function, and it's not called. So the following are identical:
 
-    (wind speed)
-    wind speed
+    (windSpeed)
+    windSpeed
