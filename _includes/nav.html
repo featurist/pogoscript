@@ -12,7 +12,23 @@
       <h2>Docs</h2>
 
       <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-        <li><a href="/guide">Guide</a></li>
+        <li>
+          <a href="/guide">Guide</a>
+          <ul class="guide">
+            {% for weight in (1..site.pages.size) %}
+            {% for guide in site.pages %}
+            {% if guide.guide %}
+            {% if weight == guide.weight %}
+            {{ '' }}
+            <li>
+              <a href="{{ guide.url }}">{{ guide.guide }}</a>
+            </li>
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+          </ul>
+        </li>
         <li><a href="/cheatsheet.html">Cheat Sheet</a></li>
         <li><a href="/angular-cheatsheet.html">AngularJS Cheat Sheet</a></li>
         <li><a href="http://featurist.github.com/pogo-examples">JavaScript Translation</a></li>

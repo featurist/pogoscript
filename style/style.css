@@ -125,6 +125,17 @@ h1 a:hover, h2 a:hover, h3 a:hover, h4 a:hover {
   vertical-align: top;
 }
 
+.header .menu .guide {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.header .menu .guide li {
+  margin-left: 10px;
+  list-style-type: none;
+  vertical-align: top;
+}
+
 .header .menu li ul {
   padding-left: 0;
   list-style-type: none;
