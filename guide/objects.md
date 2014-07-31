@@ -49,6 +49,8 @@ Calling methods on objects is also fairly predictable:
 
     person.saySomething()
 
+## Field Expressions
+
 You can also access a field using an expression in parenthesis:
 
     fieldName = 'name'
@@ -79,6 +81,8 @@ Javascript doesn't have classes like other programming languages, but it does ob
     joe = personNamed "Joe"
     joe.sayHi()
 
+## Prototypes
+
 This is a very simple way to create objects, and every object created by this function will contain a `sayHi` method, technically not the _same_ method, but identical in behaviour. Another way to share methods and values between objects is to use prototypes. When you create an object with a prototype it inherits the prototype's properties and methods.
 
 You can create a prototype with the `prototype` function:
@@ -95,6 +99,8 @@ You can create a prototype with the `prototype` function:
     joe.sayHi()
 
 Here we defined a new prototype containing the `sayHi` method, then we created a new object with that prototype inheriting that method. The prototype `person` is a function that, when given an object will return a new object that shares all the properties of the person object.
+
+## Extending Prototypes
 
 You can also make a new prototype that extends another, inheriting some properties and methods and overriding others.
 
@@ -122,6 +128,8 @@ You can also make a new prototype that extends another, inheriting some properti
       dob = @new Date(1993, 4, 24)
     }
     laurant.sayHi()
+
+## Which prototype?
 
 You can ask an object if it inherits from a prototype using the `::` operator:
 
