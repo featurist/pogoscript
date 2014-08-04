@@ -59,6 +59,21 @@ describe 'prototypes'
     (objectB :: a).should.equal(true)
     (objectB :: b).should.equal(true)
 
+  it 'a prototype can be extended after creation'
+    a = prototype {
+      a = 'a'
+    }
+
+    a.prototype.b = 'b'
+
+    c = a {
+      c = 'c'
+    }
+
+    c.a.should.equal 'a'
+    c.b.should.equal 'b'
+    c.c.should.equal 'c'
+
   it 'prototype is a function'
     (prototype :: Function).should.equal (true)
 
