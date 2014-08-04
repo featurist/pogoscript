@@ -21,6 +21,12 @@ describe 'hashes'
         it 'hash entries can be written with an equals "=" operator'
             "print {color = 'red', size = 'large'}" shouldOutput "{ color: 'red', size: 'large' }"
   
+        it 'can define a hash as a statement'
+            "{color = print 'red', size = print 'large'}
+             print 'done'" shouldOutput "'red'
+                                         'large'
+                                         'done'"
+  
     context "when it doesn't contain hash entries"
         it 'when it contains a method call, it should throw a parsing exception'
             @{
