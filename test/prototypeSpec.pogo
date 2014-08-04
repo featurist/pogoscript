@@ -59,6 +59,32 @@ describe 'prototypes'
     (objectB :: a).should.equal(true)
     (objectB :: b).should.equal(true)
 
+  it 'prototype object defaults to empty object, if not given'
+    a = prototype()
+
+    a.prototype.a = 'a'
+
+    b = a()
+
+    b.a.should.equal 'a'
+
+  it 'prototype can extend another constructor'
+    a = prototypeExtending (Array) {
+      a = 'a'
+    }
+
+    b = a {
+      b = 'b'
+    }
+    b.push 'item'
+
+    (b :: a).should.equal(true)
+    (b :: Array).should.equal(true)
+    b.a.should.equal 'a'
+    b.b.should.equal 'b'
+    b.length.should.equal 1
+    b.0.should.equal 'item'
+
   it 'a prototype can be extended after creation'
     a = prototype {
       a = 'a'

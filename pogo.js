@@ -173,7 +173,7 @@ exports.oldTerm = function (members) {
   return new constructor();
 };
 
-},{"./parser/runtime":23,"./terms/codegenUtils":38,"underscore":109}],4:[function(require,module,exports){
+},{"./parser/runtime":23,"./terms/codegenUtils":39,"underscore":110}],4:[function(require,module,exports){
 (function() {
     var self = this;
     var $class, _;
@@ -268,7 +268,7 @@ exports.oldTerm = function (members) {
         };
     };
 }).call(this);
-},{"./class":2,"underscore":109}],5:[function(require,module,exports){
+},{"./class":2,"underscore":110}],5:[function(require,module,exports){
 var MemoryStream = function () {
   var buffer = [];
   
@@ -331,7 +331,9 @@ exports.MemoryStream = MemoryStream;
                         if (generated) {
                             return terms.generatedVariable(name);
                         } else {
-                            return terms.variable(name);
+                            return terms.variable(name, {
+                                couldBeMacro: false
+                            });
                         }
                     }();
                     self.namedDefinitions[canonicalName] = function() {
@@ -387,7 +389,7 @@ exports.MemoryStream = MemoryStream;
         });
     };
 }).call(this);
-},{"./class":2,"./terms/codegenUtils":38}],7:[function(require,module,exports){
+},{"./class":2,"./terms/codegenUtils":39}],7:[function(require,module,exports){
 var _ = require('underscore');
 
 module.exports = function (terminals) {
@@ -457,35 +459,21 @@ module.exports = function (terminals) {
     };
 
     this.parameters = function (options) {
-			var skipFirstParameter = options && options.skipFirstParameter;
+      var skipFirstParameter = options && options.skipFirstParameter;
 	
       if (this._parameters) {
         return this._parameters;
       }
       
-      var args = _(this.arguments()).filter(function (a) {
-        return !a.isHashEntry;
-      });
+      var args = this.arguments()
 
-			if (skipFirstParameter) {
-				args = args.slice(1);
-			}
+      if (skipFirstParameter) {
+          args = args.slice(1);
+      }
 
       return this._parameters = _(args).map(function (arg) {
         return arg.parameter();
       });
-    };
-    
-    this.optionalParameters = function () {
-      if (this._optionalParameters) {
-        return this._optionalParameters;
-      }
-      
-      var args = _(this.arguments()).filter(function (a) {
-        return a.isHashEntry;
-      });
-
-      return this._optionalParameters = args;
     };
     
     this.hasParameters = function () {
@@ -503,12 +491,7 @@ module.exports = function (terminals) {
           parameters.push.apply(parameters, terminal.parameters);
           hasParameters = true;
         } else if (terminal.isBlock) {
-          terminal.parameters = _.filter(parameters, function (p) {
-            return !p.isHashEntry;
-          });
-          terminal.optionalParameters = _.filter(parameters, function (p) {
-            return p.isHashEntry;
-          });
+          terminal.setParameters(parameters);
           terminal.notScope = hasParameters;
           parameters = [];
           hasParameters = false;
@@ -568,7 +551,7 @@ module.exports = function (terminals) {
   });
 };
 
-},{"underscore":109}],8:[function(require,module,exports){
+},{"underscore":110}],8:[function(require,module,exports){
 (function() {
     var self = this;
     window.pogoscript = require("./compiler");
@@ -713,7 +696,7 @@ var loc = function (term, location) {
   return term;
 };
 
-},{"../codeGenerator":3,"../macroDirectory":4,"../moduleConstants":6,"../parser/operatorExpression":20,"../parser/unaryOperatorExpression":24,"../resolve":25,"../symbolScope":26,"../terms/argumentList":27,"../terms/argumentUtils":28,"../terms/asyncArgument":29,"../terms/asyncCallback":30,"../terms/asyncResult":31,"../terms/asyncStatements":32,"../terms/boolean":33,"../terms/breakStatement":34,"../terms/callback":35,"../terms/closure":36,"../terms/closureParameterStrategies":37,"../terms/continuationOrDefault":39,"../terms/continueStatement":40,"../terms/createPromise":41,"../terms/definition":42,"../terms/fieldReference":43,"../terms/float":44,"../terms/forEach":45,"../terms/forExpression":46,"../terms/forIn":47,"../terms/functionCall":48,"../terms/futureArgument":49,"../terms/generatedVariable":50,"../terms/generator":51,"../terms/hash":52,"../terms/hashEntry":53,"../terms/identifier":54,"../terms/ifExpression":55,"../terms/increment":56,"../terms/indexer":57,"../terms/integer":58,"../terms/interpolatedString":59,"../terms/javascript":60,"../terms/list":61,"../terms/listComprehension":62,"../terms/methodCall":63,"../terms/module":64,"../terms/newOperator":65,"../terms/newPromise":66,"../terms/nil":67,"../terms/normalParameters":68,"../terms/operator":69,"../terms/parameters":70,"../terms/promise":71,"../terms/promisify":72,"../terms/range":73,"../terms/regExp":74,"../terms/returnStatement":75,"../terms/scope":76,"../terms/selfExpression":77,"../terms/semanticError":78,"../terms/splat":79,"../terms/splatArguments":80,"../terms/splatParameters":81,"../terms/statements":82,"../terms/string":84,"../terms/subExpression":85,"../terms/subStatements":86,"../terms/terms":87,"../terms/throwStatement":88,"../terms/tryExpression":89,"../terms/typeof":90,"../terms/variable":91,"../terms/whileExpression":92,"../terms/withExpression":93,"./basicExpression":7,"./complexExpression":11,"./errors":13,"./listMacros":18,"./macros":19}],10:[function(require,module,exports){
+},{"../codeGenerator":3,"../macroDirectory":4,"../moduleConstants":6,"../parser/operatorExpression":20,"../parser/unaryOperatorExpression":24,"../resolve":26,"../symbolScope":27,"../terms/argumentList":28,"../terms/argumentUtils":29,"../terms/asyncArgument":30,"../terms/asyncCallback":31,"../terms/asyncResult":32,"../terms/asyncStatements":33,"../terms/boolean":34,"../terms/breakStatement":35,"../terms/callback":36,"../terms/closure":37,"../terms/closureParameterStrategies":38,"../terms/continuationOrDefault":40,"../terms/continueStatement":41,"../terms/createPromise":42,"../terms/definition":43,"../terms/fieldReference":44,"../terms/float":45,"../terms/forEach":46,"../terms/forExpression":47,"../terms/forIn":48,"../terms/functionCall":49,"../terms/futureArgument":50,"../terms/generatedVariable":51,"../terms/generator":52,"../terms/hash":53,"../terms/hashEntry":54,"../terms/identifier":55,"../terms/ifExpression":56,"../terms/increment":57,"../terms/indexer":58,"../terms/integer":59,"../terms/interpolatedString":60,"../terms/javascript":61,"../terms/list":62,"../terms/listComprehension":63,"../terms/methodCall":64,"../terms/module":65,"../terms/newOperator":66,"../terms/newPromise":67,"../terms/nil":68,"../terms/normalParameters":69,"../terms/operator":70,"../terms/parameters":71,"../terms/promise":72,"../terms/promisify":73,"../terms/range":74,"../terms/regExp":75,"../terms/returnStatement":76,"../terms/scope":77,"../terms/selfExpression":78,"../terms/semanticError":79,"../terms/splat":80,"../terms/splatArguments":81,"../terms/splatParameters":82,"../terms/statements":83,"../terms/string":85,"../terms/subExpression":86,"../terms/subStatements":87,"../terms/terms":88,"../terms/throwStatement":89,"../terms/tryExpression":90,"../terms/typeof":91,"../terms/variable":92,"../terms/whileExpression":93,"../terms/withExpression":94,"./basicExpression":7,"./complexExpression":11,"./errors":13,"./listMacros":18,"./macros":19}],10:[function(require,module,exports){
 (function() {
     var self = this;
     var ms, createParser, createTerms, object, sm, beautify, serialise, sourceLocationPrinter;
@@ -919,7 +902,7 @@ var loc = function (term, location) {
         return parser.lex(pogo);
     };
 }).call(this);
-},{"../memorystream":5,"./codeGenerator":9,"./parser":21,"./runtime":23,"source-map":99,"uglify-js":"qD98jl"}],11:[function(require,module,exports){
+},{"../memorystream":5,"./codeGenerator":9,"./parser":21,"./runtime":23,"source-map":100,"uglify-js":"qD98jl"}],11:[function(require,module,exports){
 var _ = require('underscore');
 var asyncControl = require('../asyncControl')
 
@@ -945,23 +928,6 @@ module.exports = function (listOfTerminals) {
       return this.tail().length > 0;
     };
     
-    this.optionalArguments = function () {
-      if (this._optionalArguments) {
-        return this._optionalArguments;
-      } else {
-        var tail = this.tail();
-        var tailLength = tail.length;
-        var n = 0;
-        
-        return this._optionalArguments = _(tail).map(function (e) {
-          n++;
-          return e.hashEntry({withoutBlock: n === tailLength});
-        }).concat(_(this.head().arguments()).filter(function (a) {
-          return a.isHashEntry;
-        }));
-      }
-    };
-
     this.isAsyncCall = function () {
       return this.head().hasAsyncArgument();
     };
@@ -995,9 +961,7 @@ module.exports = function (listOfTerminals) {
       if (this._arguments) {
         return this._arguments;
       } else {
-        var args = _(this.head().arguments()).filter(function (a) {
-          return !a.isHashEntry;
-        });
+        var args = this.head().arguments();
         
         var tailBlock = this.tailBlock();
         
@@ -1011,7 +975,7 @@ module.exports = function (listOfTerminals) {
     
     this.hasArguments = function () {
       return this._hasArguments || (this._hasArguments = 
-        this.head().hasArguments() || (this.optionalArguments().length > 0) || this.tailBlock()
+        this.head().hasArguments() || this.tailBlock()
       );
     };
     
@@ -1020,7 +984,7 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return this.wrap(terms.functionCall(terms.variable(head.name(), {couldBeMacro: false, location: this.location()}), this.arguments(), {optionalArguments: this.optionalArguments()}));
+          return this.wrap(terms.functionCall(terms.variable(head.name(), {couldBeMacro: false, location: this.location()}), this.arguments()));
         } else {
           return this.wrap(terms.variable(head.name(), {location: this.location()}));
         }
@@ -1038,7 +1002,7 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return this.wrap(terms.methodCall(object, head.name(), this.arguments(), {optionalArguments: this.optionalArguments()}));
+          return this.wrap(terms.methodCall(object, head.name(), this.arguments()));
         } else {
           return terms.fieldReference(object, head.name());
         }
@@ -1063,13 +1027,9 @@ module.exports = function (listOfTerminals) {
       return this.head().parameters(options);
     };
     
-    this.optionalParameters = function () {
-      return this.optionalArguments();
-    };
-    
     this.hasParameters = function () {
       return this._hasParameters || (this._hasParameters =
-        this.head().hasParameters() || this.optionalParameters().length > 0
+        this.head().hasParameters()
       );
     };
     
@@ -1087,7 +1047,7 @@ module.exports = function (listOfTerminals) {
         expression: function () {
           if (self.head().hasName()) {
             if (self.hasParameters()) {
-              var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), returnPromise: self.isAsyncCall(), redefinesSelf: true});
+              var block = source.blockify(self.parameters(), {returnPromise: self.isAsyncCall(), redefinesSelf: true});
               return terms.definition(terms.fieldReference(object, self.head().name()), block, {assignment: true});
             } else {
               return terms.definition(terms.fieldReference(object, self.head().name()), source.scopify(), {assignment: true});
@@ -1096,7 +1056,7 @@ module.exports = function (listOfTerminals) {
             if (!self.hasTail() && self.arguments().length === 1 && !self.isAsyncCall()) {
               return terms.definition(terms.indexer(object, self.arguments()[0]), source.scopify(), {assignment: true});
             } else {
-              var block = source.blockify(self.parameters({skipFirstParameter: true}), {optionalParameters: self.optionalParameters(), returnPromise: self.isAsyncCall(), redefinesSelf: true});
+              var block = source.blockify(self.parameters({skipFirstParameter: true}), {returnPromise: self.isAsyncCall(), redefinesSelf: true});
               return terms.definition(terms.indexer(object, self.arguments()[0]), block, {assignment: true});
             }
           }
@@ -1133,10 +1093,10 @@ module.exports = function (listOfTerminals) {
         if (self.hasParameters()) {
           return {
             expression: function () {
-              return terms.definition(terms.variable(self.head().name(), {location: self.location()}), source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), returnPromise: self.isAsyncCall()}), {assignment: assignment});
+              return terms.definition(terms.variable(self.head().name(), {location: self.location()}), source.blockify(self.parameters(), {returnPromise: self.isAsyncCall()}), {assignment: assignment});
             },
             hashEntry: function (isOptionalArgument) {
-              var block = source.blockify(self.parameters(), {optionalParameters: self.optionalParameters(), returnPromise: self.isAsyncCall(), redefinesSelf: !isOptionalArgument});
+              var block = source.blockify(self.parameters(), {returnPromise: self.isAsyncCall(), redefinesSelf: !isOptionalArgument});
 
               return terms.hashEntry(self.head().name(), block);
             }
@@ -1170,7 +1130,7 @@ module.exports = function (listOfTerminals) {
   });
 };
 
-},{"../asyncControl":1,"underscore":109}],12:[function(require,module,exports){
+},{"../asyncControl":1,"underscore":110}],12:[function(require,module,exports){
 (function() {
     var self = this;
     var createDynamicLexer;
@@ -1247,7 +1207,7 @@ exports.errors = function (terms) {
   };
 };
 
-},{"underscore":109}],14:[function(require,module,exports){
+},{"underscore":110}],14:[function(require,module,exports){
 (function() {
     var self = this;
     var comments, identifier;
@@ -2218,7 +2178,7 @@ if (typeof module !== 'undefined' && require.main === module) {
 }
 }
 }).call(this,require("FWaASH"))
-},{"FWaASH":96,"fs":"liyfGr","path":95}],18:[function(require,module,exports){
+},{"FWaASH":97,"fs":"liyfGr","path":96}],18:[function(require,module,exports){
 (function() {
     var self = this;
     var _;
@@ -2355,16 +2315,17 @@ if (typeof module !== 'undefined' && require.main === module) {
         return macros;
     };
 }).call(this);
-},{"underscore":109}],19:[function(require,module,exports){
+},{"underscore":110}],19:[function(require,module,exports){
 var _ = require('underscore');
 var errors = require('./errors');
 var codegenUtils = require('../terms/codegenUtils');
+var prototypeSource = require('../prototype');
 
-exports.macros = function (cg) {
-  var macros = cg.macroDirectory();
+exports.macros = function (terms) {
+  var macros = terms.macroDirectory();
 
   var createOperator = function(term, name, args) {
-    return cg.operator(name[0], args);
+    return terms.operator(name[0], args);
   };
 
   var javaScriptOperators = [
@@ -2394,19 +2355,19 @@ exports.macros = function (cg) {
   });
 
   macros.addMacro(['=='], function (term, name, args) {
-    return cg.operator('===', args);
+    return terms.operator('===', args);
   });
 
   macros.addMacro(['^^'], function (term, name, args) {
-    return cg.operator('^', args);
+    return terms.operator('^', args);
   });
 
   macros.addMacro(['!='], function (term, name, args) {
-    return cg.operator('!==', args);
+    return terms.operator('!==', args);
   });
 
   macros.addMacro(['in'], function (term, name, args) {
-    return cg.operator('in', args);
+    return terms.operator('in', args);
   });
 
   var constructorType = function (constructor) {
@@ -2428,14 +2389,14 @@ exports.macros = function (cg) {
     var type = constructorType(args[1]);
 
     if (type) {
-      return cg.typeof (args[0], type);
+      return terms.typeof (args[0], type);
     } else {
-      return cg.operator('instanceof', args);
+      return terms.operator('instanceof', args);
     }
   });
 
   macros.addMacro(['..'], function (term, name, args) {
-    return cg.range(args);
+    return terms.range(args);
   });
 
   var matchMultiOperator = function (name) {
@@ -2448,7 +2409,7 @@ exports.macros = function (cg) {
     }
 
     return function (term, name, args) {
-      return cg.operator(name[0], args);
+      return terms.operator(name[0], args);
     };
   };
 
@@ -2461,16 +2422,16 @@ exports.macros = function (cg) {
     var errorMsg = 'arguments to if else in are incorrect, try:\n\nif (condition)\n    then ()\nelse if (another condition)\n    do this ()\nelse\n    otherwise ()';
 
     if (args.length < 2) {
-        return cg.errors.addTermWithMessage(term, errorMsg);
+        return terms.errors.addTermWithMessage(term, errorMsg);
     }
 
     if ((name[name.length - 1] === 'else') !== (args.length % 2 === 1)) {
-        return cg.errors.addTermWithMessage(term, errorMsg);
+        return terms.errors.addTermWithMessage(term, errorMsg);
     }
 
     for (var n = 0; n + 1 < args.length; n += 2) {
       if (!isAny(args[n]) || !isClosureWithParameters(0)(args[n + 1])) {
-        return cg.errors.addTermWithMessage(term, errorMsg);
+        return terms.errors.addTermWithMessage(term, errorMsg);
       }
 
       var body = args[n + 1].body;
@@ -2484,7 +2445,7 @@ exports.macros = function (cg) {
       elseBody = body;
     }
 
-    return cg.ifExpression(cases, elseBody);
+    return terms.ifExpression(cases, elseBody);
   };
 
   var matchIfMacro = function (name) {
@@ -2496,7 +2457,7 @@ exports.macros = function (cg) {
   macros.addWildCardMacro(['if'], matchIfMacro);
 
   macros.addMacro(['promise'], function(term, name, args) {
-    return cg.newPromise({closure: args[0]});
+    return terms.newPromise({closure: args[0]});
   });
 
   macros.addMacro(['new'], function(term, name, args) {
@@ -2508,7 +2469,7 @@ exports.macros = function (cg) {
       constructor = args[0];
     }
 
-    return cg.newOperator(constructor);
+    return terms.newOperator(constructor);
   });
 
   var areValidArguments = function () {
@@ -2546,9 +2507,9 @@ exports.macros = function (cg) {
 
       var itemVariable = block.parameters[0];
 
-      return cg.forEach(collection, itemVariable, block.body);
+      return terms.forEach(collection, itemVariable, block.body);
     } else {
-      return cg.errors.addTermWithMessage(term, 'arguments to for each in are incorrect, try:\n\nfor each @(item) in (items)\n    do something with (item)');
+      return terms.errors.addTermWithMessage(term, 'arguments to for each in are incorrect, try:\n\nfor each @(item) in (items)\n    do something with (item)');
     }
   };
 
@@ -2561,9 +2522,9 @@ exports.macros = function (cg) {
       var iterator = block.parameters[0];
       var body = block.body;
 
-      return cg.forIn(iterator, collection, block.body);
+      return terms.forIn(iterator, collection, block.body);
     } else {
-      return cg.errors.addTermWithMessage(term, 'arguments to for in are incorrect, try:\n\nfor @(field) in (object)\n    do something with (field)');
+      return terms.errors.addTermWithMessage(term, 'arguments to for in are incorrect, try:\n\nfor @(field) in (object)\n    do something with (field)');
     }
   });
 
@@ -2582,9 +2543,9 @@ exports.macros = function (cg) {
       if (!incr)
         return errors.addTermWithMessage(args[0], 'expected incr, as in (... . ... . n = n + 1)');
 
-      return cg.forStatement(init, test, incr, args[3].body);
+      return terms.forStatement(init, test, incr, args[3].body);
     } else {
-      return cg.errors.addTermWithMessage(term, 'arguments to for are incorrect, try:\n\nfor (n = 0, n < 10, ++n)\n    do something with (n)');
+      return terms.errors.addTermWithMessage(term, 'arguments to for are incorrect, try:\n\nfor (n = 0, n < 10, ++n)\n    do something with (n)');
     }
   });
 
@@ -2593,58 +2554,50 @@ exports.macros = function (cg) {
       var test = args[0];
       var statements = args[1].body;
 
-      return cg.whileStatement(test, statements);
+      return terms.whileStatement(test, statements);
     } else {
-      return cg.errors.addTermWithMessage(term, 'arguments to while are incorrect, try:\n\nwhile (condition)\n    do something ()');
+      return terms.errors.addTermWithMessage(term, 'arguments to while are incorrect, try:\n\nwhile (condition)\n    do something ()');
     }
   });
-  
+
   macros.addMacro(['with'], function(term, name, args) {
     if (areValidArguments(args, isAny, isClosureWithParameters(0))) {
-      return cg.withStatement(args[0], args[1].body);
+      return terms.withStatement(args[0], args[1].body);
     } else {
-      return cg.errors.addTermWithMessage(term, 'arguments to with are incorrect, try:\n\nwith (object)\n    do something with (field)');
+      return terms.errors.addTermWithMessage(term, 'arguments to with are incorrect, try:\n\nwith (object)\n    do something with (field)');
     }
   });
 
   macros.addMacro(['and'], function (term, name, args) {
-    return cg.operator('&&', args);
+    return terms.operator('&&', args);
   });
 
   macros.addMacro(['or'], function (term, name, args) {
-    return cg.operator('||', args);
+    return terms.operator('||', args);
   });
 
   macros.addMacro(['not'], function (term, name, args) {
-    return cg.operator('!', args);
+    return terms.operator('!', args);
   });
 
   macros.addMacro(['return'], function(term, name, args) {
-    return cg.returnStatement(args && args[0]);
-  });
-
-  macros.addMacro(['continuation'], function(term, name, args) {
-    if (args) {
-      return cg.functionCall(cg.continuationFunction, args, {couldBeMacro: false});
-    } else {
-      return cg.continuationFunction;
-    }
+    return terms.returnStatement(args && args[0]);
   });
 
   macros.addMacro(['throw'], function(term, name, args) {
     if (areValidArguments(args, isAny)) {
-      return cg.throwStatement(args[0]);
+      return terms.throwStatement(args[0]);
     } else {
-      return cg.errors.addTermWithMessage(term, 'arguments to throw are incorrect, try: @throw error');
+      return terms.errors.addTermWithMessage(term, 'arguments to throw are incorrect, try: @throw error');
     }
   });
 
   macros.addMacro(['break'], function(term, name, args) {
-    return cg.breakStatement();
+    return terms.breakStatement();
   });
 
   macros.addMacro(['continue'], function(term, name, args) {
-    return cg.continueStatement();
+    return terms.continueStatement();
   });
 
   macros.addMacro(['try', 'catch'], function (term, name, args) {
@@ -2653,9 +2606,9 @@ exports.macros = function (cg) {
       var catchParameter = args[1];
       var catchBody = args[2].body;
 
-      return cg.tryExpression(body, {catchBody: catchBody, catchParameter: catchParameter});
+      return terms.tryExpression(body, {catchBody: catchBody, catchParameter: catchParameter});
     } else {
-      return cg.errors.addTermWithMessage(term, 'arguments to try catch are incorrect, try:\n\ntry\n    something dangerous ()\ncatch (error)\n    handle (error)');
+      return terms.errors.addTermWithMessage(term, 'arguments to try catch are incorrect, try:\n\ntry\n    something dangerous ()\ncatch (error)\n    handle (error)');
     }
   });
 
@@ -2666,9 +2619,9 @@ exports.macros = function (cg) {
       var catchBody = args[2].body;
       var finallyBody = args[3].body;
 
-      return cg.tryExpression(body, {catchBody: catchBody, catchParameter: catchParameter, finallyBody: finallyBody});
+      return terms.tryExpression(body, {catchBody: catchBody, catchParameter: catchParameter, finallyBody: finallyBody});
     } else {
-      return cg.errors.addTermWithMessage(term, 'arguments to try catch finally are incorrect, try:\n\ntry\n    something dangerous ()\ncatch (error)\n    handle (error)\nfinally\n    always do this ()');
+      return terms.errors.addTermWithMessage(term, 'arguments to try catch finally are incorrect, try:\n\ntry\n    something dangerous ()\ncatch (error)\n    handle (error)\nfinally\n    always do this ()');
     }
   });
 
@@ -2677,24 +2630,43 @@ exports.macros = function (cg) {
       var body = args[0].body;
       var finallyBody = args[1].body;
 
-      return cg.tryExpression(body, {finallyBody: finallyBody});
+      return terms.tryExpression(body, {finallyBody: finallyBody});
     } else {
-      return cg.errors.addTermWithMessage(term, 'arguments to try finally are incorrect, try:\n\ntry\n    something dangerous ()\nfinally\n    always do this ()');
+      return terms.errors.addTermWithMessage(term, 'arguments to try finally are incorrect, try:\n\ntry\n    something dangerous ()\nfinally\n    always do this ()');
     }
   });
 
   macros.addMacro(['nil'], function (term) {
-    return cg.nil();
+    return terms.nil();
   });
 
   macros.addMacro(['<-'], function (term) {
-    return cg.generator(term.functionArguments[0], term.functionArguments[1]);
+    return terms.generator(term.functionArguments[0], term.functionArguments[1]);
   });
-  
+
+  function functionMacro(name, source) {
+    macros.addMacro([name], function (term, _, args) {
+      var f = terms.moduleConstants.defineAs(
+        [name],
+        terms.javascript(source.toString()),
+        {generated: false}
+      );
+
+      if (args) {
+        return terms.functionCall(f, args, {couldBeMacro: false});
+      } else {
+        return f;
+      }
+    });
+  }
+
+  functionMacro('prototype', prototypeSource._prototype);
+  functionMacro('prototypeExtending', prototypeSource.prototypeExtending);
+
   return macros;
 };
 
-},{"../terms/codegenUtils":38,"./errors":13,"underscore":109}],20:[function(require,module,exports){
+},{"../prototype":25,"../terms/codegenUtils":39,"./errors":13,"underscore":110}],20:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils;
@@ -2858,7 +2830,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{"../terms/codegenUtils":38,"underscore":109}],21:[function(require,module,exports){
+},{"../terms/codegenUtils":39,"underscore":110}],21:[function(require,module,exports){
 (function() {
     var self = this;
     var ms, createParserContext, createDynamicLexer, parser, jisonLexer;
@@ -3090,7 +3062,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./indentStack":15,"./interpolation":16,"./runtime":23,"underscore":109}],23:[function(require,module,exports){
+},{"./indentStack":15,"./interpolation":16,"./runtime":23,"underscore":110}],23:[function(require,module,exports){
 (function() {
     var self = this;
     var constructor;
@@ -3161,7 +3133,39 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{"../terms/codegenUtils":38}],25:[function(require,module,exports){
+},{"../terms/codegenUtils":39}],25:[function(require,module,exports){
+var prototype = exports._prototype = function(p) {
+  function constructor() {}
+
+  p = p || {};
+
+  constructor.prototype = p;
+
+  function derive(derived) {
+    var o = new constructor();
+
+    if (derived) {
+      var keys = Object.keys(derived);
+
+      for (var n = 0; n < keys.length; n++) {
+        var key = keys[n];
+        o[key] = derived[key];
+      }
+    }
+
+    return o;
+  }
+
+  derive.prototype = p;
+
+  return derive;
+}
+
+exports.prototypeExtending = function(p, obj) {
+  return prototype(prototype(p.prototype)(obj));
+};
+
+},{}],26:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3171,8 +3175,7 @@ exports.macros = function (cg) {
             constructor: function(term) {
                 var self = this;
                 self.isResolve = true;
-                self.term = term;
-                return self._resolve = term.promisify();
+                return self.resolve = term.promisify();
             },
             makeAsyncCallWithCallback: function(onFulfilled, onRejected) {
                 var self = this;
@@ -3182,9 +3185,9 @@ exports.macros = function (cg) {
                     args.push(onFulfilled);
                 }
                 if (args.length > 0) {
-                    return terms.methodCall(self._resolve, [ "then" ], args);
+                    return terms.methodCall(self.resolve, [ "then" ], args);
                 } else {
-                    return self._resolve;
+                    return self.resolve;
                 }
             }
         });
@@ -3201,7 +3204,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 (function() {
     var self = this;
     var UniqueNames, SymbolScope;
@@ -3274,7 +3277,7 @@ exports.macros = function (cg) {
         return void 0;
     };
 }).call(this);
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3292,7 +3295,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3320,11 +3323,45 @@ exports.macros = function (cg) {
                 } else {
                     return terms.nil();
                 }
+            },
+            optionalArguments: function(args) {
+                var self = this;
+                return function() {
+                    var gen5_results, gen6_items, gen7_i, arg;
+                    gen5_results = [];
+                    gen6_items = args;
+                    for (gen7_i = 0; gen7_i < gen6_items.length; ++gen7_i) {
+                        arg = gen6_items[gen7_i];
+                        (function(arg) {
+                            if (arg.isDefinition || arg.isHashEntry) {
+                                return gen5_results.push(arg.hashEntry());
+                            }
+                        })(arg);
+                    }
+                    return gen5_results;
+                }();
+            },
+            positionalArguments: function(args) {
+                var self = this;
+                return function() {
+                    var gen8_results, gen9_items, gen10_i, arg;
+                    gen8_results = [];
+                    gen9_items = args;
+                    for (gen10_i = 0; gen10_i < gen9_items.length; ++gen10_i) {
+                        arg = gen9_items[gen10_i];
+                        (function(arg) {
+                            if (!(arg.isDefinition || arg.isHashEntry)) {
+                                return gen8_results.push(arg);
+                            }
+                        })(arg);
+                    }
+                    return gen8_results;
+                }();
             }
         };
     };
 }).call(this);
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3341,7 +3378,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3358,11 +3395,13 @@ exports.macros = function (cg) {
                     return [];
                 }
             }();
-            return terms.closure(params, body);
+            return terms.closure(params, body, {
+                isNewScope: false
+            });
         };
     };
 }).call(this);
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3376,7 +3415,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils, statementsUtils;
@@ -3499,7 +3538,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./codegenUtils":38,"./statementsUtils":83,"underscore":109}],33:[function(require,module,exports){
+},{"./codegenUtils":39,"./statementsUtils":84,"underscore":110}],34:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(cg) {
@@ -3523,7 +3562,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],34:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3544,7 +3583,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -3565,7 +3604,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils, blockParameters, selfParameter, splatParameters, parseSplatParameters, takeFromWhile;
@@ -3658,8 +3697,7 @@ exports.macros = function (cg) {
         return terms.term({
             constructor: function(parameters, body, gen1_options) {
                 var self = this;
-                var optionalParameters, returnLastStatement, redefinesSelf, async, definesModuleConstants, returnPromise, callsFulfillOnReturn, isNewScope;
-                optionalParameters = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "optionalParameters") && gen1_options.optionalParameters !== void 0 ? gen1_options.optionalParameters : [];
+                var returnLastStatement, redefinesSelf, async, definesModuleConstants, returnPromise, callsFulfillOnReturn, isNewScope;
                 returnLastStatement = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "returnLastStatement") && gen1_options.returnLastStatement !== void 0 ? gen1_options.returnLastStatement : true;
                 redefinesSelf = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "redefinesSelf") && gen1_options.redefinesSelf !== void 0 ? gen1_options.redefinesSelf : false;
                 async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
@@ -3670,7 +3708,7 @@ exports.macros = function (cg) {
                 self.isBlock = true;
                 self.isClosure = true;
                 self.isNewScope = isNewScope;
-                self.parameters = parameters;
+                self.setParameters(parameters);
                 self.body = function() {
                     if (returnPromise) {
                         return body.promisify({
@@ -3681,7 +3719,6 @@ exports.macros = function (cg) {
                     }
                 }();
                 self.redefinesSelf = redefinesSelf;
-                self.optionalParameters = optionalParameters;
                 self.makeAsync(async || self.body.isAsync);
                 self.returnLastStatement = returnLastStatement;
                 self.definesModuleConstants = definesModuleConstants;
@@ -3689,12 +3726,10 @@ exports.macros = function (cg) {
             },
             blockify: function(parameters, gen2_options) {
                 var self = this;
-                var optionalParameters, returnPromise, redefinesSelf;
-                optionalParameters = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "optionalParameters") && gen2_options.optionalParameters !== void 0 ? gen2_options.optionalParameters : [];
+                var returnPromise, redefinesSelf;
                 returnPromise = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "returnPromise") && gen2_options.returnPromise !== void 0 ? gen2_options.returnPromise : false;
                 redefinesSelf = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "redefinesSelf") && gen2_options.redefinesSelf !== void 0 ? gen2_options.redefinesSelf : void 0;
-                self.parameters = parameters;
-                self.optionalParameters = optionalParameters;
+                self.setParameters(parameters);
                 if (returnPromise) {
                     self.body = self.body.promisify({
                         statements: true
@@ -3704,6 +3739,11 @@ exports.macros = function (cg) {
                     self.redefinesSelf = redefinesSelf;
                 }
                 return self;
+            },
+            setParameters: function(parameters) {
+                var self = this;
+                self.parameters = terms.argumentUtils.positionalArguments(parameters);
+                return self.optionalParameters = terms.argumentUtils.optionalArguments(parameters);
             },
             makeAsync: function(a) {
                 var self = this;
@@ -3937,7 +3977,7 @@ exports.macros = function (cg) {
         return takenList;
     };
 }).call(this);
-},{"./codegenUtils":38,"underscore":109}],37:[function(require,module,exports){
+},{"./codegenUtils":39,"underscore":110}],38:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils;
@@ -4099,7 +4139,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./codegenUtils":38,"underscore":109}],38:[function(require,module,exports){
+},{"./codegenUtils":39,"underscore":110}],39:[function(require,module,exports){
 (function() {
     var self = this;
     var _, grammar, actualCharacters, nameSegmentRenderedInJavaScript, operatorRenderedInJavaScript, capitalise, reservedWords, escapeReservedWord;
@@ -4246,7 +4286,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../parser/grammar":14,"underscore":109}],39:[function(require,module,exports){
+},{"../parser/grammar":14,"underscore":110}],40:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4257,7 +4297,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4278,7 +4318,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 (function() {
     var self = this;
     var asyncControl;
@@ -4291,7 +4331,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1}],42:[function(require,module,exports){
+},{"../asyncControl":1}],43:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4312,6 +4352,10 @@ exports.macros = function (cg) {
                 return self.isAssignment = assignment;
             },
             expression: function() {
+                var self = this;
+                return self;
+            },
+            parameter: function() {
                 var self = this;
                 return self;
             },
@@ -4350,7 +4394,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -4378,7 +4422,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{"./codegenUtils":38}],44:[function(require,module,exports){
+},{"./codegenUtils":39}],45:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(cg) {
@@ -4396,7 +4440,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4419,7 +4463,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],46:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 (function() {
     var self = this;
     var asyncControl;
@@ -4502,7 +4546,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1}],47:[function(require,module,exports){
+},{"../asyncControl":1}],48:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4535,12 +4579,11 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 (function() {
     var self = this;
-    var codegenUtils, argumentUtils, _, asyncControl;
+    var codegenUtils, _, asyncControl;
     codegenUtils = require("./codegenUtils");
-    argumentUtils = require("./argumentUtils");
     _ = require("underscore");
     asyncControl = require("../asyncControl");
     module.exports = function(terms) {
@@ -4549,16 +4592,15 @@ exports.macros = function (cg) {
         functionCallTerm = terms.term({
             constructor: function(fun, args, gen1_options) {
                 var self = this;
-                var optionalArguments, async, passThisToApply, originallyAsync, asyncCallbackArgument;
-                optionalArguments = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "optionalArguments") && gen1_options.optionalArguments !== void 0 ? gen1_options.optionalArguments : [];
+                var async, passThisToApply, originallyAsync, asyncCallbackArgument;
                 async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
                 passThisToApply = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "passThisToApply") && gen1_options.passThisToApply !== void 0 ? gen1_options.passThisToApply : false;
                 originallyAsync = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "originallyAsync") && gen1_options.originallyAsync !== void 0 ? gen1_options.originallyAsync : false;
                 asyncCallbackArgument = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "asyncCallbackArgument") && gen1_options.asyncCallbackArgument !== void 0 ? gen1_options.asyncCallbackArgument : void 0;
                 self.isFunctionCall = true;
                 self.function = fun;
-                self.functionArguments = args;
-                self.optionalArguments = optionalArguments;
+                self.functionArguments = terms.argumentUtils.positionalArguments(args);
+                self.optionalArguments = terms.argumentUtils.optionalArguments(args);
                 self.passThisToApply = passThisToApply;
                 self.isAsync = async;
                 self.originallyAsync = originallyAsync;
@@ -4606,8 +4648,7 @@ exports.macros = function (cg) {
             }
         });
         return functionCall = function(fun, args, gen2_options) {
-            var optionalArguments, async, passThisToApply, originallyAsync, asyncCallbackArgument, couldBeMacro, future, promisify;
-            optionalArguments = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "optionalArguments") && gen2_options.optionalArguments !== void 0 ? gen2_options.optionalArguments : [];
+            var async, passThisToApply, originallyAsync, asyncCallbackArgument, couldBeMacro, future, promisify;
             async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
             passThisToApply = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "passThisToApply") && gen2_options.passThisToApply !== void 0 ? gen2_options.passThisToApply : false;
             originallyAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "originallyAsync") && gen2_options.originallyAsync !== void 0 ? gen2_options.originallyAsync : false;
@@ -4619,7 +4660,6 @@ exports.macros = function (cg) {
             if (async) {
                 asyncResult = terms.asyncResult();
                 return terms.subStatements([ terms.definition(asyncResult, functionCallTerm(fun, args, {
-                    optionalArguments: optionalArguments,
                     passThisToApply: passThisToApply,
                     originallyAsync: true,
                     asyncCallbackArgument: asyncCallbackArgument
@@ -4630,7 +4670,6 @@ exports.macros = function (cg) {
                 futureFunction = terms.moduleConstants.defineAs([ "future" ], terms.javascript(asyncControl.future.toString()));
                 callback = terms.generatedVariable([ "callback" ]);
                 return terms.functionCall(futureFunction, [ terms.closure([ callback ], terms.statements([ terms.functionCall(fun, args, {
-                    optionalArguments: optionalArguments,
                     passThisToApply: passThisToApply,
                     originallyAsync: true,
                     asyncCallbackArgument: callback,
@@ -4651,7 +4690,6 @@ exports.macros = function (cg) {
                 return gen3_results;
             }().length > 0) {
                 return terms.promisify(terms.functionCall(fun, args, {
-                    optionalArguments: [],
                     async: false,
                     passThisToApply: false,
                     originallyAsync: false,
@@ -4663,15 +4701,12 @@ exports.macros = function (cg) {
             } else if (fun.variable && couldBeMacro) {
                 name = fun.variable;
                 macro = terms.macros.findMacro(name);
-                funCall = functionCallTerm(fun, args, {
-                    optionalArguments: optionalArguments
-                });
+                funCall = functionCallTerm(fun, args);
                 if (macro) {
-                    return macro(funCall, name, args, optionalArguments);
+                    return macro(funCall, name, args);
                 }
             }
             return functionCallTerm(fun, args, {
-                optionalArguments: optionalArguments,
                 passThisToApply: passThisToApply,
                 originallyAsync: originallyAsync,
                 asyncCallbackArgument: asyncCallbackArgument
@@ -4679,7 +4714,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1,"./argumentUtils":28,"./codegenUtils":38,"underscore":109}],49:[function(require,module,exports){
+},{"../asyncControl":1,"./codegenUtils":39,"underscore":110}],50:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4696,7 +4731,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -4761,7 +4796,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{"./codegenUtils":38}],51:[function(require,module,exports){
+},{"./codegenUtils":39}],52:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4779,7 +4814,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],52:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -4805,7 +4840,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{"./codegenUtils":38}],53:[function(require,module,exports){
+},{"./codegenUtils":39}],54:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils, isLegalJavaScriptIdentifier;
@@ -4840,6 +4875,14 @@ exports.macros = function (cg) {
                     return self.value;
                 }
             },
+            hashEntry: function() {
+                var self = this;
+                return self;
+            },
+            parameter: function() {
+                var self = this;
+                return self;
+            },
             generateHashEntry: function(scope) {
                 var self = this;
                 return self.code(self.legalFieldName(), ":", self.valueOrTrue().generate(scope));
@@ -4854,7 +4897,7 @@ exports.macros = function (cg) {
         return /^[$_a-zA-Z][$_a-zA-Z0-9]*$/.test(id);
     };
 }).call(this);
-},{"./codegenUtils":38}],54:[function(require,module,exports){
+},{"./codegenUtils":39}],55:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(cg) {
@@ -4872,7 +4915,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],55:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils, _, asyncControl;
@@ -4955,7 +4998,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1,"./codegenUtils":38,"underscore":109}],56:[function(require,module,exports){
+},{"../asyncControl":1,"./codegenUtils":39,"underscore":110}],57:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4973,7 +5016,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],57:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -4999,7 +5042,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],58:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(cg) {
@@ -5017,7 +5060,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],59:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -5051,7 +5094,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./codegenUtils":38}],60:[function(require,module,exports){
+},{"./codegenUtils":39}],61:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5069,7 +5112,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils, _;
@@ -5126,6 +5169,7 @@ exports.macros = function (cg) {
                 if (macro) {
                     return macro(listTerm(items), hashEntry.field);
                 } else {
+                    throw new Error("here");
                     return terms.errors.addTermWithMessage(hashEntry, "no macro for " + hashEntry.field.join(" "));
                 }
             } else if (hasGenerator) {
@@ -5136,7 +5180,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"./codegenUtils":38,"underscore":109}],62:[function(require,module,exports){
+},{"./codegenUtils":39,"underscore":110}],63:[function(require,module,exports){
 (function() {
     var self = this;
     var _, asyncControl;
@@ -5290,29 +5334,29 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1,"underscore":109}],63:[function(require,module,exports){
+},{"../asyncControl":1,"underscore":110}],64:[function(require,module,exports){
 (function() {
     var self = this;
-    var codegenUtils, argumentUtils, asyncControl;
+    var codegenUtils, argumentUtils, asyncControl, _;
     codegenUtils = require("./codegenUtils");
     argumentUtils = require("./argumentUtils");
     asyncControl = require("../asyncControl");
+    _ = require("underscore");
     module.exports = function(terms) {
         var self = this;
         var methodCallTerm, methodCall;
         methodCallTerm = terms.term({
             constructor: function(object, name, args, gen1_options) {
                 var self = this;
-                var optionalArguments, async, originallyAsync, asyncCallbackArgument;
-                optionalArguments = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "optionalArguments") && gen1_options.optionalArguments !== void 0 ? gen1_options.optionalArguments : [];
+                var async, originallyAsync, asyncCallbackArgument;
                 async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
                 originallyAsync = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "originallyAsync") && gen1_options.originallyAsync !== void 0 ? gen1_options.originallyAsync : false;
                 asyncCallbackArgument = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "asyncCallbackArgument") && gen1_options.asyncCallbackArgument !== void 0 ? gen1_options.asyncCallbackArgument : void 0;
                 self.isMethodCall = true;
                 self.object = object;
                 self.name = name;
-                self.methodArguments = args;
-                self.optionalArguments = optionalArguments;
+                self.methodArguments = terms.argumentUtils.positionalArguments(args);
+                self.optionalArguments = terms.argumentUtils.optionalArguments(args);
                 self.isAsync = async;
                 self.originallyAsync = originallyAsync;
                 return self.asyncCallbackArgument = asyncCallbackArgument;
@@ -5348,17 +5392,17 @@ exports.macros = function (cg) {
             }
         });
         return methodCall = function(object, name, args, gen2_options) {
-            var optionalArguments, async, future, originallyAsync, asyncCallbackArgument, containsSplatArguments, promisify;
-            optionalArguments = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "optionalArguments") && gen2_options.optionalArguments !== void 0 ? gen2_options.optionalArguments : [];
+            var async, future, originallyAsync, asyncCallbackArgument, containsSplatArguments, promisify;
             async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
             future = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "future") && gen2_options.future !== void 0 ? gen2_options.future : false;
             originallyAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "originallyAsync") && gen2_options.originallyAsync !== void 0 ? gen2_options.originallyAsync : false;
             asyncCallbackArgument = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "asyncCallbackArgument") && gen2_options.asyncCallbackArgument !== void 0 ? gen2_options.asyncCallbackArgument : void 0;
             containsSplatArguments = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "containsSplatArguments") && gen2_options.containsSplatArguments !== void 0 ? gen2_options.containsSplatArguments : false;
             promisify = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "promisify") && gen2_options.promisify !== void 0 ? gen2_options.promisify : false;
-            var splattedArgs, objectVar, asyncResult;
-            splattedArgs = terms.splatArguments(args, optionalArguments);
-            if (splattedArgs && !containsSplatArguments) {
+            var objectVar, asyncResult;
+            if (_.any(args, function(arg) {
+                return arg.isSplat;
+            }) && !containsSplatArguments) {
                 objectVar = terms.generatedVariable([ "o" ]);
                 return terms.subStatements([ terms.definition(objectVar, object), methodCall(objectVar, name, args, {
                     async: async,
@@ -5369,7 +5413,6 @@ exports.macros = function (cg) {
             } else if (async) {
                 asyncResult = terms.asyncResult();
                 return terms.subStatements([ terms.definition(asyncResult, methodCallTerm(object, name, args, {
-                    optionalArguments: optionalArguments,
                     async: async,
                     originallyAsync: true
                 }), {
@@ -5390,7 +5433,6 @@ exports.macros = function (cg) {
                 return gen3_results;
             }().length > 0) {
                 return terms.promisify(methodCall(object, name, args, {
-                    optionalArguments: [],
                     async: false,
                     future: false,
                     originallyAsync: false,
@@ -5400,7 +5442,6 @@ exports.macros = function (cg) {
                 }));
             } else {
                 return methodCallTerm(object, name, args, {
-                    optionalArguments: optionalArguments,
                     async: async,
                     originallyAsync: originallyAsync,
                     asyncCallbackArgument: asyncCallbackArgument
@@ -5409,7 +5450,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"../asyncControl":1,"./argumentUtils":28,"./codegenUtils":38}],64:[function(require,module,exports){
+},{"../asyncControl":1,"./argumentUtils":29,"./codegenUtils":39,"underscore":110}],65:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5478,7 +5519,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],65:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5524,7 +5565,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],66:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5542,7 +5583,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],67:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5559,7 +5600,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],68:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5572,7 +5613,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],69:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5619,7 +5660,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],70:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5637,7 +5678,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],71:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5657,7 +5698,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],72:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 (function() {
     var self = this;
     var asyncControl;
@@ -5683,7 +5724,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{"../asyncControl":1}],73:[function(require,module,exports){
+},{"../asyncControl":1}],74:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5707,7 +5748,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],74:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5728,7 +5769,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],75:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5775,7 +5816,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],76:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5805,7 +5846,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],77:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5818,7 +5859,7 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{}],78:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5842,11 +5883,15 @@ exports.macros = function (cg) {
             generateHashEntry: function() {
                 var self = this;
                 return "";
+            },
+            declare: function() {
+                var self = this;
+                return void 0;
             }
         });
     };
 }).call(this);
-},{}],79:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -5863,7 +5908,7 @@ exports.macros = function (cg) {
         });
     };
 }).call(this);
-},{}],80:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 (function() {
     var self = this;
     var _;
@@ -5937,9 +5982,9 @@ exports.macros = function (cg) {
         };
     };
 }).call(this);
-},{"underscore":109}],81:[function(require,module,exports){
-module.exports=require(68)
-},{}],82:[function(require,module,exports){
+},{"underscore":110}],82:[function(require,module,exports){
+module.exports=require(69)
+},{}],83:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils, statementsUtils;
@@ -6138,7 +6183,7 @@ module.exports=require(68)
         });
     };
 }).call(this);
-},{"./codegenUtils":38,"./statementsUtils":83,"underscore":109}],83:[function(require,module,exports){
+},{"./codegenUtils":39,"./statementsUtils":84,"underscore":110}],84:[function(require,module,exports){
 (function() {
     var self = this;
     exports.serialiseStatements = function(statements) {
@@ -6163,7 +6208,7 @@ module.exports=require(68)
         return serialisedStatements;
     };
 }).call(this);
-},{}],84:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -6183,7 +6228,7 @@ module.exports=require(68)
         });
     };
 }).call(this);
-},{"./codegenUtils":38}],85:[function(require,module,exports){
+},{"./codegenUtils":39}],86:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -6201,7 +6246,7 @@ module.exports=require(68)
         });
     };
 }).call(this);
-},{}],86:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 (function() {
     var self = this;
     var _, codegenUtils;
@@ -6243,7 +6288,7 @@ module.exports=require(68)
         });
     };
 }).call(this);
-},{"./codegenUtils":38,"underscore":109}],87:[function(require,module,exports){
+},{"./codegenUtils":39,"underscore":110}],88:[function(require,module,exports){
 (function() {
     var self = this;
     var $class, classExtending, _, ms, sourceMap, buffer;
@@ -6421,7 +6466,7 @@ module.exports=require(68)
                     for (member in node) {
                         (function(member) {
                             if (node.hasOwnProperty(member)) {
-                                t[member] = cloneSubterm(node[member], allowRewrite, path);
+                                t[member] = cloneSubterm(node[member], allowRewrite && member[0] !== "_", path);
                             }
                         })(member);
                     }
@@ -6860,7 +6905,7 @@ module.exports=require(68)
         };
     };
 }).call(this);
-},{"../class":2,"../memorystream":5,"source-map":99,"underscore":109,"util":98}],88:[function(require,module,exports){
+},{"../class":2,"../memorystream":5,"source-map":100,"underscore":110,"util":99}],89:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -6882,7 +6927,7 @@ module.exports=require(68)
         });
     };
 }).call(this);
-},{}],89:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 (function() {
     var self = this;
     var asyncControl;
@@ -6994,7 +7039,7 @@ module.exports=require(68)
         };
     };
 }).call(this);
-},{"../asyncControl":1}],90:[function(require,module,exports){
+},{"../asyncControl":1}],91:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -7013,7 +7058,7 @@ module.exports=require(68)
         });
     };
 }).call(this);
-},{}],91:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 (function() {
     var self = this;
     var codegenUtils;
@@ -7094,7 +7139,7 @@ module.exports=require(68)
         };
     };
 }).call(this);
-},{"./codegenUtils":38}],92:[function(require,module,exports){
+},{"./codegenUtils":39}],93:[function(require,module,exports){
 (function() {
     var self = this;
     var asyncControl;
@@ -7139,7 +7184,7 @@ module.exports=require(68)
         };
     };
 }).call(this);
-},{"../asyncControl":1}],93:[function(require,module,exports){
+},{"../asyncControl":1}],94:[function(require,module,exports){
 (function() {
     var self = this;
     module.exports = function(terms) {
@@ -7173,7 +7218,7 @@ module.exports=require(68)
         };
     };
 }).call(this);
-},{}],94:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -7198,7 +7243,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],95:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -7426,7 +7471,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require("FWaASH"))
-},{"FWaASH":96}],96:[function(require,module,exports){
+},{"FWaASH":97}],97:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -7491,14 +7536,14 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],97:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],98:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -8088,7 +8133,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("FWaASH"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":97,"FWaASH":96,"inherits":94}],99:[function(require,module,exports){
+},{"./support/isBuffer":98,"FWaASH":97,"inherits":95}],100:[function(require,module,exports){
 /*
  * Copyright 2009-2011 Mozilla Foundation and contributors
  * Licensed under the New BSD license. See LICENSE.txt or:
@@ -8098,7 +8143,7 @@ exports.SourceMapGenerator = require('./source-map/source-map-generator').Source
 exports.SourceMapConsumer = require('./source-map/source-map-consumer').SourceMapConsumer;
 exports.SourceNode = require('./source-map/source-node').SourceNode;
 
-},{"./source-map/source-map-consumer":104,"./source-map/source-map-generator":105,"./source-map/source-node":106}],100:[function(require,module,exports){
+},{"./source-map/source-map-consumer":105,"./source-map/source-map-generator":106,"./source-map/source-node":107}],101:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8197,7 +8242,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./util":107,"amdefine":108}],101:[function(require,module,exports){
+},{"./util":108,"amdefine":109}],102:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8343,7 +8388,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./base64":102,"amdefine":108}],102:[function(require,module,exports){
+},{"./base64":103,"amdefine":109}],103:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8387,7 +8432,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":108}],103:[function(require,module,exports){
+},{"amdefine":109}],104:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8470,7 +8515,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":108}],104:[function(require,module,exports){
+},{"amdefine":109}],105:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -8589,7 +8634,7 @@ define(function (require, exports, module) {
   Object.defineProperty(SourceMapConsumer.prototype, 'sources', {
     get: function () {
       return this._sources.toArray().map(function (s) {
-        return this.sourceRoot ? util.join(this.sourceRoot, s) : s;
+        return this.sourceRoot != null ? util.join(this.sourceRoot, s) : s;
       }, this);
     }
   });
@@ -8788,7 +8833,7 @@ define(function (require, exports, module) {
 
       if (mapping && mapping.generatedLine === needle.generatedLine) {
         var source = util.getArg(mapping, 'source', null);
-        if (source && this.sourceRoot) {
+        if (source != null && this.sourceRoot != null) {
           source = util.join(this.sourceRoot, source);
         }
         return {
@@ -8818,7 +8863,7 @@ define(function (require, exports, module) {
         return null;
       }
 
-      if (this.sourceRoot) {
+      if (this.sourceRoot != null) {
         aSource = util.relative(this.sourceRoot, aSource);
       }
 
@@ -8827,7 +8872,7 @@ define(function (require, exports, module) {
       }
 
       var url;
-      if (this.sourceRoot
+      if (this.sourceRoot != null
           && (url = util.urlParse(this.sourceRoot))) {
         // XXX: file:// URIs and absolute paths lead to unexpected behavior for
         // many users. We can help them out when they expect file:// URIs to
@@ -8870,7 +8915,7 @@ define(function (require, exports, module) {
         originalColumn: util.getArg(aArgs, 'column')
       };
 
-      if (this.sourceRoot) {
+      if (this.sourceRoot != null) {
         needle.source = util.relative(this.sourceRoot, needle.source);
       }
 
@@ -8932,7 +8977,7 @@ define(function (require, exports, module) {
       var sourceRoot = this.sourceRoot;
       mappings.map(function (mapping) {
         var source = mapping.source;
-        if (source && sourceRoot) {
+        if (source != null && sourceRoot != null) {
           source = util.join(sourceRoot, source);
         }
         return {
@@ -8950,7 +8995,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":100,"./base64-vlq":101,"./binary-search":103,"./util":107,"amdefine":108}],105:[function(require,module,exports){
+},{"./array-set":101,"./base64-vlq":102,"./binary-search":104,"./util":108,"amdefine":109}],106:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -9008,9 +9053,9 @@ define(function (require, exports, module) {
           }
         };
 
-        if (mapping.source) {
+        if (mapping.source != null) {
           newMapping.source = mapping.source;
-          if (sourceRoot) {
+          if (sourceRoot != null) {
             newMapping.source = util.relative(sourceRoot, newMapping.source);
           }
 
@@ -9019,7 +9064,7 @@ define(function (require, exports, module) {
             column: mapping.originalColumn
           };
 
-          if (mapping.name) {
+          if (mapping.name != null) {
             newMapping.name = mapping.name;
           }
         }
@@ -9028,7 +9073,7 @@ define(function (require, exports, module) {
       });
       aSourceMapConsumer.sources.forEach(function (sourceFile) {
         var content = aSourceMapConsumer.sourceContentFor(sourceFile);
-        if (content) {
+        if (content != null) {
           generator.setSourceContent(sourceFile, content);
         }
       });
@@ -9054,11 +9099,11 @@ define(function (require, exports, module) {
 
       this._validateMapping(generated, original, source, name);
 
-      if (source && !this._sources.has(source)) {
+      if (source != null && !this._sources.has(source)) {
         this._sources.add(source);
       }
 
-      if (name && !this._names.has(name)) {
+      if (name != null && !this._names.has(name)) {
         this._names.add(name);
       }
 
@@ -9078,11 +9123,11 @@ define(function (require, exports, module) {
   SourceMapGenerator.prototype.setSourceContent =
     function SourceMapGenerator_setSourceContent(aSourceFile, aSourceContent) {
       var source = aSourceFile;
-      if (this._sourceRoot) {
+      if (this._sourceRoot != null) {
         source = util.relative(this._sourceRoot, source);
       }
 
-      if (aSourceContent !== null) {
+      if (aSourceContent != null) {
         // Add the source content to the _sourcesContents map.
         // Create a new _sourcesContents map if the property is null.
         if (!this._sourcesContents) {
@@ -9117,46 +9162,47 @@ define(function (require, exports, module) {
    */
   SourceMapGenerator.prototype.applySourceMap =
     function SourceMapGenerator_applySourceMap(aSourceMapConsumer, aSourceFile, aSourceMapPath) {
+      var sourceFile = aSourceFile;
       // If aSourceFile is omitted, we will use the file property of the SourceMap
-      if (!aSourceFile) {
-        if (!aSourceMapConsumer.file) {
+      if (aSourceFile == null) {
+        if (aSourceMapConsumer.file == null) {
           throw new Error(
             'SourceMapGenerator.prototype.applySourceMap requires either an explicit source file, ' +
             'or the source map\'s "file" property. Both were omitted.'
           );
         }
-        aSourceFile = aSourceMapConsumer.file;
+        sourceFile = aSourceMapConsumer.file;
       }
       var sourceRoot = this._sourceRoot;
-      // Make "aSourceFile" relative if an absolute Url is passed.
-      if (sourceRoot) {
-        aSourceFile = util.relative(sourceRoot, aSourceFile);
+      // Make "sourceFile" relative if an absolute Url is passed.
+      if (sourceRoot != null) {
+        sourceFile = util.relative(sourceRoot, sourceFile);
       }
       // Applying the SourceMap can add and remove items from the sources and
       // the names array.
       var newSources = new ArraySet();
       var newNames = new ArraySet();
 
-      // Find mappings for the "aSourceFile"
+      // Find mappings for the "sourceFile"
       this._mappings.forEach(function (mapping) {
-        if (mapping.source === aSourceFile && mapping.originalLine) {
+        if (mapping.source === sourceFile && mapping.originalLine != null) {
           // Check if it can be mapped by the source map, then update the mapping.
           var original = aSourceMapConsumer.originalPositionFor({
             line: mapping.originalLine,
             column: mapping.originalColumn
           });
-          if (original.source !== null) {
+          if (original.source != null) {
             // Copy mapping
             mapping.source = original.source;
-            if (aSourceMapPath) {
+            if (aSourceMapPath != null) {
               mapping.source = util.join(aSourceMapPath, mapping.source)
             }
-            if (sourceRoot) {
+            if (sourceRoot != null) {
               mapping.source = util.relative(sourceRoot, mapping.source);
             }
             mapping.originalLine = original.line;
             mapping.originalColumn = original.column;
-            if (original.name !== null && mapping.name !== null) {
+            if (original.name != null && mapping.name != null) {
               // Only use the identifier name if it's an identifier
               // in both SourceMaps
               mapping.name = original.name;
@@ -9165,12 +9211,12 @@ define(function (require, exports, module) {
         }
 
         var source = mapping.source;
-        if (source && !newSources.has(source)) {
+        if (source != null && !newSources.has(source)) {
           newSources.add(source);
         }
 
         var name = mapping.name;
-        if (name && !newNames.has(name)) {
+        if (name != null && !newNames.has(name)) {
           newNames.add(name);
         }
 
@@ -9181,11 +9227,11 @@ define(function (require, exports, module) {
       // Copy sourcesContents of applied map.
       aSourceMapConsumer.sources.forEach(function (sourceFile) {
         var content = aSourceMapConsumer.sourceContentFor(sourceFile);
-        if (content) {
-          if (aSourceMapPath) {
+        if (content != null) {
+          if (aSourceMapPath != null) {
             sourceFile = util.join(aSourceMapPath, sourceFile);
           }
-          if (sourceRoot) {
+          if (sourceRoot != null) {
             sourceFile = util.relative(sourceRoot, sourceFile);
           }
           this.setSourceContent(sourceFile, content);
@@ -9276,7 +9322,7 @@ define(function (require, exports, module) {
                                    - previousGeneratedColumn);
         previousGeneratedColumn = mapping.generatedColumn;
 
-        if (mapping.source) {
+        if (mapping.source != null) {
           result += base64VLQ.encode(this._sources.indexOf(mapping.source)
                                      - previousSource);
           previousSource = this._sources.indexOf(mapping.source);
@@ -9290,7 +9336,7 @@ define(function (require, exports, module) {
                                      - previousOriginalColumn);
           previousOriginalColumn = mapping.originalColumn;
 
-          if (mapping.name) {
+          if (mapping.name != null) {
             result += base64VLQ.encode(this._names.indexOf(mapping.name)
                                        - previousName);
             previousName = this._names.indexOf(mapping.name);
@@ -9307,7 +9353,7 @@ define(function (require, exports, module) {
         if (!this._sourcesContents) {
           return null;
         }
-        if (aSourceRoot) {
+        if (aSourceRoot != null) {
           source = util.relative(aSourceRoot, source);
         }
         var key = util.toSetString(source);
@@ -9325,12 +9371,14 @@ define(function (require, exports, module) {
     function SourceMapGenerator_toJSON() {
       var map = {
         version: this._version,
-        file: this._file,
         sources: this._sources.toArray(),
         names: this._names.toArray(),
         mappings: this._serializeMappings()
       };
-      if (this._sourceRoot) {
+      if (this._file != null) {
+        map.file = this._file;
+      }
+      if (this._sourceRoot != null) {
         map.sourceRoot = this._sourceRoot;
       }
       if (this._sourcesContents) {
@@ -9352,7 +9400,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":100,"./base64-vlq":101,"./util":107,"amdefine":108}],106:[function(require,module,exports){
+},{"./array-set":101,"./base64-vlq":102,"./util":108,"amdefine":109}],107:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -9369,7 +9417,7 @@ define(function (require, exports, module) {
 
   // Matches a Windows-style `\r\n` newline or a `\n` newline used by all other
   // operating systems these days (capturing the result).
-  var REGEX_NEWLINE = /(\r?\n)/g;
+  var REGEX_NEWLINE = /(\r?\n)/;
 
   // Matches a Windows-style newline, or any character.
   var REGEX_CHARACTER = /\r\n|[\s\S]/g;
@@ -9389,10 +9437,10 @@ define(function (require, exports, module) {
   function SourceNode(aLine, aColumn, aSource, aChunks, aName) {
     this.children = [];
     this.sourceContents = {};
-    this.line = aLine === undefined ? null : aLine;
-    this.column = aColumn === undefined ? null : aColumn;
-    this.source = aSource === undefined ? null : aSource;
-    this.name = aName === undefined ? null : aName;
+    this.line = aLine == null ? null : aLine;
+    this.column = aColumn == null ? null : aColumn;
+    this.source = aSource == null ? null : aSource;
+    this.name = aName == null ? null : aName;
     if (aChunks != null) this.add(aChunks);
   }
 
@@ -9401,9 +9449,11 @@ define(function (require, exports, module) {
    *
    * @param aGeneratedCode The generated code
    * @param aSourceMapConsumer The SourceMap for the generated code
+   * @param aRelativePath Optional. The path that relative sources in the
+   *        SourceMapConsumer should be relative to.
    */
   SourceNode.fromStringWithSourceMap =
-    function SourceNode_fromStringWithSourceMap(aGeneratedCode, aSourceMapConsumer) {
+    function SourceNode_fromStringWithSourceMap(aGeneratedCode, aSourceMapConsumer, aRelativePath) {
       // The SourceNode we want to fill with the generated code
       // and the SourceMap
       var node = new SourceNode();
@@ -9483,7 +9533,10 @@ define(function (require, exports, module) {
       // Copy sourcesContent into SourceNode
       aSourceMapConsumer.sources.forEach(function (sourceFile) {
         var content = aSourceMapConsumer.sourceContentFor(sourceFile);
-        if (content) {
+        if (content != null) {
+          if (aRelativePath != null) {
+            sourceFile = util.join(aRelativePath, sourceFile);
+          }
           node.setSourceContent(sourceFile, content);
         }
       });
@@ -9494,9 +9547,12 @@ define(function (require, exports, module) {
         if (mapping === null || mapping.source === undefined) {
           node.add(code);
         } else {
+          var source = aRelativePath
+            ? util.join(aRelativePath, mapping.source)
+            : mapping.source;
           node.add(new SourceNode(mapping.originalLine,
                                   mapping.originalColumn,
-                                  mapping.source,
+                                  source,
                                   code,
                                   mapping.name));
         }
@@ -9754,7 +9810,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./source-map-generator":105,"./util":107,"amdefine":108}],107:[function(require,module,exports){
+},{"./source-map-generator":106,"./util":108,"amdefine":109}],108:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -10058,7 +10114,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":108}],108:[function(require,module,exports){
+},{"amdefine":109}],109:[function(require,module,exports){
 (function (process,__filename){
 /** vim: et:ts=4:sw=4:sts=4
  * @license amdefine 0.1.0 Copyright (c) 2011, The Dojo Foundation All Rights Reserved.
@@ -10361,7 +10417,7 @@ function amdefine(module, requireFn) {
 module.exports = amdefine;
 
 }).call(this,require("FWaASH"),"/../../node_modules/source-map/node_modules/amdefine/amdefine.js")
-},{"FWaASH":96,"path":95}],109:[function(require,module,exports){
+},{"FWaASH":97,"path":96}],110:[function(require,module,exports){
 //     Underscore.js 1.4.4
 //     http://underscorejs.org
 //     (c) 2009-2013 Jeremy Ashkenas, DocumentCloud Inc.
