@@ -42,7 +42,6 @@ module.exports (terms) =
             if (macro)
                 macro (listTerm (items), hashEntry.field)
             else
-                @throw @new Error "here"
                 terms.errors.addTerm (hashEntry) withMessage "no macro for #(hashEntry.field.join ' ')"
         else if (hasGenerator)
             terms.listComprehension (items)

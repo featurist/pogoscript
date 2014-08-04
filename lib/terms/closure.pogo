@@ -187,7 +187,7 @@ module.exports (terms) =
             buffer.write (self.generateSelfAssignment ())
 
             parametersStrategy.generateJavaScriptParameterStatements (buffer, scope, terms.variable ['arguments'])
-            buffer.write (self.body.generateStatements (bodyScope, inClosure: true))
+            buffer.write (self.body.generateStatements (bodyScope, isScope: self.isNewScope))
 
             buffer.write ('}')
 

@@ -5,16 +5,26 @@ evaluateScript = script.evaluateScript
 
 describe 'definitions'
   describe 'definitions cannot shadow other definitions'
-    it 'definitions can shadow other definitions'
-      'a = 1
+    it 'definitions cannot shadow other definitions'
+      @{ evaluateScript 'a = 1
 
-       f () =
-           a = 3
-           print (a)
+                         f () =
+                           a = 3
+                           print (a)
 
-       f ()
-       print (a)' shouldOutput "3
-                                1"
+                         f ()
+                         print (a)'}.should.throw r/variable a is already defined/
+
+    it 'definitions cannot shadow other definitions #2'
+      @{ evaluateScript 'f (block) = block()
+
+                         a = 1
+
+                         f
+                           a = 2
+                           print (a)
+
+                         print (a)'}.should.throw r/variable a is already defined/
 
     it 'throws when a variable has already been defined in the same scope'
       @{evaluateScript 'a = 1
@@ -68,29 +78,3 @@ describe 'definitions'
            b + "c"
 
          print(a)' shouldOutput "'ac'"
-
-      it 'prepares scope correctly with ifs'
-        'x = 0
-
-         a()! =
-           if(true)
-             x = p(7)!
-             x
-
-         print(a()!)
-         print(x)' shouldOutput '7
-                                 0'
-
-      it 'prepares scope correctly with tries'
-        'x = 0
-
-         a()! =
-           try
-             x = p(7)!
-             x + 1
-           catch (e)
-            print (e)
-
-         print(a()!)
-         print(x)' shouldOutput '8
-                                 0'

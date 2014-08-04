@@ -26,7 +26,7 @@ describe('code generator', function () {
   };
   
   var generatesStatements = function(term, expectedGeneratedCode, global, print) {
-    var code = serialise(term.generateStatements(new cg.SymbolScope(), {inClosure: true, global: global}));
+    var code = serialise(term.generateStatements(new cg.SymbolScope(), {isScope: true, global: global}));
     if (print)
         console.log(stream.toString())
     should.equal(code, expectedGeneratedCode);
@@ -103,7 +103,15 @@ describe('code generator', function () {
       });
 
       it('splat with optional args', function () {
-        var f = cg.functionCall(cg.variable(['f']), [cg.variable(['b']), cg.splat(), cg.hashEntry(['port'], cg.variable(['p']))]);
+        var f = cg.functionCall(
+          cg.variable(['f']),
+          [
+            cg.variable(['b']),
+            cg.splat(),
+            cg.hashEntry(['port'], cg.variable(['p']))
+          ],
+          {options: true}
+        );
       
         generatesExpression(f, 'f.apply(null,b.concat([{port:p}]))');
       });
@@ -111,7 +119,7 @@ describe('code generator', function () {
 
     describe('optional arguments', function () {
       it('with no arguments and an optional argument', function () {
-        var f = cg.functionCall(cg.variable(['f']), [cg.hashEntry(['port'], cg.variable(['p']))]);
+        var f = cg.functionCall(cg.variable(['f']), [cg.hashEntry(['port'], cg.variable(['p']))], {options: true});
 
         generatesExpression(f, 'f({port:p})');
       });
@@ -122,7 +130,7 @@ describe('code generator', function () {
           cg.hashEntry(['port'], cg.variable(['p'])),
           cg.hashEntry(['server'], cg.variable(['s'])),
           cg.hashEntry(['start'])
-        ]);
+        ], {options: true});
 
         generatesExpression(f, 'f(a,{port:p,server:s,start:true})');
       });
@@ -446,7 +454,7 @@ describe('code generator', function () {
 
     describe('optional arguments', function () {
       it('method call with optional argument', function () {
-        var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff']), cg.hashEntry(['port'], cg.integer(45))]);
+        var m = cg.methodCall(cg.variable(['console']), ['log'], [cg.variable(['stuff']), cg.hashEntry(['port'], cg.integer(45))], {options: true});
 
         generatesExpression(m, 'console.log(stuff,{port:45})');
       });
@@ -588,16 +596,16 @@ describe('code generator', function () {
   });
   
   describe('symbol scope', function () {
-    it('variable defined in outer scope, redefined in inner scope', function () {
+    it('variable defined in outer scope, assigned to in inner scope', function () {
       var s = cg.statements([
         cg.definition(cg.variable(['x']), cg.integer(1)),
         cg.functionCall(cg.variable(['f']), [cg.block([], cg.statements([
-          cg.definition(cg.variable(['x']), cg.integer(2)),
+          cg.definition(cg.variable(['x']), cg.integer(2), {assignment: true}),
           cg.variable(['x'])
         ]))])
       ]);
       
-      generatesStatements(s, 'var x;x=1;f(function(){var x;x=2;return x;});');
+      generatesStatements(s, 'var x;x=1;f(function(){x=2;return x;});');
     });
   });
   

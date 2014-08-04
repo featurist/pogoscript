@@ -10,15 +10,15 @@ module.exports (terms) = terms.term {
         self.returnsPromise = returnsPromise
         self._definitions = definitions
 
-    generateStatements (scope, inClosure: false, global: false) =
-        self.generateIntoBuffer @(buffer)
-            if (inClosure)
-              definedVariables = self.findDefinedVariables (scope)
-              self.generateVariableDeclarations (definedVariables, buffer, global: global)
+    generateStatements (scope, isScope: false, global: false) =
+      self.generateIntoBuffer @(buffer)
+        if (isScope)
+          definedVariables = self.findDefinedVariables (scope)
+          self.generateVariableDeclarations (definedVariables, buffer, global: global)
 
-            for (s = 0, s < self.statements.length, ++s)
-                statement = self.statements.(s)
-                buffer.write (statement.generateStatement (scope))
+        for (s = 0, s < self.statements.length, ++s)
+          statement = self.statements.(s)
+          buffer.write (statement.generateStatement (scope))
 
     promisify (definitions: nil, statements: false) =
       if (@not self.returnsPromise)

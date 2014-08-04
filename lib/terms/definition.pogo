@@ -29,7 +29,7 @@ module.exports (terms) = terms.term {
 
     if (name)
       if (@not self.isAssignment)
-        if (scope.is (name) definedInThisScope @and @not self.shadow)
+        if (scope.is (name) defined @and @not self.shadow)
           terms.errors.addTerm (self) withMessage "variable #(self.target.displayName ()) is already defined, use := to reassign it"
         else if (@not self.global)
           self.target.declare (scope)

@@ -4,62 +4,63 @@ asyncControl = require '../asyncControl'
 
 module.exports (terms) =
     functionCallTerm = terms.term {
-        constructor (
-          fun
-          args
-          async: false
-          passThisToApply: false
-          originallyAsync: false
-          asyncCallbackArgument: nil
-        ) =
-          self.isFunctionCall = true
+      constructor (
+        fun
+        args
+        async: false
+        passThisToApply: false
+        options: false
+      ) =
+        self.isFunctionCall = true
 
-          self.function = fun
+        self.function = fun
+
+        if (options)
           self.functionArguments = terms.argumentUtils.positionalArguments(args)
           self.optionalArguments = terms.argumentUtils.optionalArguments(args)
-          self.passThisToApply = passThisToApply
-          self.isAsync = async
-          self.originallyAsync = originallyAsync
-          self.asyncCallbackArgument = asyncCallbackArgument
+        else
+          self.functionArguments = args
 
-        hasSplatArguments () =
-          _.any (self.functionArguments) @(arg)
-            arg.isSplat
+        self.passThisToApply = passThisToApply
+        self.isAsync = async
+
+      hasSplatArguments () =
+        _.any (self.functionArguments) @(arg)
+          arg.isSplat
+    
+      generate (scope) =
+        self.generateIntoBuffer @(buffer)
+          buffer.write (self.function.generateFunction (scope))
+
+          args = codegenUtils.concatArgs (
+            self.functionArguments
+            optionalArgs: self.optionalArguments
+            terms: terms
+          )
+
+          splattedArguments = self.cg.splatArguments (args)
       
-        generate (scope) =
-            self.generateIntoBuffer @(buffer)
-              buffer.write (self.function.generateFunction (scope))
+          if (splattedArguments && self.function.isIndexer)
+            buffer.write ('.apply(')
+            buffer.write (self.function.object.generate (scope))
+            buffer.write (',')
+            buffer.write (splattedArguments.generate (scope))
+            buffer.write (')')
+          else if (splattedArguments)
+            buffer.write ('.apply(')
 
-              args = codegenUtils.concatArgs (
-                self.functionArguments
-                optionalArgs: self.optionalArguments
-                asyncCallbackArg: self.asyncCallbackArgument
-                terms: terms
-              )
+            if (self.passThisToApply)
+              buffer.write ('this')
+            else
+              buffer.write ('null')
 
-              splattedArguments = self.cg.splatArguments (args)
-          
-              if (splattedArguments && self.function.isIndexer)
-                buffer.write ('.apply(')
-                buffer.write (self.function.object.generate (scope))
-                buffer.write (',')
-                buffer.write (splattedArguments.generate (scope))
-                buffer.write (')')
-              else if (splattedArguments)
-                buffer.write ('.apply(')
-
-                if (self.passThisToApply)
-                  buffer.write ('this')
-                else
-                  buffer.write ('null')
-
-                buffer.write (',')
-                buffer.write (splattedArguments.generate (scope))
-                buffer.write (')')
-              else
-                buffer.write ('(')
-                codegenUtils.writeToBufferWithDelimiter (args, ',', buffer, scope)
-                buffer.write (')')
+            buffer.write (',')
+            buffer.write (splattedArguments.generate (scope))
+            buffer.write (')')
+          else
+            buffer.write ('(')
+            codegenUtils.writeToBufferWithDelimiter (args, ',', buffer, scope)
+            buffer.write (')')
     }
 
     functionCall (
@@ -67,11 +68,11 @@ module.exports (terms) =
       args
       async: false
       passThisToApply: false
-      originallyAsync: false
       asyncCallbackArgument: nil
       couldBeMacro: true
       future: false
       promisify: false
+      options: false
     ) =
       if (async)
         asyncResult = terms.asyncResult ()
@@ -84,8 +85,7 @@ module.exports (terms) =
                 fun
                 args
                 passThisToApply: passThisToApply
-                originallyAsync: true
-                asyncCallbackArgument: asyncCallbackArgument
+                options: options
               )
               async: true
             )
@@ -111,8 +111,6 @@ module.exports (terms) =
                     fun
                     args
                     passThisToApply: passThisToApply
-                    originallyAsync: true
-                    asyncCallbackArgument: callback
                     couldBeMacro: couldBeMacro
                   )
                 ]
@@ -127,8 +125,6 @@ module.exports (terms) =
              args
              async: false
              passThisToApply: false
-             originallyAsync: false
-             asyncCallbackArgument: nil
              couldBeMacro: true
              future: false
              promisify: true
@@ -137,7 +133,7 @@ module.exports (terms) =
       else if (fun.variable @and couldBeMacro)
         name = fun.variable
         macro = terms.macros.findMacro (name)
-        funCall = functionCallTerm (fun, args)
+        funCall = functionCallTerm (fun, args, options: options)
 
         if (macro)
           return (macro (funCall, name, args))
@@ -146,6 +142,5 @@ module.exports (terms) =
         fun
         args
         passThisToApply: passThisToApply
-        originallyAsync: originallyAsync
-        asyncCallbackArgument: asyncCallbackArgument
+        options: options
       )

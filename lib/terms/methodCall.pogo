@@ -10,16 +10,20 @@ module.exports (terms) =
           name
           args
           async: false
-          originallyAsync: false
           asyncCallbackArgument: nil
+          options: false
         ) =
           self.isMethodCall = true
           self.object = object
           self.name = name
-          self.methodArguments = terms.argumentUtils.positionalArguments(args)
-          self.optionalArguments = terms.argumentUtils.optionalArguments(args)
+
+          if (options)
+            self.methodArguments = terms.argumentUtils.positionalArguments(args)
+            self.optionalArguments = terms.argumentUtils.optionalArguments(args)
+          else
+            self.methodArguments = args
+
           self.isAsync = async
-          self.originallyAsync = originallyAsync
           self.asyncCallbackArgument = asyncCallbackArgument
 
         generate (scope) =
@@ -57,10 +61,10 @@ module.exports (terms) =
       args
       async: false
       future: false
-      originallyAsync: false
       asyncCallbackArgument: nil
       containsSplatArguments: false
       promisify: false
+      options: false
     ) =
       if (_.any(args) @(arg) @{ arg.isSplat } @and @not containsSplatArguments)
         objectVar = terms.generatedVariable ['o']
@@ -87,7 +91,7 @@ module.exports (terms) =
               name
               args
               async: async
-              originallyAsync: true
+              options: options
             )
             async: true
           )
@@ -101,7 +105,6 @@ module.exports (terms) =
             args
             async: false
             future: false
-            originallyAsync: false
             asyncCallbackArgument: nil
             containsSplatArguments: false
             promisify: true
@@ -113,6 +116,6 @@ module.exports (terms) =
           name
           args
           async: async
-          originallyAsync: originallyAsync
           asyncCallbackArgument: asyncCallbackArgument
+          options: options
         )

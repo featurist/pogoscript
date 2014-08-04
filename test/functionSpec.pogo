@@ -188,6 +188,13 @@ describe 'functions'
            f().then @(result)
              print (result)' shouldOutput '6'
 
+        it 'can define a new variable inside a promise function'
+          'f()! =
+             t = 6
+           
+           f().then @(result)
+             print (result)' shouldOutput '6'
+
     describe 'throwing exceptions'
       context 'when the exception is thrown before a promise is resolved in the body'
         it 'only throws the exception when the promise is resolved'
