@@ -4,8 +4,6 @@ guide: Testing with Mocha
 weight: 8
 ---
 
-## Recognising Pogoscript
-
 Place your pogoscript specs in the `test` directory:
 
     test/
@@ -25,7 +23,7 @@ You can place other arguments in there too, to select the `spec` reporter for ex
 
 ## Promises
 
-Testing asynchronous code in Mocha just works. Recent versions of Mocha support promises, so if you return a promise Mocha will wait for it to fulfill or be rejected. There's no need to have a `done` parameter on your mocha test functions, just write normal pogoscript.
+Testing asynchronous code in Mocha just works.
 
     // test/spec.pogo
 
@@ -48,3 +46,5 @@ Testing asynchronous code in Mocha just works. Recent versions of Mocha support 
 
       it 'can load root'
         expect (api.get '/'!.body).to.eql { name = 'api', version '1' }
+
+Recent versions of Mocha support promises, so if you return a promise Mocha will wait for it to fulfill or be rejected. There's no need to have a `done` parameter on your mocha test functions, just write normal pogoscript.
