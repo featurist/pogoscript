@@ -250,6 +250,14 @@ Will produce `helloWorld.js`.
 
 * [pogoify](https://github.com/featurist/pogoify) by [Josh Chisholm](https://github.com/joshski), a plugin for **Browserify** that compiles your pogoscript files into browserify bundles.
 
+# Editor Support
+
+* [vim-pogoscript](https://github.com/featurist/vim-pogoscript), syntax for [Vim](http://www.vim.org/).
+
+* [PogoScript.tmbundle](https://github.com/featurist/PogoScript.tmbundle), syntax for [TextMate](http://macromates.com/) and [Sublime Text](http://www.sublimetext.com/).
+
+* [language-pogo](https://atom.io/packages/language-pogo), syntax for [Atom](https://atom.io/) by [Josh Chisholm](https://github.com/joshski).
+
 # Articles
 
 * [Compiling Pogo](http://dereke.github.io/compiling-pogo/) by [Derek Ekins](https://github.com/dereke).
