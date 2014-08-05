@@ -9,7 +9,6 @@ module.exports (terms) =
           object
           name
           args
-          async: false
           asyncCallbackArgument: nil
           options: false
         ) =
@@ -23,7 +22,6 @@ module.exports (terms) =
           else
             self.methodArguments = args
 
-          self.isAsync = async
           self.asyncCallbackArgument = asyncCallbackArgument
 
         generate (scope) =
@@ -59,8 +57,6 @@ module.exports (terms) =
       object
       name
       args
-      async: false
-      future: false
       asyncCallbackArgument: nil
       containsSplatArguments: false
       promisify: false
@@ -74,28 +70,9 @@ module.exports (terms) =
             objectVar
             name
             args
-            async: async
-            future: false
             asyncCallbackArgument: nil
             containsSplatArguments: true
           )
-        ]
-      else if (async)
-        asyncResult = terms.asyncResult ()
-
-        terms.subStatements [
-          terms.definition (
-            asyncResult
-            methodCallTerm (
-              object
-              name
-              args
-              async: async
-              options: options
-            )
-            async: true
-          )
-          asyncResult
         ]
       else if (@not promisify @and [a <- args, a.isCallback, a].length > 0)
         @return terms.promisify (
@@ -103,8 +80,6 @@ module.exports (terms) =
             object
             name
             args
-            async: false
-            future: false
             asyncCallbackArgument: nil
             containsSplatArguments: false
             promisify: true
@@ -115,7 +90,6 @@ module.exports (terms) =
           object
           name
           args
-          async: async
           asyncCallbackArgument: asyncCallbackArgument
           options: options
         )
