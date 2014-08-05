@@ -221,3 +221,16 @@ describe 'functions'
              b!
            catch (error)
              print (error.message)' shouldOutput "'uh oh'"
+
+    describe 'callback functions'
+      it 'can call a method with a callback'
+        'func (cb) =
+           setTimeout @{ cb(nil, "result") } 1
+
+         print (func (^)!)' shouldOutput "'result'"
+
+      it 'can call a method with a callback and options'
+        'func (cb, opts) =
+           setTimeout @{ cb(nil, opts) } 1
+
+         print (func (a = "a", ^)!)' shouldOutput "{ a: 'a' }"

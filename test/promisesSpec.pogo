@@ -38,14 +38,6 @@ describe 'promises'
        
        print (f ^.field)' shouldOutput "undefined"
 
-    it 'can pass optional arguments with ^'
-      'f (cb, opts) =
-         setTimeout
-           cb (nil, opts)
-         1
-
-       print (f (opt = "a", ^)!)' shouldOutput "{ opt: 'a' }"
-
   describe 'explicit promises'
     it 'can create explicit promises'
       'x = promise @(success)

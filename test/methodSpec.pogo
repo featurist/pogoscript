@@ -107,3 +107,20 @@ describe 'methods'
 
        if (true)
          o.method ([1, 2, 3], ...)!' shouldOutput "[ 1, 2, 3 ]"
+
+    describe 'callback methods'
+      it 'can call a method with a callback'
+        'o = {
+           method (cb) =
+             setTimeout @{ cb(nil, "result") } 1
+         }
+
+         print (o.method (^)!)' shouldOutput "'result'"
+
+      it 'can call a method with a callback and options'
+        'o = {
+           method (cb, opts) =
+             setTimeout @{ cb(nil, opts) } 1
+         }
+
+         print (o.method (a = "a", ^)!)' shouldOutput "{ a: 'a' }"

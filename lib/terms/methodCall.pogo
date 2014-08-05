@@ -83,6 +83,7 @@ module.exports (terms) =
             asyncCallbackArgument: nil
             containsSplatArguments: false
             promisify: true
+            options: options
           )
         )
       else

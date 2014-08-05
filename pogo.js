@@ -4672,7 +4672,7 @@ exports.prototypeExtending = function(p, obj) {
                     passThisToApply: false,
                     couldBeMacro: true,
                     promisify: true,
-                    options: true
+                    options: options
                 }));
             } else if (fun.variable && couldBeMacro) {
                 name = fun.variable;
@@ -5404,7 +5404,8 @@ exports.prototypeExtending = function(p, obj) {
                 return terms.promisify(methodCall(object, name, args, {
                     asyncCallbackArgument: void 0,
                     containsSplatArguments: false,
-                    promisify: true
+                    promisify: true,
+                    options: options
                 }));
             } else {
                 return methodCallTerm(object, name, args, {

@@ -79,7 +79,7 @@ module.exports (terms) =
              passThisToApply: false
              couldBeMacro: true
              promisify: true
-             options: true
+             options: options
           )
         )
       else if (fun.variable @and couldBeMacro)
