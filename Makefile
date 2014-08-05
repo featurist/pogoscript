@@ -1,3 +1,6 @@
+browser : all
+	browserify -t pogoify -x fs -x uglify-js lib/parser/browser.js > pogo.js
+
 all : subdirs index.js
 
 index.js : index.pogo
@@ -22,11 +25,6 @@ test/pogo.js : browser-test
 
 browser-test :
 	pogo tools/bundle-pogo-tests.pogo > test/pogo.js
-
-html/pogo.js : browser
-
-browser : all
-	browserify -t pogoify -x fs -x uglify-js lib/parser/browser.js > pogo.js
 
 clean:
 	for subdir in src/bootstrap lib; do \

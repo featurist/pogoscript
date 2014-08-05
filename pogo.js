@@ -984,7 +984,7 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return this.wrap(terms.functionCall(terms.variable(head.name(), {couldBeMacro: false, location: this.location()}), this.arguments()));
+          return this.wrap(terms.functionCall(terms.variable(head.name(), {couldBeMacro: false, location: this.location()}), this.arguments(), {options: true}));
         } else {
           return this.wrap(terms.variable(head.name(), {location: this.location()}));
         }
@@ -992,7 +992,7 @@ module.exports = function (listOfTerminals) {
         if (!this.hasTail() && this.arguments().length === 1 && !this.head().isCall()) {
           return this.arguments()[0];
         } else {
-          return this.wrap(terms.functionCall(this.arguments()[0], this.arguments().slice(1)));
+          return this.wrap(terms.functionCall(this.arguments()[0], this.arguments().slice(1), {options: true}));
         }
       }
     };
@@ -1002,7 +1002,7 @@ module.exports = function (listOfTerminals) {
 
       if (head.hasName()) {
         if (this.hasArguments()) {
-          return this.wrap(terms.methodCall(object, head.name(), this.arguments()));
+          return this.wrap(terms.methodCall(object, head.name(), this.arguments(), {options: true}));
         } else {
           return terms.fieldReference(object, head.name());
         }
@@ -1010,7 +1010,7 @@ module.exports = function (listOfTerminals) {
         if (!this.hasTail() && !head.isCall() && !this.isAsyncCall()) {
           return terms.indexer(object, this.arguments()[0]);
         } else {
-          return this.wrap(terms.functionCall(terms.indexer(object, this.arguments()[0]), this.arguments().slice(1)));
+          return this.wrap(terms.functionCall(terms.indexer(object, this.arguments()[0]), this.arguments().slice(1), {options: true}));
         }
       }
     };
@@ -2653,7 +2653,7 @@ exports.macros = function (terms) {
       );
 
       if (args) {
-        return terms.functionCall(f, args, {couldBeMacro: false});
+        return terms.functionCall(f, args, {couldBeMacro: false, options: true});
       } else {
         return f;
       }
@@ -3812,7 +3812,7 @@ exports.prototypeExtending = function(p, obj) {
                     buffer.write(self.generateSelfAssignment());
                     parametersStrategy.generateJavaScriptParameterStatements(buffer, scope, terms.variable([ "arguments" ]));
                     buffer.write(self.body.generateStatements(bodyScope, {
-                        inClosure: true
+                        isScope: self.isNewScope
                     }));
                     return buffer.write("}");
                 });
@@ -4373,7 +4373,7 @@ exports.prototypeExtending = function(p, obj) {
                 name = self.target.canonicalName(scope);
                 if (name) {
                     if (!self.isAssignment) {
-                        if (scope.isDefinedInThisScope(name) && !self.shadow) {
+                        if (scope.isDefined(name) && !self.shadow) {
                             return terms.errors.addTermWithMessage(self, "variable " + self.target.displayName() + " is already defined, use := to reassign it");
                         } else if (!self.global) {
                             return self.target.declare(scope);
@@ -4592,19 +4592,20 @@ exports.prototypeExtending = function(p, obj) {
         functionCallTerm = terms.term({
             constructor: function(fun, args, gen1_options) {
                 var self = this;
-                var async, passThisToApply, originallyAsync, asyncCallbackArgument;
+                var async, passThisToApply, options;
                 async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
                 passThisToApply = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "passThisToApply") && gen1_options.passThisToApply !== void 0 ? gen1_options.passThisToApply : false;
-                originallyAsync = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "originallyAsync") && gen1_options.originallyAsync !== void 0 ? gen1_options.originallyAsync : false;
-                asyncCallbackArgument = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "asyncCallbackArgument") && gen1_options.asyncCallbackArgument !== void 0 ? gen1_options.asyncCallbackArgument : void 0;
+                options = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "options") && gen1_options.options !== void 0 ? gen1_options.options : false;
                 self.isFunctionCall = true;
                 self.function = fun;
-                self.functionArguments = terms.argumentUtils.positionalArguments(args);
-                self.optionalArguments = terms.argumentUtils.optionalArguments(args);
+                if (options) {
+                    self.functionArguments = terms.argumentUtils.positionalArguments(args);
+                    self.optionalArguments = terms.argumentUtils.optionalArguments(args);
+                } else {
+                    self.functionArguments = args;
+                }
                 self.passThisToApply = passThisToApply;
-                self.isAsync = async;
-                self.originallyAsync = originallyAsync;
-                return self.asyncCallbackArgument = asyncCallbackArgument;
+                return self.isAsync = async;
             },
             hasSplatArguments: function() {
                 var self = this;
@@ -4619,7 +4620,6 @@ exports.prototypeExtending = function(p, obj) {
                     buffer.write(self.function.generateFunction(scope));
                     args = codegenUtils.concatArgs(self.functionArguments, {
                         optionalArgs: self.optionalArguments,
-                        asyncCallbackArg: self.asyncCallbackArgument,
                         terms: terms
                     });
                     splattedArguments = self.cg.splatArguments(args);
@@ -4648,34 +4648,13 @@ exports.prototypeExtending = function(p, obj) {
             }
         });
         return functionCall = function(fun, args, gen2_options) {
-            var async, passThisToApply, originallyAsync, asyncCallbackArgument, couldBeMacro, future, promisify;
-            async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
+            var passThisToApply, couldBeMacro, promisify, options;
             passThisToApply = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "passThisToApply") && gen2_options.passThisToApply !== void 0 ? gen2_options.passThisToApply : false;
-            originallyAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "originallyAsync") && gen2_options.originallyAsync !== void 0 ? gen2_options.originallyAsync : false;
-            asyncCallbackArgument = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "asyncCallbackArgument") && gen2_options.asyncCallbackArgument !== void 0 ? gen2_options.asyncCallbackArgument : void 0;
             couldBeMacro = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "couldBeMacro") && gen2_options.couldBeMacro !== void 0 ? gen2_options.couldBeMacro : true;
-            future = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "future") && gen2_options.future !== void 0 ? gen2_options.future : false;
             promisify = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "promisify") && gen2_options.promisify !== void 0 ? gen2_options.promisify : false;
-            var asyncResult, futureFunction, callback, name, macro, funCall;
-            if (async) {
-                asyncResult = terms.asyncResult();
-                return terms.subStatements([ terms.definition(asyncResult, functionCallTerm(fun, args, {
-                    passThisToApply: passThisToApply,
-                    originallyAsync: true,
-                    asyncCallbackArgument: asyncCallbackArgument
-                }), {
-                    async: true
-                }), asyncResult ]);
-            } else if (future) {
-                futureFunction = terms.moduleConstants.defineAs([ "future" ], terms.javascript(asyncControl.future.toString()));
-                callback = terms.generatedVariable([ "callback" ]);
-                return terms.functionCall(futureFunction, [ terms.closure([ callback ], terms.statements([ terms.functionCall(fun, args, {
-                    passThisToApply: passThisToApply,
-                    originallyAsync: true,
-                    asyncCallbackArgument: callback,
-                    couldBeMacro: couldBeMacro
-                }) ])) ]);
-            } else if (!promisify && function() {
+            options = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "options") && gen2_options.options !== void 0 ? gen2_options.options : false;
+            var name, macro, funCall;
+            if (!promisify && function() {
                 var gen3_results, gen4_items, gen5_i, a;
                 gen3_results = [];
                 gen4_items = args;
@@ -4690,26 +4669,24 @@ exports.prototypeExtending = function(p, obj) {
                 return gen3_results;
             }().length > 0) {
                 return terms.promisify(terms.functionCall(fun, args, {
-                    async: false,
                     passThisToApply: false,
-                    originallyAsync: false,
-                    asyncCallbackArgument: void 0,
                     couldBeMacro: true,
-                    future: false,
-                    promisify: true
+                    promisify: true,
+                    options: true
                 }));
             } else if (fun.variable && couldBeMacro) {
                 name = fun.variable;
                 macro = terms.macros.findMacro(name);
-                funCall = functionCallTerm(fun, args);
+                funCall = functionCallTerm(fun, args, {
+                    options: options
+                });
                 if (macro) {
                     return macro(funCall, name, args);
                 }
             }
             return functionCallTerm(fun, args, {
                 passThisToApply: passThisToApply,
-                originallyAsync: originallyAsync,
-                asyncCallbackArgument: asyncCallbackArgument
+                options: options
             });
         };
     };
@@ -4836,6 +4813,10 @@ exports.prototypeExtending = function(p, obj) {
                     });
                     return buffer.write("}");
                 });
+            },
+            generateStatement: function(scope) {
+                var self = this;
+                return terms.definition(terms.generatedVariable([ "o" ]), self).generateStatement(scope);
             }
         });
     };
@@ -5169,7 +5150,6 @@ exports.prototypeExtending = function(p, obj) {
                 if (macro) {
                     return macro(listTerm(items), hashEntry.field);
                 } else {
-                    throw new Error("here");
                     return terms.errors.addTermWithMessage(hashEntry, "no macro for " + hashEntry.field.join(" "));
                 }
             } else if (hasGenerator) {
@@ -5348,17 +5328,18 @@ exports.prototypeExtending = function(p, obj) {
         methodCallTerm = terms.term({
             constructor: function(object, name, args, gen1_options) {
                 var self = this;
-                var async, originallyAsync, asyncCallbackArgument;
-                async = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "async") && gen1_options.async !== void 0 ? gen1_options.async : false;
-                originallyAsync = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "originallyAsync") && gen1_options.originallyAsync !== void 0 ? gen1_options.originallyAsync : false;
+                var asyncCallbackArgument, options;
                 asyncCallbackArgument = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "asyncCallbackArgument") && gen1_options.asyncCallbackArgument !== void 0 ? gen1_options.asyncCallbackArgument : void 0;
+                options = gen1_options !== void 0 && Object.prototype.hasOwnProperty.call(gen1_options, "options") && gen1_options.options !== void 0 ? gen1_options.options : false;
                 self.isMethodCall = true;
                 self.object = object;
                 self.name = name;
-                self.methodArguments = terms.argumentUtils.positionalArguments(args);
-                self.optionalArguments = terms.argumentUtils.optionalArguments(args);
-                self.isAsync = async;
-                self.originallyAsync = originallyAsync;
+                if (options) {
+                    self.methodArguments = terms.argumentUtils.positionalArguments(args);
+                    self.optionalArguments = terms.argumentUtils.optionalArguments(args);
+                } else {
+                    self.methodArguments = args;
+                }
                 return self.asyncCallbackArgument = asyncCallbackArgument;
             },
             generate: function(scope) {
@@ -5392,32 +5373,20 @@ exports.prototypeExtending = function(p, obj) {
             }
         });
         return methodCall = function(object, name, args, gen2_options) {
-            var async, future, originallyAsync, asyncCallbackArgument, containsSplatArguments, promisify;
-            async = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "async") && gen2_options.async !== void 0 ? gen2_options.async : false;
-            future = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "future") && gen2_options.future !== void 0 ? gen2_options.future : false;
-            originallyAsync = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "originallyAsync") && gen2_options.originallyAsync !== void 0 ? gen2_options.originallyAsync : false;
+            var asyncCallbackArgument, containsSplatArguments, promisify, options;
             asyncCallbackArgument = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "asyncCallbackArgument") && gen2_options.asyncCallbackArgument !== void 0 ? gen2_options.asyncCallbackArgument : void 0;
             containsSplatArguments = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "containsSplatArguments") && gen2_options.containsSplatArguments !== void 0 ? gen2_options.containsSplatArguments : false;
             promisify = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "promisify") && gen2_options.promisify !== void 0 ? gen2_options.promisify : false;
-            var objectVar, asyncResult;
+            options = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "options") && gen2_options.options !== void 0 ? gen2_options.options : false;
+            var objectVar;
             if (_.any(args, function(arg) {
                 return arg.isSplat;
             }) && !containsSplatArguments) {
                 objectVar = terms.generatedVariable([ "o" ]);
                 return terms.subStatements([ terms.definition(objectVar, object), methodCall(objectVar, name, args, {
-                    async: async,
-                    future: false,
                     asyncCallbackArgument: void 0,
                     containsSplatArguments: true
                 }) ]);
-            } else if (async) {
-                asyncResult = terms.asyncResult();
-                return terms.subStatements([ terms.definition(asyncResult, methodCallTerm(object, name, args, {
-                    async: async,
-                    originallyAsync: true
-                }), {
-                    async: true
-                }), asyncResult ]);
             } else if (!promisify && function() {
                 var gen3_results, gen4_items, gen5_i, a;
                 gen3_results = [];
@@ -5433,18 +5402,14 @@ exports.prototypeExtending = function(p, obj) {
                 return gen3_results;
             }().length > 0) {
                 return terms.promisify(methodCall(object, name, args, {
-                    async: false,
-                    future: false,
-                    originallyAsync: false,
                     asyncCallbackArgument: void 0,
                     containsSplatArguments: false,
                     promisify: true
                 }));
             } else {
                 return methodCallTerm(object, name, args, {
-                    async: async,
-                    originallyAsync: originallyAsync,
-                    asyncCallbackArgument: asyncCallbackArgument
+                    asyncCallbackArgument: asyncCallbackArgument,
+                    options: options
                 });
             }
         };
@@ -6008,12 +5973,12 @@ module.exports=require(69)
             },
             generateStatements: function(scope, gen2_options) {
                 var self = this;
-                var inClosure, global;
-                inClosure = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "inClosure") && gen2_options.inClosure !== void 0 ? gen2_options.inClosure : false;
+                var isScope, global;
+                isScope = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "isScope") && gen2_options.isScope !== void 0 ? gen2_options.isScope : false;
                 global = gen2_options !== void 0 && Object.prototype.hasOwnProperty.call(gen2_options, "global") && gen2_options.global !== void 0 ? gen2_options.global : false;
                 return self.generateIntoBuffer(function(buffer) {
                     var definedVariables, s, statement;
-                    if (inClosure) {
+                    if (isScope) {
                         definedVariables = self.findDefinedVariables(scope);
                         self.generateVariableDeclarations(definedVariables, buffer, {
                             global: global
