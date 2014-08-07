@@ -13,3 +13,10 @@ exports.serialiseStatements (statements) =
     serialisedStatements.push (statement)
 
   serialisedStatements
+
+exports.definitions(statements) = [
+  s <- statements
+  @not s.isNewScope
+  d <- s.definitions ()
+  d
+]

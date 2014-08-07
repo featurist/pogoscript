@@ -105,11 +105,7 @@ module.exports (terms) = terms.term {
         if (self.statements.length > 0)
           buffer.write (self.statements.(self.statements.length - 1).generateStatement (scope))
 
-    definitions (scope) =
-      _(self.statements).reduce @(list, statement)
-        defs = statement.definitions(scope)
-        list.concat (defs)
-      []
+    definitions (scope) = statementsUtils.definitions(self.statements)
 
     serialiseStatements () =
       self.statements = statementsUtils.serialiseStatements (self.statements)

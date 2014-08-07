@@ -3502,26 +3502,7 @@ exports.prototypeExtending = function(p, obj) {
             var forceAsync;
             forceAsync = gen7_options !== void 0 && Object.prototype.hasOwnProperty.call(gen7_options, "forceAsync") && gen7_options.forceAsync !== void 0 ? gen7_options.forceAsync : false;
             var definitions, serialisedStatements, stmts;
-            definitions = function() {
-                var gen8_results, gen9_items, gen10_i, s;
-                gen8_results = [];
-                gen9_items = statements;
-                for (gen10_i = 0; gen10_i < gen9_items.length; ++gen10_i) {
-                    s = gen9_items[gen10_i];
-                    (function(s) {
-                        var gen11_items, gen12_i, d;
-                        gen11_items = s.definitions();
-                        for (gen12_i = 0; gen12_i < gen11_items.length; ++gen12_i) {
-                            d = gen11_items[gen12_i];
-                            (function(d) {
-                                return gen8_results.push(d);
-                            })(d);
-                        }
-                        return void 0;
-                    })(s);
-                }
-                return gen8_results;
-            }();
+            definitions = statementsUtils.definitions(statements);
             serialisedStatements = statementsUtils.serialiseStatements(statements);
             stmts = putStatementsInCallbackForNextAsyncCall(serialisedStatements, {
                 forceAsync: forceAsync,
@@ -6123,11 +6104,7 @@ module.exports=require(69)
             },
             definitions: function(scope) {
                 var self = this;
-                return _(self.statements).reduce(function(list, statement) {
-                    var defs;
-                    defs = statement.definitions(scope);
-                    return list.concat(defs);
-                }, []);
+                return statementsUtils.definitions(self.statements);
             },
             serialiseStatements: function() {
                 var self = this;
@@ -6172,6 +6149,31 @@ module.exports=require(69)
             serialisedStatements.push(statement);
         }
         return serialisedStatements;
+    };
+    exports.definitions = function(statements) {
+        var self = this;
+        return function() {
+            var gen2_results, gen3_items, gen4_i, s;
+            gen2_results = [];
+            gen3_items = statements;
+            for (gen4_i = 0; gen4_i < gen3_items.length; ++gen4_i) {
+                s = gen3_items[gen4_i];
+                (function(s) {
+                    var gen5_items, gen6_i, d;
+                    if (!s.isNewScope) {
+                        gen5_items = s.definitions();
+                        for (gen6_i = 0; gen6_i < gen5_items.length; ++gen6_i) {
+                            d = gen5_items[gen6_i];
+                            (function(d) {
+                                return gen2_results.push(d);
+                            })(d);
+                        }
+                        return void 0;
+                    }
+                })(s);
+            }
+            return gen2_results;
+        }();
     };
 }).call(this);
 },{}],85:[function(require,module,exports){

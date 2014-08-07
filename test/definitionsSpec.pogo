@@ -15,7 +15,7 @@ describe 'definitions'
                          f ()
                          print (a)'}.should.throw r/variable a is already defined/
 
-    it 'definitions cannot shadow other definitions #2'
+    it 'definitions cannot shadow other definitions in a block'
       @{ evaluateScript 'f (block) = block()
 
                          a = 1
@@ -25,6 +25,16 @@ describe 'definitions'
                            print (a)
 
                          print (a)'}.should.throw r/variable a is already defined/
+
+    it 'returning a block can define variables'
+      'adder (x) =
+         @(y)
+           ans = x + y
+           print (ans)
+
+       plus1 = adder 1
+
+       2 plus1' shouldOutput "3"
 
     it 'throws when a variable has already been defined in the same scope'
       @{evaluateScript 'a = 1

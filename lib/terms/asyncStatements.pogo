@@ -47,7 +47,7 @@ module.exports (terms) =
     terms.statements (statements, async: forceAsync, definitions: definitions)
 
   asyncStatements (statements, forceAsync: false) =
-    definitions = [s <- statements, d <- s.definitions (), d]
+    definitions = statementsUtils.definitions (statements)
 
     serialisedStatements = statementsUtils.serialiseStatements (statements)
     stmts = putStatements (serialisedStatements) inCallbackForNextAsyncCall (forceAsync: forceAsync, definitions: definitions)
