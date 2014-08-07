@@ -92,7 +92,7 @@ OptionParser = class {
         self._options = []
 
     option (description) =
-        option = [parser <- parsers, option = parser (description), option, option].0
+        option = [parser <- parsers, opt = parser (description), opt, opt].0
 
         if (option)
           self._addOption(option)

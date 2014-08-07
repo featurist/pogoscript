@@ -33,7 +33,7 @@ module.exports (terms) =
 
         generate (isAsync, result, index) =
             if (isAsync)
-                listComprehension =
+                listcomp =
                     terms.moduleConstants.define ['list', 'comprehension'] as (
                         terms.javascript (asyncControl.listComprehension.toString ())
                     )
@@ -46,7 +46,7 @@ module.exports (terms) =
                 call =
                     terms.resolve (
                       terms.functionCall (
-                          listComprehension
+                          listcomp
                           [
                               self.collection
                               terms.boolean (self.next.hasGenerator ())

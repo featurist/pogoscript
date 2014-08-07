@@ -103,6 +103,24 @@ exports.listComprehension = function (items, areRanges, block) {
 
 },{}],2:[function(require,module,exports){
 (function() {
+    var prototype = function(p) {
+        function constructor() {}
+        p = p || {};
+        constructor.prototype = p;
+        function derive(derived) {
+            var o = new constructor();
+            if (derived) {
+                var keys = Object.keys(derived);
+                for (var n = 0; n < keys.length; n++) {
+                    var key = keys[n];
+                    o[key] = derived[key];
+                }
+            }
+            return o;
+        }
+        derive.prototype = p;
+        return derive;
+    };
     var self = this;
     exports.class = function(prototype) {
         var self = this;
@@ -5191,13 +5209,13 @@ exports.prototypeExtending = function(p, obj) {
                 },
                 generate: function(isAsync, result, index) {
                     var self = this;
-                    var listComprehension, innerResult, innerIndex, asyncStatements, call, scope;
+                    var listcomp, innerResult, innerIndex, asyncStatements, call, scope;
                     if (isAsync) {
-                        listComprehension = terms.moduleConstants.defineAs([ "list", "comprehension" ], terms.javascript(asyncControl.listComprehension.toString()));
+                        listcomp = terms.moduleConstants.defineAs([ "list", "comprehension" ], terms.javascript(asyncControl.listComprehension.toString()));
                         innerResult = terms.generatedVariable([ "result" ]);
                         innerIndex = terms.generatedVariable([ "index" ]);
                         asyncStatements = terms.asyncStatements(self.next.generate(isAsync, innerResult, innerIndex));
-                        call = terms.resolve(terms.functionCall(listComprehension, [ self.collection, terms.boolean(self.next.hasGenerator()), terms.closure([ innerIndex, self.iterator, innerResult ], asyncStatements) ]));
+                        call = terms.resolve(terms.functionCall(listcomp, [ self.collection, terms.boolean(self.next.hasGenerator()), terms.closure([ innerIndex, self.iterator, innerResult ], asyncStatements) ]));
                         if (result) {
                             return [ terms.functionCall(result, [ call, index ]) ];
                         } else {
@@ -5225,7 +5243,7 @@ exports.prototypeExtending = function(p, obj) {
                         resultsVariable = terms.generatedVariable([ "results" ]);
                         statements = [ terms.definition(resultsVariable, terms.list([])) ];
                         gen4_o = statements;
-                        statements.push.apply(statements, self.next.generate(isAsync, resultsVariable));
+                        gen4_o.push.apply(gen4_o, self.next.generate(isAsync, resultsVariable));
                         statements.push(resultsVariable);
                         return terms.scope(statements);
                     }
@@ -5261,7 +5279,7 @@ exports.prototypeExtending = function(p, obj) {
                     var statements, gen5_o;
                     statements = [ expression ];
                     gen5_o = statements;
-                    statements.push.apply(statements, self.next.generate(isAsync, result, index));
+                    gen5_o.push.apply(gen5_o, self.next.generate(isAsync, result, index));
                     return statements;
                 }
             };
@@ -5630,7 +5648,6 @@ exports.prototypeExtending = function(p, obj) {
     var self = this;
     module.exports = function(terms) {
         var self = this;
-        var promisesModule, js;
         return function() {
             var promisesModule, js;
             if (terms.promisesModule) {
@@ -6853,7 +6870,7 @@ module.exports=require(69)
         });
         termPrototype = new Term();
         term = function(members) {
-            var termConstructor, gen38_c;
+            var termConstructor;
             termConstructor = classExtending(Term, members);
             return function() {
                 var args = Array.prototype.slice.call(arguments, 0, arguments.length);
