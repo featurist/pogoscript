@@ -35,6 +35,7 @@ describe 'operator expression'
     '!=' compilesTo '!=='
     '@not' compilesTo '!'
     '^^' compilesTo '^'
+    '::' compilesTo 'instanceof'
 
     (higher) isHigherInPrecedenceThan (lower) =
         it "parses #(higher) as higher precedence than #(lower)"
@@ -135,6 +136,7 @@ describe 'operator expression'
         '&'
         '^^'
         '|'
+        '::'
         ['&&', '@and']
         ['||', '@or']
         ['<-']

@@ -1,8 +1,8 @@
 _ = require 'underscore'
-codegen utils = require '../terms/codegenUtils'
+codegenUtils = require '../terms/codegenUtils'
 
 module.exports (terms) =
-    operator stack () =
+    operatorStack () =
         operators = []
 
         {
@@ -17,7 +17,7 @@ module.exports (terms) =
                         throw (new (Error "#(op.name) cannot be used with other operators"))
                     else if (!operators.0.precedence)
                         throw (new (Error "#(operators.0.name) cannot be used with other operators"))
-                else if (op.left associative && (op.precedence <= operators.0.precedence))
+                else if (op.leftAssociative && (op.precedence <= operators.0.precedence))
                     popped.push (operators.shift ())
                     self.push (op, popped)
                 else if (op.precedence < operators.0.precedence)
@@ -30,13 +30,13 @@ module.exports (terms) =
             pop () = operators
         }
 
-    operators in decreasing precedence order (ops string) =
-        op lines = ops string.trim ().split r/\n/
+    operatorsInDecreasingPrecedenceOrder (opsString) =
+        opLines = opsString.trim ().split r/\n/
 
-        precedence = op lines.length + 1
+        precedence = opLines.length + 1
         operators = {}
 
-        for each @(line) in (op lines)
+        for each @(line) in (opLines)
             match = r/\s*((\S+\s+)*)(left|right)/.exec (line)
             names = match.1.trim ().split r/\s+/
             assoc = match.3
@@ -46,14 +46,14 @@ module.exports (terms) =
             for each @(name) in (names)
                 operators.(name) = {
                     name = name
-                    left associative = assoc == 'left'
+                    leftAssociative = assoc == 'left'
                     precedence = precedence
                 }
 
         operators
 
-    operator table =
-        table = operators in decreasing precedence order "
+    operatorTable =
+        table = operatorsInDecreasingPrecedenceOrder "
             / * % left
             - + left
             << >> >>> left
@@ -62,14 +62,15 @@ module.exports (terms) =
             & left
             ^^ left
             | left
+            :: left
             && @and left
             || @or left
             <- left
         "
 
         {
-            find op (op) =
-                if (table.has own property (op))
+            findOp (op) =
+                if (table.hasOwnProperty (op))
                     table.(op)
                 else
                     {
@@ -77,55 +78,55 @@ module.exports (terms) =
                     }
         }
 
-    create operator call (name, arguments) =
-        terms.function call (name, arguments)
+    createOperatorCall (name, arguments) =
+        terms.functionCall (name, arguments)
 
     terms.term {
-        constructor (complex expression) =
-            self.arguments = [complex expression]
+        constructor (complexExpression) =
+            self.arguments = [complexExpression]
             self.name = []
 
-        add operator (operator) expression (expression) =
+        addOperator (operator) expression (expression) =
             self.name.push (operator)
             self.arguments.push (expression)
 
         expression () =
             if (self.arguments.length > 1)
                 operands = [self.arguments.0.expression ()]
-                operators = operator stack ()
+                operators = operatorStack ()
 
-                apply operators (ops) =
+                applyOperators (ops) =
                     for each @(op) in (ops)
                         right = operands.shift ()
                         left = operands.shift ()
-                        name = terms.variable ([codegen utils.normalise operator name (op.name)], could be macro: false)
-                        operands.unshift (create operator call (name, [left, right]))
+                        name = terms.variable ([codegenUtils.normaliseOperatorName (op.name)], couldBeMacro: false)
+                        operands.unshift (createOperatorCall (name, [left, right]))
 
                 for (n = 0, n < self.name.length, ++n)
-                    popped ops = operators.push (operator table.find op (self.name.(n)))
+                    poppedOps = operators.push (operatorTable.findOp (self.name.(n)))
     
-                    apply operators (popped ops)
+                    applyOperators (poppedOps)
 
                     operands.unshift (self.arguments.(n + 1).expression ())
 
-                apply operators (operators.pop ())
+                applyOperators (operators.pop ())
 
                 return (operands.0)
             else
                 self.arguments.0.expression ()
 
-        hash entry () =
+        hashEntry () =
             if (self.arguments.length == 1)
-                self.arguments.0.hash entry ()
+                self.arguments.0.hashEntry ()
             else
-                terms.errors.add term with message (self, 'cannot be used as a hash entry')
+                terms.errors.addTermWithMessage (self, 'cannot be used as a hash entry')
         
         definition (source, assignment: false) =
             if (self.arguments.length > 1)
                 object = self.arguments.0.expression ()
                 parms = [arg.expression ().parameter (), where: arg <- self.arguments.slice (1)]
                 
-                terms.definition (terms.field reference (object, self.name), source.blockify (parms, []), assignment: assignment)
+                terms.definition (terms.fieldReference (object, self.name), source.blockify (parms, []), assignment: assignment)
             else
                 self.arguments.0.definition (source, assignment: assignment)
     }
