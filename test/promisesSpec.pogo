@@ -38,6 +38,22 @@ describe 'promises'
        
        print (f ^.field)' shouldOutput "undefined"
 
+  describe 'promise values'
+    it 'waits for a promise to resolve'
+      'x = p 6
+
+       y = x!
+
+       print (y)' shouldOutput '6'
+
+    it 'waits for a promise to resolve'
+      'obj = {}
+       obj.x = p 6
+
+       y = obj.x!
+
+       print (y)' shouldOutput '6'
+
   describe 'explicit promises'
     it 'can create explicit promises'
       'x = promise @(success)
