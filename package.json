@@ -21,7 +21,7 @@
   },
   "main": "index.js",
   "devDependencies": {
-    "bluebird": "~2.2.1",
+    "bluebird": "^2.2.1",
     "browserify": "",
     "chai": "^1.9.1",
     "glob": "",
@@ -39,7 +39,7 @@
     "underscore": "1.4.4"
   },
   "peerDependencies": {
-    "bluebird": "~2.2.1"
+    "bluebird": "^2.2.1"
   },
   "keywords": [
     "language",
