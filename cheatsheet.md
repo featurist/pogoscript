@@ -262,6 +262,11 @@ Or
     for (n = 0, n < 10, ++n)
         console.log (n)
 
+## For In
+
+    for @(propertyName) in (someObject)
+        console.log (propertyName)
+
 ## Return
 
     @return @new circle (40, 50, radius: 50)
