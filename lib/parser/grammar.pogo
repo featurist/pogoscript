@@ -10,6 +10,7 @@ exports.grammar = {
         rules [
             ['^#![^\n]*', '/* ignore hashbang */']
             [' +', '/* ignore whitespace */']
+            ['\\\n', '/* ignore whitespace */']
             ['\s*$', 'return yy.eof();']
             [comments + '$', 'return yy.eof();']
             [comments, 'var indentation = yy.indentation(yytext); if (indentation) { return indentation; }']

@@ -33,3 +33,12 @@ describe 'script'
                  1
                  2
              ]' shouldOutput '[ 1, 2 ]'
+
+    describe 'statements'
+      it 'can span statements over several lines with \'
+        'x = 1 \
+         + 5 * \
+         3 \
+           / 3
+         print (x)' shouldOutput '6'
+        

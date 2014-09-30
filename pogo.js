@@ -1022,7 +1022,7 @@ module.exports = function (listOfTerminals) {
         if (this.hasArguments()) {
           return this.wrap(terms.methodCall(object, head.name(), this.arguments(), {options: true}));
         } else {
-          return terms.fieldReference(object, head.name());
+          return this.wrap(terms.fieldReference(object, head.name()));
         }
       } else {
         if (!this.hasTail() && !head.isCall() && !this.isAsyncCall()) {
@@ -1241,7 +1241,7 @@ exports.errors = function (terms) {
                 interpolated_string: true,
                 interpolated_string_terminal: true
             },
-            rules: [ [ "^#![^\\n]*", "/* ignore hashbang */" ], [ " +", "/* ignore whitespace */" ], [ "\\s*$", "return yy.eof();" ], [ comments + "$", "return yy.eof();" ], [ comments, "var indentation = yy.indentation(yytext); if (indentation) { return indentation; }" ], [ "\\(\\s*", 'yy.setIndentation(yytext); if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return "(";' ], [ "\\s*\\)", "if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); yy.interpolation.stopInterpolation()}} return yy.unsetIndentation(')');" ], [ "{\\s*", "yy.setIndentation(yytext); return '{';" ], [ "\\s*}", "return yy.unsetIndentation('}');" ], [ "\\[\\s*", "yy.setIndentation(yytext); return '[';" ], [ "\\s*\\]", "return yy.unsetIndentation(']')" ], [ "(\\r?\\n *)*\\r?\\n *", "return yy.indentation(yytext);" ], [ "0x[0-9a-fA-F]+", "return 'hex';" ], [ "[0-9]+\\.[0-9]+", "return 'float';" ], [ "[0-9]+", "return 'integer';" ], [ "@" + identifier, 'return "operator";' ], [ "\\.\\.\\.", 'return "...";' ], [ "([:;=?!.@~#%^&*+<>\\/?\\\\|-])+", "return yy.lexOperator(yy, yytext);" ], [ ",", 'return ",";' ], [ "r\\/([^\\\\\\/]*\\\\.)*[^\\/]*\\/(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|)", "return 'reg_exp';" ], [ identifier, "return 'identifier';" ], [ "$", "return 'eof';" ], [ "'([^']*'')*[^']*'", "return 'string';" ], [ '"', "this.begin('interpolated_string'); return 'start_interpolated_string';" ], [ [ "interpolated_string" ], "\\\\#", "return 'escaped_interpolated_string_terminal_start';" ], [ [ "interpolated_string" ], "#\\(", "yy.setIndentation('('); yy.interpolation.startInterpolation(); this.begin('INITIAL'); return '(';" ], [ [ "interpolated_string" ], "#", "return 'interpolated_string_body';" ], [ [ "interpolated_string" ], '"', "this.popState(); return 'end_interpolated_string';" ], [ [ "interpolated_string" ], "\\\\.", "return 'escape_sequence';" ], [ [ "interpolated_string" ], '[^"#\\\\]*', "return 'interpolated_string_body';" ], [ ".", "return 'non_token';" ] ]
+            rules: [ [ "^#![^\\n]*", "/* ignore hashbang */" ], [ " +", "/* ignore whitespace */" ], [ "\\\\\\n", "/* ignore whitespace */" ], [ "\\s*$", "return yy.eof();" ], [ comments + "$", "return yy.eof();" ], [ comments, "var indentation = yy.indentation(yytext); if (indentation) { return indentation; }" ], [ "\\(\\s*", 'yy.setIndentation(yytext); if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return "(";' ], [ "\\s*\\)", "if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); yy.interpolation.stopInterpolation()}} return yy.unsetIndentation(')');" ], [ "{\\s*", "yy.setIndentation(yytext); return '{';" ], [ "\\s*}", "return yy.unsetIndentation('}');" ], [ "\\[\\s*", "yy.setIndentation(yytext); return '[';" ], [ "\\s*\\]", "return yy.unsetIndentation(']')" ], [ "(\\r?\\n *)*\\r?\\n *", "return yy.indentation(yytext);" ], [ "0x[0-9a-fA-F]+", "return 'hex';" ], [ "[0-9]+\\.[0-9]+", "return 'float';" ], [ "[0-9]+", "return 'integer';" ], [ "@" + identifier, 'return "operator";' ], [ "\\.\\.\\.", 'return "...";' ], [ "([:;=?!.@~#%^&*+<>\\/?\\\\|-])+", "return yy.lexOperator(yy, yytext);" ], [ ",", 'return ",";' ], [ "r\\/([^\\\\\\/]*\\\\.)*[^\\/]*\\/(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|)", "return 'reg_exp';" ], [ identifier, "return 'identifier';" ], [ "$", "return 'eof';" ], [ "'([^']*'')*[^']*'", "return 'string';" ], [ '"', "this.begin('interpolated_string'); return 'start_interpolated_string';" ], [ [ "interpolated_string" ], "\\\\#", "return 'escaped_interpolated_string_terminal_start';" ], [ [ "interpolated_string" ], "#\\(", "yy.setIndentation('('); yy.interpolation.startInterpolation(); this.begin('INITIAL'); return '(';" ], [ [ "interpolated_string" ], "#", "return 'interpolated_string_body';" ], [ [ "interpolated_string" ], '"', "this.popState(); return 'end_interpolated_string';" ], [ [ "interpolated_string" ], "\\\\.", "return 'escape_sequence';" ], [ [ "interpolated_string" ], '[^"#\\\\]*', "return 'interpolated_string_body';" ], [ ".", "return 'non_token';" ] ]
         },
         operators: [ [ "right", ":=", "=" ], [ "left", "." ] ],
         start: "module_statements",
@@ -2105,68 +2105,70 @@ case 0:/* ignore hashbang */
 break;
 case 1:/* ignore whitespace */
 break;
-case 2:return yy.eof();
+case 2:/* ignore whitespace */
 break;
 case 3:return yy.eof();
 break;
-case 4:var indentation = yy.indentation(yy_.yytext); if (indentation) { return indentation; }
+case 4:return yy.eof();
 break;
-case 5:yy.setIndentation(yy_.yytext); if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return "(";
+case 5:var indentation = yy.indentation(yy_.yytext); if (indentation) { return indentation; }
 break;
-case 6:if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); yy.interpolation.stopInterpolation()}} return yy.unsetIndentation(')');
+case 6:yy.setIndentation(yy_.yytext); if (yy.interpolation.interpolating()) {yy.interpolation.openBracket()} return "(";
 break;
-case 7:yy.setIndentation(yy_.yytext); return 43;
+case 7:if (yy.interpolation.interpolating()) {yy.interpolation.closeBracket(); if (yy.interpolation.finishedInterpolation()) {this.popState(); yy.interpolation.stopInterpolation()}} return yy.unsetIndentation(')');
 break;
-case 8:return yy.unsetIndentation('}');
+case 8:yy.setIndentation(yy_.yytext); return 43;
 break;
-case 9:yy.setIndentation(yy_.yytext); return 41;
+case 9:return yy.unsetIndentation('}');
 break;
-case 10:return yy.unsetIndentation(']')
+case 10:yy.setIndentation(yy_.yytext); return 41;
 break;
-case 11:return yy.indentation(yy_.yytext);
+case 11:return yy.unsetIndentation(']')
 break;
-case 12:return 46;
+case 12:return yy.indentation(yy_.yytext);
 break;
-case 13:return 44;
+case 13:return 46;
 break;
-case 14:return 45;
+case 14:return 44;
 break;
-case 15:return "operator";
+case 15:return 45;
 break;
-case 16:return "...";
+case 16:return "operator";
 break;
-case 17:return yy.lexOperator(yy, yy_.yytext);
+case 17:return "...";
 break;
-case 18:return ",";
+case 18:return yy.lexOperator(yy, yy_.yytext);
 break;
-case 19:return 49;
+case 19:return ",";
 break;
-case 20:return 47;
+case 20:return 49;
 break;
-case 21:return 5;
+case 21:return 47;
 break;
-case 22:return 48;
+case 22:return 5;
 break;
-case 23:this.begin('interpolated_string'); return 55;
+case 23:return 48;
 break;
-case 24:return 60;
+case 24:this.begin('interpolated_string'); return 55;
 break;
-case 25:yy.setIndentation('('); yy.interpolation.startInterpolation(); this.begin('INITIAL'); return 35;
+case 25:return 60;
 break;
-case 26:return 59;
+case 26:yy.setIndentation('('); yy.interpolation.startInterpolation(); this.begin('INITIAL'); return 35;
 break;
-case 27:this.popState(); return 57;
+case 27:return 59;
 break;
-case 28:return 61;
+case 28:this.popState(); return 57;
 break;
-case 29:return 59;
+case 29:return 61;
 break;
-case 30:return 'non_token';
+case 30:return 59;
+break;
+case 31:return 'non_token';
 break;
 }
 },
-rules: [/^(?:^#![^\n]*)/,/^(?: +)/,/^(?:\s*$)/,/^(?:\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/.*(\r?\n|$))\s*)+$)/,/^(?:\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/.*(\r?\n|$))\s*)+)/,/^(?:\(\s*)/,/^(?:\s*\))/,/^(?:{\s*)/,/^(?:\s*})/,/^(?:\[\s*)/,/^(?:\s*\])/,/^(?:(\r?\n *)*\r?\n *)/,/^(?:0x[0-9a-fA-F]+)/,/^(?:[0-9]+\.[0-9]+)/,/^(?:[0-9]+)/,/^(?:@[a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$][a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$0-9]*)/,/^(?:\.\.\.)/,/^(?:([:;=?!.@~#%^&*+<>\/?\\|-])+)/,/^(?:,)/,/^(?:r\/([^\\\/]*\\.)*[^\/]*\/(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|))/,/^(?:[a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$][a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$0-9]*)/,/^(?:$)/,/^(?:'([^']*'')*[^']*')/,/^(?:")/,/^(?:\\#)/,/^(?:#\()/,/^(?:#)/,/^(?:")/,/^(?:\\.)/,/^(?:[^"#\\]*)/,/^(?:.)/],
-conditions: {"interpolated_string":{"rules":[24,25,26,27,28,29],"inclusive":false},"interpolated_string_terminal":{"rules":[],"inclusive":false},"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,30],"inclusive":true}}
+rules: [/^(?:^#![^\n]*)/,/^(?: +)/,/^(?:\\\n)/,/^(?:\s*$)/,/^(?:\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/.*(\r?\n|$))\s*)+$)/,/^(?:\s*((\/\*([^*](\*+[^\/]|))*(\*\/|$)|\/\/.*(\r?\n|$))\s*)+)/,/^(?:\(\s*)/,/^(?:\s*\))/,/^(?:{\s*)/,/^(?:\s*})/,/^(?:\[\s*)/,/^(?:\s*\])/,/^(?:(\r?\n *)*\r?\n *)/,/^(?:0x[0-9a-fA-F]+)/,/^(?:[0-9]+\.[0-9]+)/,/^(?:[0-9]+)/,/^(?:@[a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$][a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$0-9]*)/,/^(?:\.\.\.)/,/^(?:([:;=?!.@~#%^&*+<>\/?\\|-])+)/,/^(?:,)/,/^(?:r\/([^\\\/]*\\.)*[^\/]*\/(img|mgi|gim|igm|gmi|mig|im|ig|gm|mg|mi|gi|i|m|g|))/,/^(?:[a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$][a-zA-Z\u4E00-\u9FFF\u3400-\u4DFF_$0-9]*)/,/^(?:$)/,/^(?:'([^']*'')*[^']*')/,/^(?:")/,/^(?:\\#)/,/^(?:#\()/,/^(?:#)/,/^(?:")/,/^(?:\\.)/,/^(?:[^"#\\]*)/,/^(?:.)/],
+conditions: {"interpolated_string":{"rules":[25,26,27,28,29,30],"inclusive":false},"interpolated_string_terminal":{"rules":[],"inclusive":false},"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,31],"inclusive":true}}
 };
 return lexer;
 })();
@@ -2752,7 +2754,7 @@ exports.macros = function (terms) {
         };
         operatorTable = function() {
             var table;
-            table = operatorsInDecreasingPrecedenceOrder("\n            / * % left\n            - + left\n            << >> >>> left\n            > >= < <= left\n            == != left\n            & left\n            ^^ left\n            | left\n            && @and left\n            || @or left\n            <- left\n        ");
+            table = operatorsInDecreasingPrecedenceOrder("\n            / * % left\n            - + left\n            << >> >>> left\n            > >= < <= left\n            == != left\n            & left\n            ^^ left\n            | left\n            :: left\n            && @and left\n            || @or left\n            <- left\n        ");
             return {
                 findOp: function(op) {
                     var self = this;
