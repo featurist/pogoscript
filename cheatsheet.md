@@ -76,34 +76,21 @@ Or all on one line:
 
 # Async
 
-See also [the rules](https://github.com/featurist/pogoscript/wiki/Async-Rules).
-
-## Async Function Calls
+## With Promises
 
 Use the `!` operator:
 
-    users.find by name! 'Jack'
+    users.findByName! 'Jack'
 
-## Passing Async Blocks
+As with other arguments, the `!` operator can be placed anywhere in the function call:
 
-Blocks that contain async calls expect an async callback as the last argument, works great in [mocha](http://visionmedia.github.com/mocha) tests:
+    users.findByName 'Jack'!
 
-    describe 'finding users'
-        it 'finds users by name'
-            users.find by name! 'Jack'
-            ...
+## With Callbacks
 
-If you pass two blocks and one of them is async, the other is made async too:
+Use the `!` operator, but place a `^` where the callback should be:
 
-    run (block1) then (block2) =
-        block1!()
-        block2!()
-
-    user = nil
-    run!
-        user = users.find by name! 'Jack'
-    then
-        console.log (user.name)
+    fs.readFile('some.txt', 'utf-8', ^)!
 
 # Defining Functions
 
