@@ -66,6 +66,16 @@ describe 'list comprehensions'
             'fs = [x <- [1, 2, 3], @{ x }]
              print [f <- fs, f ()]' shouldOutput '[ 1, 2, 3 ]'
 
+    it 'can iterate over resolved list'
+      'f(n) =
+        p()!
+        n
+
+       list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+
+       print [x <- list, f(x)!]' shouldOutput '[ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ]'
+      
+
     describe 'concurrency'
         it 'can start all async processes, then wait for futures'
 

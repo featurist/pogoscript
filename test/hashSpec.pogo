@@ -27,6 +27,14 @@ describe 'hashes'
                                          'large'
                                          'done'"
   
+        it 'can define methods for strings'
+            "obj = {'a' () = 'a'}
+             print (obj.a ())" shouldOutput "'a'"
+  
+        it 'can define properties for numbers'
+            "obj = {9 = 9}
+             print (obj.(9))" shouldOutput "'a'"
+  
     context "when it doesn't contain hash entries"
         it 'when it contains a method call, it should throw a parsing exception'
             @{
