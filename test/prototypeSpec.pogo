@@ -105,3 +105,30 @@ describe 'prototypes'
 
   it 'prototypeExtending is a function'
     (prototypeExtending :: Function).should.equal (true)
+
+  it 'can call its own constructor'
+    a = prototype {
+      create(value) = self.constructor {
+        value = value
+      }
+
+      isA = true
+    }
+
+    b = prototypeExtending (a) {
+      isB = true
+    }
+
+    x = a()
+    x.isA.should.be.true
+    createdByA = x.create('a')
+    createdByA.value.should.equal 'a'
+    createdByA.isA.should.be.true
+
+    y = b()
+    y.isA.should.be.true
+    y.isB.should.be.true
+    createdByB = y.create('b')
+    createdByB.value.should.equal 'b'
+    createdByB.isA.should.be.true
+    createdByB.isB.should.be.true
