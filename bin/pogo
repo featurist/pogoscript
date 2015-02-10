@@ -25,14 +25,25 @@ try {
       commandLine.lexFile(options._[i]);
     }
   } else if (options.compile) {
-    for (var i in options._) {
-      if (options.watch) {
-        commandLine.watchFile(options._[i], options);
-      } else if (options.ifStale) {
-        commandLine.compileFileIfStale(options._[i], options);
-      } else {
-        commandLine.compileFile(options._[i], options);
+    if (options._.length > 0) {
+      for (var i in options._) {
+        if (options.watch) {
+          commandLine.watchFile(options._[i], options);
+        } else if (options.ifStale) {
+          commandLine.compileFileIfStale(options._[i], options);
+        } else {
+          commandLine.compileFile(options._[i], options);
+        }
       }
+    } else {
+      readFromStream(process.stdin, function (error, contents) {
+        if (error) {
+          console.log(error);
+        } else {
+          var js = commandLine.compile(contents, options);
+          console.log(js);
+        }
+      });
     }
   } else if (options._.length === 0) {
     commandLine.repl();
@@ -45,4 +56,17 @@ try {
   } else {
     console.log(error);
   }
+}
+
+function readFromStream(stream, cb) {
+  var chunks = [];
+  stream.on('data', function (chunk) {
+    chunks.push(chunk);
+  });
+  stream.on('end', function () {
+    cb(undefined, chunks.join(''));
+  });
+  stream.on('error', function (error) {
+    cb(error);
+  });
 }
