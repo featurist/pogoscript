@@ -33,7 +33,7 @@ Needless to say, list comprehensions in all languages support three basic featur
 ### Mapping
 
     > [x <- [1, 2, 3, 4], x * 10]
-    [10, 20, 30]
+    [10, 20, 30, 40]
 
 ### Filtering
 
