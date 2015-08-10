@@ -135,7 +135,7 @@ describe 'debugging'
         it 'starts remote debugging'
             write "console.log 'bug!'" toFile "toDebug.pogo"!
             pogoOutput = run 'pogo --debug toDebug.pogo'!
-            pogoOutput.stderr.should.equal "debugger listening on port 5858\n"
+            pogoOutput.stderr.should.equal "Debugger listening on port 5858\n"
             pogoOutput.stdout.should.equal "bug!\n"
 
 describe '`pogo` (interactive)'

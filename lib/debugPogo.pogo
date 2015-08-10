@@ -26,4 +26,4 @@ node arguments =
 
 exports.debug pogo () =
     child process = require 'child_process'
-    child process.spawn (process.argv.0, node arguments, custom fds: [0, 1, 2])
+    child process.spawn (process.argv.0, node arguments, stdio: 'inherit')
