@@ -38,9 +38,6 @@
     "uglify-js": "~2.4.13",
     "underscore": "1.4.4"
   },
-  "peerDependencies": {
-    "bluebird": "^2.2.1"
-  },
   "keywords": [
     "language",
     "pogo"

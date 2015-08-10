@@ -242,10 +242,10 @@ describe '`pogo` (interactive)'
 
 describe 'pogo --promises'
   promisesTests (runPogoCommand) =
-    it 'default is set to bluebird'
+    it 'default is set to none, using the global Promise'
       source = "wait () = setTimeout ^ 1!
-                bluebird = require 'bluebird'
-                console.log (bluebird == Promise)"
+                global.Promise = 'global promise'
+                console.log ('global promise' == Promise)"
       write (source) toFile "promiseTest.pogo"!
       output = runPogoCommand "promiseTest.pogo"!
       output.stdout.should.equal "true\n"
