@@ -154,7 +154,7 @@ describe '`pogo` (interactive)'
         pogo.stdout.on 'data' @(data)
             out = data.toString ()
             currentOutput := currentOutput + out
-            if (r/^> $/m.test (currentOutput))
+            if (r/^> /m.test (currentOutput))
                 commandOutput = currentOutput.replace (r/\n?> $/, '')
                 currentOutput := ''
                 if (firstPrompt)
