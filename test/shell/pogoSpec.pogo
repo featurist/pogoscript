@@ -141,6 +141,8 @@ describe 'debugging'
 describe '`pogo` (interactive)'
     util = require 'util'
 
+    errorRegex = r/^Error: ((.|\n)*?)\n> > /
+
     pogoSession () =
         pogo = childProcess.spawn (expandPogoCommand 'pogo', []) {
             cwd = __dirname
@@ -154,7 +156,17 @@ describe '`pogo` (interactive)'
         pogo.stdout.on 'data' @(data)
             out = data.toString ()
             currentOutput := currentOutput + out
-            if (r/^> /m.test (currentOutput))
+            if (errorRegex.test (currentOutput))
+                match = errorRegex.exec(currentOutput)
+                commandErrorOutput = match.1
+                currentOutput := currentOutput.replace(errorRegex, '')
+                if (firstPrompt)
+                    firstPrompt := false
+                else
+                    handleResult (commandErrorOutput)
+            else if (r/^Error: /.test (currentOutput))
+                nil
+            else if (r/^> $/m.test (currentOutput))
                 commandOutput = currentOutput.replace (r/\n?> $/, '')
                 currentOutput := ''
                 if (firstPrompt)
