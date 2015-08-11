@@ -81,7 +81,7 @@ exports.listComprehension = function (items, areRanges, block) {
           if (completed == items.length && !wasError) {
             var sortedResults = [];
 
-            indexes.sort();
+            indexes.sort(function (a, b) { return a - b; });
 
             for (n = 0; n < indexes.length; n++) {
               if (areRanges) {
@@ -2664,13 +2664,23 @@ exports.macros = function (terms) {
     return terms.generator(term.functionArguments[0], term.functionArguments[1]);
   });
 
-  function functionMacro(name, source) {
+  function defineConstant(name, source) {
+    return terms.moduleConstants.defineAs(
+      [name],
+      terms.javascript(source.toString()),
+      {generated: false}
+    );
+  }
+
+  function functionMacro(name, source, dependents) {
     macros.addMacro([name], function (term, _, args) {
-      var f = terms.moduleConstants.defineAs(
-        [name],
-        terms.javascript(source.toString()),
-        {generated: false}
-      );
+      if (dependents) {
+        dependents.forEach(function (dep) {
+          defineConstant(dep.name, dep.source);
+        });
+      }
+
+      var f = defineConstant(name, source);
 
       if (args) {
         return terms.functionCall(f, args, {couldBeMacro: false, options: true});
@@ -2678,10 +2688,15 @@ exports.macros = function (terms) {
         return f;
       }
     });
+
+    return {
+      name: name,
+      source: source
+    }
   }
 
-  functionMacro('prototype', prototypeSource._prototype);
-  functionMacro('prototypeExtending', prototypeSource.prototypeExtending);
+  var protoConstant = functionMacro('prototype', prototypeSource._prototype);
+  functionMacro('prototypeExtending', prototypeSource.prototypeExtending, [protoConstant]);
 
   return macros;
 };
@@ -3177,6 +3192,7 @@ var prototype = exports._prototype = function(p) {
   }
 
   derive.prototype = p;
+  constructor.prototype.constructor = derive;
 
   return derive;
 }
