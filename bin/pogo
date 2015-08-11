@@ -10,7 +10,7 @@ cli.option("-s, --if-stale only compile files if they are out of date");
 cli.option("-h, --help print herlp!");
 cli.option("--debug run the node debugger");
 cli.option("--debug-brk run the node debugger, breaking on the first line");
-cli.option("-p, --promises=<promise-module> select a promises module, the default is none");
+cli.option("-p, --promises=<promise-module> select a promises module, the default is 'none' (uses the global Promise)");
 options = cli.parse(process.argv.slice(2));
 
 var commandLine = require('..');
