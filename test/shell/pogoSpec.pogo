@@ -135,7 +135,7 @@ describe 'debugging'
         it 'starts remote debugging'
             write "console.log 'bug!'" toFile "toDebug.pogo"!
             pogoOutput = run 'pogo --debug toDebug.pogo'!
-            pogoOutput.stderr.should.equal "debugger listening on port 5858\n"
+            pogoOutput.stderr.should.equal "Debugger listening on port 5858\n"
             pogoOutput.stdout.should.equal "bug!\n"
 
 describe '`pogo` (interactive)'
@@ -242,10 +242,10 @@ describe '`pogo` (interactive)'
 
 describe 'pogo --promises'
   promisesTests (runPogoCommand) =
-    it 'default is set to bluebird'
+    it 'default is set to none, using the global Promise'
       source = "wait () = setTimeout ^ 1!
-                bluebird = require 'bluebird'
-                console.log (bluebird == Promise)"
+                global.Promise = 'global promise'
+                console.log ('global promise' == Promise)"
       write (source) toFile "promiseTest.pogo"!
       output = runPogoCommand "promiseTest.pogo"!
       output.stdout.should.equal "true\n"
