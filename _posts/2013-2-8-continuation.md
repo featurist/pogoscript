@@ -43,7 +43,7 @@ Which works fine, except, if we wanted to insert another asynchronous call into 
     
 Where perhaps `get routes (callback)` hits the server on first load, but cached results from then on. Either way it should be called asynchronously, and why not?
 
-Problem is we've been lazy and forgotten to put any error checking into our call to `get routes`, whereas really we should have used the async oeprator `!` which will take care of all that for us, no fuss. We want to mix the two styles: pogo async and regular callbacks. So we remove the `callback` parameter, make our function async with `!` and use the `continuation` macro:
+Problem is we've been lazy and forgotten to put any error checking into our call to `get routes`, whereas really we should have used the async operator `!` which will take care of all that for us, no fuss. We want to mix the two styles: pogo async and regular callbacks. So we remove the `callback` parameter, make our function async with `!` and use the `continuation` macro:
 
     getAccountDetailsFor! (user) =
         routes = getRoutes! ()
