@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "source-map": "~0.1.31",
-    "uglify-js": "~2.4.13",
+    "uglify-js": "~3.6.8",
     "underscore": "1.4.4"
   },
   "keywords": [
