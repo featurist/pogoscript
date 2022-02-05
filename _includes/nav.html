@@ -13,7 +13,7 @@
 
       <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
         <li>
-          <a href="/guide">Guide</a>
+          <a href="{{ site.baseurl }}/guide">Guide</a>
           <ul class="guide">
             {% for weight in (1..site.pages.size) %}
             {% for guide in site.pages %}
@@ -21,7 +21,7 @@
             {% if weight == guide.weight %}
             {{ '' }}
             <li>
-              <a href="{{ guide.url }}">{{ guide.guide }}</a>
+              <a href="{{ site.baseurl }}{{ guide.url }}">{{ guide.guide }}</a>
             </li>
             {% endif %}
             {% endif %}
@@ -29,8 +29,8 @@
             {% endfor %}
           </ul>
         </li>
-        <li><a href="/cheatsheet.html">Cheat Sheet</a></li>
-        <li><a href="/angular-cheatsheet.html">AngularJS Cheat Sheet</a></li>
+        <li><a href="{{ site.baseurl }}/cheatsheet.html">Cheat Sheet</a></li>
+        <li><a href="{{ site.baseurl }}/angular-cheatsheet.html">AngularJS Cheat Sheet</a></li>
         <li><a href="http://featurist.github.com/pogo-examples">JavaScript Translation</a></li>
       </ul>
     </div>
@@ -42,7 +42,7 @@
       <ul class="dropdown-menu notes" role="menu" aria-labelledby="dLabel">
         {% assign index = true %}
         {% for post in site.posts %}
-        <li><a href="{{post.url}}">{{ post.title }} <span class="date">{{post.date | date: "%-d, %b %Y"}}</span></a></li>
+        <li><a href="{{ site.baseurl }}{{post.url}}">{{ post.title }} <span class="date">{{post.date | date: "%-d, %b %Y"}}</span></a></li>
         {% endfor %}
       </ul>
     </div>

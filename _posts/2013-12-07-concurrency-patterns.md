@@ -102,7 +102,7 @@ This is true with errors too of course.
 
 # Concurrent List Processing
 
-[List comprehensions](/2013/11/29/list-comprehensions.html) are concurrent in Pogoscript. This allows you to make asynchronous operations over lists concurrent. This includes calling asynchronous functions to filter, map and even generate more lists. See the [docs](/2013/11/29/list-comprehensions.html) for a more thorough introduction.
+[List comprehensions](/pogoscript/2013/11/29/list-comprehensions.html) are concurrent in Pogoscript. This allows you to make asynchronous operations over lists concurrent. This includes calling asynchronous functions to filter, map and even generate more lists. See the [docs](/pogoscript/2013/11/29/list-comprehensions.html) for a more thorough introduction.
 
 Here we have a list of URLs and we make requests for all of them:
 
@@ -143,7 +143,7 @@ Or we can just filter out the broken pages:
 
 ## MORE
 
-* [List Comprehensions](/2013/11/29/list-comprehensions.html)
+* [List Comprehensions](/pogoscript/2013/11/29/list-comprehensions.html)
 
 # Early Start
 

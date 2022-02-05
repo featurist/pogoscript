@@ -1,2 +1,4 @@
 include: [guide]
 markdown: kramdown
+baseurl: /pogoscript
+exclude: [pogoscript]
