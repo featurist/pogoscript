@@ -1,0 +1,1 @@
+docker run -ti -p 4000:4000 --mount type=bind,source="$(pwd)",target=/app ruby:2.2.10 bash -c "cd /app && bundle && jekyll serve"
